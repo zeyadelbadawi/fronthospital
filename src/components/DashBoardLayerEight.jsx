@@ -1,13 +1,12 @@
 import React from "react";
-import UnitCountSix from "./child/UnitCountSix";
-import EarningStatistic from "./child/EarningStatistic";
+import HomeComOne from "./child/HomeComOne";
+import HomeComTo from "./child/HomeComTo";
 import PatientVisitedDepartment from "./child/PatientVisitedbyDepartment";
 import PatientVisitByGender from "./child/PatientVisitByGender";
-import TopPerformanceTwo from "./child/TopPerformanceTwo";
-import LatestAppointmentsOne from "./child/LatestAppointmentsOne";
-import TotalIncome from "./child/TotalIncome";
-import AvailableTreatments from "./child/AvailableTreatments";
-import HealthReportsDocument from "./child/HealthReportsDocument";
+import HomeComThree from "./child/HomeComThree";
+import HomeComSix from "./child/HomeComSix";
+import HomeComFour from "./child/HomeComFour";
+import HomeComFive from "./child/HomeComFive";
 
 const DashBoardLayerEight = () => {
   return (
@@ -16,15 +15,15 @@ const DashBoardLayerEight = () => {
         <div className='col-xxxl-9'>
           <div className='row gy-4'>
             {/* UnitCountSix */}
-            <UnitCountSix />
+            <HomeComOne />
             {/* Earning Statistic */}
-            <EarningStatistic />
+            <HomeComTo />
 
             {/* PatientVisitedDepartment */}
             <PatientVisitedDepartment />
 
                         {/* TopPerformanceTwo */}
-                        <TopPerformanceTwo />
+                        <HomeComThree />
 
             {/* PatientVisitByGender */}
 
@@ -36,13 +35,11 @@ const DashBoardLayerEight = () => {
         <div className='col-xxxl-3'>
           <div className='row gy-4'>
             {/* TotalIncome */}
-            <TotalIncome />
+            <HomeComFour />
 
             {/* AvailableTreatments */}
-            <AvailableTreatments />
+            <HomeComFive />
 
-            {/* HealthReportsDocument */}
-           {/*  <HealthReportsDocument /> */}
           </div>
         </div>
       </div>
@@ -53,7 +50,7 @@ const DashBoardLayerEight = () => {
   <PatientVisitByGender />
 </div>
 <div className="col-12">
-  <LatestAppointmentsOne />
+  <HomeComSix />
 </div>
         </div>
         </div>

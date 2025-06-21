@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axiosInstance from "@/helper/axiosSetup";
 import Header from "@/components/Header";
-import Breadcrumb from "@/components/Breadcrumb";
 import NumberingWizardWithLabel from "@/components/child/NumberingWizardWithLabel";
 
 export default function Page() {
@@ -40,6 +39,7 @@ export default function Page() {
         `${process.env.NEXT_PUBLIC_API_URL}/authentication/profile`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      console.log("Fetched user data:", res.data); // Add this line
       setUser(res.data);
     } catch (err) {
       if (err.response?.status === 403) {
@@ -54,6 +54,7 @@ export default function Page() {
             `${process.env.NEXT_PUBLIC_API_URL}/authentication/profile`,
             { headers: { Authorization: `Bearer ${r.data.accessToken}` } }
           );
+          console.log("Fetched user data after refresh:", retry.data); // Add this line
           setUser(retry.data);
         } catch {}
       }
@@ -149,6 +150,8 @@ export default function Page() {
         <NumberingWizardWithLabel
           currentStep={currentStep}
           setCurrentStep={setCurrentStep}
+          patientId={user?.id}  // Pass the 'id' instead of 'patientId'
+          patientName={user?.name}  // Pass the 'name' field from the user object
         />
       </div>
 

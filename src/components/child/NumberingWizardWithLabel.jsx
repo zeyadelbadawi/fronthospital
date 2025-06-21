@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import axiosInstance from '../../helper/axiosSetup';
 import { ToastContainer, toast } from 'react-toastify'; // Import toast
 import Select from "react-select";                // ← add this
+import SyncfusionDocx from "@/components/SyncfusionDocx";
 
 // define your options once
 const serviceOptions = [
@@ -40,7 +41,7 @@ const SERVICE_PRICES = {
 
 };
 
-const NumberingWizardWithLabel = ({ currentStep, setCurrentStep }) => {
+const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, patientName }) => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [description, setDescription] = useState("");
@@ -50,6 +51,38 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep }) => {
   const [isAlreadyBooked, setIsAlreadyBooked] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]); // ← NEW
   const [selectedSchool, setSelectedSchool] = useState("");
+  const [plan, setPlan] = useState(null);
+  const [defaultDoc, setDefaultDoc] = useState(null);
+
+  useEffect(() => {
+    console.log("patientId received in useEffect:", patientId); // Log patientId
+    const fetchPlanData = async () => {
+      try {
+        console.log("Fetching plan data for patientId:", patientId); // Log before API call
+        const response = await axiosInstance.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/authentication/DRAST-7ALA/plan/${patientId}`
+        );
+        console.log("Plan data fetched:", response.data); // Log API response
+        setPlan(response.data); // Store the fetched plan in the state
+      } catch (error) {
+        console.error("Error fetching plan data:", error);
+      }
+    };
+
+    if (patientId) {
+      fetchPlanData(); // Fetch plan data when patientId changes
+    }
+  }, [patientId]); // Dependency on patientId
+
+
+
+  useEffect(() => {
+    setDefaultDoc({
+      filePath: "/documents/default-drast-hala-plan.doc",
+      fileName: "default-drast-hala-plan.doc",
+    });
+  }, []);
+
 
   useEffect(() => {
     if (currentStep === 0) {
@@ -96,8 +129,8 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep }) => {
   };
 
   const nextStep = () => {
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
+    if (currentStep < 4) { // Ensure that the max step is 4 (since you have 5 steps in total)
+      setCurrentStep(currentStep + 1); // Increment the current step
     }
   };
 
@@ -242,20 +275,27 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep }) => {
                     </div>
                     <span className="text text-xs fw-semibold">Request Evaluation</span>
                   </li>
+                  <li className={`form-wizard-list__item ${currentStep === 2 ? "active" : ""}`}>
+                    <div className="form-wizard-list__line">
+                      <span className="count">3</span>
+                    </div>
+                    <span className="text text-xs fw-semibold">Word Document</span>
+                  </li>
                   {evaluationType !== "free_medical_consultation" && (
-                    <li className={`form-wizard-list__item ${currentStep === 2 ? "active" : ""}`}>
+                    <li className={`form-wizard-list__item ${currentStep === 3 ? "active" : ""}`}>
                       <div className="form-wizard-list__line">
-                        <span className="count">3</span>
+                        <span className="count">4</span>
                       </div>
                       <span className="text text-xs fw-semibold">Pay</span>
                     </li>
                   )}
-                  <li className={`form-wizard-list__item ${currentStep === 3 ? "active" : ""}`}>
+                  <li className={`form-wizard-list__item ${currentStep === 4 ? "active" : ""}`}>
                     <div className="form-wizard-list__line">
-                      <span className="count">4</span>
+                      <span className="count">5</span>
                     </div>
                     <span className="text text-xs fw-semibold">Complete</span>
                   </li>
+
                 </ul>
               </div>
 
@@ -284,7 +324,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep }) => {
                 </div>
                 <div className="form-group text-end">
                   <button
-                    onClick={nextStep}
+                    onClick={nextStep} // Call nextStep directly
                     type="button"
                     className="btn btn-secondary px-32"
                     disabled={false /* or whatever condition you need */}
@@ -350,44 +390,11 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep }) => {
                     </div>
                   </div>
 
-                  {/* Full Package: select multiple services */}
-                  {evaluationType === "single_session" && (
-                    <div className="col-sm-12">
-                      <label className="form-label">Select Service(s)</label>
-                      {/* → for this: */}
-                      <Select
-                        isMulti
-                        options={serviceOptions}
-                        value={serviceOptions.filter(o => selectedServices.includes(o.value))}
-                        onChange={sel => setSelectedServices(sel.map(s => s.value))}
-                        className="react-select-container"
-                        classNamePrefix="react-select"
-                        placeholder="Pick one or more services…"
-                      />
-                    </div>
-                  )}
-                  {evaluationType === "school_evaluation" && (
-                    <div className="col-sm-12">
-                      <label className="form-label">Select School*</label>
-                      <select
-                        className="form-control wizard-required"
-                        value={selectedSchool}
-                        onChange={e => setSelectedSchool(e.target.value)}
-                      >
-                        <option value="">Choose a school</option>
-                        <option value="school_1">School 1</option>
-                        <option value="school_2">School 2</option>
-                        {/* …etc */}
-                      </select>
-                    </div>
-                  )}
-
-
                   <div className="form-group d-flex justify-content-between">
                     {/* Back: go from step 1 → 0 */}
                     <button
                       type="button"
-                      onClick={() => setCurrentStep(0)}      // or just onClick={prevStep}
+                      onClick={() => setCurrentStep(0)} // Go back to the previous step
                       className="btn btn-secondary px-32"
                     >
                       Back
@@ -396,27 +403,65 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep }) => {
                     {/* Next: your existing handler */}
                     <button
                       type="button"
-                      onClick={e => {
-                        if (evaluationType === "free_medical_consultation") {
-                          setCurrentStep(3);
-                          handleConfirmPayment();
-
-
-                        } else {
-                          handlePayClick(e);
-                        }
-                      }}
+                      onClick={nextStep} // Use the nextStep function to go to the next step
                       className="btn btn-info-600 px-32"
                     >
-                      {evaluationType === "free_medical_consultation" ? "Complete" : "Next"}
+                      Next
                     </button>
                   </div>
+                </div>
+              </fieldset>
+              <fieldset className={`wizard-fieldset ${currentStep === 2 && "show"}`}>
+                  <div className="row">
+                  <div className="col-sm-12">
+                    {plan ? (
+                      <SyncfusionDocx
+                        userData={{
+                          docxId: plan._id,
+                          patientId: patientId,
+                          filePath: plan.filePath , // Use plan's filePath if exists
+                          fileName: plan.fileName , // Default fileName
+                          docxName: `drast-hala-plan-${patientName}.docx`,
+                        }}
+                        planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/authentication/py/upload-plan`}
+                      />
+                    ) : defaultDoc ? (  // If no plan, but defaultDoc exists
+                      <SyncfusionDocx
+                        userData={{
+                          docxId: "default-doc-id", // Static or a predefined value for the default document
+                          patientId: patientId,
+                          filePath: defaultDoc.filePath || "/documents/default-drast-hala-plan.doc",
+                          fileName: defaultDoc.fileName || "default-drast-hala-plan.doc",
+                          docxName: `d  lan-${patientName}.docx`,
+                        }}
+                        planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/authentication/py/upload-plan`}
+                      />
+                    ) : (
+                      <p>Loading document...</p>
+                    )}
 
+                  </div>
+                </div>
+                <div className="form-group d-flex justify-content-between">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(1)}  // Go back to the previous tab
+                    className="btn btn-secondary px-32"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(3)}  // Proceed to the next tab
+                    className="btn btn-info-600 px-32"
+                  >
+                    Next
+                  </button>
                 </div>
               </fieldset>
 
               {/* Pay Tab */}
-              <fieldset className={`wizard-fieldset ${currentStep === 2 && "show"}`}>
+              <fieldset className={`wizard-fieldset ${currentStep === 3 && "show"}`}>
                 <h6 className="text-md text-neutral-500">Payment</h6>
                 <div className="form-group text-center">
                   <button
@@ -429,7 +474,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep }) => {
               </fieldset>
 
               {/* Complete Tab */}
-              <fieldset className={`wizard-fieldset ${currentStep === 3 && "show"}`}>
+              <fieldset className={`wizard-fieldset ${currentStep === 4 && "show"}`}>
                 <div className="text-center mb-40">
                   <img
                     src="assets/images/gif/success-img3.gif"

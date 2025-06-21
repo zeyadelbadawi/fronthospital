@@ -1,6 +1,6 @@
 "use client";
 
-import WizardWithBesideLabel from "@/components/child/WizardWithBesideLabel";
+import EvaluateLayer from "@/components/child/EvaluateLayer";
 
 import Breadcrumb from "@/components/Breadcrumb";
 import MasterLayout from "@/masterLayout/MasterLayout";
@@ -15,7 +15,7 @@ const page = () => {
   title="Dashboard / Edit Program" 
 />
 
-      <WizardWithBesideLabel />
+      <EvaluateLayer />
     </MasterLayout>
 
   );
