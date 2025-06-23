@@ -122,7 +122,9 @@ export default function Page() {
       />
         <Breadcrumb title="Your Profile" />
       {/* Page Content */}
-        <PublicProfilepatient />
+        <PublicProfilepatient 
+        
+        />
 
       {/* Login Modal */}
       {showLoginModal && (

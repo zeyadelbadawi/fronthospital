@@ -52,7 +52,6 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
   const [selectedServices, setSelectedServices] = useState([]); // ← NEW
   const [selectedSchool, setSelectedSchool] = useState("");
   const [plan, setPlan] = useState(null);
-  const [defaultDoc, setDefaultDoc] = useState(null);
 
   useEffect(() => {
     console.log("patientId received in useEffect:", patientId); // Log patientId
@@ -60,7 +59,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
       try {
         console.log("Fetching plan data for patientId:", patientId); // Log before API call
         const response = await axiosInstance.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/authentication/DRAST-7ALA/plan/${patientId}`
+          `${process.env.NEXT_PUBLIC_API_URL}/DrastHala/plan/${patientId}`
         );
         console.log("Plan data fetched:", response.data); // Log API response
         setPlan(response.data); // Store the fetched plan in the state
@@ -76,12 +75,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
 
 
 
-  useEffect(() => {
-    setDefaultDoc({
-      filePath: "/documents/default-drast-hala-plan.doc",
-      fileName: "default-drast-hala-plan.doc",
-    });
-  }, []);
+
 
 
   useEffect(() => {
@@ -411,48 +405,47 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                   </div>
                 </div>
               </fieldset>
+
               <fieldset className={`wizard-fieldset ${currentStep === 2 && "show"}`}>
-                  <div className="row">
+                <div className="row">
                   <div className="col-sm-12">
-                    {plan ? (
+                    {plan && plan._id ? (
                       <SyncfusionDocx
                         userData={{
                           docxId: plan._id,
                           patientId: patientId,
-                          filePath: plan.filePath , // Use plan's filePath if exists
-                          fileName: plan.fileName , // Default fileName
-                          docxName: `drast-hala-plan-${patientName}.docx`,
+                          filePath: `${process.env.NEXT_PUBLIC_API_URL}/uploads/DRAST-7ALA/plan/${plan.filePath}`,
+                          fileName: plan.fileName || "default.docx",
+                          docxName: `Case study of student: ${patientName}.docx`,
                         }}
-                        planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/authentication/py/upload-plan`}
-                      />
-                    ) : defaultDoc ? (  // If no plan, but defaultDoc exists
-                      <SyncfusionDocx
-                        userData={{
-                          docxId: "default-doc-id", // Static or a predefined value for the default document
-                          patientId: patientId,
-                          filePath: defaultDoc.filePath || "/documents/default-drast-hala-plan.doc",
-                          fileName: defaultDoc.fileName || "default-drast-hala-plan.doc",
-                          docxName: `d  lan-${patientName}.docx`,
-                        }}
-                        planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/authentication/py/upload-plan`}
+                        planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/DrastHala/upload-plan`}
                       />
                     ) : (
-                      <p>Loading document...</p>
+                      // If no plan is found, render default file
+                      <SyncfusionDocx
+                        userData={{
+                          docxId: "default",  // You can set a default ID or handle it as needed
+                          patientId: patientId,
+                          filePath: `${process.env.NEXT_PUBLIC_API_URL}/uploads/DRAST-7ALA/plan/default.docx`, // Default file path
+                          fileName: "default.docx",  // Default file name
+                         // docxName: `physical-therapy-plan-${patientName}.docx`,
+                        }}
+                        planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/DrastHala/upload-plan`}
+                      />
                     )}
-
                   </div>
                 </div>
                 <div className="form-group d-flex justify-content-between">
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(1)}  // Go back to the previous tab
+                    onClick={() => setCurrentStep(1)} // Go back to the previous tab
                     className="btn btn-secondary px-32"
                   >
                     Back
                   </button>
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(3)}  // Proceed to the next tab
+                    onClick={() => setCurrentStep(3)} // Proceed to the next tab
                     className="btn btn-info-600 px-32"
                   >
                     Next

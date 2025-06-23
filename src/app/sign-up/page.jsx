@@ -17,9 +17,7 @@ const Page = () => {
       phone: formData.get("phone"),
       password: formData.get("password"),
       role: role,
-      ...(role === "volunteer" && {
-        volunteerType: formData.get("volunteerType"),
-      }),
+   
       ...(role === "patient" && {
         dateOfBirth: formData.get("dateOfBirth"),
         address: formData.get("address")

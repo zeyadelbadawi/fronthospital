@@ -42,7 +42,7 @@ const PatientPlanEditor = () => {
   const fetchExistingPlan = async () => {
     try {
       const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/authentication/physical-therapy/plan/${patientId}`
+        `${process.env.NEXT_PUBLIC_API_URL}/physicalTherapy/plan/${patientId}`
       );
       console.log("Existing plan data fetched:", response.data); // Debugging line to check fetched plan data
       setPlan(response.data || { title: "", filePath: "", fileName: "" }); // Fallback to an empty object if no data is found
@@ -60,7 +60,7 @@ const PatientPlanEditor = () => {
       };
       // her !!
       const response = await axiosInstance.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/authentication/physical-therapy/plan`,
+        `${process.env.NEXT_PUBLIC_API_URL}/physicalTherapy/plan`,
         planData
       );
       setPlan(response.data);
@@ -258,17 +258,20 @@ const PatientPlanEditor = () => {
               <div className="row ">
                 <div className="col-12 ">
                   <label className="form-label">Document Viewer</label>
-                  <SyncfusionDocx
+  <SyncfusionDocx
                     userData={{
                       docxId: plan._id,
                       patientId,
-                      filePath:
-                        plan.filePath || "physical-therapy-plan-defoult.docx",
+                      filePath: `${
+                        process.env.NEXT_PUBLIC_API_URL
+                      }/uploads/physical-therapy/plan/${
+                        plan.filePath || "physical-therapy-plan-defoult.docx"
+                      }`,
                       fileName:
                         plan.fileName || "physical-therapy-plan-defoult.docx",
                       docxName: `physical-therapy-plan-${patient.name}.docx`,
                     }}
-                    planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/authentication/py/upload-plan`}
+                    planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/physicalTherapy/upload-plan`}
                   />
                   {/* {plan.filePath ? (
                     <div

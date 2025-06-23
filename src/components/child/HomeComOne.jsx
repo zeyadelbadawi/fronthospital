@@ -5,7 +5,6 @@ import axios from "axios";
 
 const HomeComOne = () => {
   const [doctorData, setDoctorData] = useState({ totalDoctors: 0, joinedThisWeek: 0 });
-  const [volunteerData, setVolunteerData] = useState({ totalVolunteers: 0, joinedThisWeek: 0 });
   const [patientData, setPatientData] = useState({ totalPatients: 0, joinedThisWeek: 0 });
   const [AccountantData, setAccountantData] = useState({ totalAccountants: 0, joinedThisWeek: 0 });
 
@@ -20,11 +19,7 @@ const HomeComOne = () => {
       .then(response => setAccountantData(response.data))
       .catch(error => console.error("Error fetching accountant data:", error));
 
-    // Fetch volunteer data
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/volunteers/count`)
-      .then(response => setVolunteerData(response.data))
-      .catch(error => console.error("Error fetching volunteer data:", error));
-
+   
     // Fetch patient data
     axios.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/patients/count`)
       .then(response => setPatientData(response.data))
