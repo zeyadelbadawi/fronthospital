@@ -37,7 +37,7 @@ const AssignPatientsToPhysicalTherapy = () => {
   
   const fetchAssignedPatients = async () => {
     try {
-      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/physical-therapy-assignments`)
+      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/physicalTherapy/physical-therapy-assignments`)
       const assignments = Array.isArray(response.data) ? response.data : response.data.assignments || []
 
       const patientIds = assignments.map((assignment) =>
@@ -59,7 +59,7 @@ const AssignPatientsToPhysicalTherapy = () => {
     }
   
     try {
-      await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}/authentication/assign-to-physical`, { patientId })
+      await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}/physicalTherapy/assign-to-physical`, { patientId })
       setAssignedPatients([...assignedPatients, patientId])
       alert("Patient assigned to physical therapy department successfully!")
     } catch (error) {
@@ -70,7 +70,7 @@ const AssignPatientsToPhysicalTherapy = () => {
 
   const handleUnassignPatient = async (patientId) => {
     try {
-      await axiosInstance.delete(`${process.env.NEXT_PUBLIC_API_URL}/authentication/unassign-from-physical/${patientId}`)
+      await axiosInstance.delete(`${process.env.NEXT_PUBLIC_API_URL}/physicalTherapy/unassign-from-physical/${patientId}`)
       setAssignedPatients(assignedPatients.filter((id) => id !== patientId))
       alert("Patient unassigned from physical therapy department successfully!")
     } catch (error) {

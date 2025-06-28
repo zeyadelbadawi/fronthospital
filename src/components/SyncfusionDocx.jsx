@@ -27,8 +27,7 @@ export default function SyncfusionDocx({ userData, planEndpoint }) {
     };
   }, []);
 
-  // Load the document when the component mounts
-  const loadDocument = async () => {
+  /*  const loadDocument = async () => {
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/authentication/physical-therapy/view-plan/${userData.docxId}/${userData.filePath}`,
@@ -56,11 +55,12 @@ export default function SyncfusionDocx({ userData, planEndpoint }) {
     } catch (error) {
       console.error("Error loading document:", error);
     }
-  };
+  }; */
+
+  // Load the document when the component mounts
   useEffect(() => {
-    //loadDocument();
     if (documentEditorContainerRef.current) {
-      documentEditorContainerRef.current.documentEditor.open(`${process.env.NEXT_PUBLIC_API_URL}/uploads/physical-therapy/plan/${userData.filePath}`);
+      documentEditorContainerRef.current.documentEditor.open(userData.filePath);
     }
   }, [userData.filePath]);
 

@@ -21,7 +21,7 @@ const AllPatientsPhysicalTherapy = () => {
     setLoading(true)
     try {
       const response = await axiosInstance.get(
-        `/authentication/physical-therapy-assignments?page=${currentPage}&search=${search}`,
+        `/physicalTherapy/physical-therapy-assignments?page=${currentPage}&search=${search}`,
       )
 
       const assignmentsData = Array.isArray(response.data) ? response.data : response.data.assignments || []

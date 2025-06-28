@@ -1,0 +1,52 @@
+.patientsViewContainer {
+  padding: 1.5rem;
+}
+
+.patientsViewCard {
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.patientsViewHeader {
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  padding: 1.5rem;
+}
+
+.patientsViewTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.patientsViewSubtitle {
+  color: #6b7280;
+}
+
+.patientsViewBody {
+  padding: 1.5rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+}
+
+.emptyIcon {
+  color: #9ca3af;
+  margin-bottom: 1rem;
+}
+
+.emptyTitle {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.emptyDescription {
+  color: #6b7280;
+}

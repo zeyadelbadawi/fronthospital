@@ -31,8 +31,6 @@
           router.push("http://localhost:3000/");
         } else if (role === "patient") {
           router.push("http://localhost:3000/email");
-        } else if (role === "volunteer") {
-          router.push("http://localhost:3000/text-generator");
         } else if (role === "doctor") {
           router.push("http://localhost:3000/chat-message");
         }
@@ -108,7 +106,6 @@
                   <option value="">Select Role</option>
                   <option value="admin">admin</option>
                   <option value="patient">Patient</option>
-                  <option value="volunteer">Volunteer</option>
                   <option value="doctor">Doctor</option>
                   <option value="accountant">accountant</option>
 

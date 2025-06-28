@@ -139,7 +139,7 @@ const MasterLayout = ({ children }) => {
 
         const userData = response.data;
         setUser(userData);
-        setUserRole(userData.role); // Get the role (admin, doctor, volunteer, or patient)
+        setUserRole(userData.role); // Get the role (admin, doctor, or patient)
         setUserName(userData.name); // Get the name of the logged-in user
         setLoading(false); // Data fetched, stop loading
 
@@ -184,9 +184,7 @@ const MasterLayout = ({ children }) => {
 
   if (userRole === 'patient') {
     profileLink = '/profile';
-  } else if (userRole === 'volunteer') {
-    profileLink = '/profile-volunteer';
-  } else if (userRole === 'doctor') {
+  }  else if (userRole === 'doctor') {
     profileLink = '/profile-doctor';
   } else if (userRole === 'accountant') {
     profileLink = '/profile-accountant';
@@ -195,10 +193,7 @@ const MasterLayout = ({ children }) => {
   const handleProfileRedirect = () => {
     if (userRole === 'patient') {
       <Link href="/profile"></Link>
-    } else if (userRole === 'volunteer') {
-      <Link href="/profile-volunteer"></Link>
-
-    } else if (userRole === 'doctor') {
+    }  else if (userRole === 'doctor') {
       <Link href="/profile-doctor"></Link>
     }
     else if (userRole === 'accountant') {
@@ -267,6 +262,14 @@ const MasterLayout = ({ children }) => {
             </li>
             <li>
               <Link
+                href='/full-program-appointments'
+                className={pathname === "/full-program-appointments" ? "active-page" : ""}>
+                <Icon icon='bi:chat-dots' className='menu-icon' />
+                <span>Full Program Appointments</span>
+              </Link>
+            </li>
+            <li>
+              <Link
                 href='/profile-dashboard'
                 className={pathname === "/profile-dashboard" ? "active-page" : ""}>
                 <Icon icon='mage:email' className='menu-icon' />
@@ -326,14 +329,7 @@ const MasterLayout = ({ children }) => {
                 <span>All Accountants</span>
               </Link>
             </li>
-            <li>
-              <Link
-                href='/volunteer-list'
-                className={pathname === "/volunteer-list" ? "active-page" : ""}>
-                <Icon icon='hugeicons:student' className='menu-icon' />
-                <span>All volunteers Students</span>
-              </Link>
-            </li>      
+             
             <li className='sidebar-menu-group-title'>payment reports</li>
               <li>
                 <Link

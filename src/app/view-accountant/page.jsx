@@ -16,8 +16,8 @@ const Page = () => {
         {/* Breadcrumb */}
 
         <Breadcrumb 
-  heading="Volunteer Profile" 
-  title="Dashboard / Volunteer Profile" 
+  heading="Accountant Profile" 
+  title="Dashboard / Accountant Profile" 
 />
 
         {/* AdminAccountantProfileLayer */}

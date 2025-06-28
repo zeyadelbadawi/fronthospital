@@ -32,15 +32,9 @@ const SignUpLayer = ({ handleSubmit }) => {
             >
               Patient Sign Up
             </button>
-            <button
-              className={`btn ${role === "volunteer" ? "btn-primary" : "btn-light"}`}
-              onClick={() => setRole("volunteer")}
-            >
-              Volunteer Sign Up
-            </button>
+           
           </div>
 
-          {/* Patient or Volunteer Form based on selected role */}
           {role && (
             <form onSubmit={(e) => handleSubmit(e, role)}>
               {/* Common Fields */}
@@ -80,25 +74,7 @@ const SignUpLayer = ({ handleSubmit }) => {
                 />
               </div>
 
-              {/* Fields for Volunteer */}
-              {role === "volunteer" && (
-                <>
-                  <div className="icon-field mb-16">
-                    <span className="icon top-50 translate-middle-y">
-                      <Icon icon="f7:star" />
-                    </span>
-                    <input
-                      type="text"
-                      className="form-control h-56-px bg-neutral-50 radius-12"
-                      placeholder="Volunteer Type"
-                      name="volunteerType"
-                    />
-                  </div>
-
-            
-                </>
-              )}
-
+              
               {/* Fields for Patient */}
               {role === "patient" && (
                 <>
