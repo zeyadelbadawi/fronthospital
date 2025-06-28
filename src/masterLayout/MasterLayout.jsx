@@ -262,6 +262,14 @@ const MasterLayout = ({ children }) => {
             </li>
             <li>
               <Link
+                href='/full-program-appointments'
+                className={pathname === "/full-program-appointments" ? "active-page" : ""}>
+                <Icon icon='bi:chat-dots' className='menu-icon' />
+                <span>Full Program Appointments</span>
+              </Link>
+            </li>
+            <li>
+              <Link
                 href='/profile-dashboard'
                 className={pathname === "/profile-dashboard" ? "active-page" : ""}>
                 <Icon icon='mage:email' className='menu-icon' />

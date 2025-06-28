@@ -6,7 +6,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -15,11 +14,32 @@ import {
   SidebarMenuSubItem,
   SidebarHeader,
 } from "./ui/sidebar"
-import { ChevronDown, Users, UserPlus, Activity, Brain, Hand, GraduationCap, MessageSquare } from "lucide-react"
+import {
+  ChevronDown,
+  Users,
+  UserPlus,
+  Activity,
+  Brain,
+  Hand,
+  GraduationCap,
+  MessageSquare,
+  Calendar,
+} from "lucide-react"
 import { useContentStore } from "../store/content-store"
 import styles from "../styles/sidebar.module.css"
 
 const departments = [
+     {
+    id: "New-Evaulations-Appointments",
+    name: "New Evaulations Appointments",
+    icon: Calendar,
+    items: [
+    { id: "New-Evaulations", name: "Upcoming Evaulations", type: "upcoming-Evaulations" },
+        { id: "COMPLETE-Evaulations", name: "COMPLETE Evaulations", type: "COMPLETE-Evaulations" },
+      { id: "speech-appointments", name: "Add More Appointments", type: "appointments" },
+
+    ],
+  },
   {
     id: "physical-therapy",
     name: "Physical Therapy",
@@ -65,6 +85,7 @@ const departments = [
       { id: "speech-patients", name: "Patients", type: "patients" },
     ],
   },
+
 ]
 
 export function AppSidebar() {
@@ -72,13 +93,10 @@ export function AppSidebar() {
   const setActiveContent = useContentStore((state) => state.setActiveContent)
 
   const toggleSection = (sectionId) => {
-    console.log("Clicking on:", sectionId)
     setOpenSections((prev) => {
       if (prev.includes(sectionId)) {
-        console.log("Closing section:", sectionId)
         return prev.filter((id) => id !== sectionId)
       } else {
-        console.log("Opening section:", sectionId)
         return [...prev, sectionId]
       }
     })
@@ -93,11 +111,9 @@ export function AppSidebar() {
 
   return (
     <Sidebar className={styles.customSidebar}>
-    <SidebarHeader className={styles.sidebarHeader}>
-  <h5 className={styles.sidebarTitle} style={{ fontWeight: 'bold' }}>
-    Departments
-  </h5>
-</SidebarHeader>
+      <SidebarHeader className={styles.sidebarHeader}>
+        <h5 className={styles.sidebarTitle}>Departments</h5>
+      </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
@@ -108,7 +124,6 @@ export function AppSidebar() {
 
                 return (
                   <SidebarMenuItem key={department.id}>
-                    {/* Main Department Button */}
                     <SidebarMenuButton
                       className={styles.sidebarMenuButton}
                       onClick={() => toggleSection(department.id)}
@@ -118,7 +133,6 @@ export function AppSidebar() {
                       <ChevronDown className={`${styles.chevronIcon} ${isOpen ? styles.chevronOpen : ""}`} />
                     </SidebarMenuButton>
 
-                    {/* Sub Items - Show/Hide based on isOpen */}
                     {isOpen && (
                       <div className={styles.subMenuContainer}>
                         <SidebarMenuSub>
@@ -130,6 +144,8 @@ export function AppSidebar() {
                               >
                                 {item.type === "assign-patient" ? (
                                   <UserPlus className={styles.sidebarSubIcon} />
+                                ) : item.type === "appointments" ? (
+                                  <Calendar className={styles.sidebarSubIcon} />
                                 ) : (
                                   <Users className={styles.sidebarSubIcon} />
                                 )}
