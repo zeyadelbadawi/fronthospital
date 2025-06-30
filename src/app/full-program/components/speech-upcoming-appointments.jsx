@@ -260,6 +260,9 @@ const getActionButtons = (appointment) => {
         >
           <Save className={styles.actionIconRight} /> {/* Only the icon to the right */}
         </button>
+
+
+         
         {/* Disable the Edit and Delete buttons for past appointments */}
         <button className={`${styles.actionButton} ${styles.editButton}`} style={{ display: "none" }} disabled title="Edit Appointment">
           <Edit className={styles.actionIcon} />
