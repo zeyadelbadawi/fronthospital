@@ -267,9 +267,11 @@ const PatientPlanEditor = () => {
                       }/uploads/Speech/plan/${
                         plan.filePath || "speech-plan-defoult.docx"
                       }`,
-                      fileName:
-                        plan.fileName || "speech-plan-defoult.docx",
+                      fileName: plan.fileName || "speech-plan-defoult.docx",
                       docxName: `speech-plan-${patient.name}.docx`,
+                      rule: "Patient",
+                      title: "Speech Plan",
+                      message: "Your speech plan has been updated",
                     }}
                     planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/speech/upload-plan`}
                   />

@@ -583,9 +583,23 @@ const MasterLayout = ({ children }) => {
                             e.stopPropagation();
                             notificationClick(item._id);
                           }}
-                          className="px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between cursor-pointer"
+                          className="px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between cursor-pointer position-relative"
                         >
-                          <div className="text-black hover-bg-transparent hover-text-primary d-flex align-items-center gap-3">
+                          {/* Green dot on the left */}
+                          {!item.isRead && (
+                            <span
+                              className="bg-success rounded-circle position-absolute"
+                              style={{
+                                width: "10px",
+                                height: "10px",
+                                left: "8px",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                            ></span>
+                          )}
+
+                          <div className="text-black hover-bg-black bg-opacity-10 hover-text-primary d-flex align-items-center gap-3">
                             <span className="w-44-px h-44-px bg-success-subtle text-success-main rounded-circle d-flex justify-content-center align-items-center flex-shrink-0">
                               <Icon
                                 icon="bitcoin-icons:verify-outline"
@@ -596,7 +610,7 @@ const MasterLayout = ({ children }) => {
                               <h6 className="text-md fw-semibold mb-4">
                                 {item.title}
                               </h6>
-                              <p className="mb-0 text-sm text-secondary-light text-w-200-px">
+                              <p className="mb-0 text-sm text-secondary-light ">
                                 {item.message}
                               </p>
                             </div>
@@ -609,14 +623,14 @@ const MasterLayout = ({ children }) => {
                         </div>
                       ))}
                     </div>
-                    <div className="text-center py-12 px-16">
+                    {/* <div className="text-center py-12 px-16">
                       <Link
                         href="#"
                         className="text-primary-600 fw-semibold text-md"
                       >
                         See All Notification
                       </Link>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
                 {/* Notification dropdown end */}

@@ -88,16 +88,14 @@ const PatientPlanEditor = () => {
                 <h5 className="mb-0">Physical Therapy Plan - {patient.name}</h5>
                 <small className="text-muted">Patient ID: {patient._id}</small>
               </div>
-         
             </div>
 
             <div className="card-body">
-           
               {/* Document Viewer */}
               <div className="row ">
                 <div className="col-12 ">
                   <label className="form-label">Document Viewer</label>
-  <SyncfusionDocx
+                  <SyncfusionDocx
                     userData={{
                       docxId: plan._id,
                       patientId,
@@ -106,13 +104,17 @@ const PatientPlanEditor = () => {
                       }/uploads/physical-therapy/plan/${
                         plan.filePath || "physical-therapy-plan-defoult.docx"
                       }`,
+                      rule: "Patient",
+                      title: "Physical Therapy Plan",
+                      to: "abodmadi2040@gmail.com",
+                      message: "Your physical therapy plan has been updated",
                       fileName:
                         plan.fileName || "physical-therapy-plan-defoult.docx",
                       docxName: `physical-therapy-plan-${patient.name}.docx`,
+                      notify: true,
                     }}
                     planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/physicalTherapy/upload-plan`}
                   />
-                 
                 </div>
               </div>
 

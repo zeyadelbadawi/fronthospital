@@ -7,7 +7,7 @@ import {
   Inject,
 } from "@syncfusion/ej2-react-documenteditor";
 import axiosInstance from "@/helper/axiosSetup";
-export default function SyncfusionDocx({ userData, planEndpoint }) {
+export default function SyncfusionDocx({ userData, planEndpoint, email }) {
   console.log("SyncfusionDocx", userData);
   const documentEditorContainerRef = useRef(null);
 
@@ -101,8 +101,14 @@ export default function SyncfusionDocx({ userData, planEndpoint }) {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      console.log("eeeee", response.data);
+
       // Handle the response as needed
       if (response.status === 200) {
+        if (userData.notify) {
+          sendNotification();
+          sendEmail(response.data.fullPath);
+        }
         console.log("Document saved successfully:", response.data);
       } else {
         console.error("Error saving document:", response.statusText);
@@ -116,6 +122,53 @@ export default function SyncfusionDocx({ userData, planEndpoint }) {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url); */
+    }
+  };
+
+  const sendEmail = async (filePath) => {
+    try {
+      console.log("eeeeeeeeeeee", {
+        to: userData.to,
+        filePath,
+        subject: userData.title,
+        text: userData.message,
+      });
+      // Send the form data to your server
+      const response = await axiosInstance.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/email/send-email`,
+        {
+          to: userData.to,
+          filePath,
+          subject: userData.title,
+          text: userData.message,
+        }
+      );
+      console.log("email", response.data);
+    } catch (error) {
+      console.log("error email", error);
+    }
+  };
+  const sendNotification = async () => {
+    try {
+      console.log("kkkkk", {
+        receiverId: userData.patientId,
+        rule: userData.rule,
+        title: userData.title,
+        message: userData.message,
+      });
+      // Send the form data to your server
+      const response = await axiosInstance.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/notification/send`,
+        {
+          receiverId: userData.patientId,
+          rule: userData.rule,
+          title: userData.title,
+          message: userData.message,
+        }
+      );
+      console.log("message", response.data);
+    } catch (error) {
+      console.log("error message", error);
     }
   };
 
