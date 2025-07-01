@@ -107,7 +107,7 @@ export default function SyncfusionDocx({ userData, planEndpoint, email }) {
 
       // Handle the response as needed
       if (response.status === 200) {
-        setIsDocxSave(true);
+        //setIsDocxSave(true);
         if (userData.notifyNto) {
           sendNotification();
         }
@@ -149,16 +149,29 @@ export default function SyncfusionDocx({ userData, planEndpoint, email }) {
   };
   const sendNotification = async () => {
     try {
-      // Send the form data to your server
-      const response = await axiosInstance.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/notification/send`,
-        {
-          receiverId: userData.isList ? userData.doctorIds : userData.patientId,
-          rule: userData.rule,
-          title: userData.title,
-          message: userData.message,
-        }
-      );
+      let response;
+      if (userData.isList) {
+        // Send the form data to your server
+        response = await axiosInstance.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/notification/send`,
+          {
+            receiverId: userData.patientId,
+            rule: userData.rule,
+            title: userData.title,
+            message: userData.message,
+          }
+        );
+      } else {
+        response = await axiosInstance.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/notification/send`,
+          {
+            receiverIds: userData.doctorIds,
+            rule: userData.rule,
+            title: userData.title,
+            message: userData.message,
+          }
+        );
+      }
       console.log("Notification send successfully", response.data);
     } catch (error) {
       console.log("Error while send notification", error);

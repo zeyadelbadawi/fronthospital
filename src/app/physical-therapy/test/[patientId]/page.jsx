@@ -260,7 +260,7 @@ const PatientExamEditor = () => {
                   <label className="form-label">Document Viewer</label>
                   <SyncfusionDocx
                     userData={{
-                      docxId: exam._id,
+                      docxId: exam._id || "no-data",
                       patientId,
                       filePath: `${
                         process.env.NEXT_PUBLIC_API_URL

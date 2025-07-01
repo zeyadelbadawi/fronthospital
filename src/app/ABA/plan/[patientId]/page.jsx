@@ -49,7 +49,9 @@ const PatientPlanEditor = () => {
       alert("Plan saved successfully!");
     } catch (error) {
       console.error("Error saving plan:", error);
-      alert("Error saving plan: " + (error.response?.data?.message || error.message));
+      alert(
+        "Error saving plan: " + (error.response?.data?.message || error.message)
+      );
     } finally {
       setSaving(false);
     }
@@ -82,7 +84,7 @@ const PatientPlanEditor = () => {
                   <label className="form-label">Document Viewer</label>
                   <SyncfusionDocx
                     userData={{
-                      docxId: plan._id,
+                      docxId: plan._id || "no-data",
                       patientId,
                       filePath: plan.filePath
                         ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/ABA/plan/${plan.filePath}`
@@ -106,7 +108,8 @@ const PatientPlanEditor = () => {
                 <div className="row mt-3">
                   <div className="col-12">
                     <small className="text-muted">
-                      Last modified: {new Date(plan.lastModified).toLocaleString()}
+                      Last modified:{" "}
+                      {new Date(plan.lastModified).toLocaleString()}
                     </small>
                   </div>
                 </div>
