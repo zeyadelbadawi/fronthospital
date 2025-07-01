@@ -1,4 +1,5 @@
 "use client";
+import { Bell, Check, Clock } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import ThemeToggleButton from "../helper/ThemeToggleButton";
@@ -15,6 +16,7 @@ const MasterLayout = ({ children }) => {
   let pathname = usePathname();
   let [sidebarActive, seSidebarActive] = useState(false);
   let [mobileMenu, setMobileMenu] = useState(false);
+  let [isClick, setIsClick] = useState(false);
   const [loading, setLoading] = useState(true); // Add loading state
 
   const location = usePathname(); // Hook to get the current route
@@ -211,12 +213,11 @@ const MasterLayout = ({ children }) => {
       axiosInstance
         .put(`${process.env.NEXT_PUBLIC_API_URL}/notification/read/${noteId}`)
         .then((response) => {
+          getNotifications();
           console.log("Notification marked as read:", response.data);
         });
     } catch (error) {
       console.error("Error handling notification click:", error);
-    } finally {
-      getNotifications();
     }
   };
 
@@ -629,7 +630,7 @@ const MasterLayout = ({ children }) => {
                   <button
                     className="has-indicator w-40-px h-40-px bg-neutral-200 rounded-circle d-flex justify-content-center align-items-center position-relative"
                     type="button"
-                    data-bs-toggle="dropdown"
+                    onClick={() => setIsClick(!isClick)}
                     title="Notifications"
                   >
                     <Icon
@@ -647,7 +648,14 @@ const MasterLayout = ({ children }) => {
                     )}
                   </button>
 
-                  <div className="dropdown-menu to-top dropdown-menu-lg p-0">
+                  <div
+                    className={`dropdown-menu ${
+                      isClick ? "show" : ""
+                    } dropdown-menu-lg p-0`}
+                    style={{
+                      left: "-360px",
+                    }}
+                  >
                     <div className="m-16 py-12 px-16 radius-8 bg-primary-50 mb-16 d-flex align-items-center justify-content-between gap-2">
                       <div>
                         <h6 className="text-lg text-primary-light fw-semibold mb-0">
@@ -662,19 +670,17 @@ const MasterLayout = ({ children }) => {
                     <div className="max-h-400-px overflow-y-scroll scroll-sm pe-4">
                       {notifications?.map((item) => (
                         <div
-                          key={item._id}
                           onClick={(e) => {
-                            // Prevent the dropdown from closing
+                            e.preventDefault();
                             e.stopPropagation();
-
-                            // Only call notificationClick if the item is unread
                             if (!item.isRead) {
                               notificationClick(item._id);
                             }
                           }}
-                          className="bg-hover-success-100 px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between cursor-pointer position-relative"
+                          key={item._id}
+                          className="cursor-pointer bg-hover-info-50 px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between  position-relative"
                         >
-                          <div className="text-black hover-bg-black bg-opacity-10 hover-text-primary d-flex align-items-center gap-3">
+                          <div className="text-black d-flex align-items-center gap-3">
                             <span className="position-relative w-44-px h-44-px bg-success-subtle text-success-main rounded-circle d-flex justify-content-center align-items-center flex-shrink-0">
                               <Icon
                                 icon="bitcoin-icons:verify-outline"
@@ -702,11 +708,56 @@ const MasterLayout = ({ children }) => {
                               </p>
                             </div>
                           </div>
-                          <span className="text-sm text-secondary-light flex-shrink-0">
+                          <span className="text-sm text-secondary-light ">
                             {formatDistanceToNow(new Date(item.createdAt), {
                               addSuffix: true,
                             })}
                           </span>
+                          {/* <div className="d-flex flex-row h-100 align-items-start justify-content-start">
+                            
+                            <div className="m-1"></div>
+
+                            {!item.isRead && (
+                              <div className="ms-auto">
+                                <div
+                                  className="d-flex align-items-center justify-content-center border border-2"
+                                  style={{
+                                    width: "28px",
+                                    height: "28px",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    backgroundColor: "rgba(0,0,0,0.05)",
+                                  }}
+                                >
+                                  <Check size={16} />
+                                </div>
+                              </div>
+                            )}
+                          </div> */}
+
+                          {/*  <div className="d-flex h-100 align-items-start justify-content-between  ">
+                            <div className="ms-auto d-flex flex-column align-items-end">
+                              {!item.isRead && (
+                                <div
+                                  className="cursor-pointer d-flex align-items-center justify-content-center border border-2 mt-2"
+                                  style={{
+                                    width: "28px",
+                                    height: "28px",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    backgroundColor: "rgba(0,0,0,0.05)",
+                                  }}
+                                >
+                                  <Check size={16} />
+                                </div>
+                              )}
+                              <span className="text-sm text-secondary-light">
+                                {formatDistanceToNow(new Date(item.createdAt), {
+                                  addSuffix: true,
+                                })}
+                              </span>
+                            </div>
+                          </div> */}
                         </div>
                       ))}
                     </div>
