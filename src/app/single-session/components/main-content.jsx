@@ -2,24 +2,18 @@
 
 import { SidebarInset, useSidebar } from "./ui/sidebar"
 import { useContentStore } from "../store/content-store"
-import { AssignPatientsToPhysicalTherapy } from "./assign-patients-physical-therapy"
-import { AssignPatientsToAba } from "./assign-patients-aba"
-import { AssignPatientsToOccupationalTherapy } from "./AssignTo-OccupationalTherapy"
-import { AssignPatientsToSpecialEducation } from "./assign-patients-Special-Education"
-import { AssignPatientsToSpeech } from "./assign-patients-speech"
 import { SpeechAppointments } from "./speech-appointments"
-import { AbaPlanEditor } from "./aba-plan-editor"
 import { SpeechUpcomingAppointments } from "./speech-upcoming-appointments"
 
 import AllPatientsPhysicalTherapy from "./all-patients-physical-therapy"
 import AllPatientsOccupationalTherapy from "./all-patients-occupational-therapy"
 import AllPatientsSpecialEducation from "./all-patients-Special-Education"
 import AllPatientsSpeech from "./all-patients-speech"
+import AllPatientsAba from "./all-patients-aba"
 
 import { useEffect, useState } from "react"
 import { WelcomeView } from "./welcome-view"
 import styles from "../styles/main-content.module.css"
-import AllPatientsAba from "./all-patients-aba"
 
 export function MainContent() {
   const { activeContent } = useContentStore()
@@ -39,6 +33,13 @@ export function MainContent() {
     }
     const { department, type } = activeContent
 
+    if (department === "appontmentupcoming") {
+      if (type === "appointments") {
+        return <SpeechAppointments />
+      } 
+         }
+     
+
     // Handle Physical Therapy
     if (department === "physical-therapy") {
       if (type === "assign-patient") {
@@ -51,41 +52,31 @@ export function MainContent() {
 
     // Handle other departments (you can expand these)
     if (department === "aba") {
-      if (type === "assign-patient") {
-        return <AssignPatientsToAba />
-      } else if (type === "patients") {
+      if (type === "patients") {
         return <AllPatientsAba />
       }
     }
 
     if (department === "occupational-therapy") {
-      if (type === "assign-patient") {
-        return <AssignPatientsToOccupationalTherapy />
-      } else if (type === "patients") {
+   if (type === "patients") {
         return <AllPatientsOccupationalTherapy />
       }
     }
 
     if (department === "special-education") {
-      if (type === "assign-patient") {
-        return <AssignPatientsToSpecialEducation />
-      } else if (type === "patients") {
+  if (type === "patients") {
         return <AllPatientsSpecialEducation />
       }
     }
 
     // Handle Speech
     if (department === "speech") {
-      if (type === "assign-patient") {
-        return <AssignPatientsToSpeech />
-      } else if (type === "patients") {
+ if (type === "patients") {
         return <AllPatientsSpeech />
-      } else if (type === "appointments") {
-        return <SpeechAppointments />
-      } else if (type === "upcoming-appointments") {
-        return <SpeechUpcomingAppointments />
-      }
+ }
     }
+
+
 
     return <WelcomeView />
   }
@@ -95,7 +86,7 @@ export function MainContent() {
       <header className={styles.mainHeader}>
         <div className={styles.headerTitle}>
           <h5>
-            Full Program Management
+            Single Session Program Management
           </h5>
         </div>
       </header>

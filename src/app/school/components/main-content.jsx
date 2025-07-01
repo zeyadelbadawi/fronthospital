@@ -4,7 +4,7 @@ import { SidebarInset, SidebarTrigger } from "./ui/sidebar"
 import { useContentStore } from "../store/content-store"
 import { SpeechAppointments } from "./speech-appointments"
 
-import AllPatientsSpeech from "./all-patients-speech"
+import AllPatientsSchool from "./all-patients-school"
 
 import { WelcomeView } from "./welcome-view"
 import styles from "../styles/main-content.module.css"
@@ -22,14 +22,17 @@ export function MainContent() {
 
 
 
-    if (department === "speech") {
+    if (department === "school-p") {
      if (type === "patients") {
-        return <AllPatientsSpeech />
-      }
-                else if (type === "appointments") {
-        return <SpeechAppointments />
+        return <AllPatientsSchool />
       }
     }
+
+    if (department === "school-up") {
+      if (type === "appointments") {
+         return <SpeechAppointments />
+       }
+     }
 
     return <WelcomeView />
   }

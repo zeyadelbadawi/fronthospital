@@ -7,7 +7,7 @@ import axiosInstance from "@/helper/axiosSetup"
 import { useContentStore } from "../store/content-store"
 import styles from "../styles/speech-upcoming-appointments.module.css"
 
-const AllPatientsSpecialEducation = () => {
+const AllPatientsSchool = () => {
   const [assignments, setAssignments] = useState([])
   const [search, setSearch] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -17,14 +17,14 @@ const AllPatientsSpecialEducation = () => {
   const setActiveContent = useContentStore((state) => state.setActiveContent)
 
   useEffect(() => {
-    fetchSpecialEducationPatients()
+    fetchschoolPatients()
   }, [currentPage, search])
 
-  const fetchSpecialEducationPatients = async () => {
+  const fetchschoolPatients = async () => {
     setLoading(true)
     try {
       const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/SpecialEducationS/assign-to-Special-Education?page=${currentPage}&search=${search}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/school/school-assignments?page=${currentPage}&search=${search}`,
       )
 
       const assignmentsData = Array.isArray(response.data) ? response.data : response.data.assignments || []
@@ -32,7 +32,7 @@ const AllPatientsSpecialEducation = () => {
       setAssignments(assignmentsData)
       setTotalPages(response.data.totalPages || 1)
     } catch (error) {
-      console.error("Error fetching Special Education Students:", error)
+      console.error("Error fetching school Students:", error)
       setAssignments([])
     } finally {
       setLoading(false)
@@ -46,7 +46,7 @@ const AllPatientsSpecialEducation = () => {
   const handleSearch = (e) => {
     e.preventDefault()
     setCurrentPage(1)
-    fetchSpecialEducationPatients()
+    fetchschoolPatients()
   }
 
   const handleBackToWelcome = () => {
@@ -74,7 +74,7 @@ const AllPatientsSpecialEducation = () => {
                 <X className={styles.backIcon} />
                 Back to Welcome
               </button>
-              <h2 className={styles.pageTitle}>Single Sessions Special Education Students</h2>
+              <h2 className={styles.pageTitle}>School Evaluation Students</h2>
             </div>
             <div className={styles.headerActions}>
               <form onSubmit={handleSearch} className={styles.searchForm}>
@@ -100,7 +100,6 @@ const AllPatientsSpecialEducation = () => {
                 <span className={styles.statLabel}>Total Students</span>
               </div>
             </div>
-           
           </div>
         </div>
 
@@ -108,17 +107,17 @@ const AllPatientsSpecialEducation = () => {
           {loading ? (
             <div className={styles.loadingContainer}>
               <div className={styles.loadingSpinner}></div>
-              <p className={styles.loadingText}>Loading Special Education Students...</p>
+              <p className={styles.loadingText}>Loading school Students...</p>
             </div>
           ) : assignments.length === 0 ? (
             <div className={styles.noData}>
               <div className={styles.emptyState}>
                 <Brain className={styles.emptyIcon} />
-                <h3>No Special Education Students Found</h3>
+                <h3>No school Students Found</h3>
                 <p>
                   {search
                     ? "No Students match your search criteria. Try adjusting your search terms."
-                    : "No Students are currently assigned to the Special Education department."}
+                    : "No Students are currently assigned to the school Evaluation."}
                 </p>
               </div>
             </div>
@@ -131,7 +130,7 @@ const AllPatientsSpecialEducation = () => {
                     <th>
                       <div className={styles.headerCell}>
                         <User className={styles.headerIcon} />
-                        Student Name
+                        Students Name
                       </div>
                     </th>
                     <th>
@@ -202,10 +201,10 @@ const AllPatientsSpecialEducation = () => {
                       </td>
                       <td className={styles.actionsCell}>
                         <div className={styles.actionButtons}>
-                          <button
-                          onClick={() => router.push(`/Special-EducationS/plan/${assignment.patient?._id}`)}
-                          className={`${styles.actionButton} ${styles.editButton}`}
-                            title="Student Plan"
+                          <button 
+                                                    onClick={() => router.push(`/school-plan/plan/${assignment.patient?._id}`)}
+                            className={`${styles.actionButton} ${styles.editButton}`}
+                            title="Studnet Plan"
                             disabled={!assignment.patient?._id}
                           >
                             <ClipboardList className={styles.actionIcon} />
@@ -244,4 +243,4 @@ const AllPatientsSpecialEducation = () => {
   )
 }
 
-export default AllPatientsSpecialEducation
+export default AllPatientsSchool

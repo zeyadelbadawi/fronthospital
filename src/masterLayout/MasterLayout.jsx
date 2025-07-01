@@ -257,7 +257,23 @@ const MasterLayout = ({ children }) => {
                 href='/doctor-dashboard'
                 className={pathname === "/doctor-dashboard" ? "active-page" : ""}>
                 <Icon icon='bi:chat-dots' className='menu-icon' />
-                <span>All Programs</span>
+                <span>full Programs</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                href='/single-session'
+                className={pathname === "/single-session" ? "active-page" : ""}>
+                <Icon icon='bi:chat-dots' className='menu-icon' />
+                <span>Single Programs</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                href='/school'
+                className={pathname === "/school" ? "active-page" : ""}>
+                <Icon icon='bi:chat-dots' className='menu-icon' />
+                <span>School Evaluations</span>
               </Link>
             </li>
             <li>

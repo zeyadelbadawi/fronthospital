@@ -28,11 +28,11 @@ const AssignPatientsToPhysicalTherapy = () => {
       const response = await axiosInstance.get(
         `${process.env.NEXT_PUBLIC_API_URL}/authentication/patients?page=${currentPage}&search=${search}`,
       )
-      console.log("Patients response:", response.data)
+      console.log("Students response:", response.data)
       setPatients(response.data.patients || [])
       setTotalPages(response.data.totalPages)
     } catch (error) {
-      console.error("Error fetching patients:", error)
+      console.error("Error fetching Students:", error)
     } finally {
       setLoading(false)
     }
@@ -47,23 +47,23 @@ const AssignPatientsToPhysicalTherapy = () => {
       )
       setAssignedPatients(patientIds)
     } catch (error) {
-      console.error("Error fetching assigned patients:", error)
+      console.error("Error fetching assigned Students:", error)
     }
   }
 
   const handleAssignPatient = async (patientId) => {
-    console.log("Assigning patient with ID:", patientId)
+    console.log("Assigning Student with ID:", patientId)
     if (!patientId) {
-      alert("Invalid patient ID.")
+      alert("Invalid Student ID.")
       return
     }
     try {
       await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}/physicalTherapy/assign-to-physical`, { patientId })
       setAssignedPatients([...assignedPatients, patientId])
-      alert("Patient assigned to physical-therapy department successfully!")
+      alert("Student assigned to physical-therapy department successfully!")
     } catch (error) {
-      console.error("Error assigning patient:", error)
-      alert("Error assigning patient to physical-therapy department")
+      console.error("Error assigning Student:", error)
+      alert("Error assigning Student to physical-therapy department")
     }
   }
 
@@ -71,10 +71,10 @@ const AssignPatientsToPhysicalTherapy = () => {
     try {
       await axiosInstance.delete(`${process.env.NEXT_PUBLIC_API_URL}/physicalTherapy/unassign-from-physical/${patientId}`)
       setAssignedPatients(assignedPatients.filter((id) => id !== patientId))
-      alert("Patient unassigned from physical therapy department successfully!")
+      alert("Student unassigned from physical therapy department successfully!")
     } catch (error) {
-      console.error("Error unassigning patient:", error)
-      alert("Error unassigning patient from physical therapy department")
+      console.error("Error unassigning Student:", error)
+      alert("Error unassigning Student from physical therapy department")
     }
   }
 
@@ -106,7 +106,7 @@ const AssignPatientsToPhysicalTherapy = () => {
                 <X className={styles.backIcon} />
                 Back to Welcome
               </button>
-              <h2 className={styles.pageTitle}>Assign Patients to physical therapy Department</h2>
+              <h2 className={styles.pageTitle}>Assign Students to physical therapy Department</h2>
             </div>
             <div className={styles.headerActions}>
               <form onSubmit={handleSearch} className={styles.searchForm}>
@@ -117,7 +117,7 @@ const AssignPatientsToPhysicalTherapy = () => {
                     name="search"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search patients..."
+                    placeholder="Search Students..."
                   />
                   <Search className={styles.searchIcon} />
                 </div>
@@ -129,7 +129,7 @@ const AssignPatientsToPhysicalTherapy = () => {
             <div className={styles.statsContainer}>
               <div className={styles.statItem}>
                 <span className={styles.statNumber}>{patients.length}</span>
-                <span className={styles.statLabel}>Total Patients</span>
+                <span className={styles.statLabel}>Total Students</span>
               </div>
               <div className={styles.statItem}>
                 <span className={styles.statNumber}>{assignedPatients.length}</span>
@@ -138,7 +138,7 @@ const AssignPatientsToPhysicalTherapy = () => {
             </div>
             <button onClick={() => router.push("/physical-therapy/patients")} className={styles.appointmentButton}>
               <Brain className={styles.actionIcon} />
-              View physical therapy Patients
+              View physical therapy Students
             </button>
           </div>
         </div>
@@ -147,7 +147,7 @@ const AssignPatientsToPhysicalTherapy = () => {
           {loading ? (
             <div className={styles.loadingContainer}>
               <div className={styles.loadingSpinner}></div>
-              <p className={styles.loadingText}>Loading patients...</p>
+              <p className={styles.loadingText}>Loading Students...</p>
             </div>
           ) : (
             <div className={styles.tableContainer}>
@@ -158,7 +158,7 @@ const AssignPatientsToPhysicalTherapy = () => {
                     <th>
                       <div className={styles.headerCell}>
                         <User className={styles.headerIcon} />
-                        Patient Name
+                        Student Name
                       </div>
                     </th>
                     <th>
@@ -247,11 +247,11 @@ const AssignPatientsToPhysicalTherapy = () => {
                       <td colSpan="7" className={styles.noData}>
                         <div className={styles.emptyState}>
                           <Brain className={styles.emptyIcon} />
-                          <h3>No patients found</h3>
+                          <h3>No Students found</h3>
                           <p>
                             {search
-                              ? "No patients match your search criteria. Try adjusting your search terms."
-                              : "No patients available for assignment."}
+                              ? "No Students match your search criteria. Try adjusting your search terms."
+                              : "No Students available for assignment."}
                           </p>
                         </div>
                       </td>
@@ -265,7 +265,7 @@ const AssignPatientsToPhysicalTherapy = () => {
           {patients.length > 0 && (
             <div className={styles.paginationContainer}>
               <span className={styles.paginationInfo}>
-                Showing {startIndex + 1} to {Math.min(endIndex, patients.length)} of {patients.length} patients
+                Showing {startIndex + 1} to {Math.min(endIndex, patients.length)} of {patients.length} Students
               </span>
               <div className={styles.paginationButtons}>
                 {Array.from({ length: totalPages }, (_, i) => (
