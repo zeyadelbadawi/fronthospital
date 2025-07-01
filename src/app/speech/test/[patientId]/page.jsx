@@ -265,9 +265,15 @@ const PatientExamEditor = () => {
                       }/uploads/Speech/exam/${
                         exam.filePath || "speech-exam-defoult.docx"
                       }`,
-                      fileName:
-                        exam.fileName || "speech-exam-defoult.docx",
+                      fileName: exam.fileName || "speech-exam-defoult.docx",
                       docxName: `speech-exam-${patient.name}.docx`,
+                      isList: false,
+                      notifyEmail: true,
+                      notifyNto: true,
+                      rule: "Patient",
+                      to: patient.email,
+                      title: "Speech Exam",
+                      message: "Your speech exam has been uploaded",
                     }}
                     planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/speech/upload-exam`}
                   />

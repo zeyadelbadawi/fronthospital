@@ -179,7 +179,9 @@ const PatientPlanEditor = () => {
           <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
               <div>
-                <h5 className="mb-0">Occupational Therapy Plan - {patient.name}</h5>
+                <h5 className="mb-0">
+                  Occupational Therapy Plan - {patient.name}
+                </h5>
                 <small className="text-muted">Patient ID: {patient._id}</small>
               </div>
               {/* <div className="d-flex gap-2">
@@ -265,11 +267,21 @@ const PatientPlanEditor = () => {
                       filePath: `${
                         process.env.NEXT_PUBLIC_API_URL
                       }/uploads/Occupational-therapy/plan/${
-                        plan.filePath || "Occupational-therapy-plan-defoult.docx"
+                        plan.filePath ||
+                        "Occupational-therapy-plan-defoult.docx"
                       }`,
                       fileName:
-                        plan.fileName || "Occupational-Therapy-plan-defoult.docx",
+                        plan.fileName ||
+                        "Occupational-Therapy-plan-defoult.docx",
                       docxName: `Occupational-Therapy-plan-${patient.name}.docx`,
+                      isList: false,
+                      notifyEmail: true,
+                      notifyNto: true,
+                      rule: "Patient",
+                      to: patient.email,
+                      title: "Occupational Therapy plan",
+                      message:
+                        "Your occupational therapy plan has been updated",
                     }}
                     planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/OccupationalTherapy/upload-plan`}
                   />

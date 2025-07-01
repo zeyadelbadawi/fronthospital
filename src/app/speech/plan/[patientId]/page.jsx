@@ -269,7 +269,11 @@ const PatientPlanEditor = () => {
                       }`,
                       fileName: plan.fileName || "speech-plan-defoult.docx",
                       docxName: `speech-plan-${patient.name}.docx`,
+                      isList: false,
+                      notifyEmail: true,
+                      notifyNto: true,
                       rule: "Patient",
+                      to: patient.email,
                       title: "Speech Plan",
                       message: "Your speech plan has been updated",
                     }}

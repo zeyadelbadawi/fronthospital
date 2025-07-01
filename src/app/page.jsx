@@ -15,13 +15,11 @@ const Page = () => {
       {/* MasterLayout */}
       <MasterLayout>
         {/* Breadcrumb */}
-        <Breadcrumb title='RUKN ALWATIKON CENTER' />
+        <Breadcrumb title="RUKN ALWATIKON CENTER" />
         <ModelProvider>
-
-        {/* DashBoardLayerOne */}
-        <DashBoardLayerEight />
-                </ModelProvider>
-
+          {/* DashBoardLayerOne */}
+          <DashBoardLayerEight />
+        </ModelProvider>
       </MasterLayout>
     </>
   );

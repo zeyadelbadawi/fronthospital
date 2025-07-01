@@ -104,14 +104,16 @@ const PatientPlanEditor = () => {
                       }/uploads/physical-therapy/plan/${
                         plan.filePath || "physical-therapy-plan-defoult.docx"
                       }`,
-                      rule: "Patient",
-                      title: "Physical Therapy Plan",
-                      to: "abodmadi2040@gmail.com",
-                      message: "Your physical therapy plan has been updated",
                       fileName:
                         plan.fileName || "physical-therapy-plan-defoult.docx",
                       docxName: `physical-therapy-plan-${patient.name}.docx`,
-                      notify: true,
+                      isList: false,
+                      notifyEmail: true,
+                      notifyNto: true,
+                      rule: "Patient",
+                      to: patient.email,
+                      title: "Physical Therapy Plan",
+                      message: "Your physical therapy plan has been updated",
                     }}
                     planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/physicalTherapy/upload-plan`}
                   />

@@ -11,8 +11,10 @@ export default function StudentsAppointmentDepartment({ params }) {
   const [studentsAppointment, setStudentsAppointment] = useState([]);
   const [currentAppointment, setCurrentAppointment] = useState(null);
   const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage1, setCurrentPage1] = useState(1);
+  const [currentPage2, setCurrentPage2] = useState(1);
+  const [totalPages1, setTotalPages1] = useState(1);
+  const [totalPages2, setTotalPages2] = useState(1);
   const [loading, setLoading] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
 
@@ -53,6 +55,7 @@ export default function StudentsAppointmentDepartment({ params }) {
         }/${currentAppointment?.department}/${currentAppointment._id}`
       );
       setStudentsByDepartment(response.data);
+      setTotalPages1(Math.ceil(response?.data?.assignments?.length / 10));
       console.log("Students in departments without appointment", response.data);
     } catch (error) {
       setLoading(false);
@@ -72,6 +75,9 @@ export default function StudentsAppointmentDepartment({ params }) {
         `/students-appointment/${currentAppointment?.department}/${currentAppointment?._id}`
       );
       setStudentsAppointment(response?.data?.studentsAppointment);
+      setTotalPages2(
+        Math.ceil(response?.data?.studentsAppointment?.length / 10)
+      );
       console.log(
         "student in appointment successfully:",
         response.data.studentsAppointment
@@ -94,8 +100,17 @@ export default function StudentsAppointmentDepartment({ params }) {
     }
   }, [currentAppointment?.department]);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setCurrentPage1(1);
+    setCurrentPage2(1);
+  };
+
+  const handlePageChange1 = (page) => {
+    setCurrentPage1(page);
+  };
+  const handlePageChange2 = (page) => {
+    setCurrentPage2(page);
   };
 
   const onAddStudent = async (addedData) => {
@@ -359,22 +374,25 @@ export default function StudentsAppointmentDepartment({ params }) {
                 {/* Pagination */}
                 <div className="d-flex justify-content-between align-items-center p-4 bg-light border-top">
                   <small className="text-muted">
-                    Showing {(currentPage - 1) * 10 + 1} to{" "}
-                    {Math.min(currentPage * 10, studentsByDepartment.length)} of{" "}
-                    {studentsByDepartment.length} entries
+                    Showing {(currentPage1 - 1) * 10 + 1} to{" "}
+                    {Math.min(
+                      currentPage1 * 10,
+                      studentsByDepartment?.assignments?.length
+                    )}{" "}
+                    of {studentsByDepartment?.assignments?.length} entries
                   </small>
                   <nav>
                     <ul className="pagination pagination-sm mb-0">
-                      {Array.from({ length: totalPages }, (_, i) => (
+                      {Array.from({ length: totalPages1 }, (_, i) => (
                         <li
                           key={i}
                           className={`page-item ${
-                            currentPage === i + 1 ? "active" : ""
+                            currentPage1 === i + 1 ? "active" : ""
                           }`}
                         >
                           <button
                             className="page-link"
-                            onClick={() => handlePageChange(i + 1)}
+                            onClick={() => handlePageChange1(i + 1)}
                           >
                             {i + 1}
                           </button>
@@ -498,22 +516,22 @@ export default function StudentsAppointmentDepartment({ params }) {
                 {/* Pagination */}
                 <div className="d-flex justify-content-between align-items-center p-4 bg-light border-top">
                   <small className="text-muted">
-                    Showing {(currentPage - 1) * 10 + 1} to{" "}
-                    {Math.min(currentPage * 10, studentsByDepartment.length)} of{" "}
-                    {studentsByDepartment.length} entries
+                    Showing {(currentPage2 - 1) * 10 + 1} to{" "}
+                    {Math.min(currentPage2 * 10, studentsAppointment?.length)}{" "}
+                    of {studentsAppointment?.length} entries
                   </small>
                   <nav>
                     <ul className="pagination pagination-sm mb-0">
-                      {Array.from({ length: totalPages }, (_, i) => (
+                      {Array.from({ length: totalPages2 }, (_, i) => (
                         <li
                           key={i}
                           className={`page-item ${
-                            currentPage === i + 1 ? "active" : ""
+                            currentPage2 === i + 1 ? "active" : ""
                           }`}
                         >
                           <button
                             className="page-link"
-                            onClick={() => handlePageChange(i + 1)}
+                            onClick={() => handlePageChange2(i + 1)}
                           >
                             {i + 1}
                           </button>

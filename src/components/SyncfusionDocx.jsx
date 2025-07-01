@@ -1,6 +1,7 @@
 "use client";
 // Todo :Add more component in toolbar of ej2-react-documenteditor
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useContext } from "react";
+import { ModelContextInst } from "@/contexts/ModelContext";
 import {
   DocumentEditorContainerComponent,
   Toolbar,
@@ -10,6 +11,7 @@ import axiosInstance from "@/helper/axiosSetup";
 export default function SyncfusionDocx({ userData, planEndpoint, email }) {
   console.log("SyncfusionDocx", userData);
   const documentEditorContainerRef = useRef(null);
+  //const { isDocxSave, setIsDocxSave } = useContext(ModelContextInst);
 
   // Load Syncfusion styles
   useEffect(() => {
@@ -101,12 +103,15 @@ export default function SyncfusionDocx({ userData, planEndpoint, email }) {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      console.log("eeeee", response.data);
+      //console.log("eeeee", response.data);
 
       // Handle the response as needed
       if (response.status === 200) {
-        if (userData.notify) {
+        setIsDocxSave(true);
+        if (userData.notifyNto) {
           sendNotification();
+        }
+        if (userData.notifyEmail) {
           sendEmail(response.data.fullPath);
         }
         console.log("Document saved successfully:", response.data);
@@ -127,12 +132,6 @@ export default function SyncfusionDocx({ userData, planEndpoint, email }) {
 
   const sendEmail = async (filePath) => {
     try {
-      console.log("eeeeeeeeeeee", {
-        to: userData.to,
-        filePath,
-        subject: userData.title,
-        text: userData.message,
-      });
       // Send the form data to your server
       const response = await axiosInstance.post(
         `${process.env.NEXT_PUBLIC_API_URL}/email/send-email`,
@@ -143,32 +142,26 @@ export default function SyncfusionDocx({ userData, planEndpoint, email }) {
           text: userData.message,
         }
       );
-      console.log("email", response.data);
+      console.log("email send successfully ", response.data);
     } catch (error) {
-      console.log("error email", error);
+      console.log("Error while send email", error);
     }
   };
   const sendNotification = async () => {
     try {
-      console.log("kkkkk", {
-        receiverId: userData.patientId,
-        rule: userData.rule,
-        title: userData.title,
-        message: userData.message,
-      });
       // Send the form data to your server
       const response = await axiosInstance.post(
         `${process.env.NEXT_PUBLIC_API_URL}/notification/send`,
         {
-          receiverId: userData.patientId,
+          receiverId: userData.isList ? userData.doctorIds : userData.patientId,
           rule: userData.rule,
           title: userData.title,
           message: userData.message,
         }
       );
-      console.log("message", response.data);
+      console.log("Notification send successfully", response.data);
     } catch (error) {
-      console.log("error message", error);
+      console.log("Error while send notification", error);
     }
   };
 

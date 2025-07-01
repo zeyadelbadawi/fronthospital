@@ -89,6 +89,13 @@ const PatientPlanEditor = () => {
                         : `${process.env.NEXT_PUBLIC_API_URL}/uploads/ABA/plan/ABA-plan-defoult.docx`,
                       fileName: plan.fileName || "ABA-plan-defoult.docx",
                       docxName: `ABA-plan-${patient.name}.docx`,
+                      isList: false,
+                      notifyEmail: true,
+                      notifyNto: true,
+                      rule: "Patient",
+                      to: patient.email,
+                      title: "ABA Plan",
+                      message: "Your aba plan has been updated",
                     }}
                     planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/aba/upload-plan`}
                   />

@@ -258,7 +258,7 @@ const PatientExamEditor = () => {
               <div className="row ">
                 <div className="col-12 ">
                   <label className="form-label">Document Viewer</label>
-                   <SyncfusionDocx
+                  <SyncfusionDocx
                     userData={{
                       docxId: exam._id,
                       patientId,
@@ -270,6 +270,13 @@ const PatientExamEditor = () => {
                       fileName:
                         exam.fileName || "physical-therapy-exam-defoult.docx",
                       docxName: `physical-therapy-exam-${patient.name}.docx`,
+                      isList: false,
+                      notifyEmail: true,
+                      notifyNto: true,
+                      rule: "Patient",
+                      to: patient.email,
+                      title: "Physical Therapy Exam",
+                      message: "Your physical therapy Exam has been uploaded",
                     }}
                     planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/physicalTherapy/upload-exam`}
                   />
