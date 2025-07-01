@@ -31,15 +31,25 @@ import styles from "../styles/sidebar.module.css"
 const departments = [
  
   {
-    id: "speech",
-    name: "Speech",
+    id: "school-p",
+    name: "school Students",
     icon: MessageSquare,
     items: [
-      { id: "speech-patients", name: "Patients", type: "patients" },
-      { id: "speech-appointments", name: "Add More Appointments", type: "appointments" },
+      { id: "School-patients", name: "Students", type: "patients" },
+    ],
+  },
+  {
+    id: "school-up",
+    name: "Appointments",
+    icon: MessageSquare,
+    items: [
+      { id: "Up-appointments", name: "Up Comming Appointments", type: "appointments" },
+      ,
     ],
   },
 ]
+
+
 
 export function AppSidebar() {
   const [openSections, setOpenSections] = useState([])

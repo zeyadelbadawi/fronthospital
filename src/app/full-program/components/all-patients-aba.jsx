@@ -32,7 +32,7 @@ const AllPatientAba = () => {
       setAssignments(assignmentsData)
       setTotalPages(response.data.totalPages || 1)
     } catch (error) {
-      console.error("Error fetching ABA therapy patients:", error)
+      console.error("Error fetching ABA therapy Students:", error)
       setAssignments([])
     } finally {
       setLoading(false)
@@ -80,7 +80,7 @@ const AllPatientAba = () => {
                 <X className={styles.backIcon} />
                 Back to Welcome
               </button>
-              <h2 className={styles.pageTitle}>ABA Department Patients</h2>
+              <h2 className={styles.pageTitle}>ABA Department Students</h2>
             </div>
             <div className={styles.headerActions}>
               <form onSubmit={handleSearch} className={styles.searchForm}>
@@ -91,7 +91,7 @@ const AllPatientAba = () => {
                     name="search"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search patients..."
+                    placeholder="Search Students..."
                   />
                   <Search className={styles.searchIcon} />
                 </div>
@@ -103,12 +103,12 @@ const AllPatientAba = () => {
             <div className={styles.statsContainer}>
               <div className={styles.statItem}>
                 <span className={styles.statNumber}>{assignments.length}</span>
-                <span className={styles.statLabel}>Total Patients</span>
+                <span className={styles.statLabel}>Total Students</span>
               </div>
             </div>
             <button onClick={() => router.push("/physical-therapy/assign-patients")} className={styles.primaryButton}>
               <Users className={styles.buttonIcon} />
-              Assign New Patients
+              Assign New Students
             </button>
           </div>
         </div>
@@ -117,17 +117,17 @@ const AllPatientAba = () => {
           {loading ? (
             <div className={styles.loadingContainer}>
               <div className={styles.loadingSpinner}></div>
-              <p className={styles.loadingText}>Loading ABA patients...</p>
+              <p className={styles.loadingText}>Loading ABA Students...</p>
             </div>
           ) : assignments.length === 0 ? (
             <div className={styles.noData}>
               <div className={styles.emptyState}>
                 <Brain className={styles.emptyIcon} />
-                <h3>No ABA Patients Found</h3>
+                <h3>No ABA Students Found</h3>
                 <p>
                   {search
-                    ? "No patients match your search criteria. Try adjusting your search terms."
-                    : "No patients are currently assigned to the ABA department."}
+                    ? "No Students match your search criteria. Try adjusting your search terms."
+                    : "No Students are currently assigned to the ABA department."}
                 </p>
               </div>
             </div>
@@ -140,7 +140,7 @@ const AllPatientAba = () => {
                     <th>
                       <div className={styles.headerCell}>
                         <User className={styles.headerIcon} />
-                        Patient Name
+                        Student Name
                       </div>
                     </th>
                     <th>
@@ -212,17 +212,17 @@ const AllPatientAba = () => {
                       <td className={styles.actionsCell}>
                         <div className={styles.actionButtons}>
                           <button
-                            onClick={() => handlePlanClick(assignment.patient?._id)}
+                            onClick={() => router.push(`/ABA/plan/${assignment.patient?._id}`)}
                             className={`${styles.actionButton} ${styles.editButton}`}
-                            title="Patient Plan"
+                            title="Student Plan"
                             disabled={!assignment.patient?._id}
                           >
                             <ClipboardList className={styles.actionIcon} />
                           </button>
                           <button
-                            onClick={() => router.push(`/physical-therapy/test/${assignment.patient?._id}`)}
+                            onClick={() => router.push(`/ABA/test/${assignment.patient?._id}`)}
                             className={`${styles.actionButton} ${styles.deleteButton}`}
-                            title="Patient Test"
+                            title="Student Test"
                             disabled={!assignment.patient?._id}
                           >
                             <ClipboardCheck className={styles.actionIcon} />
@@ -239,7 +239,7 @@ const AllPatientAba = () => {
           {assignments.length > 0 && (
             <div className={styles.paginationContainer}>
               <span className={styles.paginationInfo}>
-                Showing {startIndex + 1} to {Math.min(endIndex, assignments.length)} of {assignments.length} patients
+                Showing {startIndex + 1} to {Math.min(endIndex, assignments.length)} of {assignments.length} Students
               </span>
               <div className={styles.paginationButtons}>
                 {Array.from({ length: totalPages }, (_, i) => (

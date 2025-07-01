@@ -29,14 +29,22 @@ import { useContentStore } from "../store/content-store"
 import styles from "../styles/sidebar.module.css"
 
 const departments = [
+  
+  {
+    id: "appontmentupcoming",
+    name: "Up comming Appointments",
+    icon: MessageSquare,
+    items: [
+      { id: "speech-appointments", name: "Add More Appointments", type: "appointments" },
+
+    ],
+  },
   {
     id: "physical-therapy",
     name: "Physical Therapy",
     icon: Activity,
     items: [
-      { id: "physical-therapy-assign", name: "Assign Patient", type: "assign-patient" },
-      { id: "physical-therapy-patients", name: "Patients", type: "patients" },
-      { id: "physical-therapy-plan", name: "Plan", type: "plan" },
+      { id: "physical-therapy-patients", name: "Students", type: "patients" },
     ],
   },
   {
@@ -44,8 +52,7 @@ const departments = [
     name: "ABA",
     icon: Brain,
     items: [
-      { id: "aba-assign", name: "Assign Patient", type: "assign-patient" },
-      { id: "aba-patients", name: "Patients", type: "patients" },
+      { id: "aba-patients", name: "Students", type: "patients" },
     ],
   },
   {
@@ -53,8 +60,7 @@ const departments = [
     name: "Occupational Therapy",
     icon: Hand,
     items: [
-      { id: "occupational-therapy-assign", name: "Assign Patient", type: "assign-patient" },
-      { id: "occupational-therapy-patients", name: "Patients", type: "patients" },
+      { id: "occupational-therapy-patients", name: "Students", type: "patients" },
     ],
   },
   {
@@ -62,8 +68,8 @@ const departments = [
     name: "Special Education",
     icon: GraduationCap,
     items: [
-      { id: "special-education-assign", name: "Assign Patient", type: "assign-patient" },
-      { id: "special-education-patients", name: "Patients", type: "patients" },
+
+      { id: "special-education-patients", name: "Students", type: "patients" },
     ],
   },
   {
@@ -71,10 +77,18 @@ const departments = [
     name: "Speech",
     icon: MessageSquare,
     items: [
-      { id: "speech-assign", name: "Assign Patient", type: "assign-patient" },
-      { id: "speech-patients", name: "Patients", type: "patients" },
+      { id: "speech-patients", name: "Students", type: "patients" },
       { id: "speech-appointments", name: "Add More Appointments", type: "appointments" },
             { id: "speech-upcoming", name: "Upcoming Appointments", type: "upcoming-appointments" },
+
+    ],
+  },
+  {
+    id: "appontmentupcoming",
+    name: "Up comming Appointments",
+    icon: MessageSquare,
+    items: [
+      { id: "speech-appointments", name: "Add More Appointments", type: "appointments" },
 
     ],
   },
