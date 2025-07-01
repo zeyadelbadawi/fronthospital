@@ -254,8 +254,8 @@ const MasterLayout = ({ children }) => {
             <li className='sidebar-menu-group-title'>Dashboards</li>
             <li>
               <Link
-                href='/doctor-dashboard'
-                className={pathname === "/doctor-dashboard" ? "active-page" : ""}>
+                href='/full-program'
+                className={pathname === "/full-program" ? "active-page" : ""}>
                 <Icon icon='bi:chat-dots' className='menu-icon' />
                 <span>full Programs</span>
               </Link>
