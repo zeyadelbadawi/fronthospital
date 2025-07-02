@@ -24,7 +24,7 @@ const AllPatientsOccupationalTherapy = () => {
     setLoading(true)
     try {
       const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/OccupationalTherapyS/assign-to-Occupational?page=${currentPage}&search=${search}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/OccupationalTherapyS/Occupational-therapy-assignments?page=${currentPage}&search=${search}`,
       )
 
       const assignmentsData = Array.isArray(response.data) ? response.data : response.data.assignments || []

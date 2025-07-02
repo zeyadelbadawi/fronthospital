@@ -20,6 +20,9 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
   const [plan, setPlan] = useState(null)
   const [selectedServices, setSelectedServices] = useState([])
   const [totalPrice, setTotalPrice] = useState(0)
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false)
+  const [assignmentError, setAssignmentError] = useState("")
+
   const [programData, setProgramData] = useState({
     programType: "",
     patientId,
@@ -78,6 +81,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
   useEffect(() => {
     if (currentStep === 0) {
       setSelectedServices([])
+      setAssignmentError("")
     }
     if (currentStep === 3) {
       setEvaluationType("")
@@ -90,8 +94,78 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
     return day === 0 || day === 5
   }
 
+  // Validation functions
+  const validateStep = (step) => {
+    switch (step) {
+      case 0:
+        return evaluationType !== ""
+      case 1:
+        if (evaluationType === "single_session") {
+          return selectedDay && selectedTime && description && selectedServices.length > 0
+        }
+        return selectedDay && selectedTime && description
+      case 2:
+        return true // Document step is optional
+      default:
+        return true
+    }
+  }
+
+  // Enhanced assignment creation function
+  const createPatientSchoolAssignment = async (patientId, description) => {
+    try {
+      // First check if patient is already assigned
+      const checkResponse = await axiosInstance.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/school/school-assignments?search=${patientId}`
+      )
+      
+      const existingAssignments = checkResponse.data.assignments || []
+      const isAlreadyAssigned = existingAssignments.some(
+        assignment => assignment.patient && assignment.patient._id === patientId
+      )
+
+      if (isAlreadyAssigned) {
+        console.log("Patient already assigned to school program")
+        return { success: true, message: "Patient already assigned to school program" }
+      }
+
+      // Create new assignment
+      const assignmentData = {
+        patientId: patientId,
+        notes: description || `School evaluation assignment for ${patientName}`,
+      }
+
+      const response = await axiosInstance.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/school/assign-to-school`,
+        assignmentData
+      )
+
+      if (response.status === 201) {
+        console.log("Patient successfully assigned to school program:", response.data)
+        return { success: true, data: response.data }
+      }
+    } catch (error) {
+      console.error("Error creating school assignment:", error)
+      
+      // Handle specific error cases
+      if (error.response?.status === 400 && error.response?.data?.message?.includes("already assigned")) {
+        return { success: true, message: "Patient already assigned to school program" }
+      }
+      
+      return { 
+        success: false, 
+        error: error.response?.data?.message || "Failed to assign patient to school program" 
+      }
+    }
+  }
+
   const nextStep = async () => {
     console.log("patientId in nextStep:", patientId)
+    
+    if (!validateStep(currentStep)) {
+      alert("Please fill in all required fields before continuing.")
+      return
+    }
 
     if (currentStep < 4) {
       try {
@@ -117,14 +191,21 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
         setCurrentStep(currentStep + 1)
       } catch (error) {
         console.error("Error saving program:", error)
+        alert("An error occurred while processing your request. Please try again.")
       }
     }
   }
 
   const handlePayment = async () => {
+    if (isProcessingPayment) return
+    
+    setIsProcessingPayment(true)
+    setAssignmentError("")
+
     try {
       const price = getProgramPrice(programData.programType) + totalPrice
 
+      // Save the program first
       const response = await axiosInstance.post("/authentication/saveProgram", {
         ...programData,
         patientId,
@@ -136,6 +217,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
         const programId = response.data.program._id
         const programType = programData.programType
 
+        // Save money record
         const moneyResponse = await axiosInstance.post("/authentication/saveMoneyRecord", {
           patientId,
           programId,
@@ -148,11 +230,30 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
 
         if (moneyResponse.status === 200) {
           console.log("Payment and money record saved successfully")
+
+          // If this is a school evaluation, create PatientSchoolAssignment
+          if (programType === "school_evaluation") {
+            console.log("Creating school assignment for patient:", patientId)
+            
+            const assignmentResult = await createPatientSchoolAssignment(patientId, description)
+            
+            if (!assignmentResult.success) {
+              setAssignmentError(assignmentResult.error)
+              console.error("School assignment failed:", assignmentResult.error)
+              // Don't prevent completion, just show warning
+            } else {
+              console.log("School assignment created successfully")
+            }
+          }
+
           setCurrentStep(4)
         }
       }
     } catch (error) {
       console.error("Error saving program:", error)
+      alert("Payment processing failed. Please try again.")
+    } finally {
+      setIsProcessingPayment(false)
     }
   }
 
@@ -452,8 +553,13 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
         
-        .rukn-button-success:hover {
+        .rukn-button-success:hover:not(:disabled) {
           background-color: #047857;
+        }
+        
+        .rukn-button-success:disabled {
+          background-color: #d1d5db;
+          cursor: not-allowed;
         }
         
         .rukn-payment-summary {
@@ -588,6 +694,26 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           overflow: hidden;
         }
         
+        .rukn-error-message {
+          background-color: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #dc2626;
+          padding: 0.75rem;
+          border-radius: 0.5rem;
+          margin-bottom: 1rem;
+          font-size: 0.875rem;
+        }
+        
+        .rukn-warning-message {
+          background-color: #fffbeb;
+          border: 1px solid #fed7aa;
+          color: #d97706;
+          padding: 0.75rem;
+          border-radius: 0.5rem;
+          margin-bottom: 1rem;
+          font-size: 0.875rem;
+        }
+        
         @media (max-width: 767px) {
           .rukn-steps-container {
             flex-wrap: wrap;
@@ -612,15 +738,13 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           }
         }
       `}</style>
-
       <div className="rukn-booking-wizard">
         <div className="rukn-wizard-container">
           {/* Header */}
           <div className="rukn-header">
-          
             <h4 className="rukn-sub-title">Book Your Appointment</h4>
           </div>
-
+          
           {/* Progress Steps */}
           <div className="rukn-progress-card">
             <div className="rukn-steps-container">
@@ -639,7 +763,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
               ))}
             </div>
           </div>
-
+          
           {/* Main Content Card */}
           <div className="rukn-main-card">
             <div className="rukn-card-content">
@@ -650,7 +774,13 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                     <h3>Select Evaluation Type</h3>
                     <p>Choose the type of evaluation that best suits your needs</p>
                   </div>
-
+                  
+                  {assignmentError && (
+                    <div className="rukn-error-message">
+                      {assignmentError}
+                    </div>
+                  )}
+                  
                   <div className="rukn-form-group">
                     <label className="rukn-label">Evaluation Type *</label>
                     <select
@@ -659,7 +789,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                       onChange={(e) => {
                         const type = e.target.value
                         setEvaluationType(type)
-                        if (type) setCurrentStep(1)
+                        setAssignmentError("")
                       }}
                     >
                       <option value="">Choose your evaluation type...</option>
@@ -668,15 +798,19 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                       <option value="single_session">👤 Single Session</option>
                     </select>
                   </div>
-
+                  
                   <div className="rukn-button-group end">
-                    <button onClick={nextStep} disabled={!evaluationType} className="rukn-button rukn-button-primary">
+                    <button 
+                      onClick={nextStep} 
+                      disabled={!evaluationType} 
+                      className="rukn-button rukn-button-primary"
+                    >
                       Continue →
                     </button>
                   </div>
                 </div>
               )}
-
+              
               {/* Step 2: Request Evaluation */}
               {currentStep === 1 && (
                 <div className="rukn-step-content">
@@ -684,7 +818,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                     <h3>Schedule Your Appointment</h3>
                     <p>Select your preferred date, time, and provide details</p>
                   </div>
-
+                  
                   <div className="rukn-form-grid">
                     <div className="rukn-form-group">
                       <label className="rukn-label">Select Day *</label>
@@ -696,9 +830,10 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                         className="rukn-input"
                         dateFormat="MMMM dd, yyyy"
                         calendarClassName="custom-calendar"
+                        minDate={new Date()}
                       />
                     </div>
-
+                    
                     <div className="rukn-form-group">
                       <label className="rukn-label">Select Time *</label>
                       <DatePicker
@@ -720,16 +855,17 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                       />
                     </div>
                   </div>
-
+                  
                   <div className="rukn-form-group">
                     <label className="rukn-label">Description *</label>
                     <textarea
                       className="rukn-textarea"
                       placeholder="Please describe your needs or any specific requirements..."
+                      value={description}
                       onChange={(e) => setDescription(e.target.value)}
                     />
                   </div>
-
+                  
                   {evaluationType === "single_session" && (
                     <div className="rukn-form-group">
                       <label className="rukn-label">Select Services *</label>
@@ -758,7 +894,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                       )}
                     </div>
                   )}
-
+                  
                   <div className="rukn-button-group">
                     <button
                       type="button"
@@ -767,13 +903,18 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                     >
                       ← Back
                     </button>
-                    <button type="button" onClick={nextStep} className="rukn-button rukn-button-primary">
+                    <button 
+                      type="button" 
+                      onClick={nextStep} 
+                      disabled={!validateStep(1)}
+                      className="rukn-button rukn-button-primary"
+                    >
                       Continue →
                     </button>
                   </div>
                 </div>
               )}
-
+              
               {/* Step 3: Word Document */}
               {currentStep === 2 && (
                 <div className="rukn-step-content">
@@ -781,7 +922,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                     <h3>Review & Edit Document</h3>
                     <p>Review and customize your treatment plan document</p>
                   </div>
-
+                  
                   <div className="rukn-document-container">
                     {plan && plan._id ? (
                       <SyncfusionDocx
@@ -795,20 +936,18 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                         planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/DrastHala/upload-plan`}
                       />
                     ) : (
-                      // If no plan is found, render default file
                       <SyncfusionDocx
                         userData={{
-                          docxId: "default", // You can set a default ID or handle it as needed
+                          docxId: "default",
                           patientId: patientId,
-                          filePath: `${process.env.NEXT_PUBLIC_API_URL}/uploads/DRAST-7ALA/plan/default.docx`, // Default file path
-                          fileName: "default.docx", // Default file name
-                          // docxName: `physical-therapy-plan-${patientName}.docx`,
+                          filePath: `${process.env.NEXT_PUBLIC_API_URL}/uploads/DRAST-7ALA/plan/default.docx`,
+                          fileName: "default.docx",
                         }}
                         planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/DrastHala/upload-plan`}
                       />
                     )}
                   </div>
-
+                  
                   <div className="rukn-button-group">
                     <button
                       type="button"
@@ -817,13 +956,17 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                     >
                       ← Back
                     </button>
-                    <button type="button" onClick={() => setCurrentStep(3)} className="rukn-button rukn-button-primary">
+                    <button 
+                      type="button" 
+                      onClick={() => setCurrentStep(3)} 
+                      className="rukn-button rukn-button-primary"
+                    >
                       Proceed to Payment →
                     </button>
                   </div>
                 </div>
               )}
-
+              
               {/* Step 4: Payment */}
               {currentStep === 3 && (
                 <div className="rukn-step-content">
@@ -831,7 +974,13 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                     <h3>Complete Payment</h3>
                     <p>Secure payment processing for your appointment</p>
                   </div>
-
+                  
+                  {assignmentError && (
+                    <div className="rukn-warning-message">
+                      Warning: {assignmentError}
+                    </div>
+                  )}
+                  
                   <div className="rukn-payment-summary">
                     <h4>Payment Summary</h4>
                     <div className="rukn-payment-row">
@@ -849,16 +998,21 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                       <span>${getProgramPrice(programData.programType) + totalPrice}</span>
                     </div>
                   </div>
-
+                  
                   <div className="rukn-payment-center">
-                    <button type="button" onClick={handlePayment} className="rukn-button rukn-button-success">
-                      💳 Complete Payment
+                    <button 
+                      type="button" 
+                      onClick={handlePayment} 
+                      disabled={isProcessingPayment}
+                      className="rukn-button rukn-button-success"
+                    >
+                      💳 {isProcessingPayment ? "Processing..." : "Complete Payment"}
                     </button>
                     <p className="rukn-payment-note">Secure payment processing • SSL encrypted</p>
                   </div>
                 </div>
               )}
-
+              
               {/* Step 5: Complete */}
               {currentStep === 4 && (
                 <div className="rukn-success-container">
@@ -868,21 +1022,24 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                   <h3 className="rukn-success-title">Congratulations!</h3>
                   <p className="rukn-success-message">
                     Your appointment has been successfully booked at Rukn Elwatikon Rehabilitation Center.
+                    {programData.programType === "school_evaluation" && " You have been assigned to our school evaluation program."}
                   </p>
+                  
                   <div className="rukn-next-steps">
                     <h4>What's Next?</h4>
                     <ul>
                       <li>• You'll receive a confirmation email shortly</li>
                       <li>• Our team will contact you 24 hours before your appointment</li>
                       <li>• Please arrive 15 minutes early</li>
+                      {programData.programType === "school_evaluation" && (
+                        <li>• You can now access the school evaluation portal</li>
+                      )}
                     </ul>
                   </div>
                 </div>
               )}
             </div>
           </div>
-
-        
         </div>
       </div>
     </>
