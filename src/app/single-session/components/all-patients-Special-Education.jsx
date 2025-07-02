@@ -24,7 +24,7 @@ const AllPatientsSpecialEducation = () => {
     setLoading(true)
     try {
       const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/SpecialEducationS/assign-to-Special-Education?page=${currentPage}&search=${search}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/SpecialEducationS/Special-Education-assignments?page=${currentPage}&search=${search}`,
       )
 
       const assignmentsData = Array.isArray(response.data) ? response.data : response.data.assignments || []

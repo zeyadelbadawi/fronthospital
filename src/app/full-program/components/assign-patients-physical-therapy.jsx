@@ -136,10 +136,6 @@ const AssignPatientsToPhysicalTherapy = () => {
                 <span className={styles.statLabel}>Assigned</span>
               </div>
             </div>
-            <button onClick={() => router.push("/physical-therapy/patients")} className={styles.appointmentButton}>
-              <Brain className={styles.actionIcon} />
-              View physical therapy Students
-            </button>
           </div>
         </div>
 

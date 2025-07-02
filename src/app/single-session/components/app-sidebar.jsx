@@ -83,15 +83,7 @@ const departments = [
 
     ],
   },
-  {
-    id: "appontmentupcoming",
-    name: "Up comming Appointments",
-    icon: MessageSquare,
-    items: [
-      { id: "speech-appointments", name: "Add More Appointments", type: "appointments" },
 
-    ],
-  },
 ]
 
 export function AppSidebar() {

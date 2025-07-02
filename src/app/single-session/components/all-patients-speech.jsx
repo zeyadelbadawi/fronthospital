@@ -24,7 +24,7 @@ const AllPatientsSpeech = () => {
     setLoading(true)
     try {
       const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/speechS/assign-to-Speech?page=${currentPage}&search=${search}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/speechS/Speech-assignments?page=${currentPage}&search=${search}`,
       )
 
       const assignmentsData = Array.isArray(response.data) ? response.data : response.data.assignments || []
