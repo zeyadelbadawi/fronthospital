@@ -31,22 +31,24 @@ import styles from "../styles/sidebar.module.css"
 const departments = [
  
   {
-    id: "school-p",
-    name: "school Students",
-    icon: MessageSquare,
-    items: [
-      { id: "School-patients", name: "Students", type: "patients" },
-    ],
-  },
-  {
     id: "school-up",
-    name: "Appointments",
+    name: "School Evaulation Appointments",
     icon: MessageSquare,
     items: [
-      { id: "Up-appointments", name: "Up Comming Appointments", type: "appointments" },
+      { id: "Up-appointments", name: "All Appointments", type: "appointments" },
       ,
     ],
   },
+
+  {
+    id: "school-p",
+    name: "School Evaulation Students",
+    icon: MessageSquare,
+    items: [
+      { id: "School-patients", name: "All Students", type: "patients" },
+    ],
+  },
+
 ]
 
 
@@ -75,7 +77,7 @@ export function AppSidebar() {
   return (
     <Sidebar className={styles.customSidebar}>
       <SidebarHeader className={styles.sidebarHeader}>
-        <h5 className={styles.sidebarTitle}>Departments</h5>
+        <h5 className={styles.sidebarTitle}></h5>
       </SidebarHeader>
 
       <SidebarContent>

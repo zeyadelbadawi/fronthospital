@@ -20,6 +20,11 @@ export function MainContent() {
     const { department, type } = activeContent
 
 
+ if (department === "school-up") {
+      if (type === "appointments") {
+         return <SpeechAppointments />
+       }
+     }
 
 
     if (department === "school-p") {
@@ -28,12 +33,7 @@ export function MainContent() {
       }
     }
 
-    if (department === "school-up") {
-      if (type === "appointments") {
-         return <SpeechAppointments />
-       }
-     }
-
+   
     return <WelcomeView />
   }
 

@@ -19,7 +19,6 @@ import AllPatientsSpeech from "./all-patients-speech"
 
 
 
-import { PatientsView } from "./patients-view"
 import { WelcomeView } from "./welcome-view"
 import styles from "../styles/main-content.module.css"
 import AllPatientsAba from "./all-patients-aba"
@@ -106,13 +105,7 @@ export function MainContent() {
 
   return (
     <SidebarInset className={styles.mainContent}>
-      <header className={styles.mainHeader}>
-        <div className={styles.headerTitle}>
-          <h5>
-            Full Program Management
-          </h5>
-        </div>
-      </header>
+     
       <main className={styles.mainBody}>{renderContent()}</main>
     </SidebarInset>
   )

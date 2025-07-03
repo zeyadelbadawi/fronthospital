@@ -157,7 +157,7 @@ const AllPatientsSchool = () => {
                         Status
                       </div>
                     </th>
-                    <th className={styles.textCenter}>Actions</th>
+                    <th className={styles.textCenter}>View Plan</th>
                   </tr>
                 </thead>
                 <tbody>

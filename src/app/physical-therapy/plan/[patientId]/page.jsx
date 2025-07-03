@@ -92,7 +92,6 @@ const PatientPlanEditor = () => {
             </div>
 
             <div className="card-body">
-           
               {/* Document Viewer */}
               <div className="row ">
                 <div className="col-12 ">

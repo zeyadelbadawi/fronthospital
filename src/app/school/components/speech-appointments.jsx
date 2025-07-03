@@ -817,9 +817,9 @@ export function SpeechAppointments() {
                 <thead>
                   <tr className={styles.tableHeader}>
                     <th>#</th>
-                    <th>Patient Name</th>
+                    <th>Student Name</th>
 
-                    <th>Initial Date</th>
+                    <th>Last appointment</th>
                     <th>Status</th>
                     <th className={styles.textCenter}>Action</th>
                   </tr>

@@ -1,4 +1,4 @@
-/* Enhanced styles for AllPatientsSchool component */
+/* Enhanced styles for AppointmentsManagement component */
 
 .upcomingContainer {
   min-height: 100vh;
@@ -19,7 +19,7 @@
 
 /* Header Styles */
 .cardHeader {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
   color: white;
   padding: 2.5rem;
   position: relative;
@@ -88,12 +88,6 @@
   transform: translateX(-2px);
 }
 
-.titleSection {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
 .pageTitle {
   display: flex;
   align-items: center;
@@ -105,12 +99,6 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-}
-
-.titleIcon {
-  width: 2rem;
-  height: 2rem;
-  color: white;
 }
 
 .pageSubtitle {
@@ -168,10 +156,74 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* Enhanced Stats Container */
+/* Filters Container */
 .filtersContainer {
   position: relative;
   z-index: 1;
+}
+
+.filterRow {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filterLabel {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+}
+
+.filterSelect,
+.filterInput {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.375rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 0.875rem;
+  min-width: 150px;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+
+.filterSelect:focus,
+.filterInput:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.filterSelect option {
+  background: #1e40af;
+  color: white;
+}
+
+.clearFiltersButton {
+  padding: 0.5rem 1rem;
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  height: fit-content;
+  backdrop-filter: blur(10px);
+}
+
+.clearFiltersButton:hover {
+  background: rgba(220, 38, 38, 1);
+  transform: translateY(-1px);
 }
 
 .statsContainer {
@@ -205,18 +257,6 @@
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.2);
-}
-
-.statIcon.activeIcon {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-}
-
-.statIcon.completedIcon {
-  background: linear-gradient(135deg, #10b981, #059669);
-}
-
-.statIcon.pendingIcon {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
 }
 
 .statIconSvg {
@@ -404,16 +444,28 @@
   font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
 }
 
-.dateCell,
-.timeCell,
-.descriptionCell {
-  min-width: 150px;
+.dateCell {
+  min-width: 200px;
 }
 
 .dateInfo {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.5rem;
+}
+
+.appointmentDate,
+.appointmentTime {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dateIcon,
+.timeIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: #6b7280;
 }
 
 .dateValue,
@@ -422,9 +474,53 @@
   color: #374151;
 }
 
-.descriptionText {
-  color: #6b7280;
-  line-height: 1.4;
+.servicesCell {
+  min-width: 200px;
+}
+
+.departmentBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.departmentBadge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.departmentBadge.speech {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #1e40af;
+}
+
+.departmentBadge.physical {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  color: #065f46;
+}
+
+.departmentBadge.aba {
+  background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+  color: #7c3aed;
+}
+
+.departmentBadge.occupational {
+  background: linear-gradient(135deg, #fed7aa, #fdba74);
+  color: #c2410c;
+}
+
+.departmentBadge.special {
+  background: linear-gradient(135deg, #fecaca, #fca5a5);
+  color: #dc2626;
+}
+
+.departmentBadge.default {
+  background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+  color: #374151;
 }
 
 .typeCell {
@@ -439,6 +535,9 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .typeBadge.active {
@@ -456,24 +555,30 @@
   color: #374151;
 }
 
+.typeBadge.assessment {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: #dc2626;
+}
+
 .actionsCell {
-  min-width: 120px;
+  min-width: 200px;
 }
 
 .actionButtons {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .actionButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border: none;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
@@ -490,6 +595,15 @@
   transform: none;
 }
 
+.viewButton {
+  background: linear-gradient(135deg, #0ea5e9, #0369a1);
+  color: white;
+}
+
+.viewButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0369a1, #075985);
+}
+
 .editButton {
   background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   color: white;
@@ -499,18 +613,37 @@
   background: linear-gradient(135deg, #1d4ed8, #1e40af);
 }
 
-.appointmentButton {
+.rescheduleButton {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.rescheduleButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d97706, #b45309);
+}
+
+.completeButton {
   background: linear-gradient(135deg, #10b981, #059669);
   color: white;
 }
 
-.appointmentButton:hover:not(:disabled) {
+.completeButton:hover:not(:disabled) {
   background: linear-gradient(135deg, #059669, #047857);
 }
 
+.deleteButton {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.deleteButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
 .actionIcon {
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 1rem;
+  height: 1rem;
+  color: #ffffff;
 }
 
 .textCenter {
@@ -563,6 +696,241 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modalHeader h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.closeButton {
+  padding: 0.5rem;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.closeButton:hover {
+  background: #e5e7eb;
+}
+
+.modalContent {
+  padding: 1.5rem;
+}
+
+.patientDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.detailSection {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 1rem;
+}
+
+.detailSection:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.detailSection h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+  margin-top: 0;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .detailGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: #f8fafc;
+  border-radius: 0.375rem;
+}
+
+.detailIcon {
+  width: 1rem;
+  height: 1rem;
+  color: #1e40af;
+}
+
+.servicesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.serviceBadge {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.confirmationMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #fef2f2;
+  border-radius: 0.5rem;
+}
+
+.confirmIcon {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: #ef4444;
+  margin-bottom: 1rem;
+}
+
+.confirmationMessage p {
+  color: #991b1b;
+  margin: 0.25rem 0;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.formInput,
+.formTextarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.formTextarea {
+  resize: vertical;
+}
+
+.formInput:focus,
+.formTextarea:focus {
+  outline: none;
+  border-color: #1e40af;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #e2e8f0;
+  background: white;
+  color: #374151;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelButton:hover {
+  background: #f8fafc;
+  border-color: #d1d5db;
+}
+
+.completeActionButton {
+  background: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.completeActionButton:hover {
+  background: #15803d;
+}
+
+.deleteButton {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.deleteButton:hover {
+  background: #dc2626;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .headerContent {
@@ -590,6 +958,21 @@
     min-width: 280px;
   }
 
+  .filterRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filterGroup {
+    width: 100%;
+  }
+
+  .filterSelect,
+  .filterInput {
+    min-width: auto;
+    width: 100%;
+  }
+
   .paginationContainer {
     flex-direction: column;
     gap: 1.5rem;
@@ -607,6 +990,19 @@
   .actionButtons {
     flex-direction: column;
     gap: 0.5rem;
+  }
+
+  .modal {
+    margin: 1rem;
+    max-width: calc(100vw - 2rem);
+  }
+
+  .modalActions {
+    flex-direction: column;
+  }
+
+  .detailGrid {
+    grid-template-columns: 1fr;
   }
 }
 

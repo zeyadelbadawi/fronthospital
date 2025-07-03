@@ -32,55 +32,53 @@ const departments = [
   
   {
     id: "appontmentupcoming",
-    name: "Up comming Appointments",
+    name: "Single Sessions Appointemnts",
     icon: MessageSquare,
     items: [
-      { id: "speech-appointments", name: "Add More Appointments", type: "appointments" },
+      { id: "speech-appointments", name: "All Appointments", type: "appointments" },
 
     ],
   },
   {
     id: "physical-therapy",
-    name: "Physical Therapy",
+    name: "Physical Therapy Students",
     icon: Activity,
     items: [
-      { id: "physical-therapy-patients", name: "Students", type: "patients" },
+      { id: "physical-therapy-patients", name: "All Students", type: "patients" },
     ],
   },
   {
     id: "aba",
-    name: "ABA",
+    name: "ABA Students",
     icon: Brain,
     items: [
-      { id: "aba-patients", name: "Students", type: "patients" },
+      { id: "aba-patients", name: "All Students", type: "patients" },
     ],
   },
   {
     id: "occupational-therapy",
-    name: "Occupational Therapy",
+    name: "Occupational Therapy Students",
     icon: Hand,
     items: [
-      { id: "occupational-therapy-patients", name: "Students", type: "patients" },
+      { id: "occupational-therapy-patients", name: "All Students", type: "patients" },
     ],
   },
   {
     id: "special-education",
-    name: "Special Education",
+    name: "Special Education Students",
     icon: GraduationCap,
     items: [
 
-      { id: "special-education-patients", name: "Students", type: "patients" },
+      { id: "special-education-patients", name: "All Students", type: "patients" },
     ],
   },
   {
     id: "speech",
-    name: "Speech",
+    name: "Speech Students",
     icon: MessageSquare,
     items: [
-      { id: "speech-patients", name: "Students", type: "patients" },
-      { id: "speech-appointments", name: "Add More Appointments", type: "appointments" },
-            { id: "speech-upcoming", name: "Upcoming Appointments", type: "upcoming-appointments" },
-
+      { id: "speech-patients", name: "All Students", type: "patients" },
+  
     ],
   },
 
@@ -110,7 +108,7 @@ export function AppSidebar() {
   return (
     <Sidebar className={styles.customSidebar}>
       <SidebarHeader className={styles.sidebarHeader}>
-        <h5 className={styles.sidebarTitle}>Departments</h5>
+        <h5 className={styles.sidebarTitle}></h5>
       </SidebarHeader>
 
       <SidebarContent>
