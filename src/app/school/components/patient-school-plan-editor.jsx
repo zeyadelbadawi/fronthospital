@@ -2,7 +2,22 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, User, FileText, Save, Clock, Mail, Phone, Calendar, Brain, Download, Upload, Eye, Edit3, CheckCircle, AlertCircle } from 'lucide-react'
+import {
+  ArrowLeft,
+  User,
+  FileText,
+  Save,
+  Clock,
+  Mail,
+  Phone,
+  Calendar,
+  Brain,
+  Download,
+  Eye,
+  Edit3,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react"
 import axiosInstance from "@/helper/axiosSetup"
 import SyncfusionDocx from "@/components/SyncfusionDocx"
 import styles from "../styles/patient-school-plan-editor.module.css"
@@ -65,7 +80,7 @@ const PatientSchoolPlanEditor = () => {
     try {
       // Fetch appointment statistics for this patient
       const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs/by-patient/${patientId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/authentication/school-programs/by-patient/${patientId}`,
       )
 
       const appointments = response.data.appointments || []
@@ -108,7 +123,9 @@ const PatientSchoolPlanEditor = () => {
     router.back()
   }
 
-
+  const handleViewAppointments = () => {
+    router.push(`/speech-appointments?patientId=${patientId}`)
+  }
 
   const showSuccessMessage = (message) => {
     const toast = document.createElement("div")
@@ -174,7 +191,7 @@ const PatientSchoolPlanEditor = () => {
             <div className={styles.headerLeft}>
               <button onClick={handleBackToList} className={styles.backButton}>
                 <ArrowLeft className={styles.backIcon} />
-                Back to School Evaluation Students
+                Back to Students
               </button>
               <div className={styles.studentInfo}>
                 <h1 className={styles.planTitle}>
@@ -205,8 +222,14 @@ const PatientSchoolPlanEditor = () => {
               </div>
             </div>
             <div className={styles.headerActions}>
-         
- 
+              <button onClick={handleViewAppointments} className={styles.appointmentsButton}>
+                <Calendar className={styles.buttonIcon} />
+                View Appointments
+              </button>
+              <button onClick={handleSave} disabled={saving} className={styles.saveButton}>
+                <Save className={styles.buttonIcon} />
+                {saving ? "Saving..." : "Save Plan"}
+              </button>
             </div>
           </div>
         </div>
@@ -240,12 +263,38 @@ const PatientSchoolPlanEditor = () => {
               <div className={styles.statLabel}>Upcoming</div>
             </div>
           </div>
-   
+          <div className={styles.statCard}>
+            <div className={`${styles.statIcon} ${styles.documentIcon}`}>
+              <FileText className={styles.statIconSvg} />
+            </div>
+            <div className={styles.statContent}>
+              <div className={styles.statNumber}>{plan.fileName ? "1" : "0"}</div>
+              <div className={styles.statLabel}>Documents</div>
+            </div>
+          </div>
         </div>
 
         {/* Main Content */}
         <div className={styles.planBody}>
           <div className={styles.documentSection}>
+            <div className={styles.sectionHeader}>
+              <h3 className={styles.sectionTitle}>
+                <FileText className={styles.sectionIcon} />
+                Treatment Plan Document
+              </h3>
+              <div className={styles.documentActions}>
+                <button className={styles.actionButton} title="View Document">
+                  <Eye className={styles.actionIcon} />
+                </button>
+                <button className={styles.actionButton} title="Edit Document">
+                  <Edit3 className={styles.actionIcon} />
+                </button>
+                <button className={styles.actionButton} title="Download Document">
+                  <Download className={styles.actionIcon} />
+                </button>
+              </div>
+            </div>
+
             <div className={styles.documentContainer}>
               <SyncfusionDocx
                 userData={{
@@ -272,7 +321,35 @@ const PatientSchoolPlanEditor = () => {
           </div>
 
           {/* Additional Information Panel */}
-         
+          <div className={styles.infoPanel}>
+            <div className={styles.infoPanelHeader}>
+              <h4 className={styles.infoPanelTitle}>Student Information</h4>
+            </div>
+            <div className={styles.infoPanelContent}>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Date of Birth:</span>
+                <span className={styles.infoValue}>
+                  {patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString() : "Not specified"}
+                </span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Gender:</span>
+                <span className={styles.infoValue}>{patient.gender || "Not specified"}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Disability Type:</span>
+                <span className={styles.infoValue}>{patient.disabilityType || "Not specified"}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Address:</span>
+                <span className={styles.infoValue}>{patient.address || "Not specified"}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Assigned Department:</span>
+                <span className={styles.infoValue}>{patient.assignedDepartment || "School Evaluation"}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

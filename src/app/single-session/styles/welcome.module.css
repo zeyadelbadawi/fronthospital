@@ -1,78 +1,297 @@
 .welcomeContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
   padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.welcomeContainer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  pointer-events: none;
 }
 
 .welcomeContent {
-  max-width: 64rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* Header Section */
+.welcomeHeader {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 4rem 3rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+}
+
+.headerContent {
+  max-width: 800px;
   margin: 0 auto;
 }
 
-.welcomeHeader {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
 .welcomeTitle {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 1rem;
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
 }
 
 .welcomeSubtitle {
+  font-size: 1.25rem;
+  color: #64748b;
+  font-weight: 400;
+  line-height: 1.6;
+  margin: 0 0 2rem 0;
+}
+
+.roleIndicator {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.roleText {
+  margin: 0;
+}
+
+/* Departments Section */
+.departmentsSection {
+  margin-bottom: 3rem;
+}
+
+.sectionTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sectionSubtitle {
   font-size: 1.125rem;
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  margin-bottom: 3rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 3rem;
 }
 
 .cardsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
 }
 
 .departmentCard {
-  background-color: #ffffff;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
-  transition: box-shadow 0.2s, transform 0.2s;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 2.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
-.departmentCard:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+.departmentCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--card-color), var(--card-color-light));
+}
+
+.departmentCard.blue {
+  --card-color: #3b82f6;
+  --card-color-light: #60a5fa;
+}
+
+.departmentCard.purple {
+  --card-color: #8b5cf6;
+  --card-color-light: #a78bfa;
+}
+
+.departmentCard.green {
+  --card-color: #10b981;
+  --card-color-light: #34d399;
+}
+
+.departmentCard.orange {
+  --card-color: #f59e0b;
+  --card-color-light: #fbbf24;
+}
+
+.departmentCard.red {
+  --card-color: #ef4444;
+  --card-color-light: #f87171;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.cardIconWrapper {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--card-color), var(--card-color-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .cardIcon {
   width: 2rem;
   height: 2rem;
-  margin-bottom: 1rem;
+  color: white;
 }
 
-.cardIcon.blue {
-  color: #2563eb;
-}
-.cardIcon.purple {
-  color: #7c3aed;
-}
-.cardIcon.green {
-  color: #059669;
-}
-.cardIcon.orange {
-  color: #d97706;
-}
-.cardIcon.red {
-  color: #dc2626;
+.cardContent {
+  text-align: center;
 }
 
 .cardTitle {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #1f2937;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1rem;
 }
 
 .cardDescription {
-  color: #6b7280;
+  color: #64748b;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* Information Section */
+.infoSection {
+  display: flex;
+  justify-content: center;
+}
+
+.infoCard {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 3rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  max-width: 700px;
+  text-align: center;
+}
+
+.infoTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+}
+
+.infoText {
+  color: #64748b;
+  line-height: 1.7;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .welcomeContainer {
+    padding: 1rem;
+  }
+
+  .welcomeHeader {
+    padding: 3rem 2rem;
+  }
+
+  .welcomeTitle {
+    font-size: 2.5rem;
+  }
+
+  .welcomeSubtitle {
+    font-size: 1.125rem;
+  }
+
+  .roleIndicator {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.75rem;
+  }
+
+  .cardsGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .departmentCard {
+    padding: 2rem;
+  }
+
+  .infoCard {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcomeTitle {
+    font-size: 2rem;
+  }
+
+  .sectionTitle {
+    font-size: 2rem;
+  }
+
+  .departmentCard {
+    padding: 1.5rem;
+  }
+
+  .cardIconWrapper {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .cardIcon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .infoCard {
+    padding: 1.5rem;
+  }
+
+  .roleIndicator {
+    padding: 0.5rem 1rem;
+    font-size: 0.7rem;
+  }
 }
