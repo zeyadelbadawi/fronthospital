@@ -184,7 +184,7 @@ const MasterLayout = ({ children }) => {
 
   if (userRole === 'patient') {
     profileLink = '/profile';
-  }  else if (userRole === 'doctor') {
+  } else if (userRole === 'doctor') {
     profileLink = '/profile-doctor';
   } else if (userRole === 'accountant') {
     profileLink = '/profile-accountant';
@@ -193,7 +193,7 @@ const MasterLayout = ({ children }) => {
   const handleProfileRedirect = () => {
     if (userRole === 'patient') {
       <Link href="/profile"></Link>
-    }  else if (userRole === 'doctor') {
+    } else if (userRole === 'doctor') {
       <Link href="/profile-doctor"></Link>
     }
     else if (userRole === 'accountant') {
@@ -223,26 +223,12 @@ const MasterLayout = ({ children }) => {
         </button>
         <div>
           <Link href='/' className='sidebar-logo'>
-            <img
-              src='assets/dlogo.png'
-              alt='site logo'
-              className='light-logo'
-            />
-            <img
-              src='assets/dlogo.png'
-              alt='site logo'
-              className='dark-logo'
-            />
-            <img
-              src='assets/dlogo.png'
-              alt='site logo'
-              className='logo-icon'
-            />
+          
           </Link>
         </div>
         <div className='sidebar-menu-area'>
           <ul className='sidebar-menu' id='sidebar-menu'>
-            <li className='sidebar-menu-group-title'>Home</li>
+            <li className='sidebar-menu-group-title' style={{ color: 'blue' }}>Home</li>
             <li>
               <Link
                 href='/'
@@ -251,7 +237,7 @@ const MasterLayout = ({ children }) => {
                 <span>Statistics</span>
               </Link>
             </li>
-            <li className='sidebar-menu-group-title'>Dashboards</li>
+            <li className='sidebar-menu-group-title' style={{ color: 'blue' }}>All Programs</li>
             <li>
               <Link
                 href='/full-program'
@@ -276,15 +262,7 @@ const MasterLayout = ({ children }) => {
                 <span>School Evaluations</span>
               </Link>
             </li>
-            <li>
-              <Link
-                href='/full-program-appointments'
-                className={pathname === "/full-program-appointments" ? "active-page" : ""}>
-                <Icon icon='bi:chat-dots' className='menu-icon' />
-                <span>Full Program Appointments</span>
-              </Link>
-            </li>
-            <li>
+                        <li>
               <Link
                 href='/profile-dashboard'
                 className={pathname === "/profile-dashboard" ? "active-page" : ""}>
@@ -292,35 +270,24 @@ const MasterLayout = ({ children }) => {
                 <span>Students Profile</span>
               </Link>
             </li>
-            <li>
-              <Link
-                href='/doctor-dashboard2'
-                className={pathname === "/doctor-dashboard2" ? "active-page" : ""}>
-                <Icon
-                  icon='material-symbols:map-outline'
-                  className='menu-icon'/>
-                <span>Free Consultation requests</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                href='/wizard'
-                className={pathname === "/wizard" ? "active-page" : ""}>
-                <Icon
-                  icon='material-symbols:map-outline'
-                  className='menu-icon'/>
-                <span>Book Appointment</span>
-              </Link>
-            </li>
+<li className='sidebar-menu-group-title' style={{ color: 'blue' }}>Full Program schedule</li>
             <li>
               <Link
                 href='/calendar-main'
                 className={pathname === "/calendar-main" ? "active-page" : ""}>
                 <Icon icon='solar:calendar-outline' className='menu-icon' />
-                <span>Calendar</span>
+                <span>Show schedule</span>
               </Link>
             </li>
-            <li className='sidebar-menu-group-title'>All Users</li>
+            <li>
+              <Link
+                href='/full-program-appointments'
+                className={pathname === "/full-program-appointments" ? "active-page" : ""}>
+                <Icon icon='bi:chat-dots' className='menu-icon' />
+                <span>update schedule</span>
+              </Link>
+            </li>
+            <li className='sidebar-menu-group-title' style={{ color: 'blue' }}>All Users</li>
             <li>
               <Link
                 href='/users-list'
@@ -345,41 +312,22 @@ const MasterLayout = ({ children }) => {
                 <span>All Accountants</span>
               </Link>
             </li>
-             
-            <li className='sidebar-menu-group-title'>payment reports</li>
-              <li>
-                <Link
-                  href='/Payment-Transactions'
-                  className={pathname === "/Payment-Transactions" ? "active-page" : ""}>
-                  <Icon icon='bi:chat-dots' className='menu-icon' />
-                  <span> Payment Transactions</span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/table-data'
-                  className={pathname === "/table-data" ? "active-page" : ""}>
-                  <Icon icon='bi:chat-dots' className='menu-icon' />
-                  <span>Edit Payment Transactions</span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/Patient-Payments'
-                  className={pathname === "/Patient-Payments" ? "active-page" : ""}>
-                  <Icon icon='bi:chat-dots' className='menu-icon' />
-                  <span>Patients Payment</span>
-                </Link>
-              </li>
-              
-            {/* Settings Dropdown */}
-            <li className='dropdown'>
-              <Link href='#'>
-                <Icon
-                  icon='icon-park-outline:setting-two'
-                  className='menu-icon'
-                />
-                <span>Settings</span>
+
+            <li className='sidebar-menu-group-title' style={{ color: 'blue' }}>payment reports</li>
+            <li>
+              <Link
+                href='/Payment-Transactions'
+                className={pathname === "/Payment-Transactions" ? "active-page" : ""}>
+                <Icon icon='bi:chat-dots' className='menu-icon' />
+                <span> Payment Transactions</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                href='/table-data'
+                className={pathname === "/table-data" ? "active-page" : ""}>
+                <Icon icon='bi:chat-dots' className='menu-icon' />
+                <span>Edit Payment Transactions</span>
               </Link>
             </li>
           </ul>
@@ -395,7 +343,7 @@ const MasterLayout = ({ children }) => {
               <div className='d-flex flex-wrap align-items-center gap-4'>
                 <button
                   type='button'
-                  
+
                   className='sidebar-toggle'
 
                   onClick={sidebarControl}
@@ -437,7 +385,7 @@ const MasterLayout = ({ children }) => {
                     title='Switch Language'       // <-- Tooltip on hover
 
                   >
-<Icon icon="iconoir:language" className='icon' />
+                    <Icon icon="iconoir:language" className='icon' />
 
                   </button>
                   <div className='dropdown-menu to-top dropdown-menu-sm'>
@@ -455,11 +403,7 @@ const MasterLayout = ({ children }) => {
                           htmlFor='english'
                         >
                           <span className='text-black hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'>
-                            <img
-                              src='assets/images/flags/eng.webp'
-                              alt=''
-                              className='w-36-px h-36-px bg-success-subtle text-success-main rounded-circle flex-shrink-0'
-                            />
+                          
                             <span className='text-md fw-semibold mb-0'>
                               English
                             </span>
@@ -479,11 +423,6 @@ const MasterLayout = ({ children }) => {
                           htmlFor='Arabic'
                         >
                           <span className='text-black hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'>
-                            <img
-                              src='assets/images/flags/ar.webp'
-                              alt=''
-                              className='w-36-px h-36-px bg-success-subtle text-success-main rounded-circle flex-shrink-0'
-                            />
                             <span className='text-md fw-semibold mb-0'>
                               Arabic
                             </span>
@@ -500,7 +439,7 @@ const MasterLayout = ({ children }) => {
                   </div>
                 </div>
                 {/* Language dropdown end */}
-                
+
                 {/* notification dropdown start */}
                 <div className='dropdown'>
                   <button
@@ -558,10 +497,7 @@ const MasterLayout = ({ children }) => {
                       >
                         <div className='text-black hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'>
                           <span className='w-44-px h-44-px bg-success-subtle text-success-main rounded-circle d-flex justify-content-center align-items-center flex-shrink-0'>
-                            <img
-                              src='assets/images/notification/profile-1.png'
-                              alt=''
-                            />
+                           
                           </span>
                           <div>
                             <h6 className='text-md fw-semibold mb-4'>
@@ -603,10 +539,7 @@ const MasterLayout = ({ children }) => {
                       >
                         <div className='text-black hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'>
                           <span className='w-44-px h-44-px bg-success-subtle text-success-main rounded-circle d-flex justify-content-center align-items-center flex-shrink-0'>
-                            <img
-                              src='assets/images/notification/profile-2.png'
-                              alt=''
-                            />
+                         
                           </span>
                           <div>
                             <h6 className='text-md fw-semibold mb-4'>

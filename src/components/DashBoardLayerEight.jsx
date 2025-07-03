@@ -4,10 +4,9 @@ import HomeComTo from "./child/HomeComTo";
 import PatientVisitedDepartment from "./child/PatientVisitedbyDepartment";
 import PatientVisitByGender from "./child/PatientVisitByGender";
 import HomeComThree from "./child/HomeComThree";
-import HomeComSix from "./child/HomeComSix";
 import HomeComFour from "./child/HomeComFour";
-import HomeComFive from "./child/HomeComFive";
-
+import HomeComSix from "./child/HomeComSix";
+  
 const DashBoardLayerEight = () => {
   return (
     <>
@@ -38,8 +37,6 @@ const DashBoardLayerEight = () => {
             {/* TotalIncome */}
             <HomeComFour />
 
-            {/* AvailableTreatments */}
-            <HomeComFive />
 
           </div>
         </div>

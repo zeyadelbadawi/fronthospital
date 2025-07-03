@@ -785,7 +785,7 @@ export function SpeechAppointments() {
             <div className={styles.headerLeft}>
               <h2 className={styles.pageTitle}>
                 <Users className={styles.titleIcon} />
-                School Program Management
+                School Evaluations Management
               </h2>
               <p className={styles.pageSubtitle}>Manage appointments for school evaluation programs</p>
             </div>

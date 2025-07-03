@@ -5,89 +5,7 @@ import { Icon } from '@iconify/react';
 import PaymentEditModal from '@/components/PaymentEditModal';
 
 const PaymentEdit = () => {
-  const [payments, setPayments] = useState([]);
-  const [filterType, setFilterType] = useState('day');
-  const [filterDate, setFilterDate] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
-
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState(null);
-
-  useEffect(() => {
-    const fetchPayments = async () => {
-      try {
-        const res = await axiosInstance.get('/authentication/payments');
-        setPayments(res.data);
-      } catch (err) {
-        console.error('Error fetching payments:', err);
-      }
-    };
-    fetchPayments();
-  }, []);
-
-  const filterByDate = (payment) => {
-    if (!filterType || !filterDate) return true;
-    const paymentDate = new Date(payment.date);
-    const selected = new Date(filterDate);
-
-    switch (filterType) {
-      case 'day':
-        return paymentDate.toDateString() === selected.toDateString();
-      case 'month':
-        return (
-          paymentDate.getFullYear() === selected.getFullYear() &&
-          paymentDate.getMonth() === selected.getMonth()
-        );
-      case 'year':
-        return paymentDate.getFullYear() === parseInt(filterDate);
-      default:
-        return true;
-    }
-  };
-
-  const renderDateInput = () => {
-    switch (filterType) {
-      case 'day':
-        return (
-          <input
-            type="date"
-            className="form-control form-control-sm"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-          />
-        );
-      case 'month':
-        return (
-          <input
-            type="month"
-            className="form-control form-control-sm"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-          />
-        );
-      case 'year':
-        return (
-          <input
-            type="number"
-            className="form-control form-control-sm"
-            placeholder="Enter year"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  const filteredPayments = payments
-    .filter(filterByDate)
-    .sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by date DESC
-
-  const totalAmount = filteredPayments.reduce((sum, p) => sum + (p.price || 0), 0);
-
+ 
   return (
     <div className="col-lg-12">
       <div className="card">
@@ -96,23 +14,17 @@ const PaymentEdit = () => {
           <div className="d-flex gap-2 align-items-center">
             <select
               className="form-select form-select-sm"
-              value={filterType}
-              onChange={(e) => {
-                setFilterType(e.target.value);
-                setFilterDate('');
-              }}
             >
               <option value="day">By Day</option>
               <option value="month">By Month</option>
               <option value="year">By Year</option>
             </select>
-            {renderDateInput()}
           </div>
         </div>
 
         <div className="card-body">
           <div className="mb-3 fw-semibold text-primary">
-            Total Amount: {totalAmount.toLocaleString()} EGP
+            Total Amount:  EGP
           </div>
 
           <div className="table-responsive">
@@ -131,7 +43,7 @@ const PaymentEdit = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredPayments.map((p) => (
+                {((p) => (
                   <tr key={p._id} className="custom-row-border">
                     <td>#{p._id.slice(-6).toUpperCase()}</td>
                     <td className="text-center">{p.patient?.name || 'Unknown'}</td>
@@ -180,11 +92,7 @@ const PaymentEdit = () => {
                     </td>
                   </tr>
                 ))}
-                {filteredPayments.length === 0 && (
-                  <tr>
-                    <td colSpan="9" className="text-center text-muted">No payments found.</td>
-                  </tr>
-                )}
+           
               </tbody>
 
               <style jsx>{`
@@ -205,25 +113,7 @@ const PaymentEdit = () => {
             </table>
           </div>
         </div>
-      </div>
-
-      {/* Edit Modal */}
-      {selectedPayment && (
-        <PaymentEditModal
-          show={showEditModal}
-          onHide={() => {
-            setSelectedPayment(null);
-            setShowEditModal(false);
-          }}
-          payment={selectedPayment}
-          onUpdate={(updated) => {
-            setPayments((prev) =>
-              prev.map((p) => (p._id === updated._id ? updated : p))
-            );
-            setShowEditModal(false);
-          }}
-        />
-      )}
+      </div>      
     </div>
   );
 };
