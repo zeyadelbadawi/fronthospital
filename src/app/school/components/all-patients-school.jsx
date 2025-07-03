@@ -72,7 +72,7 @@ const AllPatientsSchool = () => {
             <div className={styles.headerLeft}>
               <button onClick={handleBackToWelcome} className={styles.backButton}>
                 <X className={styles.backIcon} />
-                Back to Welcome
+                Back to All School Appointments
               </button>
               <h2 className={styles.pageTitle}>School Evaluation Students</h2>
             </div>

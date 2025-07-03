@@ -13010,13 +13010,11 @@ select option {
 
 /* custom form fields css end */
 [data-theme="dark"] .form-select {
-  background-image: url(../images/arrow-down.png);
   background-size: 11px 7px;
   background-repeat: no-repeat;
 }
 
 [data-theme="dark"] .btn-close {
-  background-image: url(../images/times.png);
   background-size: auto;
   background-repeat: no-repeat;
   opacity: 1;
@@ -13955,7 +13953,6 @@ select option {
 }
 
 #imagePreview {
-  background-image: url("../images/user-grid/user-grid-img13.png");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -13963,7 +13960,6 @@ select option {
 
 #previewImage1,
 #previewImage2 {
-  background-image: url("../images/payment/upload-image.png");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -14912,281 +14908,10 @@ td.fc-header-center {
   color: var(--neutral-400);
 }
 
-.gif-image {
-  max-width: 60px;
-}
 
-/* ========================= Wizard Css End ========================= */
-/* === wizard css end === */
-/* === file upload css start === */
-/* ============================ Image Upload Css Start ==================== */
-.image-upload {
-  border-radius: 8px !important;
-  overflow: hidden;
-  position: relative;
-  border-radius: inherit;
-  border: 1px dashed var(--input-form-light) !important;
-  cursor: pointer;
-  transition: 0.2s;
-  height: 150px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  max-width: 180px;
-}
 
-.image-upload:hover {
-  background-color: var(--neutral-100);
-}
 
-.image-upload__box {
-  border-radius: inherit !important;
-  cursor: pointer;
-  padding: 16px !important;
-  flex-direction: column;
-  justify-content: center;
-}
 
-.image-upload__boxInner {
-  padding: 0 !important;
-  border: 0 !important;
-  display: inline-flex;
-  justify-content: center;
-  flex-direction: column;
-  width: 100% !important;
-  margin: 0 auto;
-  position: relative;
-  border-radius: inherit;
-}
-
-.image-upload__icon {
-  font-size: 32px !important;
-  color: var(--primary-600);
-  line-height: 1;
-}
-
-.image-upload__image {
-  border-radius: inherit;
-  max-width: 100%;
-}
-
-.image-upload__imageName {
-  margin-top: 4px;
-}
-
-.image-upload__deleteBtn {
-  position: absolute;
-  right: -6px;
-  top: -6px;
-  z-index: 1;
-  background: var(--neutral-100);
-  color: hsl(var(--neutral-900));
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
-  transition: 0.2s;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.image-upload__deleteBtn:hover {
-  background: var(--danger-600);
-  transform: scale(1.1);
-  color: #fff;
-}
-
-.image-upload__anotherFileIcon {
-  font-size: 16px !important;
-  color: hsl(var(--body-color)) !important;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--neutral-100);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: inherit;
-}
-
-.image-upload__boxInner p,
-.image-upload__boxInner span {
-  line-height: 1.2 !important;
-}
-
-/* ============================ Image Upload Css End ==================== */
-/* === file upload css end === */
-/* === file upload css start === */
-.ppq-audio-player .play-pause-btn .play-pause-icon:after {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  -webkit-transform: translate(-50%, -50%);
-  -ms-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-}
-
-.ppq-audio-player .play-pause-btn .play-pause-icon:after,
-.ppq-audio-player.player-playing .play-pause-icon:after {
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAAASCAMAAADrP+ckAAABNVBMVEUAAAAAmIcAmYgAm4sAnIsAnIwAnI0AnY0AnY4Ano4Ano8An5AAoJEAoZEAoZIAopMBn5ABoJABoJEBoZEBoZIBoZMBopMCoZICopMCopQCo5QDoJEDoZEDo5QDo5UFopMGo5QKpJYLpJYMpZcMppgNpZcNppgNp5gOppcOppgOp5gOp5kQqJoSp5kSqJoTqZsbrJ4drJ8irZ8mrqEnsKMrsqUtsqYytKg0tak5t6tHvLJJvbNLvbNqycBrysFsycFwy8Jwy8N3zsZ+0MiA0cqD0suH1M2L1c6P1tCk3tmm39mv4t285+PE6ebH6ufN7erS7+zV7+3W8O3X8O7a8u/k9fPs+Pft+Pfx+fjx+fnx+vny+vr1+/v2+/v5/fz7/f38/f38/v38/v79/v7+/v7+//////+ALAV1AAAAAXRSTlMAQObYZgAAATxJREFUKM+F0tlWwjAQBuAgQgHTRFFrqaK4IALiiuKugPsKrqUo0DbO+z+CDYHIFZ279nznP3P+DHLh4+L8HWybAQM+qDdlUgGXMRcqpIwYnIwoG7ct6LjAfgdUKlZoAmPQLMRSCBrLZH4idPAEbqcb11eamm1w1ciqGgJrFVPNiMydfkLH8X5LhXMWV1YOc7WCKSGGHty6A9Z2ZRbFGaEymApFKaHJceXoFRxnmPKcZoQXL79huPLijKng/ouP4nFJZcdXUWJML/gpLyo6du2zPTUmQ3uPw7cnWiK8dPUDzn+rUvVaFXUdv4Fjy+51nBcqj3XxQl71o9v33eqlipO0yZWZJnEE5pqqJZTZsy/xjHKvYqBk82+7FCgiaO1GZqKHz/2TkKpWrYv7qldryIGH9c2bFrR75yXV4PwBrZh1OjRqx9oAAAAASUVORK5CYII=);
-  background-size: 37px 18px;
-}
-
-.ppq-audio-player {
-  line-height: 111px;
-  position: relative;
-  overflow: hidden;
-  height: 111px;
-  margin: 0 auto;
-  background: #f4f4f4;
-}
-
-.ppq-audio-player audio {
-  position: absolute;
-  vertical-align: baseline;
-}
-
-.ppq-audio-player .play-pause-btn {
-  float: left;
-  margin: 29px 0 0 12px;
-}
-
-.ppq-audio-player .play-pause-btn .play-pause-icon {
-  position: relative;
-  display: block;
-  width: 47px;
-  height: 47px;
-  border: 3px solid #00a293;
-  border-radius: 100%;
-  background-color: #fff;
-}
-
-.ppq-audio-player .play-pause-btn .play-pause-icon:after {
-  display: block;
-  content: "";
-  background-position: 0 0;
-  width: 17px;
-  height: 18px;
-}
-
-.ppq-audio-player.player-playing .play-pause-icon:after {
-  background-position: -25px 0;
-  width: 12px;
-  height: 17px;
-}
-
-.ppq-audio-player .player-time {
-  float: left;
-  width: 51px;
-  margin-right: 8px;
-  text-align: right;
-}
-
-.ppq-audio-player .player-time-duration {
-  float: right;
-  margin: 0 0 0 8px;
-  text-align: left;
-}
-
-.ppq-audio-player .player-bar {
-  position: relative;
-  overflow: hidden;
-  height: 5px;
-  margin-top: 53px;
-  background-color: #fff;
-}
-
-.ppq-audio-player .player-bar .player-bar-loaded {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 3px;
-  background: #ddd;
-}
-
-.ppq-audio-player .player-bar .player-bar-played {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 0;
-  height: 100%;
-  border-radius: 3px;
-  background: #00a293;
-}
-
-/* === file upload css end === */
-/* === radial progress bar start === */
-/* ====================== Animated Radial Progress bar Css Start ======================== */
-.radial-progress {
-  height: auto;
-  max-width: 44px;
-  transform: rotate(-90deg);
-  width: 100%;
-}
-
-.radial-progress circle {
-  fill: rgba(0, 0, 0, 0);
-  stroke: #fff;
-  stroke-dashoffset: 219.9114857513;
-  stroke-width: 4;
-  stroke: var(--primary-600);
-  stroke-linecap: round;
-}
-
-.radial-progress circle.incomplete {
-  opacity: 0.2;
-}
-
-.radial-progress circle.complete {
-  stroke-dasharray: 219.9114857513;
-}
-
-.radial-progress text {
-  fill: var(--text-secondary-light);
-  font-size: 24px !important;
-  text-anchor: middle;
-}
-
-/* ====================== Animated Radial Progress bar Css End ======================== */
-/* === radial progress bar end === */
-/* === NFT start === */
-/* Nft Promo Card Css Start */
-.nft-page .card {
-  border-radius: 16px !important;
-  overflow: hidden;
-}
-
-.nft-promo-card {
-  padding: 28px clamp(1.5rem, -7.5935rem + 10.4vw, 4.75rem);
-  border-radius: 12px !important;
-}
-
-.nft-promo-card__inner {
-  gap: clamp(1.5rem, -9.2425rem + 12vw, 5rem);
-}
-
-@media (max-width: 576px) {
-  .nft-promo-card__inner {
-    flex-direction: column;
-  }
-}
-.nft-promo-card__thumb {
-  min-width: 200px;
-}
-
-/* Nft Promo Card Css End */
-/* === NFT end === */
-/* === trail card start === */
-.trail-bg {
-  background-image: url("../images/home-nine/trail-bg.png");
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center center;
-}
-
-/* === trail card end === */
 
 
 /* === navbar css start === */

@@ -169,7 +169,7 @@ const AllPatientsOccupationalTherapy = () => {
             <div className={styles.headerLeft}>
               <button onClick={handleBackToWelcome} className={styles.backButton}>
                 <ChevronLeft className={styles.backIcon} />
-                Back to Welcome
+                Back to All Single Sessions Appointments
               </button>
               <h2 className={styles.pageTitle}>Occupational Therapy Students</h2>
               <p className={styles.pageSubtitle}>Manage and view all students assigned to Occupational Therapy</p>
