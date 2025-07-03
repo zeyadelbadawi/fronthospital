@@ -151,21 +151,21 @@ export default function SyncfusionDocx({ userData, planEndpoint, email }) {
     try {
       let response;
       if (userData.isList) {
-        // Send the form data to your server
         response = await axiosInstance.post(
           `${process.env.NEXT_PUBLIC_API_URL}/notification/send`,
           {
-            receiverId: userData.patientId,
+            receiverIds: userData.doctorIds,
             rule: userData.rule,
             title: userData.title,
             message: userData.message,
           }
         );
       } else {
+        // Send the form data to your server
         response = await axiosInstance.post(
           `${process.env.NEXT_PUBLIC_API_URL}/notification/send`,
           {
-            receiverIds: userData.doctorIds,
+            receiverId: userData.patientId,
             rule: userData.rule,
             title: userData.title,
             message: userData.message,

@@ -263,6 +263,10 @@ export default function AppointmentPage() {
         <AppointmentUpdate
           appointmentId={currentId}
           currentData={selectedAppointment}
+          onSuccess={() => {
+            fetchAppointments();
+            onUpdateClose();
+          }}
         />
       </UpdateModel>
 
@@ -271,7 +275,13 @@ export default function AppointmentPage() {
         color={"bg-danger"}
         title={"Delete Appointment Slot"}
       >
-        <DeleteAppointment currentId={currentId} />
+        <DeleteAppointment
+          currentId={currentId}
+          onSuccess={() => {
+            fetchAppointments();
+            onDeleteClose();
+          }}
+        />
       </DeleteModel>
     </div>
   );
