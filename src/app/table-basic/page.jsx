@@ -1,6 +1,6 @@
 import Breadcrumb from "@/components/Breadcrumb";
 import MasterLayout from "@/masterLayout/MasterLayout";
-import PaymentTransactionsTable from "@/components/child/PaymentTransactionsTable";
+import PaymentTransactionsTable from "@/components/PaymentTransactionsTable";
 
 export const metadata = {
   title: "WowDash NEXT JS - Admin Dashboard Multipurpose Bootstrap 5 Template",

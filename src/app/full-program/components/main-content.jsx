@@ -11,6 +11,8 @@ import { SpeechAppointments } from "./speech-appointments"
 import { SpeechUpcomingAppointments } from "./speech-upcoming-appointments"
 import { useEffect, useState } from "react"
 import { SpeechAppointmentCompletion } from "./speech-appointment-completion"
+import { DoctorAppointments } from "./doctor-appointments"
+import { AccountantAppointments } from "./accountant-appointments"
 
 import AllPatientsPhysicalTherapy from "./all-patients-physical-therapy"
 import AllPatientsOccupationalTherapy from "./all-patients-occupational-therapy"
@@ -90,10 +92,10 @@ export function MainContent() {
       if (type === "upcoming-Evaulations") {
         return <SpeechUpcomingAppointments />
       }
-      else if (type === "COMPLETE-Evaulations") {
-        return <SpeechAppointmentCompletion appointmentId={activeContent.appointmentId} />
-      }else if (type === "appointments") {
-        return <SpeechAppointments />
+      else if (type === "doctor") {
+        return <DoctorAppointments />
+      }else if (type === "accountant") {
+        return <AccountantAppointments />
       }
       
  

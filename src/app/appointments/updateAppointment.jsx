@@ -10,18 +10,9 @@ const departments = [
   "OccupationalTherapy",
   "SpecialEducation",
   "Speech",
-  "ay7aga",
 ];
 
-const daysOfWeek = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
+const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 /* ---------------------------------- */
 const isEndTimeAfterStartTime = (startTime, endTime) => {
   if (!startTime || !endTime) return true;
@@ -40,7 +31,11 @@ const isEndTimeAfterStartTime = (startTime, endTime) => {
   return timeDifference >= 30;
 };
 
-export default function AppointmentUpdate({ appointmentId, currentData }) {
+export default function AppointmentUpdate({
+  appointmentId,
+  currentData,
+  onSuccess,
+}) {
   console.log("ddd", appointmentId, currentData);
   const [currentSelection, setCurrentSelection] = useState({
     department: "",
@@ -146,21 +141,20 @@ export default function AppointmentUpdate({ appointmentId, currentData }) {
           updateData
         );
 
-        if (response.status !== 201) {
-          alert("Failed to update appointment");
+        if (response.status === 200) {
+          console.log("Appointment updated successfully:", response.data);
+
+          onSuccess();
+
+          setCurrentSelection({
+            department: "",
+            doctor: "",
+            day: "",
+            start_time: "",
+            end_time: "",
+          });
+          setValidationErrors([]);
         }
-
-        console.log("Appointment updated successfully:", response.data);
-
-        setCurrentSelection({
-          department: "",
-          doctor: "",
-          day: "",
-          start_time: "",
-          end_time: "",
-        });
-        setValidationErrors([]);
-
       } catch (error) {
         alert(error.response.data.error);
       }
@@ -224,7 +218,7 @@ export default function AppointmentUpdate({ appointmentId, currentData }) {
                   ? "is-invalid"
                   : ""
               }`}
-              value={currentSelection.department}
+              value={currentSelection.department || ""}
               onChange={(e) => {
                 setCurrentSelection({
                   ...currentSelection,
@@ -313,7 +307,7 @@ export default function AppointmentUpdate({ appointmentId, currentData }) {
                     ? "is-invalid"
                     : ""
                 }`}
-                value={currentSelection.start_time}
+                value={currentSelection.start_time || ""}
                 onChange={(e) => {
                   setCurrentSelection({
                     ...currentSelection,
@@ -359,7 +353,7 @@ export default function AppointmentUpdate({ appointmentId, currentData }) {
                     ? "is-invalid"
                     : ""
                 }`}
-                value={currentSelection.end_time}
+                value={currentSelection.end_time || ""}
                 onChange={(e) => {
                   setCurrentSelection({
                     ...currentSelection,

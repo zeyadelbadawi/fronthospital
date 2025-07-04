@@ -3,21 +3,22 @@ import React, { useEffect, useContext } from "react";
 import { ModelContextInst } from "@/contexts/ModelContext";
 import axiosInstance from "@/helper/axiosSetup";
 import Loader from "@/components/Loader";
-export default function DeleteAppointment({ currentId }) {
+export default function DeleteAppointment({ currentId, onSuccess }) {
   const { isLoading, setIsLoading, closeDeleteModal } =
     useContext(ModelContextInst);
   const onDelete = async () => {
+    setIsLoading(true);
+    const response = await axiosInstance.delete(`/appointments/${currentId}`);
+    if (response.status == 200) {
+      onSuccess();
+      setIsLoading(false);
+    }
+    console.log("Appointment deleted successfully:", response.data);
     try {
-      setIsLoading(true);
-      const response = await axiosInstance.delete(`/appointments/${currentId}`);
-      console.log("Appointment deleted successfully:", response.data);
     } catch (error) {
       setIsLoading(false);
+      console.log("rrr", error.response);
       alert("Error deleting appointment:", error);
-    } finally {
-      setIsLoading(false);
-      currentId = null;
-      closeDeleteModal();
     }
   };
   return (

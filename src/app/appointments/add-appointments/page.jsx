@@ -1,79 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axiosInstance from "@/helper/axiosSetup";
-import { convertUTCTo12Hour, generateTimeString } from "@/helper/DateTime";
+import { useRouter } from "next/navigation";
+import { Icon } from "@iconify/react/dist/iconify.js";
+import Link from "next/link";
+import { ModelContextInst } from "@/contexts/ModelContext";
+import UpdateModel from "@/components/UpdateModel";
+import Loader from "@/components/Loader";
+import { convertUTCTo12Hour, convertUTCTo24Hour } from "@/helper/DateTime";
+import AppointmentUpdate from "../updateAppointment";
+import DeleteModel from "@/components/DeleteModel";
+import DeleteAppointment from "../deleteAppointments";
 
-const departments = [
-  "PhysicalTherapy",
-  "ABA",
-  "OccupationalTherapy",
-  "SpecialEducation",
-  "Speech",
-  "ay7aga",
-];
-
-const daysOfWeek = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
-
-//const doctors = ["alice", "bob", "charlie", "dave", "eve"];
-
-/* ---------------------------------- */
-const isEndTimeAfterStartTime = (startTime, endTime) => {
-  if (!startTime || !endTime) return true;
-
-  const startHour = Number.parseInt(startTime.split(":")[0]);
-  const startMinute = Number.parseInt(startTime.split(":")[1]);
-  const endHour = Number.parseInt(endTime.split(":")[0]);
-  const endMinute = Number.parseInt(endTime.split(":")[1]);
-
-  // Convert to minutes for accurate comparison
-  const startTotalMinutes = startHour * 60 + startMinute;
-  const endTotalMinutes = endHour * 60 + endMinute;
-
-  // Check if end time is after start time AND has at least 30 minutes difference
-  const timeDifference = endTotalMinutes - startTotalMinutes;
-  return timeDifference >= 30;
-};
-
-/* const generateTimeString = (time, day) => {
-  // Get today's date in UTC
-  const today = new Date();
-  const currentDayIndex = today.getUTCDay(); // Use UTC day
-  const targetDayIndex = daysOfWeek.indexOf(day);
-
-  // Calculate days until target day
-  let daysUntilTarget = (targetDayIndex + 1 - currentDayIndex + 7) % 7; // +1 because Sunday=0 in getUTCDay but Sunday is last in our array
-  if (daysUntilTarget === 0) daysUntilTarget = 7;
-
-  // Create target date in UTC
-  const targetDate = new Date(
-    Date.UTC(
-      today.getUTCFullYear(),
-      today.getUTCMonth(),
-      today.getUTCDate() + daysUntilTarget
-    )
-  );
-
-  // Parse the time (e.g., "09:30" or "13:45")
-  const [hours, minutes] = time
-    .split(":")
-    .map((num) => Number.parseInt(num, 10));
-
-  // Set the time in UTC
-  targetDate.setUTCHours(hours, minutes || 0, 0, 0);
-
-  return targetDate.toISOString();
-};
-
-function convertUTCTo12Hour(utcTimestamp) {
+/* function convertUTCTo12Hour(utcTimestamp) {
   const date = new Date(utcTimestamp);
 
   // Get UTC hours and minutes (no timezone conversion)
@@ -88,391 +28,466 @@ function convertUTCTo12Hour(utcTimestamp) {
   const formattedMinute = minutes.toString().padStart(2, "0");
 
   return `${formattedHour}:${formattedMinute} ${ampm}`;
-} */
+}
+ */
+export default function AppointmentPage() {
+  const [appointments, setAppointments] = useState([]);
+  const [search, setSearch] = useState(""); // State to store search query
+  const [currentPage, setCurrentPage] = useState(1); // State to store current page
+  const [totalPages, setTotalPages] = useState(1); // State to store total pages
+  const [loading, setLoading] = useState(false); // State to indicate loading
+  const router = useRouter(); // Next.js router
+  const [currentId, setCurrentId] = useState();
+  const [selectedAppointment, setSelectedAppointment] = useState({});
+  const {
+    openUpdateModal,
+    showUpdateModal,
+    closeUpdateModal,
+    showDeleteModal,
+    openDeleteModal,
+    closeDeleteModal,
+    setIsLoading,
+    isLoading,
+  } = useContext(ModelContextInst);
 
-export default function AppointmentBooking() {
-  const [currentSelection, setCurrentSelection] = useState({
-    doctor: "",
-    department: "",
-    day: "",
-    start_time: "",
-    end_time: "",
-  });
-  const [validationErrors, setValidationErrors] = useState([]);
-  const [doctors, setDoctors] = useState([]);
-
-  // Function to get Doctors using API
-  const getDoctors = async () => {
+  // Function to fetch appointments from the API
+  const fetchAppointments = async () => {
     try {
-      const response = await axiosInstance.get("/authentication/doctors/");
-      //console.log("docc", response.data.doctors);
-      setDoctors(response.data.doctors);
+      setLoading(true);
+      const response = await axiosInstance.get("/appointments/");
+      setAppointments(response.data);
+      setTotalPages(Math.ceil(response?.data?.appointments?.length / 10));
+      console.log("Appointments fetched successfully:", response.data);
     } catch (error) {
-      alert("Error fetching Doctors:", error);
+      setLoading(false);
+      alert("Error fetching appointments:", error);
+    } finally {
+      setLoading(false);
     }
   };
   useEffect(() => {
-    getDoctors();
+    fetchAppointments();
   }, []);
 
-  const addAppointment = async () => {
-    const errors = [];
+  const onUpdateClose = () => {
+    setIsLoading(false);
+    setSelectedAppointment({});
+    setCurrentId(null);
+    closeUpdateModal();
+  };
 
-    // Check if all fields are filled
-    if (
-      !currentSelection.doctor ||
-      !currentSelection.department ||
-      !currentSelection.day ||
-      !currentSelection.start_time ||
-      !currentSelection.end_time
-    ) {
-      errors.push("Please fill in all fields");
-    }
+  const onDeleteClose = () => {
+    setIsLoading(false);
+    setCurrentId(null);
+    closeDeleteModal();
+  };
 
-    // Check if end time is after start time with minimum 30 minutes
-    if (
-      currentSelection.start_time &&
-      currentSelection.end_time &&
-      !isEndTimeAfterStartTime(
-        currentSelection.start_time,
-        currentSelection.end_time
-      )
-    ) {
-      errors.push("End time must be at least 30 minutes after start time");
-    }
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setCurrentPage(1);
+  };
 
-    setValidationErrors(errors);
-
-    if (errors.length === 0) {
-      /* console.log(
-        "Appointment added:",
-        generateTimeString(currentSelection.start_time, currentSelection.day),
-        "--",
-        generateTimeString(currentSelection.end_time, currentSelection.day)
-      );
-      console.log(
-        "Appointment added:",
-        convertUTCTo12Hour(
-          generateTimeString(currentSelection.start_time, currentSelection.day)
-        ),
-        ":",
-        convertUTCTo12Hour(
-          generateTimeString(currentSelection.end_time, currentSelection.day)
-        )
-      ); */
-
-      const addedData = {
-        doctor: currentSelection.doctor,
-        department: currentSelection.department,
-        day: currentSelection.day,
-        start_time: generateTimeString(
-          currentSelection.start_time,
-          currentSelection.day
-        ),
-        end_time: generateTimeString(
-          currentSelection.end_time,
-          currentSelection.day
-        ),
-      };
-      //console.log("addData",addedData);
-
-      // addedData to your backend API
-      try {
-        let response = await axiosInstance.post("/appointments/", addedData);
-
-        if (response.status != 201) {
-          alert("Failed to save appointments");
-        } else {
-          console.log("Appointments saved successfully", response.data);
-          setCurrentSelection({
-            department: "",
-            day: "",
-            doctor: "",
-            start_time: "",
-            end_time: "",
-          });
-          setValidationErrors([]);
-        }
-      } catch (error) {
-        alert(error.response.data.error);
-      }
-    }
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   return (
-    <div className="bg-light min-vh-100 py-4">
-      <div className="container">
-        {/* Header */}
-        <div className="text-center mb-5">
-          <h1 className="display-4 fw-bold text-dark mb-3">
-            Appointment Booking System
-          </h1>
-          <p className="lead text-muted">
-            Select multiple appointment slots for different departments
-          </p>
+    <div className="card h-100 p-0 radius-12">
+      {/* Card Header with Search and Add New Appointment Button */}
+      <div className="card-header border-bottom bg-base py-16 px-24 d-flex row align-items-center flex-wrap gap-3 justify-content-between">
+        <div className="">
+          <h1 className="fs-2">Appointments</h1>
+        </div>
+        <div className="d-flex align-items-center flex-wrap gap-3 justify-content-between">
+          <div className="d-flex align-items-center flex-wrap gap-3">
+            <form className="navbar-search">
+              <input
+                type="text"
+                className="bg-base h-40-px w-auto"
+                name="search"
+                value={search}
+                onChange={() => {}} // Update search query
+                placeholder="Search"
+              />
+              <Icon icon="ion:search-outline" className="icon" />
+            </form>
+          </div>
+          <Link
+            href={"/appointments/add-appointments"}
+            className="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2"
+          >
+            <Icon
+              icon="ic:baseline-plus"
+              className="icon text-xl line-height-1"
+            />
+            Add New Appointment
+          </Link>
+        </div>
+      </div>
+      {/* Appointment Table */}
+      <div className="card-body p-24">
+        <div className="table-responsive scroll-sm">
+          <table className="table bordered-table sm-table mb-0">
+            <thead>
+              <tr>
+                <th scope="col">
+                  <div className="d-flex align-items-center gap-10">
+                    <div className="form-check style-check d-flex align-items-center"></div>
+                    #
+                  </div>
+                </th>
+                <th scope="col">Day</th>
+                <th scope="col">Department</th>
+                <th scope="col">Slot</th>
+                <th scope="col">Doctor</th>
+
+                <th scope="col" className="text-center">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="7" className="text-center">
+                    Loading...
+                  </td>
+                </tr>
+              ) : (
+                appointments.appointments?.map((appointment, index) => (
+                  <tr key={appointment._id}>
+                    <td>
+                      <div className="d-flex align-items-center gap-10">
+                        <div className="form-check style-check d-flex align-items-center"></div>
+                        {index + 1}
+                      </div>
+                    </td>
+                    <td>{appointment.day}</td>
+                    <td>{appointment.department}</td>
+                    <td>
+                      {`${convertUTCTo12Hour(
+                        appointment.start_time
+                      )} : ${convertUTCTo12Hour(appointment.end_time)}`}
+                    </td>
+                    <td>{appointment.doctor.username}</td>
+
+                    {/* Action Buttons */}
+                    <td className="text-center">
+                      <div className="d-flex align-items-center gap-10 justify-content-center">
+                        <Link
+                          href={`/appointments/${appointment._id}`}
+                          className="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                        >
+                          <Icon
+                            icon="majesticons:eye-line"
+                            className="icon text-xl"
+                          />
+                        </Link>
+
+                        <button
+                          type="button"
+                          className="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                          onClick={() => {
+                            setCurrentId(appointment._id);
+                            setSelectedAppointment({
+                              doctor: appointment.doctor._id,
+                              day: appointment.day,
+                              department: appointment.department,
+                              start_time: convertUTCTo24Hour(
+                                appointment.start_time
+                              ).split(" ")[0],
+                              end_time: convertUTCTo24Hour(
+                                appointment.end_time
+                              ).split(" ")[0],
+                            });
+                            openUpdateModal();
+                          }} // Edit button handler
+                        >
+                          <Icon icon="lucide:edit" className="menu-icon" />
+                        </button>
+                        <button
+                          type="button"
+                          className="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                          onClick={() => {
+                            openDeleteModal();
+                            setCurrentId(appointment._id);
+                          }} // Call the delete handler
+                        >
+                          <Icon
+                            icon="fluent:delete-24-regular"
+                            className="menu-icon"
+                          />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
 
-        {/* Appointment Selection Form */}
-        <div className="card shadow-sm mb-4">
-          <div className={`card-header bg-primary text-white`}>
-            <h5 className="card-title mb-0">
-              <i className={`bi bi-plus-circle me-2`}></i>
-              Add New Appointment Slot
-            </h5>
-          </div>
-          <div className="card-body">
-            <div className="row g-3 mb-4">
-              {/* Doctors Selection with validation */}
-              <div className="col-md-6 col-lg-3">
-                <label className="form-label fw-semibold">
-                  <i className="bi bi-people me-1"></i>
-                  Doctor
-                </label>
-                <select
-                  className={`form-select ${
-                    !currentSelection.doctor &&
-                    validationErrors.some((error) =>
-                      error.includes("fill in all fields")
-                    )
-                      ? "is-invalid"
-                      : ""
-                  }`}
-                  value={currentSelection.doctor}
-                  onChange={(e) => {
-                    setCurrentSelection({
-                      ...currentSelection,
-                      doctor: e.target.value,
-                    });
-                    setValidationErrors([]);
-                  }}
-                >
-                  <option value="">Select doctor</option>
-                  {doctors.map((doc) => (
-                    <option key={doc._id} value={doc._id}>
-                      {doc.username}
-                    </option>
-                  ))}
-                </select>
-                {!currentSelection.doctor &&
-                  validationErrors.some((error) =>
-                    error.includes("fill in all fields")
-                  ) && (
-                    <div className="invalid-feedback">
-                      Please select a doctor.
-                    </div>
-                  )}
-              </div>
-              {/* Department Selection with validation */}
-              <div className="col-md-6 col-lg-3">
-                <label className="form-label fw-semibold">
-                  <i className="bi bi-people me-1"></i>
-                  Department
-                </label>
-                <select
-                  className={`form-select ${
-                    !currentSelection.department &&
-                    validationErrors.some((error) =>
-                      error.includes("fill in all fields")
-                    )
-                      ? "is-invalid"
-                      : ""
-                  }`}
-                  value={currentSelection.department}
-                  onChange={(e) => {
-                    setCurrentSelection({
-                      ...currentSelection,
-                      department: e.target.value,
-                    });
-                    setValidationErrors([]);
-                  }}
-                >
-                  <option value="">Select department</option>
-                  {departments.map((dept) => (
-                    <option key={dept} value={dept}>
-                      {dept}
-                    </option>
-                  ))}
-                </select>
-                {!currentSelection.department &&
-                  validationErrors.some((error) =>
-                    error.includes("fill in all fields")
-                  ) && (
-                    <div className="invalid-feedback">
-                      Please select a department.
-                    </div>
-                  )}
-              </div>
-
-              {/* Day Selection with validation */}
-              <div className="col-md-6 col-lg-3">
-                <label className="form-label fw-semibold">
-                  <i className="bi bi-calendar me-1"></i>
-                  Day
-                </label>
-                <select
-                  className={`form-select ${
-                    !currentSelection.day &&
-                    validationErrors.some((error) =>
-                      error.includes("fill in all fields")
-                    )
-                      ? "is-invalid"
-                      : ""
-                  }`}
-                  value={currentSelection.day}
-                  onChange={(e) => {
-                    setCurrentSelection({
-                      ...currentSelection,
-                      day: e.target.value,
-                    });
-                    setValidationErrors([]);
-                  }}
-                >
-                  <option value="">Select day</option>
-                  {daysOfWeek.map((day) => (
-                    <option key={day} value={day}>
-                      {day}
-                    </option>
-                  ))}
-                </select>
-                {!currentSelection.day &&
-                  validationErrors.some((error) =>
-                    error.includes("fill in all fields")
-                  ) && (
-                    <div className="invalid-feedback">Please select a day.</div>
-                  )}
-              </div>
-
-              {/* Start Time Selection */}
-              <div className="col-md-6 col-lg-3">
-                <label className="form-label fw-semibold">
-                  <i className="bi bi-clock me-1"></i>
-                  Start Time
-                </label>
-                <div className="input-group">
-                  <input
-                    type="time"
-                    className={`form-control ${
-                      !currentSelection.start_time &&
-                      validationErrors.some((error) =>
-                        error.includes("fill in all fields")
-                      )
-                        ? "is-invalid"
-                        : ""
-                    } ${
-                      currentSelection.start_time &&
-                      currentSelection.end_time &&
-                      !isEndTimeAfterStartTime(
-                        currentSelection.start_time,
-                        currentSelection.end_time
-                      )
-                        ? "is-invalid"
-                        : ""
-                    }`}
-                    value={currentSelection.start_time}
-                    onChange={(e) => {
-                      setCurrentSelection({
-                        ...currentSelection,
-                        start_time: e.target.value,
-                      });
-                      setValidationErrors([]);
-                    }}
-                  />
-                </div>
-                {!currentSelection.start_time &&
-                  validationErrors.some((error) =>
-                    error.includes("fill in all fields")
-                  ) && (
-                    <div className="invalid-feedback d-block">
-                      Please select a start time.
-                    </div>
-                  )}
-              </div>
-
-              {/* End Time Selection */}
-              <div className="col-md-6 col-lg-3">
-                <label className="form-label fw-semibold">
-                  <i className="bi bi-clock me-1"></i>
-                  End Time
-                </label>
-                <div className="input-group">
-                  <input
-                    type="time"
-                    className={`form-control  ${
-                      !currentSelection.end_time &&
-                      validationErrors.some((error) =>
-                        error.includes("fill in all fields")
-                      )
-                        ? "is-invalid"
-                        : ""
-                    } ${
-                      currentSelection.start_time &&
-                      currentSelection.end_time &&
-                      !isEndTimeAfterStartTime(
-                        currentSelection.start_time,
-                        currentSelection.end_time
-                      )
-                        ? "is-invalid"
-                        : ""
-                    }`}
-                    value={currentSelection.end_time}
-                    onChange={(e) => {
-                      setCurrentSelection({
-                        ...currentSelection,
-                        end_time: e.target.value,
-                      });
-                      setValidationErrors([]);
-                    }}
-                  />
-                </div>
-                {!currentSelection.end_time &&
-                  validationErrors.some((error) =>
-                    error.includes("fill in all fields")
-                  ) && (
-                    <div className="invalid-feedback d-block">
-                      Please select an end time.
-                    </div>
-                  )}
-              </div>
-            </div>
-
-            {/* Enhanced Validation Errors with Bootstrap Alerts */}
-            {validationErrors.length > 0 && (
-              <div className="mb-4">
-                {validationErrors.map((error, index) => (
-                  <div
-                    key={index}
-                    className="alert alert-danger alert-dismissible fade show"
-                    role="alert"
-                  >
-                    <i className="bi bi-exclamation-triangle-fill me-2"></i>
-                    <strong>Error:</strong> {error}
-                    <button
-                      type="button"
-                      className="btn-close"
-                      onClick={() =>
-                        setValidationErrors(
-                          validationErrors.filter((_, i) => i !== index)
-                        )
-                      }
-                      aria-label="Close"
-                    ></button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="d-flex gap-2">
-              <button
-                className={`btn btn-primary btn-lg `}
-                onClick={addAppointment}
+        {/* Pagination */}
+        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
+          <span>
+            Showing {(currentPage - 1) * 10 + 1} to{" "}
+            {Math.min(currentPage * 10, appointments?.appointments?.length)} of{" "}
+            {appointments?.appointments?.length} entries
+          </span>
+          <ul className="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li
+                key={i}
+                className={`page-item ${currentPage === i + 1 ? "active" : ""}`}
               >
-                <i className={`bi bi-plus-circle me-2`}></i>
-                Add Appointment Slot
-              </button>
-            </div>
-          </div>
+                <Link
+                  className="page-link text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px  text-md"
+                  href="#"
+                  onClick={() => handlePageChange(i + 1)} // Handle page change
+                >
+                  {i + 1}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Modal for Appointment Details */}
+      {/* Modal for User Actions */}
+      <UpdateModel
+        title="Update Appointment Slot"
+        closeFun={onUpdateClose}
+        color={"bg-warning"}
+      >
+        <AppointmentUpdate
+          appointmentId={currentId}
+          currentData={selectedAppointment}
+          onSuccess={() => {
+            fetchAppointments();
+            onUpdateClose();
+          }}
+        />
+      </UpdateModel>
+
+      <DeleteModel
+        closeFun={onDeleteClose}
+        color={"bg-danger"}
+        title={"Delete Appointment Slot"}
+      >
+        <DeleteAppointment
+          currentId={currentId}
+          onSuccess={() => {
+            fetchAppointments();
+            onDeleteClose();
+          }}
+        />
+      </DeleteModel>
+    </div>
+  );
+}
+
+/* 
+
+const UsersListLayer = () => {
+  
+ 
+
+  // Fetch patients when component mounts or when page/search changes
+  useEffect(() => {
+    const fetchPatients = async () => {
+      setLoading(true);
+      try {
+        const response = await axiosInstance.get(`/authentication/patients`, {
+
+          params: {
+            page: currentPage,
+            search: search,
+            limit: 10
+          }
+        });
+        setPatients(response.data.patients);
+        setTotalPages(response.data.totalPages);
+      } catch (error) {
+        console.error("Error fetching Students:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPatients(); // Call the fetch function
+  }, [currentPage, search]);
+
+  const handleDelete = async (patientId) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this Student?');
+  
+    if (confirmDelete) {
+      try {
+        const response = await axiosInstance.delete(`/authentication/delete-patient/${patientId}`);
+
+        if (response.status === 200) {
+          alert('Student deleted successfully');
+          // Remove the patient from the UI (filter out the deleted patient)
+          setPatients(patients.filter(patient => patient._id !== patientId));
+        }
+      } catch (error) {
+        console.error('Error deleting Student:', error);
+        alert('Error deleting Student');
+      }
+    }
+  };
+  
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setCurrentPage(1);  // Reset to first page when search query changes
+  };
+
+  // Handle pagination change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleEdit = (patientId) => {
+    // Redirect to the Edit page with patient ID as a query param
+    router.push(`/edit-user?id=${patientId}`);
+  };
+
+  const handleView = (patientId) => {
+    // Redirect to the View Profile page with patient ID as a query parameter
+    router.push(`/view-profile?id=${patientId}`);
+  };
+
+  return (
+    <div className='card h-100 p-0 radius-12'>
+      <div className='card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between'>
+        <div className='d-flex align-items-center flex-wrap gap-3'>
+          
+          <form className='navbar-search'>
+            <input
+              type='text'
+              className='bg-base h-40-px w-auto'
+              name='search'
+              value={search}
+              onChange={handleSearchChange}  // Update search query
+              placeholder='Search'
+            />
+            <Icon icon='ion:search-outline' className='icon' />
+          </form>
+        </div>
+        <Link
+          href='/add-user'
+          className='btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2'
+        >
+          <Icon
+            icon='ic:baseline-plus'
+            className='icon text-xl line-height-1'
+          />
+          Add New Student
+        </Link>
+      </div>
+      <div className='card-body p-24'>
+        <div className='table-responsive scroll-sm'>
+          <table className='table bordered-table sm-table mb-0'>
+            <thead>
+              <tr>
+                <th scope='col'>
+                  <div className='d-flex align-items-center gap-10'>
+                    <div className='form-check style-check d-flex align-items-center'>
+                
+                    </div>
+                    #
+                  </div>
+                </th>
+                <th scope='col'>Join Date</th>
+                <th scope='col'>Name</th>
+                <th scope='col'>Email</th>
+                <th scope='col'>Phone</th>
+                <th scope='col'>gender</th>
+
+                <th scope='col' className='text-center'>
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="7" className="text-center">Loading...</td>
+                </tr>
+              ) : (
+                patients.map((patient, index) => (
+                  <tr key={patient._id}>
+                    <td>
+                      <div className='d-flex align-items-center gap-10'>
+                        <div className='form-check style-check d-flex align-items-center'>
+                        
+                        </div>
+                        {index + 1}
+                      </div>
+                    </td>
+                    <td>{new Date(patient.createdAt).toLocaleDateString()}</td>
+                    <td>{patient.name}</td>
+                    <td>{patient.email}</td>
+                    <td>{patient.phone}</td>
+                    <td>{patient.gender  || '0'}</td>
+
+                    <td className='text-center'>
+                      <div className='d-flex align-items-center gap-10 justify-content-center'>
+                      <button
+  type='button'
+  className='bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle'
+  onClick={() => handleView(patient._id)}  // Call the View button handler
+>
+  <Icon
+    icon='majesticons:eye-line'
+    className='icon text-xl'
+  />
+</button>
+
+                        <button
+                          type='button'
+                          className='bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle'
+                          onClick={() => handleEdit(patient._id)}  // Edit button handler
+                        >
+                          <Icon icon='lucide:edit' className='menu-icon' />
+                        </button>
+                        <button
+  type='button'
+  className='remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle'
+  onClick={() => handleDelete(patient._id)}  // Call the delete handler
+>
+  <Icon icon='fluent:delete-24-regular' className='menu-icon' />
+</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div className='d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24'>
+          <span>Showing {((currentPage - 1) * 10) + 1} to {Math.min(currentPage * 10, patients.length)} of {patients.length} entries</span>
+          <ul className='pagination d-flex flex-wrap align-items-center gap-2 justify-content-center'>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <Link
+                  className='page-link text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px  text-md'
+                  href="#"
+                  onClick={() => handlePageChange(i + 1)}  // Handle page change
+                >
+                  {i + 1}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default UsersListLayer;
+ */

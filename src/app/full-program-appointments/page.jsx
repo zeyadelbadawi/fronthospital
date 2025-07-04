@@ -1,4 +1,4 @@
-import AppointmentPage from "@/app/appointments/page";
+import AppointmentPage from "@/app/appointments/appointment-page";
 import Breadcrumb from "@/components/Breadcrumb";
 import MasterLayout from "@/masterLayout/MasterLayout";
 import { ModelProvider } from "@/contexts/ModelContext";

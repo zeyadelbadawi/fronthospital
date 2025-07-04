@@ -35,8 +35,8 @@ const departments = [
     icon: Calendar,
     items: [
     { id: "New-Evaulations", name: "Upcoming Evaulations", type: "upcoming-Evaulations" },
-        { id: "COMPLETE-Evaulations", name: "COMPLETE Evaulations", type: "COMPLETE-Evaulations" },
-      { id: "speech-appointments", name: "Add More Appointments", type: "appointments" },
+        { id: "doctor", name: "doctor", type: "doctor" },
+      { id: "accountant", name: "accountant", type: "accountant" },
 
     ],
   },

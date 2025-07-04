@@ -1,8 +1,9 @@
+
 "use client";
 
 import React, { useState, useContext } from "react";
 import { ModelContextInst } from "@/contexts/ModelContext";
-export default function DeleteModel({ closeFun, color, title, children }) {
+export default function DeleteModel({ closeFun, color, title, children}) {
   const { showDeleteModal } = useContext(ModelContextInst);
   return (
     <div

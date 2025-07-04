@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useContext } from "react";
-import axiosInstance from "../../helper/axiosSetup";
+import axiosInstance from "@/helper/axiosSetup";
 import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import Link from "next/link";

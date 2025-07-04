@@ -319,7 +319,7 @@ const MasterLayout = ({ children }) => {
                 href='/Payment-Transactions'
                 className={pathname === "/Payment-Transactions" ? "active-page" : ""}>
                 <Icon icon='bi:chat-dots' className='menu-icon' />
-                <span> Payment Transactions</span>
+                <span> Payment Management System</span>
               </Link>
             </li>
             <li>
@@ -327,7 +327,7 @@ const MasterLayout = ({ children }) => {
                 href='/table-data'
                 className={pathname === "/table-data" ? "active-page" : ""}>
                 <Icon icon='bi:chat-dots' className='menu-icon' />
-                <span>Edit Payment Transactions</span>
+                <span>Checks Management System</span>
               </Link>
             </li>
           </ul>
@@ -377,67 +377,7 @@ const MasterLayout = ({ children }) => {
               <div className='d-flex flex-wrap align-items-center gap-3'>
                 {/* ThemeToggleButton */}
                 <ThemeToggleButton />
-                <div className='dropdown d-none d-sm-inline-block'>
-                  <button
-                    className='has-indicator w-40-px h-40-px bg-neutral-200 rounded-circle d-flex justify-content-center align-items-center'
-                    type='button'
-                    data-bs-toggle='dropdown'
-                    title='Switch Language'       // <-- Tooltip on hover
-
-                  >
-                    <Icon icon="iconoir:language" className='icon' />
-
-                  </button>
-                  <div className='dropdown-menu to-top dropdown-menu-sm'>
-                    <div className='py-12 px-16 radius-8 bg-primary-50 mb-16 d-flex align-items-center justify-content-between gap-2'>
-                      <div>
-                        <h6 className='text-lg text-primary-light fw-semibold mb-0'>
-                          Choose Your Language
-                        </h6>
-                      </div>
-                    </div>
-                    <div className='max-h-400-px overflow-y-auto scroll-sm pe-8'>
-                      <div className='form-check style-check d-flex align-items-center justify-content-between mb-16'>
-                        <label
-                          className='form-check-label line-height-1 fw-medium text-secondary-light'
-                          htmlFor='english'
-                        >
-                          <span className='text-black hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'>
-                          
-                            <span className='text-md fw-semibold mb-0'>
-                              English
-                            </span>
-                          </span>
-                        </label>
-                        <input
-                          className='form-check-input'
-                          type='radio'
-                          name='crypto'
-                          id='english'
-                          defaultChecked
-                        />
-                      </div>
-                      <div className='form-check style-check d-flex align-items-center justify-content-between'>
-                        <label
-                          className='form-check-label line-height-1 fw-medium text-secondary-light'
-                          htmlFor='Arabic'
-                        >
-                          <span className='text-black hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'>
-                            <span className='text-md fw-semibold mb-0'>
-                              Arabic
-                            </span>
-                          </span>
-                        </label>
-                        <input
-                          className='form-check-input'
-                          type='radio'
-                          name='crypto'
-                          id='arabic'
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              
                 {/* Language dropdown end */}
 
                 {/* notification dropdown start */}

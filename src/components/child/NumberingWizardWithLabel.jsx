@@ -1,4 +1,5 @@
 "use client"
+
 import { useState, useEffect } from "react"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
@@ -23,7 +24,6 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
   const [assignmentError, setAssignmentError] = useState("")
   const [assignmentResults, setAssignmentResults] = useState(null)
   const [validationErrors, setValidationErrors] = useState({})
-
   const [programData, setProgramData] = useState({
     programType: "",
     patientId,
@@ -46,7 +46,6 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
     setSelectedServices(selectedOptions)
     const newPrice = selectedOptions.reduce((total, option) => total + option.price, 0)
     setTotalPrice(newPrice)
-
     // Clear validation error when services are selected
     if (selectedOptions.length > 0) {
       setValidationErrors((prev) => ({ ...prev, services: null }))
@@ -105,14 +104,12 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
   // Enhanced validation functions
   const validateStep = (step) => {
     const errors = {}
-
     switch (step) {
       case 0:
         if (!evaluationType) {
           errors.evaluationType = "Please select an evaluation type"
         }
         break
-
       case 1:
         if (!selectedDay) {
           errors.selectedDay = "Please select a date"
@@ -127,11 +124,9 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           errors.services = "Please select at least one service"
         }
         break
-
       case 2:
         // Document step is optional
         break
-
       default:
         break
     }
@@ -146,7 +141,6 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
       const checkResponse = await axiosInstance.get(
         `${process.env.NEXT_PUBLIC_API_URL}/school/school-assignments?search=${patientId}`,
       )
-
       const existingAssignments = checkResponse.data.assignments || []
       const isAlreadyAssigned = existingAssignments.some(
         (assignment) => assignment.patient && assignment.patient._id === patientId,
@@ -173,11 +167,9 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
       }
     } catch (error) {
       console.error("Error creating school assignment:", error)
-
       if (error.response?.status === 400 && error.response?.data?.message?.includes("already assigned")) {
         return { success: true, message: "Patient already assigned to school program" }
       }
-
       return {
         success: false,
         error: error.response?.data?.message || "Failed to assign patient to school program",
@@ -185,9 +177,59 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
     }
   }
 
+  // Auto-assignment function for full program
+  const autoAssignToAllDepartments = async (patientId, description) => {
+    const departments = [
+      { endpoint: "/aba/assign-to-ABA", name: "ABA" },
+      { endpoint: "/speech/assign-to-Speech", name: "Speech" },
+      { endpoint: "/SpecialEducation/assign-to-Special-Education" },
+      { endpoint: "/physicalTherapy/assign-to-physical", name: "Physical Therapy" },
+      { endpoint: "/OccupationalTherapy/assign-to-Occupational", name: "Occupational Therapy" },
+    ]
+
+    const assignmentResults = {
+      totalAssigned: 0,
+      totalFailed: 0,
+      details: [],
+    }
+
+    for (const dept of departments) {
+      try {
+        const assignmentData = {
+          patientId: patientId,
+          notes: description || `Full program assignment for ${patientName} - ${dept.name}`,
+        }
+
+        const response = await axiosInstance.post(dept.endpoint, assignmentData)
+
+        if (response.status === 201) {
+          assignmentResults.totalAssigned++
+          assignmentResults.details.push({
+            department: dept.name,
+            success: true,
+            assignment: response.data,
+          })
+          console.log(`Successfully assigned to ${dept.name}:`, response.data)
+        }
+      } catch (error) {
+        assignmentResults.totalFailed++
+        assignmentResults.details.push({
+          department: dept.name,
+          success: false,
+          error: error.response?.data?.message || `Failed to assign to ${dept.name}`,
+        })
+        console.error(`Error assigning to ${dept.name}:`, error)
+      }
+    }
+
+    setAssignmentResults(assignmentResults)
+    if (assignmentResults.totalFailed > 0) {
+      setAssignmentError(`${assignmentResults.totalFailed} department assignments failed`)
+    }
+  }
+
   const nextStep = async () => {
     console.log("patientId in nextStep:", patientId)
-
     if (!validateStep(currentStep)) {
       return
     }
@@ -246,7 +288,6 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
         // Store assignment results if available
         if (response.data.assignments) {
           setAssignmentResults(response.data.assignments)
-
           if (response.data.assignments.totalFailed > 0) {
             setAssignmentError(`${response.data.assignments.totalFailed} service assignments failed`)
           }
@@ -266,12 +307,16 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
         if (moneyResponse.status === 200) {
           console.log("Payment and money record saved successfully")
 
+          // Auto-assign to all departments for full program
+          if (programType === "full_program") {
+            console.log("Auto-assigning patient to all departments for full program")
+            await autoAssignToAllDepartments(patientId, description)
+          }
+
           // If this is a school evaluation, create PatientSchoolAssignment
           if (programType === "school_evaluation") {
             console.log("Creating school assignment for patient:", patientId)
-
             const assignmentResult = await createPatientSchoolAssignment(patientId, description)
-
             if (!assignmentResult.success) {
               setAssignmentError(assignmentResult.error)
               console.error("School assignment failed:", assignmentResult.error)
@@ -812,6 +857,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           }
         }
       `}</style>
+
       <div className="rukn-booking-wizard">
         <div className="rukn-wizard-container">
           {/* Header */}
