@@ -6,7 +6,7 @@ import Header from "@/components/Header";
 import Breadcrumb from "@/components/Breadcrumb";
 import PublicProfilepatient from "@/components/PublicProfilepatient";
 import MasterLayout from "@/masterLayout/MasterLayout";
-
+import FullProgramComponent from "@/components/FullProgramComponent"
 
 export default function Page() {
   // --- Auth State & Header Handlers ---
@@ -122,10 +122,9 @@ export default function Page() {
       />
         <Breadcrumb title="Your Profile" />
       {/* Page Content */}
-        <PublicProfilepatient 
-        
-        />
-
+        <PublicProfilepatient patientID={user?.id} />
+        {/* FullProgramcomponent */}
+      {/* <FullProgramComponent patientId={user?.id}  /> */}
       {/* Login Modal */}
       {showLoginModal && (
         <div className="modal fade show d-block" tabIndex="-1">

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Calendar, Clock, User, FileText, X, Save, CheckCircle, XCircle, RotateCcw } from "lucide-react"
+import { Search, Calendar, Clock, User, FileText, X, Save, CheckCircle, XCircle, RotateCcw } from 'lucide-react'
 import styles from "../styles/doctor-appointments.module.css"
 import axiosInstance from "@/helper/axiosSetup"
 
@@ -37,14 +37,35 @@ export function DoctorAppointments() {
     filterAppointments()
   }, [appointments, search, filterStatus, filterTimeframe])
 
+  const fetchPatientName = async (patientId) => {
+    try {
+      const response = await axiosInstance.get(`/authentication/patient/${patientId}`)
+      return response.data.name || `Patient-${patientId}`
+    } catch (error) {
+      console.error("Error fetching patient name:", error)
+      return `Patient-${patientId}`
+    }
+  }
+
   const fetchAllAppointments = async () => {
     setLoading(true)
     try {
       const response = await axiosInstance.get("/full/fullprogram")
       const data = response.data
 
+      // Fetch patient names for all appointments
+      const appointmentsWithNames = await Promise.all(
+        data.map(async (appointment) => {
+          const patientName = await fetchPatientName(appointment.patientid)
+          return {
+            ...appointment,
+            patientName: patientName
+          }
+        })
+      )
+
       // Sort appointments by date and time
-      const sortedAppointments = data.sort((a, b) => {
+      const sortedAppointments = appointmentsWithNames.sort((a, b) => {
         const dateTimeA = new Date(`${a.date}T${a.time}`)
         const dateTimeB = new Date(`${b.date}T${b.time}`)
         return dateTimeB - dateTimeA // Most recent first
@@ -66,8 +87,8 @@ export function DoctorAppointments() {
     if (search) {
       filtered = filtered.filter(
         (appointment) =>
-          appointment.patientName.toLowerCase().includes(search.toLowerCase()) ||
-          appointment.description.toLowerCase().includes(search.toLowerCase()),
+          (appointment.patientName && appointment.patientName.toLowerCase().includes(search.toLowerCase())) ||
+          (appointment.description && appointment.description.toLowerCase().includes(search.toLowerCase())),
       )
     }
 
@@ -104,13 +125,19 @@ export function DoctorAppointments() {
     setCurrentPage(page)
   }
 
-  const parseAppointmentDateTime = (date, time) => {
-    const dateParts = date.split("T")[0]
-    const timeParts = time.split("T")[1]?.split("Z")[0] || time
-    const formattedTime = timeParts.includes(":") && timeParts.split(":").length === 2 ? timeParts + ":00" : timeParts
-    const formattedDateTime = `${dateParts}T${formattedTime}`
-    return new Date(formattedDateTime)
+const parseAppointmentDateTime = (date, time) => {
+  if (!date || !time) {
+    console.error("Invalid date or time:", date, time)
+    return null
   }
+
+  const dateParts = date.split("T")[0]
+  const timeParts = time.split("T")[1]?.split("Z")[0] || time
+  const formattedTime = timeParts.includes(":") && timeParts.split(":").length === 2 ? timeParts + ":00" : timeParts
+  const formattedDateTime = `${dateParts}T${formattedTime}`
+  return new Date(formattedDateTime)
+}
+
 
   const getAppointmentStatus = (appointment) => {
     const currentDateTime = new Date()
@@ -488,8 +515,7 @@ export function DoctorAppointments() {
                           <td className={styles.indexCell}>{startIndex + index + 1}</td>
                           <td className={styles.patientCell}>
                             <div className={styles.patientInfo}>
-                              <span className={styles.patientName}>{appointment.patientName}</span>
-                              <span className={styles.patientId}>ID: {appointment.patientId}</span>
+                              <span className={styles.patientName}>{appointment.patientName || `Patient-${appointment.patientid}`}</span>
                             </div>
                           </td>
                           <td className={styles.dateCell}>
@@ -634,7 +660,7 @@ export function DoctorAppointments() {
                 </div>
                 <h4 className={styles.deleteTitle}>Cancel Appointment?</h4>
                 <p className={styles.deleteMessage}>
-                  Are you sure you want to cancel the appointment for <strong>{selectedAppointment.patientName}</strong>{" "}
+                  Are you sure you want to cancel the appointment for <strong>{selectedAppointment.patientName || `Patient-${selectedAppointment.patientid}`}</strong>{" "}
                   on <strong>{new Date(selectedAppointment.date).toLocaleDateString()}</strong> at{" "}
                   <strong>{selectedAppointment.time}</strong>?
                 </p>

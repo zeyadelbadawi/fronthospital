@@ -14,6 +14,7 @@ import {
   Trash2,
   X,
   Save,
+  AlertCircle,
 } from "lucide-react"
 import styles from "../styles/accountant-appointments.module.css"
 import axiosInstance from "@/helper/axiosSetup"
@@ -36,6 +37,10 @@ export function AccountantAppointments() {
   const [checks, setChecks] = useState([])
   const [saving, setSaving] = useState(false)
 
+  // Validation states
+  const [validationErrors, setValidationErrors] = useState({})
+  const [checkValidationErrors, setCheckValidationErrors] = useState({})
+
   // Check form state
   const [newCheck, setNewCheck] = useState({
     checkNumber: "",
@@ -56,6 +61,16 @@ export function AccountantAppointments() {
     filterAppointments()
   }, [appointments, search])
 
+  const fetchPatientName = async (patientId) => {
+    try {
+      const response = await axiosInstance.get(`/authentication/patient/${patientId}`)
+      return response.data.name || `Patient-${patientId}`
+    } catch (error) {
+      console.error("Error fetching patient name:", error)
+      return `Patient-${patientId}`
+    }
+  }
+
   const fetchActiveAppointments = async () => {
     setLoading(true)
     try {
@@ -72,8 +87,21 @@ export function AccountantAppointments() {
         return dateTimeB - dateTimeA
       })
 
-      console.log("Fetched active appointments:", sortedAppointments)
-      setAppointments(sortedAppointments)
+      // Fetch patient names for all appointments
+      const appointmentsWithNames = await Promise.all(
+        sortedAppointments.map(async (appointment) => {
+          const patientId = appointment.patientid || appointment.patientId
+          const patientName = await fetchPatientName(patientId)
+          return {
+            ...appointment,
+            patientName,
+            patientId: patientId,
+          }
+        }),
+      )
+
+      console.log("Fetched active appointments with patient names:", appointmentsWithNames)
+      setAppointments(appointmentsWithNames)
     } catch (error) {
       console.error("Error fetching active appointments:", error)
     } finally {
@@ -88,8 +116,8 @@ export function AccountantAppointments() {
     if (search) {
       filtered = filtered.filter(
         (appointment) =>
-          appointment.patientName.toLowerCase().includes(search.toLowerCase()) ||
-          appointment.description.toLowerCase().includes(search.toLowerCase()),
+          (appointment.patientName && appointment.patientName.toLowerCase().includes(search.toLowerCase())) ||
+          (appointment.description && appointment.description.toLowerCase().includes(search.toLowerCase())),
       )
     }
 
@@ -107,25 +135,122 @@ export function AccountantAppointments() {
     setCurrentPage(page)
   }
 
+  const validatePaymentData = (appointment, paymentType) => {
+    const errors = {}
+
+    if (!appointment.patientId) {
+      errors.patientId = "Patient ID is required"
+    }
+
+    if (!appointment.patientName) {
+      errors.patientName = "Patient name is required"
+    }
+
+    if (!appointment._id) {
+      errors.programId = "Program ID is required"
+    }
+
+    if (paymentType === "cash" && !cashPrice) {
+      errors.price = "Cash price is required"
+    }
+
+    if (paymentType === "installment" && !installmentPrice) {
+      errors.price = "Installment price is required"
+    }
+
+    return errors
+  }
+
+  const validateCheckData = (check) => {
+    const errors = {}
+
+    if (!check.checkNumber || check.checkNumber.trim() === "") {
+      errors.checkNumber = "Check number is required"
+    } else if (check.checkNumber.length < 3) {
+      errors.checkNumber = "Check number must be at least 3 characters"
+    }
+
+    if (!check.bankName || check.bankName.trim() === "") {
+      errors.bankName = "Bank name is required"
+    } else if (check.bankName.length < 2) {
+      errors.bankName = "Bank name must be at least 2 characters"
+    }
+
+    if (!check.amount || check.amount === "") {
+      errors.amount = "Amount is required"
+    } else if (Number.parseFloat(check.amount) <= 0) {
+      errors.amount = "Amount must be greater than 0"
+    } else if (Number.parseFloat(check.amount) > installmentPrice) {
+      errors.amount = `Amount cannot exceed ${installmentPrice}`
+    }
+
+    if (!check.dueDate) {
+      errors.dueDate = "Due date is required"
+    } else {
+      const selectedDate = new Date(check.dueDate)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      if (selectedDate < today) {
+        errors.dueDate = "Due date cannot be in the past"
+      }
+    }
+
+    return errors
+  }
+
+  const validateChecksTotal = (checksArray) => {
+    const total = checksArray.reduce((sum, check) => sum + Number.parseFloat(check.amount || 0), 0)
+    if (total !== installmentPrice) {
+      return `Total checks amount (${total}) must equal installment price (${installmentPrice})`
+    }
+    return null
+  }
+
+  const validateDuplicateCheckNumbers = (checksArray) => {
+    const checkNumbers = checksArray.map((check) => check.checkNumber)
+    const duplicates = checkNumbers.filter((num, index) => checkNumbers.indexOf(num) !== index)
+    if (duplicates.length > 0) {
+      return `Duplicate check numbers found: ${duplicates.join(", ")}`
+    }
+    return null
+  }
+
   const handlePaymentSelection = (appointment) => {
     setSelectedAppointment(appointment)
     setPaymentType("")
+    setValidationErrors({})
     setShowPaymentModal(true)
   }
 
   const handleCashPayment = async () => {
+    // Validate payment data
+    const errors = validatePaymentData(selectedAppointment, "cash")
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors)
+      alert("Please fix validation errors before proceeding")
+      return
+    }
+
     setSaving(true)
     try {
+      const patientId = selectedAppointment.patientId
+      const patientName = selectedAppointment.patientName
+
+      // Create comprehensive comment for cash payment - ensure it's not empty
+      const comment = `Cash payment for full program remaining balance - Patient: ${patientName || "Unknown"} (ID: ${patientId || "Unknown"}) - Session Date: ${selectedAppointment.date ? new Date(selectedAppointment.date).toLocaleDateString() : "Unknown"} at ${selectedAppointment.time || "Unknown"} - Description: ${selectedAppointment.description || "No description"} - Payment processed on: ${new Date().toLocaleString()}`
+
       // Create money record for cash payment
       const moneyData = {
-        patientId: selectedAppointment.patientId,
+        patientId: patientId,
         programId: selectedAppointment._id,
         price: cashPrice,
         status: "completed",
-        invoiceId: `CASH-${Math.random().toString(36).substring(2, 15)}`,
+        invoiceId: `CASH-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
         programType: "full_program_remaining",
-        comment: `Cash payment for full program remaining balance - Patient: ${selectedAppointment.patientName}`,
+        comment: comment, // Ensure comment is included and not empty
       }
+
+      console.log("Cash payment data being sent:", moneyData)
 
       const response = await axiosInstance.post("/authentication/saveMoneyRecord", moneyData)
 
@@ -140,39 +265,71 @@ export function AccountantAppointments() {
 
         setShowPaymentModal(false)
         setSelectedAppointment(null)
+        setValidationErrors({})
         alert("Cash payment processed successfully!")
       }
     } catch (error) {
       console.error("Error processing cash payment:", error)
-      alert("Error processing payment: " + error.message)
+      alert("Error processing payment: " + (error.response?.data?.message || error.message))
     } finally {
       setSaving(false)
     }
   }
 
   const handleInstallmentPayment = () => {
+    // Validate payment data
+    const errors = validatePaymentData(selectedAppointment, "installment")
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors)
+      alert("Please fix validation errors before proceeding")
+      return
+    }
+
     setShowPaymentModal(false)
     setShowChecksModal(true)
     setChecks([])
+    setCheckValidationErrors({})
   }
 
   const addCheck = () => {
-    if (newCheck.checkNumber && newCheck.bankName && newCheck.amount && newCheck.dueDate) {
-      setChecks([...checks, { ...newCheck, id: Date.now() }])
-      setNewCheck({
-        checkNumber: "",
-        bankName: "",
-        amount: "",
-        dueDate: "",
-        notes: "",
-      })
-    } else {
-      alert("Please fill in all required check fields")
+    // Validate check data
+    const errors = validateCheckData(newCheck)
+    if (Object.keys(errors).length > 0) {
+      setCheckValidationErrors(errors)
+      return
     }
+
+    // Check for duplicate check numbers
+    const existingCheckNumbers = checks.map((check) => check.checkNumber)
+    if (existingCheckNumbers.includes(newCheck.checkNumber)) {
+      setCheckValidationErrors({ checkNumber: "Check number already exists" })
+      return
+    }
+
+    // Check if adding this amount would exceed the total
+    const currentTotal = getTotalChecksAmount()
+    const newAmount = Number.parseFloat(newCheck.amount)
+    if (currentTotal + newAmount > installmentPrice) {
+      setCheckValidationErrors({
+        amount: `Adding this amount would exceed the total. Remaining: ${installmentPrice - currentTotal}`,
+      })
+      return
+    }
+
+    setChecks([...checks, { ...newCheck, id: Date.now() }])
+    setNewCheck({
+      checkNumber: "",
+      bankName: "",
+      amount: "",
+      dueDate: "",
+      notes: "",
+    })
+    setCheckValidationErrors({})
   }
 
   const removeCheck = (checkId) => {
     setChecks(checks.filter((check) => check.id !== checkId))
+    setCheckValidationErrors({})
   }
 
   const getTotalChecksAmount = () => {
@@ -180,31 +337,55 @@ export function AccountantAppointments() {
   }
 
   const handleSaveChecks = async () => {
+    // Comprehensive validation
     if (checks.length === 0) {
       alert("Please add at least one check")
       return
     }
 
-    const totalAmount = getTotalChecksAmount()
-    if (totalAmount !== installmentPrice) {
-      alert(`Total checks amount (${totalAmount}) must equal installment price (${installmentPrice})`)
+    // Validate total amount
+    const totalError = validateChecksTotal(checks)
+    if (totalError) {
+      alert(totalError)
       return
+    }
+
+    // Validate duplicate check numbers
+    const duplicateError = validateDuplicateCheckNumbers(checks)
+    if (duplicateError) {
+      alert(duplicateError)
+      return
+    }
+
+    // Validate each check individually
+    for (let i = 0; i < checks.length; i++) {
+      const checkErrors = validateCheckData(checks[i])
+      if (Object.keys(checkErrors).length > 0) {
+        alert(`Check ${i + 1} has validation errors: ${Object.values(checkErrors).join(", ")}`)
+        return
+      }
     }
 
     setSaving(true)
     try {
-      // Create money records for each check
-      const checkPromises = checks.map((check, index) => {
-        const moneyData = {
-          patientId: selectedAppointment.patientId,
+      const patientId = selectedAppointment.patientId
+      const patientName = selectedAppointment.patientName
+
+      // Create checks individually using the single check endpoint
+      const checkPromises = checks.map(async (check) => {
+        const checkData = {
+          patientId: patientId,
           programId: selectedAppointment._id,
-          price: Number.parseFloat(check.amount),
-          status: "pending",
-          invoiceId: `CHECK-${check.checkNumber}-${Math.random().toString(36).substring(2, 8)}`,
-          programType: "full_program_installment",
-          comment: `Check payment ${index + 1}/${checks.length} - Check #${check.checkNumber} from ${check.bankName} - Due: ${check.dueDate} - Patient: ${selectedAppointment.patientName}${check.notes ? ` - Notes: ${check.notes}` : ""}`,
+          moneyId: "000000000000000000000000", // Placeholder ObjectId - will be updated when check is processed
+          checkNumber: check.checkNumber,
+          amount: Number.parseFloat(check.amount),
+          dueDate: check.dueDate,
+          bankName: check.bankName,
+          notes: check.notes || `Check for installment payment - Patient: ${patientName}`,
         }
-        return axiosInstance.post("/authentication/saveMoneyRecord", moneyData)
+
+        console.log("Creating individual check:", checkData)
+        return axiosInstance.post("/checks", checkData)
       })
 
       await Promise.all(checkPromises)
@@ -220,10 +401,11 @@ export function AccountantAppointments() {
       setShowChecksModal(false)
       setSelectedAppointment(null)
       setChecks([])
-      alert("Installment payment with checks processed successfully!")
+      setCheckValidationErrors({})
+      alert("Installment checks saved successfully! Money records will be created when checks are processed.")
     } catch (error) {
-      console.error("Error processing installment payment:", error)
-      alert("Error processing installment payment: " + error.message)
+      console.error("Error saving installment checks:", error)
+      alert("Error saving installment checks: " + (error.response?.data?.message || error.message))
     } finally {
       setSaving(false)
     }
@@ -235,6 +417,8 @@ export function AccountantAppointments() {
     setSelectedAppointment(null)
     setPaymentType("")
     setChecks([])
+    setValidationErrors({})
+    setCheckValidationErrors({})
     setNewCheck({
       checkNumber: "",
       bankName: "",
@@ -468,6 +652,18 @@ export function AccountantAppointments() {
                   <h4>Patient: {selectedAppointment.patientName}</h4>
                   <p>Date: {new Date(selectedAppointment.date).toLocaleDateString()}</p>
                   <p>Time: {selectedAppointment.time}</p>
+                  {Object.keys(validationErrors).length > 0 && (
+                    <div className={styles.validationErrors}>
+                      <AlertCircle className={styles.errorIcon} />
+                      <div>
+                        {Object.entries(validationErrors).map(([field, error]) => (
+                          <p key={field} className={styles.errorText}>
+                            {error}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.paymentMethods}>
@@ -537,7 +733,14 @@ export function AccountantAppointments() {
                 <div className={styles.appointmentInfo}>
                   <h4>Patient: {selectedAppointment.patientName}</h4>
                   <p>Total Amount: ${installmentPrice}</p>
+                  <p>Current Total: ${getTotalChecksAmount()}</p>
                   <p>Remaining: ${installmentPrice - getTotalChecksAmount()}</p>
+                  <div className={styles.infoNote}>
+                    <AlertCircle className={styles.infoIcon} />
+                    <span>
+                      Checks will be saved for tracking. Money records will be created when checks are processed.
+                    </span>
+                  </div>
                 </div>
 
                 {/* Add New Check Form */}
@@ -550,9 +753,12 @@ export function AccountantAppointments() {
                         type="text"
                         value={newCheck.checkNumber}
                         onChange={(e) => setNewCheck({ ...newCheck, checkNumber: e.target.value })}
-                        className={styles.formInput}
+                        className={`${styles.formInput} ${checkValidationErrors.checkNumber ? styles.errorInput : ""}`}
                         placeholder="Enter check number"
                       />
+                      {checkValidationErrors.checkNumber && (
+                        <span className={styles.errorText}>{checkValidationErrors.checkNumber}</span>
+                      )}
                     </div>
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>Bank Name *</label>
@@ -560,9 +766,12 @@ export function AccountantAppointments() {
                         type="text"
                         value={newCheck.bankName}
                         onChange={(e) => setNewCheck({ ...newCheck, bankName: e.target.value })}
-                        className={styles.formInput}
+                        className={`${styles.formInput} ${checkValidationErrors.bankName ? styles.errorInput : ""}`}
                         placeholder="Enter bank name"
                       />
+                      {checkValidationErrors.bankName && (
+                        <span className={styles.errorText}>{checkValidationErrors.bankName}</span>
+                      )}
                     </div>
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>Amount *</label>
@@ -570,11 +779,15 @@ export function AccountantAppointments() {
                         type="number"
                         value={newCheck.amount}
                         onChange={(e) => setNewCheck({ ...newCheck, amount: e.target.value })}
-                        className={styles.formInput}
+                        className={`${styles.formInput} ${checkValidationErrors.amount ? styles.errorInput : ""}`}
                         placeholder="Enter amount"
                         min="0"
                         step="0.01"
+                        max={installmentPrice - getTotalChecksAmount()}
                       />
+                      {checkValidationErrors.amount && (
+                        <span className={styles.errorText}>{checkValidationErrors.amount}</span>
+                      )}
                     </div>
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>Due Date *</label>
@@ -582,9 +795,12 @@ export function AccountantAppointments() {
                         type="date"
                         value={newCheck.dueDate}
                         onChange={(e) => setNewCheck({ ...newCheck, dueDate: e.target.value })}
-                        className={styles.formInput}
+                        className={`${styles.formInput} ${checkValidationErrors.dueDate ? styles.errorInput : ""}`}
                         min={new Date().toISOString().split("T")[0]}
                       />
+                      {checkValidationErrors.dueDate && (
+                        <span className={styles.errorText}>{checkValidationErrors.dueDate}</span>
+                      )}
                     </div>
                     <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                       <label className={styles.formLabel}>Notes</label>
@@ -594,6 +810,7 @@ export function AccountantAppointments() {
                         onChange={(e) => setNewCheck({ ...newCheck, notes: e.target.value })}
                         className={styles.formInput}
                         placeholder="Optional notes"
+                        maxLength="200"
                       />
                     </div>
                   </div>
@@ -630,6 +847,12 @@ export function AccountantAppointments() {
                     <div className={styles.checksTotal}>
                       <strong>
                         Total: ${getTotalChecksAmount()} / ${installmentPrice}
+                        {getTotalChecksAmount() !== installmentPrice && (
+                          <span className={styles.totalWarning}>
+                            {" "}
+                            (Remaining: ${installmentPrice - getTotalChecksAmount()})
+                          </span>
+                        )}
                       </strong>
                     </div>
                   </div>
@@ -646,7 +869,7 @@ export function AccountantAppointments() {
                 disabled={saving || checks.length === 0 || getTotalChecksAmount() !== installmentPrice}
               >
                 <Save className={styles.buttonIcon} />
-                {saving ? "Processing..." : "Save Installment"}
+                {saving ? "Saving..." : "Save Checks Only"}
               </button>
             </div>
           </div>

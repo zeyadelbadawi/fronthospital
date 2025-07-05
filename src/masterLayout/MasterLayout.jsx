@@ -5,11 +5,14 @@ import ThemeToggleButton from "../helper/ThemeToggleButton";
 import Link from "next/link";
 import axiosInstance from "../helper/axiosSetup"; // Import the configured axios instance
 import { Icon } from '@iconify/react'
+import useSocket from "@/hooks/useSocket";
+import { formatDistanceToNow } from "date-fns";
 
 
 const MasterLayout = ({ children }) => {
   // const router = useRouter();
   const [user, setUser] = useState(null);
+  let [isClick, setIsClick] = useState(false);
   const [userRole, setUserRole] = useState('');
   const [userName, setUserName] = useState('');
   let pathname = usePathname();
@@ -178,6 +181,49 @@ const MasterLayout = ({ children }) => {
   }, []);
 
 
+  const [notifications, setNotifications] = useState([]);
+  const [count, setCount] = useState(0);
+
+  useSocket(user?.id, ({ count, notifications }) => {
+    setNotifications(notifications);
+    setCount(count);
+  });
+
+  const getNotifications = async () => {
+    try {
+      const response = await axiosInstance.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/notification/byId/${user?.id}`
+      );
+      setNotifications(response.data.notifications || []);
+      setCount(response.data.count || 0);
+      console.log("Fetched notifications:", response.data.notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  useEffect(() => {
+    // Fetch initial data on mount
+    if (!user?.id) return;
+
+    getNotifications();
+  }, [user?.id]);
+
+  const notificationClick = async (noteId) => {
+    try {
+      axiosInstance
+        .put(`${process.env.NEXT_PUBLIC_API_URL}/notification/read/${noteId}`)
+        .then((response) => {
+          getNotifications();
+          console.log("Notification marked as read:", response.data);
+        });
+    } catch (error) {
+      console.error("Error handling notification click:", error);
+    }
+  };
+
+  /* --------------end Notifications--------------- */
+
 
   // Determine the profile link based on the role
   let profileLink = ' ';  // Default profile page
@@ -223,7 +269,7 @@ const MasterLayout = ({ children }) => {
         </button>
         <div>
           <Link href='/' className='sidebar-logo'>
-          
+
           </Link>
         </div>
         <div className='sidebar-menu-area'>
@@ -262,7 +308,7 @@ const MasterLayout = ({ children }) => {
                 <span>School Evaluations</span>
               </Link>
             </li>
-                        <li>
+            <li>
               <Link
                 href='/profile-dashboard'
                 className={pathname === "/profile-dashboard" ? "active-page" : ""}>
@@ -270,7 +316,7 @@ const MasterLayout = ({ children }) => {
                 <span>Students Profile</span>
               </Link>
             </li>
-<li className='sidebar-menu-group-title' style={{ color: 'blue' }}>Full Program schedule</li>
+            <li className='sidebar-menu-group-title' style={{ color: 'blue' }}>Full Program schedule</li>
             <li>
               <Link
                 href='/calendar-main'
@@ -377,155 +423,155 @@ const MasterLayout = ({ children }) => {
               <div className='d-flex flex-wrap align-items-center gap-3'>
                 {/* ThemeToggleButton */}
                 <ThemeToggleButton />
-              
+
                 {/* Language dropdown end */}
 
                 {/* notification dropdown start */}
-                <div className='dropdown'>
-                  <button
-                    className='has-indicator w-40-px h-40-px bg-neutral-200 rounded-circle d-flex justify-content-center align-items-center'
-                    type='button'
-                    data-bs-toggle='dropdown'
-                    title='Notifications'       // <-- Tooltip on hover
 
+
+                {/* ------------------------------------------------------------------------------------------------ */}
+
+                <div className="dropdown">
+                  <button
+                    className="has-indicator w-40-px h-40-px bg-neutral-200 rounded-circle d-flex justify-content-center align-items-center position-relative"
+                    type="button"
+                    onClick={() => setIsClick(!isClick)}
+                    title="Notifications"
                   >
                     <Icon
-                      icon='iconoir:bell'
-                      className='text-primary-light text-xl'
+                      icon="iconoir:bell"
+                      className="text-primary-light text-xl"
                     />
+                    {count > 0 && (
+                      <span
+                        className="position-absolute top-2 start-100 translate-middle badge rounded-pill bg-danger"
+                        style={{ fontSize: "0.8rem", minWidth: "1rem" }}
+                      >
+                        {count > 10 ? "10+" : count}
+                        <span className="visually-hidden">unread messages</span>
+                      </span>
+                    )}
                   </button>
-                  <div className='dropdown-menu to-top dropdown-menu-lg p-0'>
-                    <div className='m-16 py-12 px-16 radius-8 bg-primary-50 mb-16 d-flex align-items-center justify-content-between gap-2'>
+
+                  <div
+                    className={`zindex-100 dropdown-menu ${isClick ? "show" : ""
+                      } dropdown-menu-lg p-0`}
+                    style={{
+                      left: "-360px",
+                    }}
+                  >
+                    <div className="m-16 py-12 px-16 radius-8 bg-primary-50 mb-16 d-flex align-items-center justify-content-between gap-2">
                       <div>
-                        <h6 className='text-lg text-primary-light fw-semibold mb-0'>
+                        <h6 className="text-lg text-primary-light fw-semibold mb-0">
                           Notifications
                         </h6>
                       </div>
-                      <span className='text-primary-600 fw-semibold text-lg w-40-px h-40-px rounded-circle bg-base d-flex justify-content-center align-items-center'>
-                        05
+                      <span className="text-primary-600 fw-semibold text-lg w-40-px h-40-px rounded-circle bg-base d-flex justify-content-center align-items-center">
+                        {notifications.length}
                       </span>
                     </div>
-                    <div className='max-h-400-px overflow-y-auto scroll-sm pe-4'>
-                      <Link
-                        href='#'
-                        className='px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between'
-                      >
-                        <div className='text-black hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'>
-                          <span className='w-44-px h-44-px bg-success-subtle text-success-main rounded-circle d-flex justify-content-center align-items-center flex-shrink-0'>
-                            <Icon
-                              icon='bitcoin-icons:verify-outline'
-                              className='icon text-xxl'
-                            />
-                          </span>
-                          <div>
-                            <h6 className='text-md fw-semibold mb-4'>
-                              Congratulations
-                            </h6>
-                            <p className='mb-0 text-sm text-secondary-light text-w-200-px'>
-                              Your profile has been Verified. Your profile has
-                              been Verified
-                            </p>
+
+                    <div className="max-h-400-px overflow-y-scroll scroll-sm pe-4">
+                      {notifications?.map((item) => (
+                        <div
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (!item.isRead) {
+                              notificationClick(item._id);
+                            }
+                          }}
+                          key={item._id}
+                          className="cursor-pointer bg-hover-info-50 px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between  position-relative"
+                        >
+                          <div className="text-black d-flex align-items-center gap-3">
+                            <span className="position-relative w-44-px h-44-px bg-success-subtle text-success-main rounded-circle d-flex justify-content-center align-items-center flex-shrink-0">
+                              <Icon
+                                icon="bitcoin-icons:verify-outline"
+                                className="icon text-xxl"
+                              />
+                              {!item.isRead && (
+                                <span
+                                  className="position-absolute bg-danger rounded-circle"
+                                  style={{
+                                    width: "10px",
+                                    height: "10px",
+                                    top: "0px",
+                                    left: "0px",
+                                    transform: "translate(-20%, -20%)",
+                                  }}
+                                />
+                              )}
+                            </span>
+                            <div>
+                              <h6 className="text-md fw-semibold mb-4">
+                                {item.title}
+                              </h6>
+                              <p className="mb-0 text-sm text-secondary-light">
+                                {item.message}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                        <span className='text-sm text-secondary-light flex-shrink-0'>
-                          23 Mins ago
-                        </span>
-                      </Link>
-                      <Link
-                        href='#'
-                        className='px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between bg-neutral-50'
-                      >
-                        <div className='text-black hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'>
-                          <span className='w-44-px h-44-px bg-success-subtle text-success-main rounded-circle d-flex justify-content-center align-items-center flex-shrink-0'>
-                           
+                          <span className="text-sm text-secondary-light ">
+                            {formatDistanceToNow(new Date(item.createdAt), {
+                              addSuffix: true,
+                            })}
                           </span>
-                          <div>
-                            <h6 className='text-md fw-semibold mb-4'>
-                              Ronald Richards
-                            </h6>
-                            <p className='mb-0 text-sm text-secondary-light text-w-200-px'>
-                              You can stitch between artboards
-                            </p>
-                          </div>
+                          {/* <div className="d-flex flex-row h-100 align-items-start justify-content-start">
+                            
+                            <div className="m-1"></div>
+
+                            {!item.isRead && (
+                              <div className="ms-auto">
+                                <div
+                                  className="d-flex align-items-center justify-content-center border border-2"
+                                  style={{
+                                    width: "28px",
+                                    height: "28px",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    backgroundColor: "rgba(0,0,0,0.05)",
+                                  }}
+                                >
+                                  <Check size={16} />
+                                </div>
+                              </div>
+                            )}
+                          </div> */}
+
+                          {/*  <div className="d-flex h-100 align-items-start justify-content-between  ">
+                            <div className="ms-auto d-flex flex-column align-items-end">
+                              {!item.isRead && (
+                                <div
+                                  className="cursor-pointer d-flex align-items-center justify-content-center border border-2 mt-2"
+                                  style={{
+                                    width: "28px",
+                                    height: "28px",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    backgroundColor: "rgba(0,0,0,0.05)",
+                                  }}
+                                >
+                                  <Check size={16} />
+                                </div>
+                              )}
+                              <span className="text-sm text-secondary-light">
+                                {formatDistanceToNow(new Date(item.createdAt), {
+                                  addSuffix: true,
+                                })}
+                              </span>
+                            </div>
+                          </div> */}
                         </div>
-                        <span className='text-sm text-secondary-light flex-shrink-0'>
-                          23 Mins ago
-                        </span>
-                      </Link>
-                      <Link
-                        href='#'
-                        className='px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between'
-                      >
-                        <div className='text-black hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'>
-                          <span className='w-44-px h-44-px bg-info-subtle text-info-main rounded-circle d-flex justify-content-center align-items-center flex-shrink-0'>
-                            AM
-                          </span>
-                          <div>
-                            <h6 className='text-md fw-semibold mb-4'>
-                              Arlene McCoy
-                            </h6>
-                            <p className='mb-0 text-sm text-secondary-light text-w-200-px'>
-                              Invite you to prototyping
-                            </p>
-                          </div>
-                        </div>
-                        <span className='text-sm text-secondary-light flex-shrink-0'>
-                          23 Mins ago
-                        </span>
-                      </Link>
-                      <Link
-                        href='#'
-                        className='px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between bg-neutral-50'
-                      >
-                        <div className='text-black hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'>
-                          <span className='w-44-px h-44-px bg-success-subtle text-success-main rounded-circle d-flex justify-content-center align-items-center flex-shrink-0'>
-                         
-                          </span>
-                          <div>
-                            <h6 className='text-md fw-semibold mb-4'>
-                              Annette Black
-                            </h6>
-                            <p className='mb-0 text-sm text-secondary-light text-w-200-px'>
-                              Invite you to prototyping
-                            </p>
-                          </div>
-                        </div>
-                        <span className='text-sm text-secondary-light flex-shrink-0'>
-                          23 Mins ago
-                        </span>
-                      </Link>
-                      <Link
-                        href='#'
-                        className='px-24 py-12 d-flex align-items-start gap-3 mb-2 justify-content-between'
-                      >
-                        <div className='text-black hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'>
-                          <span className='w-44-px h-44-px bg-info-subtle text-info-main rounded-circle d-flex justify-content-center align-items-center flex-shrink-0'>
-                            DR
-                          </span>
-                          <div>
-                            <h6 className='text-md fw-semibold mb-4'>
-                              Darlene Robertson
-                            </h6>
-                            <p className='mb-0 text-sm text-secondary-light text-w-200-px'>
-                              Invite you to prototyping
-                            </p>
-                          </div>
-                        </div>
-                        <span className='text-sm text-secondary-light flex-shrink-0'>
-                          23 Mins ago
-                        </span>
-                      </Link>
-                    </div>
-                    <div className='text-center py-12 px-16'>
-                      <Link
-                        href='#'
-                        className='text-primary-600 fw-semibold text-md'
-                      >
-                        See All Notification
-                      </Link>
+                      ))}
                     </div>
                   </div>
                 </div>
+
+
+
+
+
                 {/* Notification dropdown end */}
                 <div className='dropdown'>
                   <button

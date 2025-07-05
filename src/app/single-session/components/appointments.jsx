@@ -11,6 +11,8 @@ import "react-datepicker/dist/react-datepicker.css"
 import Select from "react-select"
 import styles from "../styles/appointments-management.module.css"
 
+import { sendNotification } from "@/helper/notification-helper"
+
 export function AppointmentsManagement() {
   const [appointments, setAppointments] = useState([])
   const [filteredAppointments, setFilteredAppointments] = useState([])
@@ -151,27 +153,36 @@ export function AppointmentsManagement() {
     }
   }
 
-  const handleRescheduleAppointment = async () => {
-    try {
-      const response = await axiosInstance.put(
-        `${process.env.NEXT_PUBLIC_API_URL}/appointmentManagement/appointment/${rescheduleModal.appointment._id}/reschedule`,
-        {
-          newDate: rescheduleForm.newDate,
-          newTime: rescheduleForm.newTime,
-          reason: rescheduleForm.reason,
-        },
-      )
+const handleRescheduleAppointment = async (appointment) => {
+  try {
+    const response = await axiosInstance.put(
+      `${process.env.NEXT_PUBLIC_API_URL}/appointmentManagement/appointment/${rescheduleModal.appointment._id}/reschedule`,
+      {
+        newDate: rescheduleForm.newDate,
+        newTime: rescheduleForm.newTime,
+        reason: rescheduleForm.reason,
+      },
+    )
 
-      if (response.status === 200) {
-        alert("Appointment rescheduled successfully!")
-        setRescheduleModal({ open: false, appointment: null })
-        fetchAppointments()
-      }
-    } catch (error) {
-      console.error("Error rescheduling appointment:", error)
-      alert("Error rescheduling appointment")
+    if (response.status === 200) {
+      alert("Appointment rescheduled successfully!")
+      setRescheduleModal({ open: false, appointment: null })
+      
+      // Dynamically pass the patient ID from the appointment
+      await sendNotification({
+        isList: false,
+        title: `Single session appointment update`,
+        message: `Your session has been rescheduled to date:  ${rescheduleForm.newDate} and time:  ${rescheduleForm.newTime}`,
+        receiverId: appointment.patientid._id,  // Ensure patient ID is passed
+        rule: "Patient",
+      })
+      fetchAppointments()
     }
+  } catch (error) {
+    console.error("Error rescheduling appointment:", error)
+    alert("Error rescheduling appointment")
   }
+}
 
   const handleCompleteAppointment = async (appointmentId, notes = "") => {
     try {
@@ -254,7 +265,7 @@ export function AppointmentsManagement() {
       <div className={styles.upcomingCard}>
         <div className={styles.cardHeader}>
           <div className={styles.headerContent}>
-            <div className={styles.headerLeft}>    
+            <div className={styles.headerLeft}>
               <h2 className={styles.pageTitle}>Appointment Management</h2>
               <p className={styles.pageSubtitle}>View, edit, and manage all therapy appointments</p>
             </div>
@@ -301,7 +312,7 @@ export function AppointmentsManagement() {
                   type="date"
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value)}
-                  className={styles.filterInput}/>
+                  className={styles.filterInput} />
               </div>
               <div className={styles.filterGroup}>
                 <label className={styles.filterLabel}>Status:</label>
@@ -396,111 +407,106 @@ export function AppointmentsManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {displayAppointments.map((appointment, index) => {
-                    const status = getAppointmentStatus(appointment)
-                    const departments = getDepartmentBadges(appointment.programkind)
-                    const startIndex = (currentPage - 1) * 10
+  {displayAppointments.map((appointment, index) => {
+    const status = getAppointmentStatus(appointment)
+    const departments = getDepartmentBadges(appointment.programkind)
+    const startIndex = (currentPage - 1) * 10
 
-                    return (
-                      <tr key={appointment._id} className={styles.tableRow}>
-                        <td className={styles.indexCell}>{startIndex + index + 1}</td>
-                        <td className={styles.patientCell}>
-                          <div className={styles.patientInfo}>
-                            <span className={styles.patientName}>{appointment.patientid?.name || "N/A"}</span>
-                          </div>
-                        </td>
-                        <td className={styles.dateCell}>
-                          <div className={styles.dateInfo}>
-                            <div className={styles.appointmentDate}>
-                              <Calendar className={styles.dateIcon} />
-                              <span className={styles.dateValue}>{formatDate(appointment.date)}</span>
-                            </div>
-                            <div className={styles.appointmentTime}>
-                              <Clock className={styles.timeIcon} />
-<span className={styles.timeValue}>{new Date(appointment.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+    return (
+      <tr key={appointment._id} className={styles.tableRow}>
+        <td className={styles.indexCell}>{startIndex + index + 1}</td>
+        <td className={styles.patientCell}>
+          <div className={styles.patientInfo}>
+            <span className={styles.patientName}>{appointment.patientid?.name || "N/A"}</span>
+          </div>
+        </td>
+        <td className={styles.dateCell}>
+          <div className={styles.dateInfo}>
+            <div className={styles.appointmentDate}>
+              <Calendar className={styles.dateIcon} />
+              <span className={styles.dateValue}>{formatDate(appointment.date)}</span>
+            </div>
+            <div className={styles.appointmentTime}>
+              <Clock className={styles.timeIcon} />
+              <span className={styles.timeValue}>{new Date(appointment.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+          </div>
+        </td>
+        <td className={styles.servicesCell}>
+          <div className={styles.departmentBadges}>
+            {departments.map((dept, deptIndex) => (
+              <span key={deptIndex} className={`${styles.departmentBadge} ${styles[dept.color]}`}>
+                {dept.label}
+              </span>
+            ))}
+          </div>
+        </td>
+        <td className={styles.typeCell}>
+          <span
+            className={`${styles.typeBadge} ${
+              status.color === "green"
+                ? "completed"
+                : status.color === "red"
+                ? "assessment"
+                : status.color === "orange"
+                ? "pending"
+                : status.color === "gray"
+                ? "pending"
+                : "active"
+            }`}
+          >
+            {status.color === "green" ? (
+              <CheckCircle className={styles.statusIcon} />
+            ) : status.color === "red" ? (
+              <XCircle className={styles.statusIcon} />
+            ) : (
+              <Clock className={styles.statusIcon} />
+            )}
+            {status.label}
+          </span>
+        </td>
+        <td className={styles.actionsCell}>
+          <div className={styles.actionButtons}>
+            <button
+              onClick={() => handleViewAppointment(appointment._id)}  // View Details button
+              className={`${styles.actionButton} ${styles.viewButton}`}
+              title="View Details"
+            >
+              <Eye className={styles.actionIcon} />
+            </button>
+            {status.status === "upcoming" && (
+              <>
+                {/* Reschedule Button - Pass appointment object correctly */}
+                <button
+                  onClick={() => setRescheduleModal({ open: true, appointment })}  // Pass appointment here
+                  className={`${styles.actionButton} ${styles.rescheduleButton}`}
+                  title="Reschedule"
+                >
+                  <CalendarIcon className={styles.actionIcon} />
+                </button>
+                <button
+                  onClick={() => handleCompleteAppointment(appointment._id)}
+                  className={`${styles.actionButton} ${styles.completeButton}`}
+                  title="Mark as Completed"
+                >
+                  <Check className={styles.actionIcon} />
+                </button>
+                <button
+                  onClick={() => setDeleteModal({ open: true, appointment })}
+                  className={`${styles.actionButton} ${styles.deleteButton}`}
+                  title="Cancel Appointment"
+                >
+                  <Trash2Icon className={styles.actionIcon} />
+                </button>
+              </>
+            )}
+          </div>
+        </td>
+      </tr>
+    )
+  })}
+</tbody>
 
-
-
-
-
-
-                            </div>  
-                          </div>
-                        </td>
-                        <td className={styles.servicesCell}>
-                          <div className={styles.departmentBadges}>
-                            {departments.map((dept, deptIndex) => (
-                              <span key={deptIndex} className={`${styles.departmentBadge} ${styles[dept.color]}`}>
-                                {dept.label}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                        <td className={styles.typeCell}>
-                          <span
-                            className={`${styles.typeBadge} ${
-                              status.color === "green"
-                                ? "completed"
-                                : status.color === "red"
-                                  ? "assessment"
-                                  : status.color === "orange"
-                                    ? "pending"
-                                    : status.color === "gray"
-                                      ? "pending"
-                                      : "active"
-                            }`}
-                          >
-                            {status.color === "green" ? (
-                              <CheckCircle className={styles.statusIcon} />
-                            ) : status.color === "red" ? (
-                              <XCircle className={styles.statusIcon} />
-                            ) : (
-                              <Clock className={styles.statusIcon} />
-                            )}
-                            {status.label}
-                          </span>
-                        </td>
-                        <td className={styles.actionsCell}>
-                          <div className={styles.actionButtons}>
-                            <button
-                              onClick={() => handleViewAppointment(appointment._id)}
-                              className={`${styles.actionButton} ${styles.viewButton}`}
-                              title="View Details"
-                            >
-                              <Eye className={styles.actionIcon} />
-                            </button>
-                            {status.status === "upcoming" && (
-                              <>
-                               
-                                <button
-                                  onClick={() => setRescheduleModal({ open: true, appointment })}
-                                  className={`${styles.actionButton} ${styles.rescheduleButton}`}
-                                  title="Reschedule"
-                                >
-                                  <CalendarIcon className={styles.actionIcon} />
-                                </button>
-                                <button
-                                  onClick={() => handleCompleteAppointment(appointment._id)}
-                                  className={`${styles.actionButton} ${styles.completeButton}`}
-                                  title="Mark as Completed"
-                                >
-                                  <Check className={styles.actionIcon} />
-                                </button>
-                                <button
-                                  onClick={() => setDeleteModal({ open: true, appointment })}
-                                  className={`${styles.actionButton} ${styles.deleteButton}`}
-                                  title="Cancel Appointment"
-                                >
-                                  <Trash2Icon className={styles.actionIcon} />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
               </table>
             </div>
           )}
@@ -567,7 +573,7 @@ export function AppointmentsManagement() {
                       </div>
                       <div className={styles.detailItem}>
                         <ClockIcon className={styles.detailIcon} />
-<span>Time: {new Date(viewModal.appointment.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span>Time: {new Date(viewModal.appointment.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
 
 
 
@@ -613,7 +619,7 @@ export function AppointmentsManagement() {
         </div>
       )}
 
-    
+
       {/* Reschedule Modal */}
       {rescheduleModal.open && (
         <div className={styles.modalOverlay}>
@@ -642,7 +648,7 @@ export function AppointmentsManagement() {
                 <label>New Time:</label>
                 <input
                   type="time"
-  value={rescheduleForm.newTime || ""}
+                  value={rescheduleForm.newTime || ""}
                   onChange={(e) => setRescheduleForm({ ...rescheduleForm, newTime: e.target.value })}
                   className={styles.formInput}
                 />
@@ -658,16 +664,21 @@ export function AppointmentsManagement() {
                 />
               </div>
               <div className={styles.modalActions}>
-                <button
-                  onClick={() => setRescheduleModal({ open: false, appointment: null })}
-                  className={styles.cancelButton}
-                >
-                  Cancel
-                </button>
-                <button onClick={handleRescheduleAppointment} className={styles.completeActionButton}>
-                  <CalendarIcon size={16} />
-                  Reschedule
-                </button>
+             <button
+  onClick={() => setRescheduleModal({ open: true, appointment })}
+  className={`${styles.actionButton} ${styles.rescheduleButton}`}
+  title="Reschedule"
+>
+  <CalendarIcon className={styles.actionIcon} />
+</button>
+              <button
+  onClick={() => handleRescheduleAppointment(rescheduleModal.appointment)}  // Pass the correct appointment
+  className={styles.completeActionButton}
+>
+  <CalendarIcon size={16} />
+  Reschedule
+</button>
+
               </div>
             </div>
           </div>

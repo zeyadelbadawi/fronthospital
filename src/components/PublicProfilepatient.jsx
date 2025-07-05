@@ -2,13 +2,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import { Icon } from "@iconify/react/dist/iconify.js";
 import jwt_decode from 'jwt-decode';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import FullProgramComponent from './FullProgramComponent';
 
-
-const PublicProfilepatient = () => {
+const PublicProfilepatient = ({patientID}) => {
   const router = useRouter();
   const [patient, setPatient] = useState(null);
   const [patientId, setPatientId] = useState(null);
@@ -302,6 +301,7 @@ const PublicProfilepatient = () => {
                     <span className="w-30 text-md fw-semibold text-primary-light">Address</span>
                     <span className="w-70 text-secondary-light fw-medium">: {address || 'Not provided'}</span>
                   </li>
+
                 </ul>
               </div>
             </div>
@@ -331,7 +331,20 @@ const PublicProfilepatient = () => {
                     My Sessions
                   </button>
                 </li>
-
+                <li className="nav-item" role="presentation">
+                <button
+                  className="nav-link d-flex align-items-center px-24"
+                  id="pills-full-program-tab"
+                  data-bs-toggle="pill"
+                  data-bs-target="#pills-full-program"
+                  type="button"
+                  role="tab"
+                  aria-controls="pills-full-program"
+                  aria-selected="false"
+                >
+                  Full Program
+                </button>
+              </li>
               </ul>
               <div className="tab-content" id="pills-tabContent">
                 <div className="tab-pane fade show active" id="pills-edit-profile" role="tabpanel" aria-labelledby="pills-edit-profile-tab" tabIndex={0}>
@@ -612,9 +625,13 @@ const PublicProfilepatient = () => {
                       </div>
                     ))}
                   </div>
+
                 </div>
 
-
+                    <div className="tab-pane fade" id="pills-full-program" role="tabpanel" aria-labelledby="pills-full-program-tab">
+                      <FullProgramComponent patientId={patientID} />
+                    </div> 
+               
               </div>
             </div>
           </div>

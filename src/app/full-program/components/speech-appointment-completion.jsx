@@ -55,7 +55,7 @@ export function SpeechAppointmentCompletion() {
   const fetchAppointmentData = async () => {
     setLoading(true)
     try {
-      const response = await axiosInstance.get(`/full/appointments/${appointmentId}`)
+      const response = await axiosInstance.get(`/full/fullprogram/${appointmentId}`)
       setAppointment(response.data)
 
       // If appointment has installment plan, fetch existing checks
