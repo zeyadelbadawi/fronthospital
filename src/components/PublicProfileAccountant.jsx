@@ -2,8 +2,9 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { Icon } from "@iconify/react/dist/iconify.js";
 import jwt_decode from 'jwt-decode';
+import { User, Mail, Edit3, Lock, Eye, EyeOff, Save, X, Calculator } from 'lucide-react';
+import styles from '../styles/profile-view.module.css';
 
 const PublicProfileAccountant = () => {
   const router = useRouter();
@@ -16,36 +17,30 @@ const PublicProfileAccountant = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [accountantId, setAccountantId] = useState(null);
+  const [activeTab, setActiveTab] = useState('edit-profile');
+  const [loading, setLoading] = useState(true);
 
-  // Check if the user is logged in and has the "Accountant" role
   useEffect(() => {
     const token = localStorage.getItem('token');
-    console.log('Token retrieved from localStorage:', token);
-
     if (!token) {
       alert('You must log in to access this page');
-      router.push('/sign-in');  // Redirect to login if not logged in
+      router.push('/sign-in');
       return;
     }
 
-    // Decode the token to check the role
     try {
-      console.log('Decoding token...');
       const decodedToken = jwt_decode(token);
-      console.log('Decoded token:', decodedToken);
-
       const userRole = decodedToken?.role;
       const userId = decodedToken?.id;
-
+      
       if (!userRole || !userId || userRole !== 'accountant') {
         alert('You must be a accountant to access this page');
-        router.push('/sign-in');  // Redirect if user is not a accountant
+        router.push('/sign-in');
         return;
       }
+      
+      setAccountantId(userId);
 
-      setAccountantId(userId);  // Store the accountant ID from the token
-
-      // Fetch accountant data
       const fetchAccountant = async () => {
         try {
           const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/accountant/${userId}`, {
@@ -54,8 +49,10 @@ const PublicProfileAccountant = () => {
           setAccountant(response.data);
           setName(response.data.name);
           setEmail(response.data.email);
+          setLoading(false);
         } catch (error) {
           console.error('Error fetching Accountant data:', error);
+          setLoading(false);
         }
       };
 
@@ -67,15 +64,12 @@ const PublicProfileAccountant = () => {
     }
   }, [router]);
 
-
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-
     if (newPassword !== confirmPassword) {
       alert("Passwords don't match!");
       return;
     }
-
     try {
       const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/authentication/accountant-password/${accountantId}`, { password: newPassword });
       if (response.status === 200) {
@@ -98,13 +92,9 @@ const PublicProfileAccountant = () => {
     setConfirmPasswordVisible(!confirmPasswordVisible);
   };
 
-
-
-  // Handle form submission for profile updates
   const handleSubmit = async (e) => {
     e.preventDefault();
     const updatedAccountant = { name, email };
-
     try {
       const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/authentication/edit-accountant/${accountantId}`, updatedAccountant);
       if (response.status === 200) {
@@ -116,131 +106,214 @@ const PublicProfileAccountant = () => {
     }
   };
 
-  // Loading state until Accountant data is fetched
-  if (!accountant) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <div className={styles.loadingText}>Loading your profile...</div>
+      </div>
+    );
+  }
+
+  if (!accountant) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingText}>Profile not found</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="row gy-4">
-      <div className="col-lg-4">
-        <div className="user-grid-card position-relative border radius-16 overflow-hidden bg-base h-100">
-          <img src="assets/images/user-grid/user-grid-bg1.png" alt="" className="w-100 object-fit-cover" />
-          <div className="pb-24 ms-16 mb-24 me-16 mt--100">
-            <div className="text-center border border-top-0 border-start-0 border-end-0">
-              <img src="assets/images/user-grid/user-grid-img14.png" alt="" className="border br-white border-width-2-px w-200-px h-200-px rounded-circle object-fit-cover" />
-              <h6 className="mb-0 mt-16">{name}</h6>
-              <span className="text-secondary-light mb-16">{email}</span>
+    <div className={styles.container}>
+      <div className={styles.profileWrapper}>
+        {/* Profile Card */}
+        <div className={styles.profileCard}>
+          <div className={styles.profileHeader}></div>
+          <div className={styles.profileContent}>
+            <div className={styles.avatarContainer}>
+              <div className={styles.avatar}>
+                {name.charAt(0).toUpperCase()}
+              </div>
+              <h2 className={styles.profileName}>{name}</h2>
+              <p className={styles.profileEmail}>{email}</p>
+              <div className={styles.profileBadge}>
+                <Calculator className={styles.profileBadgeIcon} />
+                Accountant
+              </div>
             </div>
-            <div className="mt-24">
-              <h6 className="text-xl mb-16">Accountant Info</h6>
-              <ul>
-                <li className="d-flex align-items-center gap-1 mb-12">
-                  <span className="w-30 text-md fw-semibold text-primary-light">Name</span>
-                  <span className="w-70 text-secondary-light fw-medium">: {name}</span>
+
+            <div className={styles.infoSection}>
+              <h3 className={styles.infoTitle}>
+                <Calculator className={styles.infoTitleIcon} />
+                Accountant Information
+              </h3>
+              <ul className={styles.infoList}>
+                <li className={styles.infoItem}>
+                  <span className={styles.infoLabel}>
+                    <User className={styles.infoLabelIcon} />
+                    Name
+                  </span>
+                  <span className={styles.infoValue}>{name}</span>
                 </li>
-                <li className="d-flex align-items-center gap-1 mb-12">
-                  <span className="w-30 text-md fw-semibold text-primary-light">Email</span>
-                  <span className="w-70 text-secondary-light fw-medium">: {email}</span>
+                <li className={styles.infoItem}>
+                  <span className={styles.infoLabel}>
+                    <Mail className={styles.infoLabelIcon} />
+                    Email
+                  </span>
+                  <span className={styles.infoValue}>{email}</span>
                 </li>
-                
               </ul>
             </div>
           </div>
         </div>
-      </div>
-      <div className="col-lg-8">
-        <div className="card h-100">
-          <div className="card-body p-24">
-            <ul className="nav border-gradient-tab nav-pills mb-20 d-inline-flex" id="pills-tab" role="tablist">
-              <li className="nav-item" role="presentation">
-                <button className="nav-link d-flex align-items-center px-24 active" id="pills-edit-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-edit-profile" type="button" role="tab" aria-controls="pills-edit-profile" aria-selected="true">
+
+        {/* Main Content */}
+        <div className={styles.mainContent}>
+          <div className={styles.contentHeader}>
+            <h1 className={styles.contentTitle}>Accountant Profile</h1>
+            <p className={styles.contentSubtitle}>Manage your professional profile and account settings</p>
+          </div>
+
+          <div className={styles.tabsContainer}>
+            <ul className={styles.tabsList}>
+              <li className={styles.tabItem}>
+                <button
+                  className={`${styles.tabButton} ${activeTab === 'edit-profile' ? styles.active : ''}`}
+                  onClick={() => setActiveTab('edit-profile')}
+                >
+                  <Edit3 className={styles.tabIcon} />
                   Edit Profile
                 </button>
               </li>
-              <li className="nav-item" role="presentation">
-                <button className="nav-link d-flex align-items-center px-24" id="pills-change-passwork-tab" data-bs-toggle="pill" data-bs-target="#pills-change-passwork" type="button" role="tab" aria-controls="pills-change-passwork" aria-selected="false" tabIndex={-1}>
+              <li className={styles.tabItem}>
+                <button
+                  className={`${styles.tabButton} ${activeTab === 'change-password' ? styles.active : ''}`}
+                  onClick={() => setActiveTab('change-password')}
+                >
+                  <Lock className={styles.tabIcon} />
                   Change Password
                 </button>
               </li>
             </ul>
-            <div className="tab-content" id="pills-tabContent">
-              <div className="tab-pane fade show active" id="pills-edit-profile" role="tabpanel" aria-labelledby="pills-edit-profile-tab" tabIndex={0}>
-                <form onSubmit={handleSubmit}>
-                  <div className="mb-20">
-                    <label htmlFor="username" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                      Name <span className="text-danger-600">*</span>
-                    </label>
-                    <input type="text" className="form-control radius-8" id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter Name" />
-                  </div>
-                  <div className="mb-20">
-                    <label htmlFor="email" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                      Email <span className="text-danger-600">*</span>
-                    </label>
-                    <input type="email" className="form-control radius-8" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email address" />
-                  </div>
-                                    <div className="d-flex align-items-center justify-content-center gap-3">
-                    <button type="button" className="border border-danger-600 bg-hover-danger-200 text-danger-600 text-md px-56 py-11 radius-8" onClick={() => router.push(' ')}>
-                      Cancel
-                    </button>
-                    <button type="submit" className="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">
-                      Save Changes
-                    </button>
-                  </div>
-                </form>
-              </div>
-              <div className="tab-pane fade" id="pills-change-passwork" role="tabpanel" aria-labelledby="pills-change-passwork-tab" tabIndex="0">
-              <form onSubmit={handlePasswordChange}>
-                  {/* New Password */}
-                  <div className="mb-20">
-                    <label htmlFor="your-password" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                      New Password <span className="text-danger-600">*</span>
-                    </label>
-                    <div className="position-relative">
-                      <input
-                        type={passwordVisible ? "text" : "password"}
-                        className="form-control radius-8"
-                        id="your-password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Enter New Password*"
-                      />
-                      <span
-                        className={`toggle-password ${passwordVisible ? "ri-eye-off-line" : "ri-eye-line"} cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light`}
-                        onClick={togglePasswordVisibility}
-                      ></span>
-                    </div>
-                  </div>
-                  <div className="mb-20">
-                    <label htmlFor="confirm-password" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                      Confirm Password <span className="text-danger-600">*</span>
-                    </label>
-                    <div className="position-relative">
-                      <input
-                        type={confirmPasswordVisible ? "text" : "password"}
-                        className="form-control radius-8"
-                        id="confirm-password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Confirm Password*"
-                      />
-                      <span
-                        className={`toggle-password ${confirmPasswordVisible ? "ri-eye-off-line" : "ri-eye-line"} cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light`}
-                        onClick={toggleConfirmPasswordVisibility}
-                      ></span>
-                    </div>
-                  </div>
+          </div>
 
-                  
+          <div className={styles.tabContent}>
+            {/* Edit Profile Tab */}
+            <div className={`${styles.tabPane} ${activeTab === 'edit-profile' ? styles.active : ''}`}>
+              <form onSubmit={handleSubmit} className={styles.form}>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="name" className={styles.formLabel}>
+                      <User className={styles.labelIcon} />
+                      Name <span className={styles.required}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.formInput}
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Enter Name"
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="email" className={styles.formLabel}>
+                      <Mail className={styles.labelIcon} />
+                      Email <span className={styles.required}>*</span>
+                    </label>
+                    <input
+                      type="email"
+                      className={styles.formInput}
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter email address"
+                    />
+                  </div>
+                </div>
+                <div className={styles.formActions}>
+                  <button
+                    type="button"
+                    className={styles.cancelButton}
+                    onClick={() => router.push('/dashboard')}
+                  >
+                    <X className={styles.buttonIcon} />
+                    Cancel
+                  </button>
+                  <button type="submit" className={styles.saveButton}>
+                    <Save className={styles.buttonIcon} />
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
 
-                  <div className="d-flex align-items-center justify-content-center gap-3">
-                    <button type="button" className="border border-danger-600 bg-hover-danger-200 text-danger-600 text-md px-56 py-11 radius-8">
-                      Cancel
-                    </button>
-                    <button type="submit" className="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">
-                      Save Password
+            {/* Change Password Tab */}
+            <div className={`${styles.tabPane} ${activeTab === 'change-password' ? styles.active : ''}`}>
+              <form onSubmit={handlePasswordChange} className={styles.form}>
+                <div className={styles.formGroup}>
+                  <label htmlFor="your-password" className={styles.formLabel}>
+                    <Lock className={styles.labelIcon} />
+                    New Password <span className={styles.required}>*</span>
+                  </label>
+                  <div className={styles.passwordContainer}>
+                    <input
+                      type={passwordVisible ? "text" : "password"}
+                      className={styles.formInput}
+                      id="your-password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter New Password"
+                    />
+                    <button
+                      type="button"
+                      className={styles.passwordToggle}
+                      onClick={togglePasswordVisibility}
+                    >
+                      {passwordVisible ? 
+                        <EyeOff className={styles.passwordToggleIcon} /> : 
+                        <Eye className={styles.passwordToggleIcon} />
+                      }
                     </button>
                   </div>
-                </form>
-              </div>             
+                </div>
+                <div className={styles.formGroup}>
+                  <label htmlFor="confirm-password" className={styles.formLabel}>
+                    <Lock className={styles.labelIcon} />
+                    Confirm Password <span className={styles.required}>*</span>
+                  </label>
+                  <div className={styles.passwordContainer}>
+                    <input
+                      type={confirmPasswordVisible ? "text" : "password"}
+                      className={styles.formInput}
+                      id="confirm-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm Password"
+                    />
+                    <button
+                      type="button"
+                      className={styles.passwordToggle}
+                      onClick={toggleConfirmPasswordVisibility}
+                    >
+                      {confirmPasswordVisible ? 
+                        <EyeOff className={styles.passwordToggleIcon} /> : 
+                        <Eye className={styles.passwordToggleIcon} />
+                      }
+                    </button>
+                  </div>
+                </div>
+                <div className={styles.formActions}>
+                  <button type="button" className={styles.cancelButton}>
+                    <X className={styles.buttonIcon} />
+                    Cancel
+                  </button>
+                  <button type="submit" className={styles.saveButton}>
+                    <Save className={styles.buttonIcon} />
+                    Save Password
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

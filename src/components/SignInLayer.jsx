@@ -1,159 +1,510 @@
-"use client";
-import { Icon } from "@iconify/react/dist/iconify.js";
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation"; // Import router for redirection
-import axios from "axios"; // Import axios for making API calls
+"use client"
+import { Icon } from "@iconify/react/dist/iconify.js"
+import { useState } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import axios from "axios"
 
 const SignInLayer = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState(""); // Add state for role selection
-  const router = useRouter(); // Initialize router
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [role, setRole] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter()
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
+    setLoading(true)
+    setError("")
 
-    const data = { email, password };
+    if (!role) {
+      setError("Please select a role")
+      setLoading(false)
+      return
+    }
 
-    const loginUrl = `${process.env.NEXT_PUBLIC_API_URL}/authentication/signin/${role}`;
+    const data = { email, password }
+    const loginUrl = `${process.env.NEXT_PUBLIC_API_URL}/authentication/signin/${role}`
 
     try {
       const response = await axios.post(loginUrl, data, {
         withCredentials: true,
-      });
+      })
 
-      console.log("login=>>>>", response.data);
-
-      const token = response.data.accessToken;
-
-      // Save the access token in localStorage (or a cookie, depending on your implementation)
-      localStorage.setItem("token", token);
+      console.log("login=>>>>", response.data)
+      const token = response.data.accessToken
+      localStorage.setItem("token", token)
 
       // Redirect based on the role
       if (role === "admin") {
-        router.push("http://localhost:3000/");
+        router.push("/")
       } else if (role === "patient") {
-        router.push("http://localhost:3000/email");
+        router.push("/email")
       } else if (role === "doctor") {
-        router.push("http://localhost:3000/chat-message");
+        router.push("/chat-message")
       } else if (role === "accountant") {
-        router.push("http://localhost:3000/Payment-Transactions");
+        router.push("/Payment-Transactions")
       }
     } catch (error) {
-      console.error(error);
-      alert("Error during login. Please check your credentials.");
+      console.error(error)
+      setError(error.response?.data?.message || "Error during login. Please check your credentials.")
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <section className="auth bg-base d-flex flex-wrap">
-      <div className="auth-left d-lg-block d-none">
-        <div className="d-flex align-items-center flex-column h-100 justify-content-center">
-          <img src="assets/images/auth/auth-img.png" alt="" />
-        </div>
-      </div>
-      <div className="auth-right py-32 px-24 d-flex flex-column justify-content-center">
-        <div className="max-w-464-px mx-auto w-100">
-          <div>
-            <Link href="/" className="mb-40 max-w-290-px">
-              <img src="assets/images/logo.png" alt="" />
-            </Link>
-            <h4 className="mb-12">Sign In to your Account</h4>
-            <p className="mb-32 text-secondary-light text-lg">
-              Welcome back! please enter your details
-            </p>
+    <>
+      <style jsx>{`
+        .auth-container {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+        }
+
+        .auth-card {
+          background: #ffffff;
+          border-radius: 40px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
+          width: 80%;
+          padding: 48px 40px;
+        }
+
+        .brand-section {
+          text-align: center;
+          margin-bottom: 40px;
+        }
+
+        .brand-logo {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 160px;
+          height: 160px;
+          border-radius: 20px;
+          margin-bottom: 24px;
+          box-shadow: 0 8px 20px rgba(30, 64, 175, 0.3);
+        }
+
+        .brand-logo .icon {
+          font-size: 40px;
+          color: white;
+        }
+
+        .brand-title {
+          font-size: 28px;
+          font-weight: 700;
+          color: #454492;
+          margin-bottom: 8px;
+          line-height: 1.2;
+        }
+
+        .brand-subtitle {
+          font-size: 16px;
+          color: #6b7280;
+          margin-bottom: 32px;
+        }
+
+        .form-title {
+          font-size: 24px;
+          font-weight: 600;
+          color: #111827;
+          margin-bottom: 8px;
+          text-align: center;
+        }
+
+        .form-subtitle {
+          font-size: 16px;
+          color: #6b7280;
+          margin-bottom: 32px;
+          text-align: center;
+        }
+
+        .form-group {
+          margin-bottom: 20px;
+        }
+
+        .form-label {
+          display: block;
+          font-size: 14px;
+          font-weight: 500;
+          color: #374151;
+          margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+          position: relative;
+        }
+
+        .input-icon {
+          position: absolute;
+          left: 16px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #6b7280;
+          font-size: 20px;
+          z-index: 2;
+        }
+
+        .form-input {
+          width: 100%;
+          height: 56px;
+          padding: 0 16px 0 52px;
+          border: 2px solid #e5e7eb;
+          border-radius: 12px;
+          background: #f9fafb;
+          font-size: 16px;
+          color: #111827;
+          transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+          outline: none;
+          border-color: #1e40af;
+          background: #ffffff;
+          box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1);
+        }
+
+        .form-input::placeholder {
+          color: #9ca3af;
+        }
+
+        .password-toggle {
+          position: absolute;
+          right: 16px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          color: #6b7280;
+          cursor: pointer;
+          font-size: 20px;
+          padding: 4px;
+          border-radius: 4px;
+          transition: all 0.2s ease;
+        }
+
+        .password-toggle:hover {
+          color: #1e40af;
+          background: #f3f4f6;
+        }
+
+        .form-select {
+          width: 100%;
+          height: 56px;
+          padding: 0 16px;
+          border: 2px solid #e5e7eb;
+          border-radius: 12px;
+          background: #f9fafb;
+          font-size: 16px;
+          color: #111827;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .form-select:focus {
+          outline: none;
+          border-color: #1e40af;
+          background: #ffffff;
+          box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1);
+        }
+
+        .form-options {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+        }
+
+        .checkbox-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .form-checkbox {
+          width: 18px;
+          height: 18px;
+          border: 2px solid #d1d5db;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .form-checkbox:checked {
+          background: #1e40af;
+          border-color: #1e40af;
+        }
+
+        .checkbox-label {
+          font-size: 14px;
+          color: #374151;
+          cursor: pointer;
+        }
+
+        .forgot-link {
+          font-size: 14px;
+          color: #1e40af;
+          text-decoration: none;
+          font-weight: 500;
+          transition: all 0.2s ease;
+        }
+
+        .forgot-link:hover {
+          color: #1d4ed8;
+          text-decoration: underline;
+        }
+
+        .submit-btn {
+          width: 100%;
+          height: 56px;
+          background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+          border: none;
+          border-radius: 12px;
+          color: white;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          margin-bottom: 24px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(30, 64, 175, 0.3);
+        }
+
+        .submit-btn:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .loading-spinner {
+          width: 20px;
+          height: 20px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-top: 2px solid white;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #dc2626;
+          padding: 12px 16px;
+          border-radius: 8px;
+          font-size: 14px;
+          margin-bottom: 20px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .signup-link {
+          text-align: center;
+          font-size: 14px;
+          color: #6b7280;
+        }
+
+        .signup-link a {
+          color: #1e40af;
+          text-decoration: none;
+          font-weight: 600;
+          transition: all 0.2s ease;
+        }
+
+        .signup-link a:hover {
+          color: #1d4ed8;
+          text-decoration: underline;
+        }
+
+        .role-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+
+        .role-option {
+          padding: 16px;
+          border: 2px solid #e5e7eb;
+          border-radius: 12px;
+          background: #f9fafb;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-align: center;
+          font-size: 14px;
+          font-weight: 500;
+          color: #374151;
+        }
+
+        .role-option:hover {
+          border-color: #1e40af;
+          background: #eff6ff;
+        }
+
+        .role-option.active {
+          border-color: #1e40af;
+          background: #1e40af;
+          color: white;
+        }
+
+        @media (max-width: 480px) {
+          .auth-card {
+            padding: 32px 24px;
+            margin: 10px;
+          }
+          
+          .brand-title {
+            font-size: 24px;
+          }
+          
+          .form-title {
+            font-size: 20px;
+          }
+          
+          .role-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+
+      <div className="auth-container">
+        <div className="auth-card">
+          {/* Brand Section */}
+          <div className="brand-section">
+            <div className="brand-logo">
+  <img src="/assets/logo.png" alt="Brand Logo" className="logo-image" />
+            </div>
+            <h3 className="brand-title">Rukn Alwatekon Center</h3>
+            <p className="brand-subtitle">Professional Healthcare Management System</p>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="icon-field mb-16">
-              <span className="icon top-50 translate-middle-y">
-                <Icon icon="mage:email" />
-              </span>
-              <input
-                type="email"
-                className="form-control h-56-px bg-neutral-50 radius-12"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)} // Set email on change
-              />
-            </div>
+          {/* Form Section */}
+          <div>
+            <h4 className="form-title">Welcome Back</h4>
+            <p className="form-subtitle">Please sign in to your account</p>
 
-            <div className="position-relative mb-20">
-              <div className="icon-field">
-                <span className="icon top-50 translate-middle-y">
-                  <Icon icon="solar:lock-password-outline" />
-                </span>
-                <input
-                  type="password"
-                  className="form-control h-56-px bg-neutral-50 radius-12"
-                  id="your-password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)} // Set password on change
-                />
+            {error && (
+              <div className="error-message">
+                <Icon icon="heroicons:exclamation-triangle" />
+                {error}
               </div>
-              <span className="toggle-password ri-eye-line cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light" />
-            </div>
+            )}
 
-            {/* Role Selection */}
-            <div className="mb-16">
-              <label htmlFor="role" className="form-label">
-                Select Role
-              </label>
-              <select
-                id="role"
-                className="form-control h-56-px bg-neutral-50 radius-12"
-                onChange={(e) => setRole(e.target.value)} // Set role on change
-                value={role}
-              >
-                <option value="">Select Role</option>
-                <option value="admin">admin</option>
-                <option value="patient">Patient</option>
-                <option value="doctor">Doctor</option>
-                <option value="accountant">accountant</option>
-              </select>
-            </div>
+            <form onSubmit={handleSubmit}>
+              {/* Role Selection */}
+              <div className="form-group">
+                <label className="form-label">Select Your Role</label>
+                <div className="role-grid">
+                  <div className={`role-option ${role === "admin" ? "active" : ""}`} onClick={() => setRole("admin")}>
+                    <Icon icon="eos-icons:admin" style={{ fontSize: "20px", marginBottom: "4px" }} />
+                    <div>Admin</div>
+                  </div>
+                  <div
+                    className={`role-option ${role === "patient" ? "active" : ""}`}
+                    onClick={() => setRole("patient")}
+                  >
+                    <Icon icon="hugeicons:student" style={{ fontSize: "20px", marginBottom: "4px" }} />
+                    <div>Patient</div>
+                  </div>
+                  <div className={`role-option ${role === "doctor" ? "active" : ""}`} onClick={() => setRole("doctor")}>
+                    <Icon icon="healthicons:doctor" style={{ fontSize: "20px", marginBottom: "4px" }} />
+                    <div>Doctor</div>
+                  </div>
+                  <div
+                    className={`role-option ${role === "accountant" ? "active" : ""}`}
+                    onClick={() => setRole("accountant")}
+                  >
+                    <Icon icon="mdi:account-cash" style={{ fontSize: "20px", marginBottom: "4px" }} />
+                    <div>Accountant</div>
+                  </div>
+                </div>
+              </div>
 
-            <div className="">
-              <div className="d-flex justify-content-between gap-2">
-                <div className="form-check style-check d-flex align-items-center">
+              {/* Email Input */}
+              <div className="form-group">
+                <label className="form-label">Email Address</label>
+                <div className="input-wrapper">
+                  <Icon icon="mage:email" className="input-icon" />
                   <input
-                    className="form-check-input border border-neutral-300"
-                    type="checkbox"
-                    defaultValue=""
-                    id="remember"
+                    type="email"
+                    className="form-input"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
-                  <label className="form-check-label" htmlFor="remember">
+                </div>
+              </div>
+
+              {/* Password Input */}
+              <div className="form-group">
+                <label className="form-label">Password</label>
+                <div className="input-wrapper">
+                  <Icon icon="solar:lock-password-outline" className="input-icon" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className="form-input"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
+                    <Icon icon={showPassword ? "heroicons:eye-slash" : "heroicons:eye"} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Form Options */}
+              <div className="form-options">
+                <div className="checkbox-wrapper">
+                  <input type="checkbox" id="remember" className="form-checkbox" />
+                  <label htmlFor="remember" className="checkbox-label">
                     Remember me
                   </label>
                 </div>
-                <Link href="#" className="text-primary-600 fw-medium">
+                <Link href="#" className="forgot-link">
                   Forgot Password?
                 </Link>
               </div>
-            </div>
 
-            <button
-              type="submit"
-              className="btn btn-primary text-sm btn-sm px-12 py-16 w-100 radius-12 mt-32"
-            >
-              Sign In
-            </button>
-
-            <div className="mt-32 text-center text-sm">
-              <p className="mb-0">
-                Don’t have an account?{" "}
-                <Link href="/sign-up" className="text-primary-600 fw-semibold">
-                  Sign Up
-                </Link>
-              </p>
-            </div>
-          </form>
+              {/* Submit Button */}
+              <button type="submit" className="submit-btn" disabled={loading}>
+                {loading ? (
+                  <>
+                    <div className="loading-spinner"></div>
+                    Signing In...
+                  </>  
+                ) : (
+                  <>
+                    <Icon icon="heroicons:arrow-right-on-rectangle" />
+                    Sign In
+                  </>
+                )}
+              </button>
+            </form>          
+          </div>
         </div>
       </div>
-    </section>
-  );
-};
+    </>
+  )
+}
 
-export default SignInLayer;
+export default SignInLayer

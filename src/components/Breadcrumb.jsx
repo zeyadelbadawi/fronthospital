@@ -1,31 +1,41 @@
 "use client";
 import React from "react";
-import { Icon } from "@iconify/react";
+import { Home, ChevronRight } from 'lucide-react';
 import Link from "next/link";
+import styles from "../styles/breadcrumb.module.css";
 
 const Breadcrumb = ({ heading, title }) => {
   return (
-    <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-      {/* ← dynamic H6 */}
-      <h6 className="fw-semibold mb-0">{heading}</h6>
-
-      <ul className="d-flex align-items-center gap-2">
-        <li className="fw-medium">
-          <Link
-            href="/"
-            className="d-flex align-items-center gap-1 hover-text-primary"
-          >
-            <Icon
-              icon="solar:home-smile-angle-outline"
-              className="icon text-lg"
-            />
-            {/* ← also shows your heading */}
-          </Link>
-        </li>
-        {/* ← dynamic last crumb */}
-        <li className="fw-medium">{title}</li>
- 
-      </ul>
+    <div className={styles.breadcrumbContainer}>
+      {/* Dynamic heading */}
+      <h6 className={styles.heading}>{heading}</h6>
+      
+      <nav aria-label="Breadcrumb navigation">
+        <ul className={styles.breadcrumbList}>
+          <li className={styles.breadcrumbItem}>
+            <Link
+              href="/"
+              className={styles.breadcrumbLink}
+              aria-label="Go to homepage"
+            >
+              <Home className={styles.homeIcon} size={18} />
+              <span>Home</span>
+            </Link>
+          </li>
+          
+          {/* Separator */}
+          <li className={styles.separator} aria-hidden="true">
+            <ChevronRight size={14} />
+          </li>
+          
+          {/* Current page */}
+          <li className={styles.breadcrumbItem}>
+            <span className={styles.currentPage} aria-current="page">
+              {title}
+            </span>
+          </li>
+        </ul>
+      </nav>
     </div>
   );
 };

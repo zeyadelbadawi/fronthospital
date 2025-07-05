@@ -5,7 +5,9 @@ import axios from 'axios';
 import jwt_decode from 'jwt-decode';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { User, Mail, Phone, MapPin, Calendar, Edit3, Lock, FileText, Activity, DollarSign, Eye, EyeOff, Save, X, CheckCircle, Clock, CreditCard, Stethoscope, ChevronDown, ChevronUp } from 'lucide-react';
 import FullProgramComponent from './FullProgramComponent';
+import styles from '../styles/profile-view.module.css';
 
 const PublicProfilepatient = ({patientID}) => {
   const router = useRouter();
@@ -22,7 +24,7 @@ const PublicProfilepatient = ({patientID}) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-  const [evaluations, setEvaluations] = useState([]);  // Store evaluations
+  const [evaluations, setEvaluations] = useState([]);
   const [service, setService] = useState('');
   const [evolutionNote, setEvolutionNote] = useState('');
   const [numberOfWeeks, setNumberOfWeeks] = useState('');
@@ -32,8 +34,8 @@ const PublicProfilepatient = ({patientID}) => {
   const [totalPrice, setTotalPrice] = useState(0);
   const [paymentType, setPaymentType] = useState('');
   const [selectedSession, setSelectedSession] = useState(null);
-
-
+  const [activeTab, setActiveTab] = useState('edit-profile');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPatientData = async () => {
@@ -41,20 +43,16 @@ const PublicProfilepatient = ({patientID}) => {
         const token = localStorage.getItem('token');
         const decodedToken = jwt_decode(token);
         const userId = decodedToken?.id;
-
         const patientResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/patient/${userId}`);
         setPatient(patientResponse.data);
-
         const sessionResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/sessions/${userId}`);
         setSessions(sessionResponse.data);
         const pending = sessionResponse.data.filter(s => s.status === 'Pending');
         setTotalPrice(pending.reduce((acc, s) => acc + s.price, 0));
-
       } catch (error) {
         console.error("Error fetching patient or session data", error);
       }
     };
-
     fetchPatientData();
   }, []);
 
@@ -63,34 +61,31 @@ const PublicProfilepatient = ({patientID}) => {
       const token = localStorage.getItem('token');
       const decodedToken = jwt_decode(token);
       const patientId = decodedToken.id;
-  
+      
       const pendingSessions = sessions.filter(session => session.status === 'Pending');
-  
+      
       if (pendingSessions.length === 0) {
         toast.error('No pending sessions to pay for!');
         return;
       }
-  
-      // Update session statuses
+      
       const res = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/authentication/mark-all-sessions-completed/${patientId}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-  
-      // Prepare payment data
+      
       const payments = pendingSessions.map(session => ({
-        patient: patientId, // ✅ correct field name
+        patient: patientId,
         method: 'cash',
         price: Math.floor(session.price * 0.9),
         type: 'session',
         referenceId: session._id,
         note: 'This is One-Time Payment with 10% Discount'
       }));
-  
-      // Send payment records
+      
       await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/authentication/payments/bulk`, { payments }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-  
+      
       toast.success('Payment completed and sessions updated!');
       router.push('/profile');
     } catch (error) {
@@ -98,59 +93,42 @@ const PublicProfilepatient = ({patientID}) => {
       toast.error('Payment failed!');
     }
   };
-  
 
-
-
-  // Handle Pay Now for a specific session
   const handlePayPerSession = (sessionId) => {
-    // Store the actual session ID from the session data
     const paymentData = {
       paymentType: 'per-session',
-      selectedSession: sessionId, // Use the actual session _id
+      selectedSession: sessionId,
     };
-
-    localStorage.setItem('paymentData', JSON.stringify(paymentData)); // Save payment data
+    localStorage.setItem('paymentData', JSON.stringify(paymentData));
     router.push('/pay2');
   };
 
-
-  // Check if the user is logged in and has the "patient" role
   useEffect(() => {
     const token = localStorage.getItem('token');
-    console.log('Token retrieved from localStorage:', token);
-
     if (!token) {
-      alert('You must log in to access this page');
-      router.push('/sign-in');  // Redirect to login if not logged in
+      toast.error('You must log in to access this page');
+      router.push('/sign-in');
       return;
     }
 
-    // Decode the token to check the role
     try {
-      console.log('Decoding token...');
       const decodedToken = jwt_decode(token);
-      console.log('Decoded token:', decodedToken);
-
       const userRole = decodedToken?.role;
       const userId = decodedToken?.id;
-
+      
       if (!userRole || !userId || userRole !== 'patient') {
-        alert('You must be a patient to access this page');
-        router.push('/sign-in');  // Redirect if user is not a patient
+        toast.error('You must be a patient to access this page');
+        router.push('/sign-in');
         return;
       }
+      
+      setPatientId(userId);
 
-      setPatientId(userId);  // Store the patient ID from the token
-
-      // Fetch patient data
-      // Fetch patient data
       const fetchPatient = async () => {
         try {
           const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/patient/${userId}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
-
           const data = response.data;
           setPatient(data);
           setName(data.name);
@@ -159,31 +137,27 @@ const PublicProfilepatient = ({patientID}) => {
           setDisabilityType(data.disabilityType || '');
           setAddress(data.address);
           setDateOfBirth(data.dateOfBirth || '');
-
-          // ✅ Optionally, set individual state variables for display
           setService(data.service || '');
           setEvolutionNote(data.evolutionNote || '');
           setNumberOfWeeks(data.numberOfWeeks || 0);
           setSessionsPerWeek(data.sessionsPerWeek || 0);
-
+          setLoading(false);
         } catch (error) {
           console.error('Error fetching patient data:', error);
+          setLoading(false);
         }
       };
-      fetchPatient();
 
       const fetchEvaluations = async () => {
         try {
           const evalResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/evaluations/${userId}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
-          setEvaluations(evalResponse.data);  // Set evaluations data
+          setEvaluations(evalResponse.data);
         } catch (error) {
           console.error('Error fetching evaluations:', error);
         }
       };
-
-      fetchEvaluations();
 
       const fetchSessions = async () => {
         try {
@@ -195,20 +169,17 @@ const PublicProfilepatient = ({patientID}) => {
           console.error("Error fetching sessions:", err);
         }
       };
+
+      fetchPatient();
+      fetchEvaluations();
       fetchSessions();
-
-
-
-    }
-
-    catch (error) {
+    } catch (error) {
       console.error('Invalid token:', error);
-      alert('Invalid or expired token');
+      toast.error('Invalid or expired token');
       router.push('/sign-in');
     }
   }, [router]);
 
-  // Password visibility toggle
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
@@ -217,428 +188,643 @@ const PublicProfilepatient = ({patientID}) => {
     setConfirmPasswordVisible(!confirmPasswordVisible);
   };
 
-  // Handle form submission for profile updates
   const handleSubmit = async (e) => {
     e.preventDefault();
     const updatedPatient = { name, email, phone, address, dateOfBirth };
-
     try {
       const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/authentication/edit-patient/${patientId}`, updatedPatient);
       if (response.status === 200) {
-        alert('Patient updated successfully');
+        toast.success('Profile updated successfully');
       }
     } catch (error) {
       console.error('Error updating patient:', error);
-      alert('Error updating patient');
+      toast.error('Error updating profile');
     }
   };
 
-  // Handle password change
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-
     if (newPassword !== confirmPassword) {
-      alert("Passwords don't match!");
+      toast.error("Passwords don't match!");
       return;
     }
-
     try {
       const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/authentication/patient-password/${patientId}`, { password: newPassword });
       if (response.status === 200) {
-        alert('Password updated successfully');
+        toast.success('Password updated successfully');
         setPassword('');
         setNewPassword('');
         setConfirmPassword('');
       }
     } catch (error) {
       console.error('Error updating password:', error);
-      alert('Error updating password');
+      toast.error('Error updating password');
     }
   };
 
-  // Loading state until patient data is fetched
-  if (!patient) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <div className={styles.loadingText}>Loading your profile...</div>
+      </div>
+    );
+  }
+
+  if (!patient) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingText}>Profile not found</div>
+      </div>
+    );
+  }
 
   return (
     <>
-
-      {/* Toast Container for displaying messages */}
-      <ToastContainer />
-      <div className="row gy-4">
-        <div className="col-lg-4">
-          <div className="user-grid-card position-relative border radius-16 overflow-hidden bg-base h-100">
-            <img src="assets/images/user-grid/user-grid-bg1.png" alt="" className="w-100 object-fit-cover" />
-            <div className="pb-24 ms-16 mb-24 me-16 mt--100">
-              <div className="text-center border border-top-0 border-start-0 border-end-0">
-                <img src="assets/images/user-grid/user-grid-img14.png" alt="" className="border br-white border-width-2-px w-200-px h-200-px rounded-circle object-fit-cover" />
-                <h6 className="mb-0 mt-16">{name}</h6>
-                <span className="text-secondary-light mb-16">{email}</span>
+      <ToastContainer className={styles.toastContainer} />
+      <div className={styles.container}>
+        <div className={styles.profileWrapper}>
+          {/* Profile Card */}
+          <div className={styles.profileCard}>
+            <div className={styles.profileHeader}></div>
+            <div className={styles.profileContent}>
+              <div className={styles.avatarContainer}>
+                <div className={styles.avatar}>
+                  {name.charAt(0).toUpperCase()}
+                </div>
+                <h2 className={styles.profileName}>{name}</h2>
+                <p className={styles.profileEmail}>{email}</p>
+                <div className={styles.profileBadge}>
+                  <User className={styles.profileBadgeIcon} />
+                  Student
+                </div>
               </div>
-              <div className="mt-24">
-                <h6 className="text-xl mb-16">Personal Info</h6>
-                <ul>
-                  <li className="d-flex align-items-center gap-1 mb-12">
-                    <span className="w-30 text-md fw-semibold text-primary-light">Full Name</span>
-                    <span className="w-70 text-secondary-light fw-medium">: {name}</span>
-                  </li>
-                  <li className="d-flex align-items-center gap-1 mb-12">
-                    <span className="w-30 text-md fw-semibold text-primary-light">Email</span>
-                    <span className="w-70 text-secondary-light fw-medium">: {email}</span>
-                  </li>
-                  <li className="d-flex align-items-center gap-1 mb-12">
-                    <span className="w-30 text-md fw-semibold text-primary-light">Phone Number</span>
-                    <span className="w-70 text-secondary-light fw-medium">: {phone}</span>
-                  </li>
-                  <li className="d-flex align-items-center gap-1 mb-12">
-                    <span className="w-30 text-md fw-semibold text-primary-light">Disability Type</span>
-                    <span className="w-70 text-secondary-light fw-medium">: {disabilityType || 'Not provided'}</span>
-                  </li>
-                  <li className="d-flex align-items-center gap-1 mb-12">
-                    <span className="w-30 text-md fw-semibold text-primary-light">Date of Birth</span>
-                    <span className="w-70 text-secondary-light fw-medium">: {dateOfBirth || 'Not provided'}</span>
-                  </li>
-                  <li className="d-flex align-items-center gap-1">
-                    <span className="w-30 text-md fw-semibold text-primary-light">Address</span>
-                    <span className="w-70 text-secondary-light fw-medium">: {address || 'Not provided'}</span>
-                  </li>
 
+              <div className={styles.infoSection}>
+                <h3 className={styles.infoTitle}>
+                  <User className={styles.infoTitleIcon} />
+                  Personal Information
+                </h3>
+                <ul className={styles.infoList}>
+                  <li className={styles.infoItem}>
+                    <span className={styles.infoLabel}>
+                      <User className={styles.infoLabelIcon} />
+                      Full Name
+                    </span>
+                    <span className={styles.infoValue}>{name}</span>
+                  </li>
+                  <li className={styles.infoItem}>
+                    <span className={styles.infoLabel}>
+                      <Mail className={styles.infoLabelIcon} />
+                      Email
+                    </span>
+                    <span className={styles.infoValue}>{email}</span>
+                  </li>
+                  <li className={styles.infoItem}>
+                    <span className={styles.infoLabel}>
+                      <Phone className={styles.infoLabelIcon} />
+                      Phone
+                    </span>
+                    <span className={styles.infoValue}>{phone}</span>
+                  </li>
+                  <li className={styles.infoItem}>
+                    <span className={styles.infoLabel}>
+                      <Activity className={styles.infoLabelIcon} />
+                      Disability Type
+                    </span>
+                    <span className={`${styles.infoValue} ${!disabilityType ? styles.notProvided : ''}`}>
+                      {disabilityType || 'Not provided'}
+                    </span>
+                  </li>
+                  <li className={styles.infoItem}>
+                    <span className={styles.infoLabel}>
+                      <Calendar className={styles.infoLabelIcon} />
+                      Date of Birth
+                    </span>
+                    <span className={`${styles.infoValue} ${!dateOfBirth ? styles.notProvided : ''}`}>
+                      {dateOfBirth || 'Not provided'}
+                    </span>
+                  </li>
+                  <li className={styles.infoItem}>
+                    <span className={styles.infoLabel}>
+                      <MapPin className={styles.infoLabelIcon} />
+                      Address
+                    </span>
+                    <span className={`${styles.infoValue} ${!address ? styles.notProvided : ''}`}>
+                      {address || 'Not provided'}
+                    </span>
+                  </li>
                 </ul>
               </div>
             </div>
           </div>
-        </div>
-        <div className="col-lg-8">
-          <div className="card h-100">
-            <div className="card-body p-24">
-              <ul className="nav border-gradient-tab nav-pills mb-20 d-inline-flex" id="pills-tab" role="tablist">
-                <li className="nav-item" role="presentation">
-                  <button className="nav-link d-flex align-items-center px-24 active" id="pills-edit-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-edit-profile" type="button" role="tab" aria-controls="pills-edit-profile" aria-selected="true">
+
+          {/* Main Content */}
+          <div className={styles.mainContent}>
+            <div className={styles.contentHeader}>
+              <h1 className={styles.contentTitle}>Student Profile</h1>
+              <p className={styles.contentSubtitle}>Manage your profile, view evaluations, and track sessions</p>
+            </div>
+
+            <div className={styles.tabsContainer}>
+              <ul className={styles.tabsList}>
+                <li className={styles.tabItem}>
+                  <button
+                    className={`${styles.tabButton} ${activeTab === 'edit-profile' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('edit-profile')}
+                  >
+                    <Edit3 className={styles.tabIcon} />
                     Edit Profile
                   </button>
                 </li>
-                <li className="nav-item" role="presentation">
-                  <button className="nav-link d-flex align-items-center px-24" id="pills-change-passwork-tab" data-bs-toggle="pill" data-bs-target="#pills-change-passwork" type="button" role="tab" aria-controls="pills-change-passwork" aria-selected="false" tabIndex={-1}>
+                <li className={styles.tabItem}>
+                  <button
+                    className={`${styles.tabButton} ${activeTab === 'change-password' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('change-password')}
+                  >
+                    <Lock className={styles.tabIcon} />
                     Change Password
                   </button>
                 </li>
-                <li className="nav-item" role="presentation">
-                  <button className="nav-link d-flex align-items-center px-24" id="pills-evaluations-tab" data-bs-toggle="pill" data-bs-target="#pills-evaluations" type="button" role="tab" aria-controls="pills-evaluations" aria-selected="false">
+                <li className={styles.tabItem}>
+                  <button
+                    className={`${styles.tabButton} ${activeTab === 'evaluations' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('evaluations')}
+                  >
+                    <FileText className={styles.tabIcon} />
                     My Evaluation
                   </button>
                 </li>
-                <li className="nav-item" role="presentation">
-                  <button className="nav-link d-flex align-items-center px-24" id="pills-sessions-tab" data-bs-toggle="pill" data-bs-target="#pills-sessions" type="button" role="tab" aria-controls="pills-sessions" aria-selected="false">
+                <li className={styles.tabItem}>
+                  <button
+                    className={`${styles.tabButton} ${activeTab === 'sessions' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('sessions')}
+                  >
+                    <Activity className={styles.tabIcon} />
                     My Sessions
                   </button>
                 </li>
-                <li className="nav-item" role="presentation">
-                <button
-                  className="nav-link d-flex align-items-center px-24"
-                  id="pills-full-program-tab"
-                  data-bs-toggle="pill"
-                  data-bs-target="#pills-full-program"
-                  type="button"
-                  role="tab"
-                  aria-controls="pills-full-program"
-                  aria-selected="false"
-                >
-                  Full Program
-                </button>
-              </li>
+                <li className={styles.tabItem}>
+                  <button
+                    className={`${styles.tabButton} ${activeTab === 'full-program' ? styles.active : ''}`}
+                    onClick={() => setActiveTab('full-program')}
+                  >
+                    <Stethoscope className={styles.tabIcon} />
+                    Full Program
+                  </button>
+                </li>
               </ul>
-              <div className="tab-content" id="pills-tabContent">
-                <div className="tab-pane fade show active" id="pills-edit-profile" role="tabpanel" aria-labelledby="pills-edit-profile-tab" tabIndex={0}>
-                  <form onSubmit={handleSubmit}>
-                    <div className="mb-20">
-                      <label htmlFor="name" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                        Full Name <span className="text-danger-600">*</span>
-                      </label>
-                      <input type="text" className="form-control radius-8" id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter Full Name" />
-                    </div>
-                    <div className="mb-20">
-                      <label htmlFor="email" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                        Email <span className="text-danger-600">*</span>
-                      </label>
-                      <input type="email" className="form-control radius-8" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email address" />
-                    </div>
-                    <div className="mb-20">
-                      <label htmlFor="phone" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                        Phone Number <span className="text-danger-600">*</span>
-                      </label>
-                      <input type="tel" className="form-control radius-8" id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Enter phone number" />
-                    </div>
+            </div>
 
-                    <div className="mb-20">
-                      <label htmlFor="address" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                        Address
+            <div className={styles.tabContent}>
+              {/* Edit Profile Tab */}
+              <div className={`${styles.tabPane} ${activeTab === 'edit-profile' ? styles.active : ''}`}>
+                <form onSubmit={handleSubmit} className={styles.form}>
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label htmlFor="name" className={styles.formLabel}>
+                        <User className={styles.labelIcon} />
+                        Full Name <span className={styles.required}>*</span>
                       </label>
-                      <textarea className="form-control radius-8" id="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Enter address" />
+                      <input
+                        type="text"
+                        className={styles.formInput}
+                        id="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter Full Name"
+                      />
                     </div>
-                    <div className="mb-20">
-                      <label htmlFor="dateOfBirth" className="form-label fw-semibold text-primary-light text-sm mb-8">
+                    <div className={styles.formGroup}>
+                      <label htmlFor="email" className={styles.formLabel}>
+                        <Mail className={styles.labelIcon} />
+                        Email <span className={styles.required}>*</span>
+                      </label>
+                      <input
+                        type="email"
+                        className={styles.formInput}
+                        id="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter email address"
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label htmlFor="phone" className={styles.formLabel}>
+                        <Phone className={styles.labelIcon} />
+                        Phone Number <span className={styles.required}>*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        className={styles.formInput}
+                        id="phone"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="Enter phone number"
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label htmlFor="dateOfBirth" className={styles.formLabel}>
+                        <Calendar className={styles.labelIcon} />
                         Date of Birth
                       </label>
-                      <input type="date" className="form-control radius-8" id="dateOfBirth" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
+                      <input
+                        type="date"
+                        className={styles.formInput}
+                        id="dateOfBirth"
+                        value={dateOfBirth}
+                        onChange={(e) => setDateOfBirth(e.target.value)}
+                      />
                     </div>
-                    <div className="d-flex align-items-center justify-content-center gap-3">
-                      <button type="button" className="border border-danger-600 bg-hover-danger-200 text-danger-600 text-md px-56 py-11 radius-8" onClick={() => router.push('/users-list')}>
-                        Cancel
-                      </button>
-                      <button type="submit" className="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">
-                        Save Changes
-                      </button>
-                    </div>
-                  </form>
-                </div>
-                <div className="tab-pane fade" id="pills-change-passwork" role="tabpanel" aria-labelledby="pills-change-passwork-tab" tabIndex="0">
-                  <form onSubmit={handlePasswordChange}>
-                    <div className="mb-20">
-                      <label htmlFor="your-password" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                        New Password <span className="text-danger-600">*</span>
-                      </label>
-                      <div className="position-relative">
-                        <input type={passwordVisible ? "text" : "password"} className="form-control radius-8" id="your-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter New Password*" />
-                        <span onClick={togglePasswordVisibility}></span>
-                      </div>
-                    </div>
-                    <div className="mb-20">
-                      <label htmlFor="confirm-password" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                        Confirm Password <span className="text-danger-600">*</span>
-                      </label>
-                      <div className="position-relative">
-                        <input type={confirmPasswordVisible ? "text" : "password"} className="form-control radius-8" id="confirm-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm Password*" />
-                        <span onClick={toggleConfirmPasswordVisibility}></span>
-                      </div>
-                    </div>
-                    <div className="d-flex align-items-center justify-content-center gap-3">
-                      <button type="button" className="border border-danger-600 bg-hover-danger-200 text-danger-600 text-md px-56 py-11 radius-8">
-                        Cancel
-                      </button>
-                      <button type="submit" className="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">
-                        Save Password
-                      </button>
-                    </div>
-                  </form>
-                </div>
+                  </div>
+                  <div className={styles.formGroup + ' ' + styles.fullWidth}>
+                    <label htmlFor="address" className={styles.formLabel}>
+                      <MapPin className={styles.labelIcon} />
+                      Address
+                    </label>
+                    <textarea
+                      className={styles.formTextarea}
+                      id="address"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="Enter address"
+                    />
+                  </div>
+                  <div className={styles.formActions}>
+                    <button
+                      type="button"
+                      className={styles.cancelButton}
+                      onClick={() => router.push('/dashboard')}
+                    >
+                      <X className={styles.buttonIcon} />
+                      Cancel
+                    </button>
+                    <button type="submit" className={styles.saveButton}>
+                      <Save className={styles.buttonIcon} />
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              </div>
 
-                <div className="tab-pane fade" id="pills-evaluations" role="tabpanel" aria-labelledby="pills-evaluations-tab" tabIndex="0">
-                  <div className="mb-4">
-                    <div className="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
-                      <h4 className="mb-0">
-                        📋 Booked Evaluation Summary
-                      </h4>
+              {/* Change Password Tab */}
+              <div className={`${styles.tabPane} ${activeTab === 'change-password' ? styles.active : ''}`}>
+                <form onSubmit={handlePasswordChange} className={styles.form}>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="your-password" className={styles.formLabel}>
+                      <Lock className={styles.labelIcon} />
+                      New Password <span className={styles.required}>*</span>
+                    </label>
+                    <div className={styles.passwordContainer}>
+                      <input
+                        type={passwordVisible ? "text" : "password"}
+                        className={styles.formInput}
+                        id="your-password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter New Password"
+                      />
                       <button
-                        className="btn btn-sm btn-outline-secondary d-flex align-items-center"
-                        onClick={() => setShowEvaluationSummary(prev => !prev)}
-                        aria-label="Toggle evaluation summary"
+                        type="button"
+                        className={styles.passwordToggle}
+                        onClick={togglePasswordVisibility}
                       >
-                        <span className="me-1">{showEvaluationSummary ? 'Hide' : 'Show'}</span>
-                        <span style={{ fontSize: '1rem' }}>
-                          {showEvaluationSummary ? '▲' : '▼'}
-                        </span>
+                        {passwordVisible ? 
+                          <EyeOff className={styles.passwordToggleIcon} /> : 
+                          <Eye className={styles.passwordToggleIcon} />
+                        }
                       </button>
                     </div>
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="confirm-password" className={styles.formLabel}>
+                      <Lock className={styles.labelIcon} />
+                      Confirm Password <span className={styles.required}>*</span>
+                    </label>
+                    <div className={styles.passwordContainer}>
+                      <input
+                        type={confirmPasswordVisible ? "text" : "password"}
+                        className={styles.formInput}
+                        id="confirm-password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm Password"
+                      />
+                      <button
+                        type="button"
+                        className={styles.passwordToggle}
+                        onClick={toggleConfirmPasswordVisibility}
+                      >
+                        {confirmPasswordVisible ? 
+                          <EyeOff className={styles.passwordToggleIcon} /> : 
+                          <Eye className={styles.passwordToggleIcon} />
+                        }
+                      </button>
+                    </div>
+                  </div>
+                  <div className={styles.formActions}>
+                    <button type="button" className={styles.cancelButton}>
+                      <X className={styles.buttonIcon} />
+                      Cancel
+                    </button>
+                    <button type="submit" className={styles.saveButton}>
+                      <Save className={styles.buttonIcon} />
+                      Save Password
+                    </button>
+                  </div>
+                </form>
+              </div>
 
-                    {showEvaluationSummary && (
-                      <>
-                        {evaluations.length > 0 ? (
-                          evaluations.map((evaluation, index) => (
-                            <div key={index} className="card bg-light border p-20 radius-12 mb-24">
-                              <h6 className="mb-3 text-success">✅ You’ve successfully booked your evaluation!</h6>
-                              <div className="row gy-2">
-                                <div className="col-sm-6"><strong>Date:</strong> {new Date(evaluation.date).toLocaleDateString()}</div>
-                                <div className="col-sm-6"><strong>Time:</strong> {evaluation.time}</div>
-                                <div className="col-12"><strong>Description:</strong> {evaluation.description}</div>
+              {/* Evaluations Tab */}
+              <div className={`${styles.tabPane} ${activeTab === 'evaluations' ? styles.active : ''}`}>
+                <div className={styles.evaluationSection}>
+                  <div className={styles.evaluationHeader}>
+                    <h4 className={styles.evaluationTitle}>
+                      📋 Booked Evaluation Summary
+                    </h4>
+                    <button
+                      className={styles.toggleButton}
+                      onClick={() => setShowEvaluationSummary(prev => !prev)}
+                    >
+                      <span>{showEvaluationSummary ? 'Hide' : 'Show'}</span>
+                      {showEvaluationSummary ? 
+                        <ChevronUp size={16} /> : 
+                        <ChevronDown size={16} />
+                      }
+                    </button>
+                  </div>
+                  {showEvaluationSummary && (
+                    <div className={`${styles.slideDown}`}>
+                      {evaluations.length > 0 ? (
+                        evaluations.map((evaluation, index) => (
+                          <div key={index} className={styles.evaluationCard}>
+                            <h6 className={styles.evaluationSuccess}>
+                              <CheckCircle size={20} />
+                              You've successfully booked your evaluation!
+                            </h6>
+                            <div className={styles.evaluationDetails}>
+                              <div className={styles.evaluationDetail}>
+                                <Calendar size={16} />
+                                <span className={styles.evaluationLabel}>Date:</span>
+                                <span>{new Date(evaluation.date).toLocaleDateString()}</span>
+                              </div>
+                              <div className={styles.evaluationDetail}>
+                                <Clock size={16} />
+                                <span className={styles.evaluationLabel}>Time:</span>
+                                <span>{evaluation.time}</span>
+                              </div>
+                              <div className={styles.evaluationDetail} style={{gridColumn: '1 / -1'}}>
+                                <FileText size={16} />
+                                <span className={styles.evaluationLabel}>Description:</span>
+                                <span>{evaluation.description}</span>
                               </div>
                             </div>
-                          ))
-                        ) : (
-                          <div className="text-muted">No evaluation booked yet.</div>
-                        )}
-                      </>
-                    )}
-                  </div>
-
-                  <hr className="my-32" />
-                  <h4 className="mb-20">🩺 Doctor’s Evaluation Summary</h4>
-
-                  {service || evolutionNote ? (
-                    <div className="bg-white p-20 border radius-12 shadow-sm mb-32">
-                      <div className="row gy-3">
-                        <div className="col-sm-6"><strong>Disability Type:</strong> {disabilityType || 'N/A'}</div>
-                        <div className="col-sm-6"><strong>Service:</strong> {service || 'N/A'}</div>
-                        <div className="col-sm-6"><strong>Weeks:</strong> {numberOfWeeks}</div>
-                        <div className="col-sm-6"><strong>Sessions Per Week:</strong> {sessionsPerWeek}</div>
-                        <div className="col-sm-6"><strong>Total Sessions:</strong> {sessionsPerWeek * numberOfWeeks}</div>
-
-                        <div className="col-12 mt-7">
-                          <strong>Doctor’s Notes:</strong>
-                          <div className="bg-light border radius-8 p-12 mt-10">
-                            {evolutionNote || <em>No notes added yet.</em>}
                           </div>
+                        ))
+                      ) : (
+                        <div style={{padding: '2rem', textAlign: 'center', color: '#6b7280'}}>
+                          No evaluation booked yet.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <hr style={{margin: '2rem 0', border: 'none', borderTop: '2px solid #e5e7eb'}} />
+
+                <h4 style={{marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#1e40af'}}>
+                  🩺 Doctor's Evaluation Summary
+                </h4>
+                {service || evolutionNote ? (
+                  <div className={styles.doctorSummary}>
+                    <div className={styles.summaryGrid}>
+                      <div className={styles.summaryItem}>
+                        <Activity size={16} />
+                        <span className={styles.summaryLabel}>Disability Type:</span>
+                        <span>{disabilityType || 'N/A'}</span>
+                      </div>
+                      <div className={styles.summaryItem}>
+                        <Stethoscope size={16} />
+                        <span className={styles.summaryLabel}>Service:</span>
+                        <span>{service || 'N/A'}</span>
+                      </div>
+                      <div className={styles.summaryItem}>
+                        <Calendar size={16} />
+                        <span className={styles.summaryLabel}>Weeks:</span>
+                        <span>{numberOfWeeks}</span>
+                      </div>
+                      <div className={styles.summaryItem}>
+                        <Clock size={16} />
+                        <span className={styles.summaryLabel}>Sessions Per Week:</span>
+                        <span>{sessionsPerWeek}</span>
+                      </div>
+                      <div className={styles.summaryItem}>
+                        <FileText size={16} />
+                        <span className={styles.summaryLabel}>Total Sessions:</span>
+                        <span>{sessionsPerWeek * numberOfWeeks}</span>
+                      </div>
+                    </div>
+                    <div className={styles.doctorNotes}>
+                      <div className={styles.summaryItem}>
+                        <FileText size={16} />
+                        <span className={styles.summaryLabel}>Doctor's Notes:</span>
+                      </div>
+                      <div className={styles.notesContainer}>
+                        {evolutionNote || <em>No notes added yet.</em>}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{color: '#6b7280', marginBottom: '2rem'}}>No evaluation summary available yet.</div>
+                )}
+
+                <h5 style={{marginTop: '2.5rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+                  📅 Your Scheduled Sessions
+                </h5>
+                <div className={styles.sessionsTable}>
+                  <table style={{width: '100%', borderCollapse: 'collapse'}}>
+                    <thead className={styles.tableHeader}>
+                      <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Price</th>
+                        <th>Payment</th>
+                        <th>Completed</th>
+                      </tr>
+                    </thead>
+                    <tbody className={styles.tableBody}>
+                      {sessions.map((session, index) => (
+                        <tr key={session._id}>
+                          <td>{index + 1}</td>
+                          <td>{new Date(session.date).toLocaleDateString()}</td>
+                          <td>{session.time}</td>
+                          <td>{session.price} EGP</td>
+                          <td>
+                            <span className={`${styles.statusBadge} ${styles[session.status.toLowerCase()]}`}>
+                              {session.status}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={`${styles.statusBadge} ${session.done ? styles.done : styles.pending}`}>
+                              {session.done ? '✔️ Yes' : '❌ No'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {sessions.length > 0 && (
+                  <div className={styles.paymentOptions}>
+                    <h4 className={styles.paymentTitle}>
+                      💳 Payment Options
+                    </h4>
+                    <div className={styles.paymentGrid}>
+                      {sessions.filter(s => s.status === 'Pending').length >= 3 && (
+                        <div className={`${styles.paymentCard} ${styles.success}`}>
+                          <h6 className={`${styles.paymentCardTitle} ${styles.success}`}>
+                            <DollarSign size={20} />
+                            One-Time Payment (10% Discount)
+                          </h6>
+                          <p className={styles.paymentDescription}>
+                            Pay for all sessions now and get a 10% discount on the total price.
+                          </p>
+                          <p className={styles.paymentTotal}>
+                            Total: {Math.floor(totalPrice * 0.9)} EGP
+                          </p>
+                          <button 
+                            className={`${styles.paymentButton} ${styles.success}`} 
+                            onClick={() => handlePayAllSessions('one-time')}
+                          >
+                            <CreditCard size={16} />
+                            Pay Now
+                          </button>
+                        </div>
+                      )}
+                      <div className={`${styles.paymentCard} ${styles.primary}`}>
+                        <h6 className={`${styles.paymentCardTitle} ${styles.primary}`}>
+                          <CreditCard size={20} />
+                          Pay per Session
+                        </h6>
+                        <p className={styles.paymentDescription}>
+                          Pay for each session before attending.
+                        </p>
+                        <div>
+                          {sessions
+                            .filter(session => session.status === 'Pending')
+                            .map((session, index) => (
+                              <div key={session._id} className={styles.sessionPayment}>
+                                <span className={styles.sessionInfo}>
+                                  {index + 1}. {new Date(session.date).toLocaleDateString()} - {session.time}
+                                </span>
+                                <button
+                                  className={styles.sessionPayButton}
+                                  onClick={() => handlePayPerSession(session._id)}
+                                >
+                                  Pay Now
+                                </button>
+                              </div>
+                            ))}
                         </div>
                       </div>
                     </div>
-                  ) : (
-                    <div className="text-muted mb-4">No evaluation summary available yet.</div>
-                  )}
-                  {/* 📅 Scheduled Sessions Table */}
-
-                  <h5 className="mt-40 mb-20">📅 Your Scheduled Sessions</h5>
-                  <div className="table-responsive">
-                    <table className="table table-bordered table-striped text-sm">
-                      <thead className="table-light">
-                        <tr>
-                          <th>#</th>
-                          <th>Date</th>
-                          <th>Time</th>
-                          <th>Price</th>
-                          <th>Payment</th>
-                          <th>Completed</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sessions.map((session, index) => (
-                          <tr key={session._id}>
-                            <td>{index + 1}</td>
-                            <td>{new Date(session.date).toLocaleDateString()}</td>
-                            <td>{session.time}</td>
-                            <td>{session.price} EGP</td>
-                            <td>{session.status}</td>
-                            <td>{session.done ? '✔️' : '❌'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
                   </div>
+                )}
+              </div>
 
-
-                  {/* 💳 Payment Options */}
-                  {sessions.length > 0 && (
-                    <>
-                      <div className="container py-5">
-                        <h4 className="mt-40 mb-16">💳 Payment Options</h4>
-                        <div className="row g-3">
-  {sessions.filter(s => s.status === 'Pending').length >= 3 && (
-    <div className="col-md-6">
-      <div className="card border border-success p-16 radius-12">
-        <h6 className="text-success mb-2">One-Time Payment (10% Discount)</h6>
-        <p className="text-muted small mb-2">
-          Pay for all sessions now and get a 10% discount on the total price.
-        </p>
-        <p><strong>
-          Total: {Math.floor(totalPrice * 0.9)} EGP
-        </strong></p>
-        <button className="btn btn-success btn-sm mt-2" onClick={() => handlePayAllSessions('one-time')}>Pay Now</button>
-      </div>
-    </div>
-  )}
-
-  <div className={sessions.filter(s => s.status === 'Pending').length < 3 ? 'col-md-12' : 'col-md-6'}>
-    <div className="card border border-primary p-16 radius-12">
-      <h6 className="text-primary mb-2">Pay per Session</h6>
-      <p className="text-muted small">Pay for each session before attending.</p>
-
-      {sessions
-        .filter(session => session.status === 'Pending')
-        .map((session, index) => (
-          <div key={session._id} className="d-flex justify-content-between align-items-center mb-2">
-            <span>{index + 1}- {new Date(session.date).toLocaleDateString()} - {session.time}</span>
-            <button
-              className="btn btn-outline-primary btn-sm"
-              onClick={() => handlePayPerSession(session._id)}
-            >
-              Pay Now
-            </button>
-          </div>
-        ))}
-    </div>
-  </div>
-</div>
-
-                      </div>
-
-                    </>
-                  )}
-                </div>
-
-                <div className="tab-pane fade" id="pills-sessions" role="tabpanel" aria-labelledby="pills-sessions-tab" tabIndex="0">
-                  <h5 className="mb-20">Session Notes</h5>
-
-                  {sessions.length > 0 ? (
-                    <div className="nav nav-tabs mb-3" id="sessionTabs" role="tablist">
+              {/* Sessions Tab */}
+              <div className={`${styles.tabPane} ${activeTab === 'sessions' ? styles.active : ''}`}>
+                <h5 style={{marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+                  <FileText size={20} />
+                  Session Notes
+                </h5>
+                {sessions.length > 0 ? (
+                  <>
+                    <div className={styles.sessionTabs}>
                       {sessions.map((session, index) => (
                         <button
                           key={index}
-                          className={`nav-link ${index === 0 ? 'active' : ''}`}
-                          id={`session-tab-${index}`}
-                          data-bs-toggle="tab"
-                          data-bs-target={`#session-pane-${index}`}
-                          type="button"
-                          role="tab"
-                          aria-controls={`session-pane-${index}`}
-                          aria-selected={index === 0}
+                          className={`${styles.sessionTab} ${selectedSession === index ? styles.active : ''}`}
+                          onClick={() => setSelectedSession(index)}
                         >
                           Session {index + 1}
                         </button>
                       ))}
                     </div>
-                  ) : (
-                    <div className="text-muted">No sessions yet.</div>
-                  )}
-
-                  <div className="tab-content" id="sessionTabContent">
-                    {sessions.map((session, index) => (
-                      <div
-                        key={index}
-                        className={`tab-pane fade ${index === 0 ? 'show active' : ''}`}
-                        id={`session-pane-${index}`}
-                        role="tabpanel"
-                        aria-labelledby={`session-tab-${index}`}
-                      >
-                        <div className="card border radius-16 p-20 mb-32 bg-light">
-                          <h6 className="mb-3 text-primary">Session {index + 1} Details</h6>
-                          <div className="row gy-2">
-                            <div className="col-md-6">
-                              <strong>Date:</strong> <div>{new Date(session.date).toLocaleDateString()}</div>
-                            </div>
-                            <div className="col-md-6">
-                              <strong>Time:</strong> <div>{session.time || 'N/A'}</div>
-                            </div>
-                            <div className="col-md-6">
-                              <strong>Price:</strong> <div>{session.price || 0} EGP</div>
-                            </div>
-                            <div className="col-md-6">
-                              <strong>payment:</strong> <div>{session.status}</div>
-                            </div>
-                            <div className="col-md-6">
-                              <strong>Completed:</strong> <div>{session.done ? '✔️ Yes' : '❌ No'}</div>
-                            </div>
-                            <div className="col-12 mt-3">
-                              <strong>Session Note:</strong>
-                              <div className="bg-white p-12 radius-8 border mt-2" style={{ minHeight: "80px" }}>
-                                {session.note ? session.note : <em>No note provided.</em>}
+                    <div className={styles.sessionContent}>
+                      {sessions.map((session, index) => (
+                        <div
+                          key={index}
+                          style={{display: selectedSession === index || selectedSession === null && index === 0 ? 'block' : 'none'}}
+                        >
+                          <div className={styles.sessionDetailsCard}>
+                            <h6 className={styles.sessionDetailsTitle}>
+                              <Activity size={20} />
+                              Session {index + 1} Details
+                            </h6>
+                            <div className={styles.sessionDetailsGrid}>
+                              <div className={styles.sessionDetail}>
+                                <span className={styles.sessionDetailLabel}>Date:</span>
+                                <span className={styles.sessionDetailValue}>
+                                  {new Date(session.date).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <div className={styles.sessionDetail}>
+                                <span className={styles.sessionDetailLabel}>Time:</span>
+                                <span className={styles.sessionDetailValue}>{session.time || 'N/A'}</span>
+                              </div>
+                              <div className={styles.sessionDetail}>
+                                <span className={styles.sessionDetailLabel}>Price:</span>
+                                <span className={styles.sessionDetailValue}>{session.price || 0} EGP</span>
+                              </div>
+                              <div className={styles.sessionDetail}>
+                                <span className={styles.sessionDetailLabel}>Payment:</span>
+                                <span className={styles.sessionDetailValue}>
+                                  <span className={`${styles.statusBadge} ${styles[session.status.toLowerCase()]}`}>
+                                    {session.status}
+                                  </span>
+                                </span>
+                              </div>
+                              <div className={styles.sessionDetail}>
+                                <span className={styles.sessionDetailLabel}>Completed:</span>
+                                <span className={styles.sessionDetailValue}>
+                                  <span className={`${styles.statusBadge} ${session.done ? styles.done : styles.pending}`}>
+                                    {session.done ? '✔️ Yes' : '❌ No'}
+                                  </span>
+                                </span>
+                              </div>
+                              <div className={styles.sessionNoteContainer}>
+                                <span className={styles.sessionDetailLabel}>Session Note:</span>
+                                <div className={styles.sessionNote}>
+                                  {session.note ? session.note : <em>No note provided.</em>}
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div style={{textAlign: 'center', color: '#6b7280', padding: '2rem'}}>
+                    No sessions yet.
                   </div>
+                )}
+              </div>
 
-                </div>
-
-                    <div className="tab-pane fade" id="pills-full-program" role="tabpanel" aria-labelledby="pills-full-program-tab">
-                      <FullProgramComponent patientId={patientID} />
-                    </div> 
-               
+              {/* Full Program Tab */}
+              <div className={`${styles.tabPane} ${activeTab === 'full-program' ? styles.active : ''}`}>
+                <FullProgramComponent patientId={patientID} />
               </div>
             </div>
           </div>
         </div>
       </div>
     </>
-
   );
 };
 

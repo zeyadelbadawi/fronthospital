@@ -1,0 +1,555 @@
+/* Enhanced styles for WeekTable component matching DoctorAppointments design */
+.calendarContainer {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  position: relative;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+}
+
+.calendarCard {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Header Styles */
+.cardHeader {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: white;
+  padding: 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.cardHeader::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.pageTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(45deg, #ffffff, #f0fdf4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.statsContainer {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.statBadge {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.statBadge:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Body Styles */
+.cardBody {
+  padding: 2.5rem;
+  background: #fafbfc;
+}
+
+/* Table Styles */
+.tableContainer {
+  overflow-x: auto;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  background: white;
+}
+
+.scheduleTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.tableHeader {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.tableHeader th {
+  padding: 1.5rem;
+  text-align: center;
+  font-weight: 700;
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-right: 1px solid #e5e7eb;
+}
+
+.tableHeader th:last-child {
+  border-right: none;
+}
+
+.departmentHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.departmentBadge {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+.tableRow {
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.tableRow:hover {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.dayCell {
+  padding: 1.5rem;
+  text-align: center;
+  font-weight: 700;
+  color: #059669;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-right: 1px solid #e5e7eb;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.appointmentCell {
+  padding: 0.75rem;
+  text-align: center;
+  position: relative;
+  height: 100px;
+  vertical-align: middle;
+  border-right: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.appointmentCell:last-child {
+  border-right: none;
+}
+
+.appointmentCell.hasAppointments {
+  cursor: pointer;
+}
+
+.appointmentCell.hasAppointments:hover {
+  background: rgba(5, 150, 105, 0.05);
+  transform: scale(1.02);
+}
+
+.appointmentCardContainer {
+  height: 100%;
+  padding: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.appointmentCard {
+  border: none;
+  border-radius: 0.75rem;
+  height: 100%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.appointmentCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.15);
+}
+
+.appointmentCardBody {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  color: white;
+}
+
+.appointmentItem {
+  font-weight: 600;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  margin-bottom: 0.25rem;
+  text-align: center;
+}
+
+.appointmentItem:last-child {
+  margin-bottom: 0;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 1rem 1rem 0 0;
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.modalBadge {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: white;
+}
+
+.closeButton {
+  padding: 0.5rem;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.closeButton:hover {
+  background: #e5e7eb;
+  transform: scale(1.1);
+}
+
+.closeIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #6b7280;
+}
+
+.modalBody {
+  padding: 1.5rem;
+}
+
+.appointmentsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.modalAppointmentCard {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.modalAppointmentCard:hover {
+  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.modalAppointmentCardBody {
+  padding: 1.5rem;
+}
+
+.appointmentCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.doctorName {
+  font-weight: 700;
+  color: #1f2937;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.departmentBadgeModal {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: white;
+}
+
+.appointmentDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detailLabel {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.detailValue {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.appointmentId {
+  font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
+  font-size: 0.8rem;
+  background: #f3f4f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.modalFooter {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f8fafc;
+  border-radius: 0 0 1rem 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modalCloseButton {
+  padding: 0.75rem 1.5rem;
+  background: #059669;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modalCloseButton:hover {
+  background: #047857;
+  transform: translateY(-1px);
+}
+
+/* Color mappings for departments */
+.colorABA {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.colorAy7aga {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.colorPhysicalTherapy {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.colorOccupationalTherapy {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.colorSpecialEducation {
+  background: linear-gradient(135deg, #06b6d4, #0891b2);
+}
+
+.colorSpeech {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .headerContent {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.5rem;
+  }
+
+  .statsContainer {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendarContainer {
+    padding: 1rem 0.5rem;
+  }
+
+  .cardHeader,
+  .cardBody {
+    padding: 1.5rem;
+  }
+
+  .pageTitle {
+    font-size: 1.5rem;
+  }
+
+  .tableHeader th,
+  .dayCell,
+  .appointmentCell {
+    padding: 1rem 0.5rem;
+  }
+
+  .appointmentCell {
+    height: 80px;
+  }
+
+  .appointmentItem {
+    font-size: 0.7rem;
+  }
+
+  .appointmentsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal {
+    margin: 1rem;
+    max-width: calc(100vw - 2rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .cardHeader,
+  .cardBody {
+    padding: 1rem;
+  }
+
+  .tableHeader th,
+  .dayCell,
+  .appointmentCell {
+    padding: 0.75rem 0.25rem;
+  }
+
+  .appointmentCell {
+    height: 70px;
+  }
+
+  .appointmentItem {
+    font-size: 0.65rem;
+  }
+
+  .pageTitle {
+    font-size: 1.25rem;
+  }
+}
+
+/* Animation Enhancements */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.calendarCard {
+  animation: slideInUp 0.4s ease-out;
+}
+
+.appointmentCard {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modalAppointmentCard {
+  animation: slideInUp 0.3s ease-out;
+}
+
+/* Focus States for Accessibility */
+.appointmentCell:focus,
+.closeButton:focus,
+.modalCloseButton:focus {
+  outline: 2px solid #059669;
+  outline-offset: 2px;
+}

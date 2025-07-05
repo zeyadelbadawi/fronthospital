@@ -1,214 +1,181 @@
-'use client';
-
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { Icon } from "@iconify/react/dist/iconify.js";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import axiosInstance from "../helper/axiosSetup";  // Import the configured axios instance
+"use client"
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import axiosInstance from "../helper/axiosSetup"
+import { Search, Plus, Eye, Edit, Trash2 } from "lucide-react"
+import styles from "../styles/user-management.module.css"
 
 const UsersListLayer = () => {
-  const [patients, setPatients] = useState([]); // State to store patients
-  const [search, setSearch] = useState(''); // State to store search query
-  const [currentPage, setCurrentPage] = useState(1); // State to store current page
-  const [totalPages, setTotalPages] = useState(1); // State to store total pages
-  const [loading, setLoading] = useState(false); // State to indicate loading
-  const router = useRouter(); // Next.js router
+  const [patients, setPatients] = useState([])
+  const [search, setSearch] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
-  // Fetch patients when component mounts or when page/search changes
   useEffect(() => {
     const fetchPatients = async () => {
-      setLoading(true);
+      setLoading(true)
       try {
         const response = await axiosInstance.get(`/authentication/patients`, {
-
           params: {
             page: currentPage,
             search: search,
-            limit: 10
-          }
-        });
-        setPatients(response.data.patients);
-        setTotalPages(response.data.totalPages);
+            limit: 10,
+          },
+        })
+        setPatients(response.data.patients)
+        setTotalPages(response.data.totalPages)
       } catch (error) {
-        console.error("Error fetching Students:", error);
+        console.error("Error fetching Students:", error)
       } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPatients(); // Call the fetch function
-  }, [currentPage, search]);
-
-  const handleDelete = async (patientId) => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this Student?');
-  
-    if (confirmDelete) {
-      try {
-        const response = await axiosInstance.delete(`/authentication/delete-patient/${patientId}`);
-
-        if (response.status === 200) {
-          alert('Student deleted successfully');
-          // Remove the patient from the UI (filter out the deleted patient)
-          setPatients(patients.filter(patient => patient._id !== patientId));
-        }
-      } catch (error) {
-        console.error('Error deleting Student:', error);
-        alert('Error deleting Student');
+        setLoading(false)
       }
     }
-  };
-  
+    fetchPatients()
+  }, [currentPage, search])
 
-  // Handle search input change
+  const handleDelete = async (patientId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this Student?")
+    if (confirmDelete) {
+      try {
+        const response = await axiosInstance.delete(`/authentication/delete-patient/${patientId}`)
+        if (response.status === 200) {
+          alert("Student deleted successfully")
+          setPatients(patients.filter((patient) => patient._id !== patientId))
+        }
+      } catch (error) {
+        console.error("Error deleting Student:", error)
+        alert("Error deleting Student")
+      }
+    }
+  }
+
   const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-    setCurrentPage(1);  // Reset to first page when search query changes
-  };
+    setSearch(e.target.value)
+    setCurrentPage(1)
+  }
 
-  // Handle pagination change
   const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
+    setCurrentPage(page)
+  }
 
   const handleEdit = (patientId) => {
-    // Redirect to the Edit page with patient ID as a query param
-    router.push(`/edit-user?id=${patientId}`);
-  };
+    router.push(`/edit-user?id=${patientId}`)
+  }
 
   const handleView = (patientId) => {
-    // Redirect to the View Profile page with patient ID as a query parameter
-    router.push(`/view-profile?id=${patientId}`);
-  };
+    router.push(`/view-profile?id=${patientId}`)
+  }
 
   return (
-    <div className='card h-100 p-0 radius-12'>
-      <div className='card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between'>
-        <div className='d-flex align-items-center flex-wrap gap-3'>
-          
-          <form className='navbar-search'>
-            <input
-              type='text'
-              className='bg-base h-40-px w-auto'
-              name='search'
-              value={search}
-              onChange={handleSearchChange}  // Update search query
-              placeholder='Search'
-            />
-            <Icon icon='ion:search-outline' className='icon' />
-          </form>
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <div className={styles.cardHeader}>
+          <div className={styles.headerContent}>
+            <div className={styles.searchContainer}>
+              <input
+                type="text"
+                className={styles.searchInput}
+                name="search"
+                value={search}
+                onChange={handleSearchChange}
+                placeholder="Search students..."
+              />
+              <Search className={styles.searchIcon} />
+            </div>
+            <Link href="/add-user" className={styles.addButton}>
+              <Plus className={styles.addIcon} />
+              Add New Student
+            </Link>
+          </div>
         </div>
-        <Link
-          href='/add-user'
-          className='btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2'
-        >
-          <Icon
-            icon='ic:baseline-plus'
-            className='icon text-xl line-height-1'
-          />
-          Add New Student
-        </Link>
-      </div>
-      <div className='card-body p-24'>
-        <div className='table-responsive scroll-sm'>
-          <table className='table bordered-table sm-table mb-0'>
-            <thead>
-              <tr>
-                <th scope='col'>
-                  <div className='d-flex align-items-center gap-10'>
-                    <div className='form-check style-check d-flex align-items-center'>
-                
-                    </div>
-                    #
-                  </div>
-                </th>
-                <th scope='col'>Join Date</th>
-                <th scope='col'>Name</th>
-                <th scope='col'>Email</th>
-                <th scope='col'>Phone</th>
-                <th scope='col'>gender</th>
 
-                <th scope='col' className='text-center'>
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="7" className="text-center">Loading...</td>
-                </tr>
-              ) : (
-                patients.map((patient, index) => (
-                  <tr key={patient._id}>
-                    <td>
-                      <div className='d-flex align-items-center gap-10'>
-                        <div className='form-check style-check d-flex align-items-center'>
-                        
-                        </div>
-                        {index + 1}
-                      </div>
-                    </td>
-                    <td>{new Date(patient.createdAt).toLocaleDateString()}</td>
-                    <td>{patient.name}</td>
-                    <td>{patient.email}</td>
-                    <td>{patient.phone}</td>
-                    <td>{patient.gender  || '0'}</td>
-
-                    <td className='text-center'>
-                      <div className='d-flex align-items-center gap-10 justify-content-center'>
-                      <button
-  type='button'
-  className='bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle'
-  onClick={() => handleView(patient._id)}  // Call the View button handler
->
-  <Icon
-    icon='majesticons:eye-line'
-    className='icon text-xl'
-  />
-</button>
-
-                        <button
-                          type='button'
-                          className='bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle'
-                          onClick={() => handleEdit(patient._id)}  // Edit button handler
-                        >
-                          <Icon icon='lucide:edit' className='menu-icon' />
-                        </button>
-                        <button
-  type='button'
-  className='remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle'
-  onClick={() => handleDelete(patient._id)}  // Call the delete handler
->
-  <Icon icon='fluent:delete-24-regular' className='menu-icon' />
-</button>
-                      </div>
-                    </td>
+        <div className={styles.cardBody}>
+          {loading ? (
+            <div className={styles.loadingContainer}>
+              <div className={styles.loadingSpinner}></div>
+              <p className={styles.loadingText}>Loading students...</p>
+            </div>
+          ) : (
+            <div className={styles.tableContainer}>
+              <table className={styles.table}>
+                <thead className={styles.tableHeader}>
+                  <tr>
+                    <th>#</th>
+                    <th>Join Date</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Gender</th>
+                    <th className={styles.actionsCell}>Action</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        <div className='d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24'>
-          <span>Showing {((currentPage - 1) * 10) + 1} to {Math.min(currentPage * 10, patients.length)} of {patients.length} entries</span>
-          <ul className='pagination d-flex flex-wrap align-items-center gap-2 justify-content-center'>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <li key={i} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
-                <Link
-                  className='page-link text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px  text-md'
-                  href="#"
-                  onClick={() => handlePageChange(i + 1)}  // Handle page change
-                >
-                  {i + 1}
-                </Link>
-              </li>
-            ))}
-          </ul>
+                </thead>
+                <tbody>
+                  {patients.map((patient, index) => (
+                    <tr key={patient._id} className={styles.tableRow}>
+                      <td className={styles.indexCell}>{index + 1}</td>
+                      <td className={styles.dateCell}>{new Date(patient.createdAt).toLocaleDateString()}</td>
+                      <td className={styles.nameCell}>{patient.name}</td>
+                      <td className={styles.emailCell}>{patient.email}</td>
+                      <td className={styles.phoneCell}>{patient.phone}</td>
+                      <td className={styles.genderCell}>{patient.gender || "N/A"}</td>
+                      <td className={styles.actionsCell}>
+                        <div className={styles.actionButtons}>
+                          <button
+                            className={`${styles.actionButton} ${styles.viewButton}`}
+                            onClick={() => handleView(patient._id)}
+                            title="View Details"
+                          >
+                            <Eye className={styles.actionIcon} />
+                          </button>
+                          <button
+                            className={`${styles.actionButton} ${styles.editButton}`}
+                            onClick={() => handleEdit(patient._id)}
+                            title="Edit Student"
+                          >
+                            <Edit className={styles.actionIcon} />
+                          </button>
+                          <button
+                            className={`${styles.actionButton} ${styles.deleteButton}`}
+                            onClick={() => handleDelete(patient._id)}
+                            title="Delete Student"
+                          >
+                            <Trash2 className={styles.actionIcon} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {patients.length > 0 && (
+            <div className={styles.paginationContainer}>
+              <span className={styles.paginationInfo}>
+                Showing {(currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, patients.length)} of{" "}
+                {patients.length} entries
+              </span>
+              <div className={styles.paginationButtons}>
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i}
+                    className={`${styles.paginationButton} ${currentPage === i + 1 ? styles.active : ""}`}
+                    onClick={() => handlePageChange(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default UsersListLayer;
+export default UsersListLayer

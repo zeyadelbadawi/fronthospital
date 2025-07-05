@@ -1,5 +1,5 @@
 import Breadcrumb from "@/components/Breadcrumb";
-import DoctorDashboard from "@/components/DoctorDashboard";
+import DepartmentListLayer from "@/components/DepartmentListLayer";
 import MasterLayout from "@/masterLayout/MasterLayout";
 
 export const metadata = {
@@ -14,12 +14,14 @@ const Page = () => {
       {/* MasterLayout */}
       <MasterLayout>
         {/* Breadcrumb */}
+
         <Breadcrumb 
-  heading="All Programs" 
-  title=" Dashboard  / All Programs" 
+  heading="All Departments" 
+  title=" All Departments" 
 />
+
         {/* UsersListLayer */}
-        <DoctorDashboard />
+        <DepartmentListLayer />
       </MasterLayout>
     </>
   );

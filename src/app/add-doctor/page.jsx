@@ -15,7 +15,7 @@ const Page = () => {
       <MasterLayout>
         <Breadcrumb 
   heading="Add Doctor" 
-  title="Dashboard / Add Doctor" 
+  title="Add Doctor" 
 />
         {/* AddUserLayer */}
         <AddDoctorLayer />

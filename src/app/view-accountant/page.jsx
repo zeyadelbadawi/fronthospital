@@ -17,7 +17,7 @@ const Page = () => {
 
         <Breadcrumb 
   heading="Accountant Profile" 
-  title="Dashboard / Accountant Profile" 
+  title="Accountant Profile" 
 />
 
         {/* AdminAccountantProfileLayer */}

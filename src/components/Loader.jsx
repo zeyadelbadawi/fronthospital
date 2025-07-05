@@ -1,15 +1,10 @@
-import React from "react";
+import styles from "../styles/utility-components.module.css"
 
-export default function Loader() {
+export default function Loader({ text = "Loading..." }) {
   return (
-    <div className="me-2 d-flex justify-content-center align-items-center">
-      <div
-        className="spinner-border text-primary"
-        role="status"
-        style={{ width: "1rem", height: "1rem" }}
-      >
-        <span className="visually-hidden">Loading...</span>
-      </div>
+    <div className={styles.loaderContainer}>
+      <div className={styles.modernLoader}></div>
+      <span className={styles.loadingText}>{text}</span>
     </div>
-  );
+  )
 }

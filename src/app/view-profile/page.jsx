@@ -17,7 +17,7 @@ const Page = () => {
 
         <Breadcrumb 
   heading="Student Profile" 
-  title="Dashboard / Student Profile" 
+  title="Student Profile" 
 />
 
 

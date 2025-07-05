@@ -1,5 +1,5 @@
+import EditDepartmentLayer from "@/components/EditDepartmentLayer";
 import Breadcrumb from "@/components/Breadcrumb";
-import DoctorDashboard2 from "@/components/DoctorDashboard2";
 import MasterLayout from "@/masterLayout/MasterLayout";
 
 export const metadata = {
@@ -14,15 +14,12 @@ const Page = () => {
       {/* MasterLayout */}
       <MasterLayout>
         {/* Breadcrumb */}
-        <Breadcrumb  />
-
-
         <Breadcrumb 
-  heading="Free Consultations Requests" 
-  title="Dashboard / Free Consultations" 
+  heading="Edit Department" 
+  title="Edit Department" 
 />
-        {/* UsersListLayer */}
-        <DoctorDashboard2 />
+        {/* EditDoctorLayer  */}
+        <EditDepartmentLayer />
       </MasterLayout>
     </>
   );

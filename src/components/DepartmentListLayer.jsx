@@ -3,11 +3,11 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axiosInstance from "../helper/axiosSetup";
-import { Search, Plus, Eye, Edit, Trash2 } from "lucide-react";
+import { Search, Plus, Edit, Trash2 } from "lucide-react";
 import styles from "../styles/user-management.module.css";
 
-const DoctorListLayer = () => {
-  const [doctors, setDoctors] = useState([]);
+const DepartmentListLayer = () => {
+  const [departments, setDepartments] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -15,35 +15,35 @@ const DoctorListLayer = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchDoctors = async () => {
+    const fetchDepartments = async () => {
       setLoading(true);
       try {
-        const response = await axiosInstance.get(`/authentication/doctors`, {
+        const response = await axiosInstance.get("/departments", {
           params: { page: currentPage, search, limit: 10 },
         });
-        setDoctors(response.data.doctors);
+        setDepartments(response.data.departments);
         setTotalPages(response.data.totalPages);
       } catch (error) {
-        console.error("Error fetching doctors:", error);
+        console.error("Error fetching departments:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchDoctors();
+    fetchDepartments();
   }, [currentPage, search]);
 
-  const handleDelete = async (doctorId) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this doctor?");
+  const handleDelete = async (departmentId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this department?");
     if (confirmDelete) {
       try {
-        const response = await axiosInstance.delete(`/authentication/delete-doctor/${doctorId}`);
+        const response = await axiosInstance.delete(`/departments/delete-department/${departmentId}`);
         if (response.status === 200) {
-          alert("Doctor deleted successfully");
-          setDoctors(doctors.filter((doctor) => doctor._id !== doctorId));
+          alert("Department deleted successfully");
+          setDepartments(departments.filter((department) => department._id !== departmentId));
         }
       } catch (error) {
-        console.error("Error deleting doctor:", error);
-        alert("Error deleting doctor");
+        console.error("Error deleting department:", error);
+        alert("Error deleting department");
       }
     }
   };
@@ -57,21 +57,9 @@ const DoctorListLayer = () => {
     setCurrentPage(page);
   };
 
-  const handleEdit = (doctorId) => {
-    router.push(`/edit-doctor?id=${doctorId}`);
+  const handleEdit = (departmentId) => {
+    router.push(`/edit-department?id=${departmentId}`);
   };
-
-  const handleView = (doctorId) => {
-    router.push(`/view-doctor?id=${doctorId}`);
-  };
-
-// Function to format and sort multiple department names
-const formatDepartments = (departments) => {
-  return departments
-    .map(department => department.name) // Get department names
-    .sort((a, b) => a.localeCompare(b)) // Sort them alphabetically
-    .join(", "); // Join them into a comma-separated string
-};
 
   return (
     <div className={styles.container}>
@@ -85,13 +73,13 @@ const formatDepartments = (departments) => {
                 name="search"
                 value={search}
                 onChange={handleSearchChange}
-                placeholder="Search doctors..."
+                placeholder="Search departments..."
               />
               <Search className={styles.searchIcon} />
             </div>
-            <Link href="/add-doctor" className={styles.addButton}>
+            <Link href="/add-department" className={styles.addButton}>
               <Plus className={styles.addIcon} />
-              Add New Doctor
+              Add New Department
             </Link>
           </div>
         </div>
@@ -100,7 +88,7 @@ const formatDepartments = (departments) => {
           {loading ? (
             <div className={styles.loadingContainer}>
               <div className={styles.loadingSpinner}></div>
-              <p className={styles.loadingText}>Loading doctors...</p>
+              <p className={styles.loadingText}>Loading departments...</p>
             </div>
           ) : (
             <div className={styles.tableContainer}>
@@ -108,50 +96,30 @@ const formatDepartments = (departments) => {
                 <thead className={styles.tableHeader}>
                   <tr>
                     <th>#</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Title</th>
-                    <th>Availability</th>
-                    <th>Department(s)</th> {/* Updated header */}
+                    <th>Department Name</th>
+                    <th>Description</th>
                     <th className={styles.actionsCell}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {doctors.map((doctor, index) => (
-                    <tr key={doctor._id} className={styles.tableRow}>
+                  {departments.map((department, index) => (
+                    <tr key={department._id} className={styles.tableRow}>
                       <td className={styles.indexCell}>{index + 1}</td>
-                      <td className={styles.nameCell}>{doctor.username}</td>
-                      <td className={styles.emailCell}>{doctor.email}</td>
-                      <td className={styles.phoneCell}>{doctor.phone}</td>
-                      <td className={styles.genderCell}>{doctor.title}</td>
-                      <td className={styles.genderCell}>{doctor.availability}</td>
-                      <td className={styles.departmentCell}>
-                        {/* Display multiple departments */}
-                        {doctor.departments && doctor.departments.length > 0
-                          ? formatDepartments(doctor.departments)
-                          : "No departments assigned"}
-                      </td>
+                      <td className={styles.nameCell}>{department.name}</td>
+                      <td className={styles.descriptionCell}>{department.description}</td>
                       <td className={styles.actionsCell}>
                         <div className={styles.actionButtons}>
                           <button
-                            className={`${styles.actionButton} ${styles.viewButton}`}
-                            onClick={() => handleView(doctor._id)}
-                            title="View Details"
-                          >
-                            <Eye className={styles.actionIcon} />
-                          </button>
-                          <button
                             className={`${styles.actionButton} ${styles.editButton}`}
-                            onClick={() => handleEdit(doctor._id)}
-                            title="Edit Doctor"
+                            onClick={() => handleEdit(department._id)}
+                            title="Edit Department"
                           >
                             <Edit className={styles.actionIcon} />
                           </button>
                           <button
                             className={`${styles.actionButton} ${styles.deleteButton}`}
-                            onClick={() => handleDelete(doctor._id)}
-                            title="Delete Doctor"
+                            onClick={() => handleDelete(department._id)}
+                            title="Delete Department"
                           >
                             <Trash2 className={styles.actionIcon} />
                           </button>
@@ -164,11 +132,10 @@ const formatDepartments = (departments) => {
             </div>
           )}
 
-          {doctors.length > 0 && (
+          {departments.length > 0 && (
             <div className={styles.paginationContainer}>
               <span className={styles.paginationInfo}>
-                Showing {(currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, doctors.length)} of {doctors.length}{" "}
-                entries
+                Showing {(currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, departments.length)} of {departments.length} entries
               </span>
               <div className={styles.paginationButtons}>
                 {Array.from({ length: totalPages }, (_, i) => (
@@ -189,4 +156,4 @@ const formatDepartments = (departments) => {
   );
 };
 
-export default DoctorListLayer;
+export default DepartmentListLayer;

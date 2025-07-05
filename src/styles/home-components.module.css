@@ -1,0 +1,446 @@
+/* Modern Dashboard Design System */
+.dashboardContainer {
+  background: #f8fafc;
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+/* Unified Card Design */
+.dashboardCard {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
+  overflow: hidden;
+}
+
+.dashboardCard:hover {
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Card Header - Consistent across all components */
+.cardHeader {
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.cardBody {
+  padding: 1.5rem;
+}
+
+/* Statistics Cards - Clean and Modern */
+.statsCard {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.statsCard:hover {
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.statsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.statsIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #ffffff;
+}
+
+.statsIcon.students {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.statsIcon.doctors {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.statsIcon.accountants {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.statsNumber {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1;
+}
+
+.statsLabel {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0.5rem 0 0 0;
+  font-weight: 500;
+}
+
+.statsGrowth {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: #10b981;
+  font-weight: 500;
+  margin-top: 0.75rem;
+}
+
+.statsGrowth.negative {
+  color: #ef4444;
+}
+
+/* Chart Container - Unified sizing */
+.chartContainer {
+  position: relative;
+  width: 100%;
+  height: 300px;
+}
+
+.chartContainer.small {
+  height: 250px;
+}
+
+.chartContainer.large {
+  height: 350px;
+}
+
+/* Legend - Consistent styling */
+.chartLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.legendDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legendValue {
+  font-weight: 600;
+  color: #1e293b;
+  margin-left: 0.25rem;
+}
+
+/* Earning Card */
+.earningCard {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+/* Income Chart Center Text */
+.incomeCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 10;
+}
+
+.incomeCenterLabel {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.incomeCenterValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* Doctors List */
+.doctorsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.doctorItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease-in-out;
+}
+
+.doctorItem:hover {
+  background: #f1f5f9;
+  transform: translateX(2px);
+}
+
+.doctorInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.doctorAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+}
+
+.doctorDetails h6 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.125rem 0;
+}
+
+.doctorDetails span {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* Status Badges - Consistent design */
+.statusBadge {
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  border: none;
+}
+
+.statusBadge.available {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statusBadge.unavailable {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Appointments Table */
+.appointmentsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.appointmentsTable th {
+  padding: 1rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.appointmentsTable td {
+  padding: 1rem 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #6b7280;
+  vertical-align: middle;
+}
+
+.appointmentsTable tr:hover {
+  background: #f9fafb;
+}
+
+.appointmentStatus {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.appointmentStatus.completed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.appointmentStatus.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Gender Chart */
+.genderChart {
+  background: #ffffff;
+}
+
+/* Department Card */
+.departmentCard {
+  background: #ffffff;
+}
+
+.departmentLegend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  margin-left: 1rem;
+}
+
+.departmentLegendItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.departmentPercentage {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* Loading States */
+.loadingSpinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingText {
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Error States */
+.errorMessage {
+  text-align: center;
+  padding: 2rem;
+  color: #dc2626;
+  font-size: 0.875rem;
+  background: #fef2f2;
+  border-radius: 12px;
+  border: 1px solid #fecaca;
+}
+
+/* Utility Classes */
+.textPrimary {
+  color: #3b82f6 !important;
+}
+.textSuccess {
+  color: #10b981 !important;
+}
+.textWarning {
+  color: #f59e0b !important;
+}
+.textDanger {
+  color: #ef4444 !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboardContainer {
+    padding: 1rem;
+  }
+
+  .cardHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .chartLegend {
+    justify-content: center;
+  }
+
+  .departmentLegend {
+    margin-left: 0;
+    margin-top: 1rem;
+  }
+
+  .statsNumber {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .statsCard {
+    padding: 1rem;
+  }
+
+  .cardBody {
+    padding: 1rem;
+  }
+
+  .cardHeader {
+    padding: 1rem;
+  }
+}

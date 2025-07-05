@@ -16,7 +16,7 @@ const Page = () => {
         {/* Breadcrumb */}
         <Breadcrumb 
   heading="Calendar" 
-  title="Dashboard / Calendar" 
+  title="Calendar" 
 />
 
         {/* CalendarMainLayer */}
