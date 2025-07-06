@@ -1,18 +1,5 @@
 "use client";
 
-<<<<<<< Updated upstream
-import { SidebarInset, useSidebar } from "./ui/sidebar"
-import { useContentStore } from "../store/content-store"
-import { AssignPatientsToPhysicalTherapy } from "./assign-patients-physical-therapy"
-import { AssignPatientsToAba } from "./assign-patients-aba"
-import { AssignPatientsToOccupationalTherapy } from "./AssignTo-OccupationalTherapy"
-import { AssignPatientsToSpecialEducation } from "./assign-patients-Special-Education"
-import { AssignPatientsToSpeech } from "./assign-patients-speech"
-import { SpeechAppointments } from "./speech-appointments"
-import { SpeechUpcomingAppointments } from "./speech-upcoming-appointments"
-import { useEffect, useState } from "react"
-import { SpeechAppointmentCompletion } from "./speech-appointment-completion"
-=======
 import { SidebarInset, useSidebar } from "./ui/sidebar";
 import { useContentStore } from "../store/content-store";
 import { AssignPatientsToPhysicalTherapy } from "./assign-patients-physical-therapy";
@@ -26,26 +13,16 @@ import { useEffect, useState } from "react";
 import { SpeechAppointmentCompletion } from "./speech-appointment-completion";
 import { DoctorAppointments } from "./doctor-appointments";
 import { AccountantAppointments } from "./accountant-appointments";
->>>>>>> Stashed changes
 
 import AllPatientsPhysicalTherapy from "./all-patients-physical-therapy";
 import AllPatientsOccupationalTherapy from "./all-patients-occupational-therapy";
 import AllPatientsSpecialEducation from "./all-patients-Special-Education";
 import AllPatientsSpeech from "./all-patients-speech";
 
-<<<<<<< Updated upstream
-
-
-import { PatientsView } from "./patients-view"
-import { WelcomeView } from "./welcome-view"
-import styles from "../styles/main-content.module.css"
-import AllPatientsAba from "./all-patients-aba"
-=======
 import { WelcomeView } from "./welcome-view";
 import styles from "../styles/main-content.module.css";
 import AllPatientsAba from "./all-patients-aba";
 import axiosInstance from "@/helper/axiosSetup";
->>>>>>> Stashed changes
 
 export function MainContent() {
   const [user, setUser] = useState(null);
@@ -183,16 +160,6 @@ export function MainContent() {
       } else if (type === "accountant") {
         return <AccountantAppointments />;
       }
-<<<<<<< Updated upstream
-      else if (type === "COMPLETE-Evaulations") {
-        return <SpeechAppointmentCompletion appointmentId={activeContent.appointmentId} />
-      }else if (type === "appointments") {
-        return <SpeechAppointments />
-      }
-      
- 
-=======
->>>>>>> Stashed changes
     }
 
     return <WelcomeView />;
@@ -200,16 +167,6 @@ export function MainContent() {
 
   return (
     <SidebarInset className={styles.mainContent}>
-<<<<<<< Updated upstream
-      <header className={styles.mainHeader}>
-        <div className={styles.headerTitle}>
-          <h5>
-            Full Program Management
-          </h5>
-        </div>
-      </header>
-=======
->>>>>>> Stashed changes
       <main className={styles.mainBody}>{renderContent()}</main>
     </SidebarInset>
   );
