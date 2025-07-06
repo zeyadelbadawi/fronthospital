@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -13,7 +13,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarHeader,
-} from "./ui/sidebar"
+} from "./ui/sidebar";
 import {
   ChevronDown,
   Users,
@@ -24,20 +24,31 @@ import {
   GraduationCap,
   MessageSquare,
   Calendar,
-} from "lucide-react"
-import { useContentStore } from "../store/content-store"
-import styles from "../styles/sidebar.module.css"
+} from "lucide-react";
+import { useContentStore } from "../store/content-store";
+import styles from "../styles/sidebar.module.css";
 
 const departments = [
-     {
+  {
     id: "New-Evaulations-Appointments",
     name: "New Evaulations Appointments",
     icon: Calendar,
     items: [
-    { id: "New-Evaulations", name: "Upcoming Evaulations", type: "upcoming-Evaulations" },
-        { id: "COMPLETE-Evaulations", name: "COMPLETE Evaulations", type: "COMPLETE-Evaulations" },
-      { id: "speech-appointments", name: "Add More Appointments", type: "appointments" },
-
+      {
+        id: "New-Evaulations",
+        name: "Upcoming Evaulations",
+        type: "upcoming-Evaulations",
+      },
+      {
+        id: "COMPLETE-Evaulations",
+        name: "COMPLETE Evaulations",
+        type: "COMPLETE-Evaulations",
+      },
+      {
+        id: "speech-appointments",
+        name: "Add More Appointments",
+        type: "appointments",
+      },
     ],
   },
   {
@@ -45,9 +56,13 @@ const departments = [
     name: "Physical Therapy",
     icon: Activity,
     items: [
-      { id: "physical-therapy-assign", name: "Assign Patient", type: "assign-patient" },
+      {
+        id: "physical-therapy-assign",
+        name: "Assign Patient",
+        type: "assign-patient",
+      },
       { id: "physical-therapy-patients", name: "Students", type: "patients" },
-      {},
+      { id: "plans", name: "Plans", type: "plans" },
     ],
   },
   {
@@ -64,8 +79,16 @@ const departments = [
     name: "Occupational Therapy",
     icon: Hand,
     items: [
-      { id: "occupational-therapy-assign", name: "Assign Patient", type: "assign-patient" },
-      { id: "occupational-therapy-patients", name: "Patients", type: "patients" },
+      {
+        id: "occupational-therapy-assign",
+        name: "Assign Patient",
+        type: "assign-patient",
+      },
+      {
+        id: "occupational-therapy-patients",
+        name: "Patients",
+        type: "patients",
+      },
     ],
   },
   {
@@ -73,7 +96,11 @@ const departments = [
     name: "Special Education",
     icon: GraduationCap,
     items: [
-      { id: "special-education-assign", name: "Assign Patient", type: "assign-patient" },
+      {
+        id: "special-education-assign",
+        name: "Assign Patient",
+        type: "assign-patient",
+      },
       { id: "special-education-patients", name: "Patients", type: "patients" },
     ],
   },
@@ -86,29 +113,28 @@ const departments = [
       { id: "speech-patients", name: "Patients", type: "patients" },
     ],
   },
-
-]
+];
 
 export function AppSidebar() {
-  const [openSections, setOpenSections] = useState([])
-  const setActiveContent = useContentStore((state) => state.setActiveContent)
+  const [openSections, setOpenSections] = useState([]);
+  const setActiveContent = useContentStore((state) => state.setActiveContent);
 
   const toggleSection = (sectionId) => {
     setOpenSections((prev) => {
       if (prev.includes(sectionId)) {
-        return prev.filter((id) => id !== sectionId)
+        return prev.filter((id) => id !== sectionId);
       } else {
-        return [...prev, sectionId]
+        return [...prev, sectionId];
       }
-    })
-  }
+    });
+  };
 
   const handleItemClick = (departmentId, itemType) => {
     setActiveContent({
       department: departmentId,
       type: itemType,
-    })
-  }
+    });
+  };
 
   return (
     <Sidebar className={styles.customSidebar}>
@@ -121,7 +147,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {departments.map((department) => {
-                const isOpen = openSections.includes(department.id)
+                const isOpen = openSections.includes(department.id);
 
                 return (
                   <SidebarMenuItem key={department.id}>
@@ -131,7 +157,11 @@ export function AppSidebar() {
                     >
                       <department.icon className={styles.sidebarIcon} />
                       <span>{department.name}</span>
-                      <ChevronDown className={`${styles.chevronIcon} ${isOpen ? styles.chevronOpen : ""}`} />
+                      <ChevronDown
+                        className={`${styles.chevronIcon} ${
+                          isOpen ? styles.chevronOpen : ""
+                        }`}
+                      />
                     </SidebarMenuButton>
 
                     {isOpen && (
@@ -140,7 +170,9 @@ export function AppSidebar() {
                           {department.items.map((item) => (
                             <SidebarMenuSubItem key={item.id}>
                               <SidebarMenuSubButton
-                                onClick={() => handleItemClick(department.id, item.type)}
+                                onClick={() =>
+                                  handleItemClick(department.id, item.type)
+                                }
                                 className={styles.sidebarSubButton}
                               >
                                 {item.type === "assign-patient" ? (
@@ -158,12 +190,12 @@ export function AppSidebar() {
                       </div>
                     )}
                   </SidebarMenuItem>
-                )
+                );
               })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }

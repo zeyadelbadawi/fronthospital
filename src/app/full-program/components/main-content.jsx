@@ -11,8 +11,8 @@ import { SpeechAppointments } from "./speech-appointments";
 import { SpeechUpcomingAppointments } from "./speech-upcoming-appointments";
 import { useEffect, useState } from "react";
 import { SpeechAppointmentCompletion } from "./speech-appointment-completion";
-import { DoctorAppointments } from "./doctor-appointments";
-import { AccountantAppointments } from "./accountant-appointments";
+//import { DoctorAppointments } from "./doctor-appointments";
+//import { AccountantAppointments } from "./accountant-appointments";
 
 import AllPatientsPhysicalTherapy from "./all-patients-physical-therapy";
 import AllPatientsOccupationalTherapy from "./all-patients-occupational-therapy";
@@ -23,6 +23,7 @@ import { WelcomeView } from "./welcome-view";
 import styles from "../styles/main-content.module.css";
 import AllPatientsAba from "./all-patients-aba";
 import axiosInstance from "@/helper/axiosSetup";
+import DoctorPlan from "./DoctorPlan";
 
 export function MainContent() {
   const [user, setUser] = useState(null);
@@ -85,6 +86,12 @@ export function MainContent() {
 
   console.log("User Profile:", user);
 
+  const getDepartmentIdByName = (name) => {
+    const department = doctorDepartment?.find((dept) => dept.name === name);
+    console.log("iddddd", department._id);
+    return department ? department._id : null;
+  };
+
   /************************************************* */
   const { activeContent } = useContentStore();
   const { setOpen } = useSidebar();
@@ -110,11 +117,16 @@ export function MainContent() {
       } else if (type === "patients") {
         return <AllPatientsPhysicalTherapy />;
       } else if (
-        type === "plan" &&
+        type === "plans" &&
         user?.role === "doctor" &&
-        doctorDepartment?.includes("Physical Therapy")
+        doctorDepartment?.some((dept) => dept.name === "Physical Therapy")
       ) {
-        return <SpeechAppointmentCompletion />;
+        return (
+          <DoctorPlan
+            doctorId={user?.id}
+            departmentId={getDepartmentIdByName("Physical Therapy")}
+          />
+        );
       }
     }
 
