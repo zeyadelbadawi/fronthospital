@@ -46,7 +46,12 @@ const departments = [
     icon: Activity,
     items: [
       { id: "physical-therapy-assign", name: "Assign Patient", type: "assign-patient" },
+<<<<<<< Updated upstream
       { id: "physical-therapy-patients", name: "Patients", type: "patients" },
+=======
+      { id: "physical-therapy-patients", name: "Students", type: "patients" },
+      {},
+>>>>>>> Stashed changes
     ],
   },
   {
