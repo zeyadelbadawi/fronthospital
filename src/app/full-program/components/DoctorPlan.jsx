@@ -1,242 +1,305 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import DocxUploadForm from "./docx-upload-form";
+//import UserComponent from "./user-component"
+import styles from "../styles/document-page.module.css";
+import axiosInstance from "@/helper/axiosSetup";
+import DoctorPlanDocx from "@/components/DoctorPlanDocx";
+import CloseQuarterForm from "./close-quarter-form";
 import {
   ArrowLeft,
   User,
   FileText,
-  Save,
   Clock,
-  Mail,
-  Phone,
   Calendar,
   Brain,
-  Download,
+  XCircle,
   Upload,
-  Eye,
-  Edit3,
-  CheckCircle,
-  AlertCircle,
 } from "lucide-react";
-import axiosInstance from "@/helper/axiosSetup";
-import SyncfusionDocx from "@/components/SyncfusionDocx";
-import styles from "../styles/patient-school-plan-editor.module.css";
+export default function DoctorPlan({ doctorId, departmentId }) {
+  const [hasDocument, setHasDocument] = useState(null); // null = loading, true = has doc, false = no doc
+  const [showModal, setShowModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showCloseQuarterModal, setShowCloseQuarterModal] = useState(false);
 
-const DoctorPlan = ({ doctorId, departmentId }) => {
-  /* ----------------------------------------------------- */
-  const [doctorPlans, setDoctorPlans] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const fetchDoctorPlans = async () => {
+  // Check if user has uploaded document
+  const checkUserDocument = async () => {
+    setIsLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
       const response = await axiosInstance.get(
         `${process.env.NEXT_PUBLIC_API_URL}/doctorFile/get-plans/${doctorId}/${departmentId}?last=true`
       );
-      if (response.status == 200) {
-        setLoading(false);
 
-        console.log("Doctor Plans Response:", response?.data);
-        setDoctorPlans(response?.data?.doctorFiles);
-      }
-    } catch (error) {
-      console.error("Error fetching doctor plans:", error);
+      console.log("Doctor Plans Response:", response?.data);
+
+      setHasDocument(response?.data?.doctorFiles);
+    } catch (err) {
+      console.error("Error checking document:", err);
+      setError(err.message);
+      setHasDocument(false); // Default to no document on error
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  // Handle successful upload
+  const handleUploadSuccess = () => {
+    checkUserDocument();
+    setShowModal(false);
+    setHasDocument(true);
+    // Optionally refresh the page or update state
+  };
+
+  const handleCloseQuarterSuccess = () => {
+    setShowCloseQuarterModal(false);
+    alert("Quarter closed successfully!");
+  };
+
+  // Retry checking document
+  const handleRetry = () => {
+    checkUserDocument();
+  };
+
   useEffect(() => {
-    fetchDoctorPlans();
+    checkUserDocument();
   }, []);
-  /* ----------------------------------------------------- */
-
-  /* const [patient, setPatient] = useState(null);
-  const [plan, setPlan] = useState({
-    title: "",
-    filePath: "",
-    fileName: "",
-  });
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [planStats, setPlanStats] = useState({
-    totalSessions: 0,
-    completedSessions: 0,
-    upcomingSessions: 0,
-    lastUpdated: null,
-  });
-
-  useEffect(() => {
-    fetchPatientData()
-    fetchExistingPlan()
-  }, [patientId])
-
-  const fetchPatientData = async () => {
-    setLoading(true)
-    try {
-      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/patient/${patientId}`)
-
-      console.log("Student data fetched:", response.data)
-      setPatient(response.data)
-    } catch (error) {
-      console.error("Error fetching Student data:", error)
-      showErrorMessage("Failed to load student data")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchExistingPlan = async () => {
-    try {
-      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/physicalTherapyS/plan/${patientId}`)
-
-      console.log("Existing plan data fetched:", response.data)
-      setPlan(response.data || { title: "", filePath: "", fileName: "" })
-    } catch (error) {
-      console.error("Error fetching plan data:", error)
-      // Don't show error for missing plan as it's expected for new students
-    }
-  }
 
   const handleBackToList = () => {
-    router.back();
+    // Add your back navigation logic here
+    window.history.back();
   };
 
-  const showSuccessMessage = (message) => {
-    const toast = document.createElement("div");
-    toast.className = styles.successToast;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.classList.add(styles.show);
-    }, 100);
-
-    setTimeout(() => {
-      toast.classList.remove(styles.show);
-      setTimeout(() => document.body.removeChild(toast), 300);
-    }, 3000);
-  };
-
-  const showErrorMessage = (message) => {
-    const toast = document.createElement("div");
-    toast.className = styles.errorToast;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.classList.add(styles.show);
-    }, 100);
-
-    setTimeout(() => {
-      toast.classList.remove(styles.show);
-      setTimeout(() => document.body.removeChild(toast), 4000);
-    }, 4000);
-  }; */
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-        <p className={styles.loadingText}>Loading student data...</p>
+      <div className={styles.documentPage}>
+        <div className="container">
+          <div className={styles.loadingContainer}>
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <h4 className="mt-3">Checking document status...</h4>
+            <p className="text-muted">
+              Please wait while we verify your documents.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
 
-  /* if (!patient) {
+  if (error) {
     return (
-      <div className={styles.errorContainer}>
-        <AlertCircle className={styles.errorIcon} />
-        <h3>Student Not Found</h3>
-        <p>The requested student could not be found.</p>
-        <button onClick={handleBackToList} className={styles.backButton}>
-          <ArrowLeft className={styles.backIcon} />
-          Go Back
-        </button>
+      <div className={styles.documentPage}>
+        <div className="container">
+          <div className={styles.errorContainer}>
+            <div className={styles.errorIcon}>
+              <i className="bi bi-exclamation-triangle"></i>
+            </div>
+            <h4>Something went wrong</h4>
+            <p className="text-muted mb-4">{error}</p>
+            <button className="btn btn-primary" onClick={handleRetry}>
+              <i className="bi bi-arrow-clockwise me-2"></i>
+              Try Again
+            </button>
+          </div>
+        </div>
       </div>
     );
-  } */
+  }
 
   return (
-    <div className={styles.planEditorContainer}>
-      <div className={styles.planEditorCard}>
-        {/* Header 
-        <div className={styles.planHeader}>
-          <div className={styles.headerContent}>
-            <div className={styles.headerLeft}>
-              <button onClick={handleBackToList} className={styles.backButton}>
-                <ArrowLeft className={styles.backIcon} />
-                Back to all Appointments
-              </button>
-              <div className={styles.studentInfo}>
-                <h1 className={styles.planTitle}>
-                  <Brain className={styles.titleIcon} />
-                  Single Session physical Therapy
-                </h1>
-                <div className={styles.studentDetails}>
-                  <div className={styles.studentDetail}>
-                    <User className={styles.detailIcon} />
-                    <span className={styles.studentName}>{patient.name}</span>
-                  </div>
-                  <div className={styles.studentDetail}>
-                    <span className={styles.studentId}>ID: {patient._id}</span>
-                  </div>
-                  {patient.email && (
-                    <div className={styles.studentDetail}>
-                      <Mail className={styles.detailIcon} />
-                      <span>{patient.email}</span>
-                    </div>
-                  )}
-                  {patient.phone && (
-                    <div className={styles.studentDetail}>
-                      <Phone className={styles.detailIcon} />
-                      <span>{patient.phone}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className={styles.headerActions}></div>
-          </div>
-        </div>*/}
+    <div className={styles.documentPage}>
+      <div className="container">
+        {/* Header */}
+        <div className={styles.pageHeader}>
+          <h1>Document Management</h1>
+          <p className="lead">Manage your medical documents and reports</p>
+        </div>
 
         {/* Main Content */}
-        <div className={styles.planBody}>
-          <div className={styles.documentSection}>
-            <div className={styles.documentContainer}>
-              <SyncfusionDocx
-                userData={{
-                  docxId: plan._id||"dd",
-                  patientId,
-                  filePath: `${
-                    process.env.NEXT_PUBLIC_API_URL
-                  }/uploads/physical-therapyS/plan/${
-                    plan.filePath || "physical-therapy-plan-defoult.docx"
-                  }`,
-                  fileName:
-                    plan.fileName || "physical-therapy-plan-defoult.docx",
-                  docxName: `Single-Session-physical-therapy-plan-${patient.name}.docx`,
-                }}
-                planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/physicalTherapyS/upload-plan`}
-              />
-            </div>
-
-            {plan.lastModified && (
-              <div className={styles.documentFooter}>
-                <div className={styles.lastModified}>
-                  <Clock className={styles.clockIcon} />
-                  <span>
-                    Last modified:{" "}
-                    {new Date(plan.lastModified).toLocaleString()}
-                  </span>
+        {!hasDocument ? (
+          // No Document Found - Show Upload Message
+          <div className={styles.noDocumentContainer}>
+            <div className={styles.noDocumentCard}>
+              <div className={styles.noDocumentIcon}>
+                <i className="bi bi-file-earmark-plus"></i>
+              </div>
+              <h3>No Document Found</h3>
+              <p className="text-muted mb-4">
+                We couldn't find any documents for your account. Please upload a
+                DOCX document to get started.
+              </p>
+              <div className={styles.userInfo}>
+                <div className={styles.infoItem}>
+                  <strong>Doctor ID:</strong> {doctorId}
+                </div>
+                <div className={styles.infoItem}>
+                  <strong>Department ID:</strong> {departmentId}
                 </div>
               </div>
-            )}
+              <button
+                className="btn btn-primary btn-lg"
+                onClick={() => setShowModal(true)}
+              >
+                <i className="bi bi-cloud-upload me-2"></i>
+                Upload Document
+              </button>
+              <button
+                className="btn btn-outline-secondary ms-3"
+                onClick={handleRetry}
+              >
+                <i className="bi bi-arrow-clockwise me-2"></i>
+                Refresh
+              </button>
+            </div>
           </div>
+        ) : (
+          // Document Found - Show with PatientPlanEditor styling
+          <div className={styles.planEditorContainer}>
+            <div className={styles.planEditorCard}>
+              {/* Header with PatientPlanEditor styling */}
+              <div className={styles.planHeader}>
+                <div className={styles.headerContent}>
+                  <div className={styles.headerLeft}>
+                    <button
+                      onClick={handleBackToList}
+                      className={styles.backButton}
+                    >
+                      <ArrowLeft className={styles.backIcon} />
+                      Back to Dashboard
+                    </button>
+                    <div className={styles.studentInfo}>
+                      <h1 className={styles.planTitle}>
+                        <Brain className={styles.titleIcon} />
+                        Doctor Plan Document
+                      </h1>
+                      <div className={styles.studentDetails}>
+                        {hasDocument?.fileName && (
+                          <div className={styles.studentDetail}>
+                            <FileText className={styles.detailIcon} />
+                            <span>{hasDocument.fileName}</span>
+                          </div>
+                        )}
+                        {hasDocument?.createdAt && (
+                          <div className={styles.studentDetail}>
+                            <Calendar className={styles.detailIcon} />
+                            <span>
+                              Created:{" "}
+                              {new Date(
+                                hasDocument.createdAt
+                              ).toLocaleDateString()}
+                            </span>
+                          </div>
+                        )}
 
-          {/* Additional Information Panel */}
-        </div>
+                        <div className={styles.documentActions}>
+                          <button
+                            className="btn btn-primary d-flex align-items-center gap-1"
+                            onClick={() => setShowCloseQuarterModal(true)}
+                          >
+                            <XCircle className="me-2" size={16} />
+                            Close the Quarter
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Main Content */}
+              <div className={styles.planBody}>
+                <div className={styles.documentSection}>
+                  <div className={styles.documentContainer}>
+                    {/* Replace this component as needed */} 
+                    <div className="">{`${process.env.NEXT_PUBLIC_API_URL}${hasDocument?.fullPath}`}</div>
+                    <DoctorPlanDocx
+                      filePath={`${process.env.NEXT_PUBLIC_API_URL}${hasDocument?.fullPath}`}
+                    />
+                  </div>
+                  {hasDocument?.lastModified && (
+                    <div className={styles.documentFooter}>
+                      <div className={styles.lastModified}>
+                        <Clock className={styles.clockIcon} />
+                        <span>
+                          Last modified:{" "}
+                          {new Date(hasDocument.lastModified).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Close Modal */}
+        {showCloseQuarterModal && (
+          <div
+            className="modal fade show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          >
+            <div className="modal-dialog modal-lg modal-dialog-centered">
+              <div className={`modal-content ${styles.customModalContent}`}>
+                <div className="modal-header">
+                  <h5 className="modal-title">Close Quarter</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowCloseQuarterModal(false)}
+                  ></button>
+                </div>
+                <div className="modal-body p-0">
+                  <CloseQuarterForm
+                    onSuccess={handleUploadSuccess}
+                    defaultValues={{
+                      doctorId: doctorId,
+                      departmentId: departmentId,
+                      quarterOfYear: hasDocument?.quarterOfYear,
+                      year: hasDocument?.year,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {showModal && (
+          <div
+            className="modal fade show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          >
+            <div className="modal-dialog modal-lg modal-dialog-centered">
+              <div className={`modal-content ${styles.customModalContent}`}>
+                <div className="modal-header">
+                  <h5 className="modal-title">Upload Document</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowModal(false)}
+                  ></button>
+                </div>
+                <div className="modal-body p-0">
+                  <DocxUploadForm
+                    onSuccess={handleUploadSuccess}
+                    defaultValues={{
+                      doctorId: doctorId,
+                      departmentId: departmentId,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default DoctorPlan;
+}
