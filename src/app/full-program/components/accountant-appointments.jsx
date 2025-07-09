@@ -9,12 +9,12 @@ import {
   FileText,
   DollarSign,
   CreditCard,
-  CheckSquare,
-  Plus,
-  Trash2,
-  X,
-  Save,
+  CheckCircle,
   AlertCircle,
+  Eye,
+  X,
+  Plus,
+  Minus,
 } from "lucide-react"
 import styles from "../styles/accountant-appointments.module.css"
 import axiosInstance from "@/helper/axiosSetup"
@@ -26,32 +26,20 @@ export function AccountantAppointments() {
   const [loading, setLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-
+  const [filterStatus, setFilterStatus] = useState("active")
+  const [filterPaymentStatus, setFilterPaymentStatus] = useState("all")
   const itemsPerPage = 10
 
   // Modal states
   const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [showChecksModal, setShowChecksModal] = useState(false)
+  const [showViewModal, setShowViewModal] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
-  const [paymentType, setPaymentType] = useState("")
-  const [checks, setChecks] = useState([])
-  const [saving, setSaving] = useState(false)
-
-  // Validation states
-  const [validationErrors, setValidationErrors] = useState({})
-  const [checkValidationErrors, setCheckValidationErrors] = useState({})
-
-  // Check form state
-  const [newCheck, setNewCheck] = useState({
-    checkNumber: "",
-    bankName: "",
-    amount: "",
-    dueDate: "",
-    notes: "",
-  })
-
-  const cashPrice = 4000
-  const installmentPrice = 4500
+  const [paymentMethod, setPaymentMethod] = useState("cash")
+  const [checkDetails, setCheckDetails] = useState([
+    { amount: "", checkNumber: "", bankName: "", dueDate: "" },
+    { amount: "", checkNumber: "", bankName: "", dueDate: "" },
+  ])
+  const [processing, setProcessing] = useState(false)
 
   useEffect(() => {
     fetchActiveAppointments()
@@ -59,7 +47,7 @@ export function AccountantAppointments() {
 
   useEffect(() => {
     filterAppointments()
-  }, [appointments, search])
+  }, [appointments, search, filterStatus, filterPaymentStatus])
 
   const fetchPatientName = async (patientId) => {
     try {
@@ -77,33 +65,32 @@ export function AccountantAppointments() {
       const response = await axiosInstance.get("/full/fullprogram")
       const data = response.data
 
-      // Filter only active appointments
-      const activeAppointments = data.filter((appointment) => appointment.status === "active")
+      // Filter for active appointments and fetch patient names
+      const activeAppointments = data.filter(
+        (appointment) => appointment.status === "active" || appointment.programType === "full_program",
+      )
+
+      const appointmentsWithNames = await Promise.all(
+        activeAppointments.map(async (appointment) => {
+          const patientName = await fetchPatientName(appointment.patientid)
+          return {
+            ...appointment,
+            patientName: patientName,
+          }
+        }),
+      )
 
       // Sort by date
-      const sortedAppointments = activeAppointments.sort((a, b) => {
+      const sortedAppointments = appointmentsWithNames.sort((a, b) => {
         const dateTimeA = new Date(`${a.date}T${a.time}`)
         const dateTimeB = new Date(`${b.date}T${b.time}`)
         return dateTimeB - dateTimeA
       })
 
-      // Fetch patient names for all appointments
-      const appointmentsWithNames = await Promise.all(
-        sortedAppointments.map(async (appointment) => {
-          const patientId = appointment.patientid || appointment.patientId
-          const patientName = await fetchPatientName(patientId)
-          return {
-            ...appointment,
-            patientName,
-            patientId: patientId,
-          }
-        }),
-      )
-
-      console.log("Fetched active appointments with patient names:", appointmentsWithNames)
-      setAppointments(appointmentsWithNames)
+      console.log("Fetched active appointments:", sortedAppointments)
+      setAppointments(sortedAppointments)
     } catch (error) {
-      console.error("Error fetching active appointments:", error)
+      console.error("Error fetching appointments:", error)
     } finally {
       setLoading(false)
     }
@@ -121,6 +108,16 @@ export function AccountantAppointments() {
       )
     }
 
+    // Status filter
+    if (filterStatus !== "all") {
+      filtered = filtered.filter((appointment) => appointment.status === filterStatus)
+    }
+
+    // Payment status filter
+    if (filterPaymentStatus !== "all") {
+      filtered = filtered.filter((appointment) => appointment.paymentStatus === filterPaymentStatus)
+    }
+
     setFilteredAppointments(filtered)
     setTotalPages(Math.ceil(filtered.length / itemsPerPage))
     setCurrentPage(1)
@@ -135,297 +132,213 @@ export function AccountantAppointments() {
     setCurrentPage(page)
   }
 
-  const validatePaymentData = (appointment, paymentType) => {
-    const errors = {}
+  const getPaymentStatusBadge = (appointment) => {
+    const { paymentStatus, paymentPercentage } = appointment
 
-    if (!appointment.patientId) {
-      errors.patientId = "Patient ID is required"
+    switch (paymentStatus) {
+      case "FULLY_PAID":
+        return <span className={`${styles.statusBadge} ${styles.fullyPaid}`}>Fully Paid</span>
+      case "PARTIALLY_PAID":
+        return (
+          <span className={`${styles.statusBadge} ${styles.partiallyPaid}`}>Partially Paid ({paymentPercentage}%)</span>
+        )
+      case "PENDING":
+        return <span className={`${styles.statusBadge} ${styles.pending}`}>Pending</span>
+      default:
+        return <span className={`${styles.statusBadge} ${styles.pending}`}>Unknown</span>
     }
-
-    if (!appointment.patientName) {
-      errors.patientName = "Patient name is required"
-    }
-
-    if (!appointment._id) {
-      errors.programId = "Program ID is required"
-    }
-
-    if (paymentType === "cash" && !cashPrice) {
-      errors.price = "Cash price is required"
-    }
-
-    if (paymentType === "installment" && !installmentPrice) {
-      errors.price = "Installment price is required"
-    }
-
-    return errors
   }
 
-  const validateCheckData = (check) => {
-    const errors = {}
-
-    if (!check.checkNumber || check.checkNumber.trim() === "") {
-      errors.checkNumber = "Check number is required"
-    } else if (check.checkNumber.length < 3) {
-      errors.checkNumber = "Check number must be at least 3 characters"
+  const getRemainingAmount = (appointment) => {
+    // Use the actual remaining amount from the appointment data
+    if (appointment.remainingAmount !== undefined) {
+      return appointment.remainingAmount
     }
 
-    if (!check.bankName || check.bankName.trim() === "") {
-      errors.bankName = "Bank name is required"
-    } else if (check.bankName.length < 2) {
-      errors.bankName = "Bank name must be at least 2 characters"
-    }
+    // Fallback calculation if remainingAmount is not available
+    const totalAmount = appointment.totalAmount || (appointment.programType === "full_program" ? 5000 : 0)
+    const paidAmount = appointment.paidAmount || 0
 
-    if (!check.amount || check.amount === "") {
-      errors.amount = "Amount is required"
-    } else if (Number.parseFloat(check.amount) <= 0) {
-      errors.amount = "Amount must be greater than 0"
-    } else if (Number.parseFloat(check.amount) > installmentPrice) {
-      errors.amount = `Amount cannot exceed ${installmentPrice}`
-    }
-
-    if (!check.dueDate) {
-      errors.dueDate = "Due date is required"
-    } else {
-      const selectedDate = new Date(check.dueDate)
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      if (selectedDate < today) {
-        errors.dueDate = "Due date cannot be in the past"
-      }
-    }
-
-    return errors
+    return Math.max(0, totalAmount - paidAmount)
   }
 
-  const validateChecksTotal = (checksArray) => {
-    const total = checksArray.reduce((sum, check) => sum + Number.parseFloat(check.amount || 0), 0)
-    if (total !== installmentPrice) {
-      return `Total checks amount (${total}) must equal installment price (${installmentPrice})`
-    }
-    return null
-  }
-
-  const validateDuplicateCheckNumbers = (checksArray) => {
-    const checkNumbers = checksArray.map((check) => check.checkNumber)
-    const duplicates = checkNumbers.filter((num, index) => checkNumbers.indexOf(num) !== index)
-    if (duplicates.length > 0) {
-      return `Duplicate check numbers found: ${duplicates.join(", ")}`
-    }
-    return null
-  }
-
-  const handlePaymentSelection = (appointment) => {
+  const handleProcessPayment = (appointment) => {
     setSelectedAppointment(appointment)
-    setPaymentType("")
-    setValidationErrors({})
+    setPaymentMethod("cash")
+
+    // Reset check details with empty values for customization
+    setCheckDetails([
+      { amount: "", checkNumber: "", bankName: "", dueDate: "" },
+      { amount: "", checkNumber: "", bankName: "", dueDate: "" },
+    ])
+
     setShowPaymentModal(true)
   }
 
-  const handleCashPayment = async () => {
-    // Validate payment data
-    const errors = validatePaymentData(selectedAppointment, "cash")
-    if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors)
-      alert("Please fix validation errors before proceeding")
-      return
-    }
-
-    setSaving(true)
-    try {
-      const patientId = selectedAppointment.patientId
-      const patientName = selectedAppointment.patientName
-
-      // Create comprehensive comment for cash payment - ensure it's not empty
-      const comment = `Cash payment for full program remaining balance - Patient: ${patientName || "Unknown"} (ID: ${patientId || "Unknown"}) - Session Date: ${selectedAppointment.date ? new Date(selectedAppointment.date).toLocaleDateString() : "Unknown"} at ${selectedAppointment.time || "Unknown"} - Description: ${selectedAppointment.description || "No description"} - Payment processed on: ${new Date().toLocaleString()}`
-
-      // Create money record for cash payment
-      const moneyData = {
-        patientId: patientId,
-        programId: selectedAppointment._id,
-        price: cashPrice,
-        status: "completed",
-        invoiceId: `CASH-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
-        programType: "full_program_remaining",
-        comment: comment, // Ensure comment is included and not empty
-      }
-
-      console.log("Cash payment data being sent:", moneyData)
-
-      const response = await axiosInstance.post("/authentication/saveMoneyRecord", moneyData)
-
-      if (response.status === 200) {
-        // Update appointment status to completed
-        await axiosInstance.put(`/full/fullprogram/${selectedAppointment._id}`, {
-          status: "completed",
-        })
-
-        // Remove from active appointments list
-        setAppointments(appointments.filter((app) => app._id !== selectedAppointment._id))
-
-        setShowPaymentModal(false)
-        setSelectedAppointment(null)
-        setValidationErrors({})
-        alert("Cash payment processed successfully!")
-      }
-    } catch (error) {
-      console.error("Error processing cash payment:", error)
-      alert("Error processing payment: " + (error.response?.data?.message || error.message))
-    } finally {
-      setSaving(false)
-    }
+  const handleViewDetails = (appointment) => {
+    setSelectedAppointment(appointment)
+    setShowViewModal(true)
   }
 
-  const handleInstallmentPayment = () => {
-    // Validate payment data
-    const errors = validatePaymentData(selectedAppointment, "installment")
-    if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors)
-      alert("Please fix validation errors before proceeding")
-      return
-    }
-
-    setShowPaymentModal(false)
-    setShowChecksModal(true)
-    setChecks([])
-    setCheckValidationErrors({})
-  }
-
+  // Add new check
   const addCheck = () => {
-    // Validate check data
-    const errors = validateCheckData(newCheck)
-    if (Object.keys(errors).length > 0) {
-      setCheckValidationErrors(errors)
-      return
-    }
-
-    // Check for duplicate check numbers
-    const existingCheckNumbers = checks.map((check) => check.checkNumber)
-    if (existingCheckNumbers.includes(newCheck.checkNumber)) {
-      setCheckValidationErrors({ checkNumber: "Check number already exists" })
-      return
-    }
-
-    // Check if adding this amount would exceed the total
-    const currentTotal = getTotalChecksAmount()
-    const newAmount = Number.parseFloat(newCheck.amount)
-    if (currentTotal + newAmount > installmentPrice) {
-      setCheckValidationErrors({
-        amount: `Adding this amount would exceed the total. Remaining: ${installmentPrice - currentTotal}`,
-      })
-      return
-    }
-
-    setChecks([...checks, { ...newCheck, id: Date.now() }])
-    setNewCheck({
-      checkNumber: "",
-      bankName: "",
-      amount: "",
-      dueDate: "",
-      notes: "",
-    })
-    setCheckValidationErrors({})
+    setCheckDetails([...checkDetails, { amount: "", checkNumber: "", bankName: "", dueDate: "" }])
   }
 
-  const removeCheck = (checkId) => {
-    setChecks(checks.filter((check) => check.id !== checkId))
-    setCheckValidationErrors({})
+  // Remove check
+  const removeCheck = (index) => {
+    if (checkDetails.length > 1) {
+      const newChecks = checkDetails.filter((_, i) => i !== index)
+      setCheckDetails(newChecks)
+    }
   }
 
-  const getTotalChecksAmount = () => {
-    return checks.reduce((total, check) => total + Number.parseFloat(check.amount || 0), 0)
+  // Calculate total check amount
+  const getTotalCheckAmount = () => {
+    return checkDetails.reduce((total, check) => total + (Number.parseFloat(check.amount) || 0), 0)
   }
 
-  const handleSaveChecks = async () => {
-    // Comprehensive validation
-    if (checks.length === 0) {
-      alert("Please add at least one check")
-      return
-    }
+  // Validate check details
+  const validateCheckDetails = () => {
+    const errors = []
+    let totalAmount = 0
 
-    // Validate total amount
-    const totalError = validateChecksTotal(checks)
-    if (totalError) {
-      alert(totalError)
-      return
-    }
-
-    // Validate duplicate check numbers
-    const duplicateError = validateDuplicateCheckNumbers(checks)
-    if (duplicateError) {
-      alert(duplicateError)
-      return
-    }
-
-    // Validate each check individually
-    for (let i = 0; i < checks.length; i++) {
-      const checkErrors = validateCheckData(checks[i])
-      if (Object.keys(checkErrors).length > 0) {
-        alert(`Check ${i + 1} has validation errors: ${Object.values(checkErrors).join(", ")}`)
-        return
+    checkDetails.forEach((check, index) => {
+      if (!check.amount || Number.parseFloat(check.amount) <= 0) {
+        errors.push(`Check ${index + 1}: Amount is required and must be greater than 0`)
       }
+      if (!check.checkNumber.trim()) {
+        errors.push(`Check ${index + 1}: Check number is required`)
+      }
+      if (!check.dueDate) {
+        errors.push(`Check ${index + 1}: Due date is required`)
+      }
+      totalAmount += Number.parseFloat(check.amount) || 0
+    })
+
+    if (totalAmount < 4000) {
+      errors.push(`Total check amount (${totalAmount} EGP) must be at least 4000 EGP`)
     }
 
-    setSaving(true)
-    try {
-      const patientId = selectedAppointment.patientId
-      const patientName = selectedAppointment.patientName
+    return errors
+  }
 
-      // Create checks individually using the single check endpoint
-      const checkPromises = checks.map(async (check) => {
-        const checkData = {
+  const handleCompletePayment = async () => {
+  if (!selectedAppointment) return;
+
+  // Validate installment details if needed
+  if (paymentMethod === "installment") {
+    const validationErrors = validateCheckDetails();
+    if (validationErrors.length > 0) {
+      alert("Please fix the following errors:\n" + validationErrors.join("\n"));
+      return;
+    }
+  }
+
+  setProcessing(true);
+  try {
+    const totalCheckAmount = getTotalCheckAmount();
+    const paymentData = {
+      appointmentId: selectedAppointment._id,
+      paymentMethod: paymentMethod,
+      amount: paymentMethod === "cash" ? 4000 : totalCheckAmount,
+      patientId: selectedAppointment.patientid,
+      patientName: selectedAppointment.patientName,
+      checkDetails: paymentMethod === "installment" ? checkDetails : null,
+    };
+
+    const response = await axiosInstance.post("/authentication/completeFullProgramPayment", paymentData);
+
+    if (response.status === 200) {
+      // Assign to departments if the payment is successful, regardless of the payment method
+      await assignToAllDepartments(
+        response.data.patientId,
+        response.data.programDescription,
+        selectedAppointment.patientName
+      );
+
+      alert("Payment completed successfully! Patient has been assigned to all departments.");
+      setShowPaymentModal(false);
+      setSelectedAppointment(null);
+      fetchActiveAppointments(); // Refresh the list
+    }
+  } catch (error) {
+    console.error("Error completing payment:", error);
+    alert("Error completing payment: " + (error.response?.data?.message || error.message));
+  } finally {
+    setProcessing(false);
+  }
+};
+
+  // Add this new function to handle assignments to all 5 departments
+  const assignToAllDepartments = async (patientId, description, patientName) => {
+    const departments = [
+      { endpoint: "/aba/assign-to-ABA", name: "ABA" },
+      { endpoint: "/speech/assign-to-Speech", name: "Speech" },
+      { endpoint: "/SpecialEducation/assign-to-Special-Education", name: "Special Education" },
+      { endpoint: "/physicalTherapy/assign-to-physical", name: "Physical Therapy" },
+      { endpoint: "/OccupationalTherapy/assign-to-Occupational", name: "Occupational Therapy" },
+    ]
+
+    const assignmentResults = {
+      totalAssigned: 0,
+      totalFailed: 0,
+      details: [],
+    }
+
+    for (const dept of departments) {
+      try {
+        const assignmentData = {
           patientId: patientId,
-          programId: selectedAppointment._id,
-          moneyId: "000000000000000000000000", // Placeholder ObjectId - will be updated when check is processed
-          checkNumber: check.checkNumber,
-          amount: Number.parseFloat(check.amount),
-          dueDate: check.dueDate,
-          bankName: check.bankName,
-          notes: check.notes || `Check for installment payment - Patient: ${patientName}`,
+          notes: description || `Full program assignment for ${patientName} - ${dept.name}`,
         }
 
-        console.log("Creating individual check:", checkData)
-        return axiosInstance.post("/checks", checkData)
-      })
+        const response = await axiosInstance.post(dept.endpoint, assignmentData)
 
-      await Promise.all(checkPromises)
-
-      // Update appointment status to completed
-      await axiosInstance.put(`/full/fullprogram/${selectedAppointment._id}`, {
-        status: "completed",
-      })
-
-      // Remove from active appointments list
-      setAppointments(appointments.filter((app) => app._id !== selectedAppointment._id))
-
-      setShowChecksModal(false)
-      setSelectedAppointment(null)
-      setChecks([])
-      setCheckValidationErrors({})
-      alert("Installment checks saved successfully! Money records will be created when checks are processed.")
-    } catch (error) {
-      console.error("Error saving installment checks:", error)
-      alert("Error saving installment checks: " + (error.response?.data?.message || error.message))
-    } finally {
-      setSaving(false)
+        if (response.status === 201) {
+          assignmentResults.totalAssigned++
+          assignmentResults.details.push({
+            department: dept.name,
+            success: true,
+            assignment: response.data,
+          })
+          console.log(`Successfully assigned to ${dept.name}:`, response.data)
+        }
+      } catch (error) {
+        assignmentResults.totalFailed++
+        assignmentResults.details.push({
+          department: dept.name,
+          success: false,
+          error: error.response?.data?.message || `Failed to assign to ${dept.name}`,
+        })
+        console.error(`Error assigning to ${dept.name}:`, error)
+      }
     }
+
+    console.log("Assignment Results:", assignmentResults)
+
+    if (assignmentResults.totalFailed > 0) {
+      console.warn(`${assignmentResults.totalFailed} department assignments failed`)
+    }
+
+    return assignmentResults
   }
 
   const closeModals = () => {
     setShowPaymentModal(false)
-    setShowChecksModal(false)
+    setShowViewModal(false)
     setSelectedAppointment(null)
-    setPaymentType("")
-    setChecks([])
-    setValidationErrors({})
-    setCheckValidationErrors({})
-    setNewCheck({
-      checkNumber: "",
-      bankName: "",
-      amount: "",
-      dueDate: "",
-      notes: "",
-    })
+    setPaymentMethod("cash")
+    setCheckDetails([
+      { amount: "", checkNumber: "", bankName: "", dueDate: "" },
+      { amount: "", checkNumber: "", bankName: "", dueDate: "" },
+    ])
+  }
+
+  const updateCheckDetail = (index, field, value) => {
+    const updatedChecks = [...checkDetails]
+    updatedChecks[index][field] = value
+    setCheckDetails(updatedChecks)
   }
 
   // Get current page items
@@ -433,14 +346,22 @@ export function AccountantAppointments() {
   const endIndex = startIndex + itemsPerPage
   const currentAppointments = filteredAppointments.slice(startIndex, endIndex)
 
+  // Statistics
+  const stats = {
+    total: appointments.length,
+    pending: appointments.filter((app) => app.paymentStatus === "PENDING").length,
+    partial: appointments.filter((app) => app.paymentStatus === "PARTIALLY_PAID").length,
+    completed: appointments.filter((app) => app.paymentStatus === "FULLY_PAID").length,
+  }
+
   return (
     <div className={styles.upcomingContainer}>
       <div className={styles.upcomingCard}>
         <div className={styles.cardHeader}>
           <div className={styles.headerContent}>
             <div className={styles.headerLeft}>
-              <h2 className={styles.pageTitle}>Accountant Payment Dashboard</h2>
-              <p className={styles.pageSubtitle}>Process payments for completed sessions</p>
+              <h2 className={styles.pageTitle}>Accountant Dashboard</h2>
+              <p className={styles.pageSubtitle}>Manage payments and financial records</p>
             </div>
             <div className={styles.headerActions}>
               <form onSubmit={handleSearch} className={styles.searchForm}>
@@ -460,36 +381,80 @@ export function AccountantAppointments() {
           </div>
 
           <div className={styles.filtersContainer}>
+            <div className={styles.filterRow}>
+              <div className={styles.filterGroup}>
+                <label className={styles.filterLabel}>Status</label>
+                <select
+                  className={styles.filterSelect}
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="not active">Not Active</option>
+                </select>
+              </div>
+              <div className={styles.filterGroup}>
+                <label className={styles.filterLabel}>Payment Status</label>
+                <select
+                  className={styles.filterSelect}
+                  value={filterPaymentStatus}
+                  onChange={(e) => setFilterPaymentStatus(e.target.value)}
+                >
+                  <option value="all">All Payments</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="PARTIALLY_PAID">Partially Paid</option>
+                  <option value="FULLY_PAID">Fully Paid</option>
+                </select>
+              </div>
+              {(filterStatus !== "active" || filterPaymentStatus !== "all") && (
+                <button
+                  onClick={() => {
+                    setFilterStatus("active")
+                    setFilterPaymentStatus("all")
+                  }}
+                  className={styles.clearFiltersButton}
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
+
             <div className={styles.statsContainer}>
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>
-                  <DollarSign className={styles.statIconSvg} />
+                  <Calendar className={styles.statIconSvg} />
                 </div>
                 <div className={styles.statContent}>
-                  <div className={styles.statNumber}>{filteredAppointments.length}</div>
-                  <div className={styles.statLabel}>Pending Payments</div>
+                  <div className={styles.statNumber}>{stats.total}</div>
+                  <div className={styles.statLabel}>Total</div>
                 </div>
               </div>
-
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>
-                  <CreditCard className={styles.statIconSvg} />
+                  <AlertCircle className={styles.statIconSvg} />
                 </div>
                 <div className={styles.statContent}>
-                  <div className={styles.statNumber}>${(filteredAppointments.length * cashPrice).toLocaleString()}</div>
-                  <div className={styles.statLabel}>Total Cash Value</div>
+                  <div className={styles.statNumber}>{stats.pending}</div>
+                  <div className={styles.statLabel}>Pending</div>
                 </div>
               </div>
-
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>
-                  <CheckSquare className={styles.statIconSvg} />
+                  <Clock className={styles.statIconSvg} />
                 </div>
                 <div className={styles.statContent}>
-                  <div className={styles.statNumber}>
-                    ${(filteredAppointments.length * installmentPrice).toLocaleString()}
-                  </div>
-                  <div className={styles.statLabel}>Total Installment Value</div>
+                  <div className={styles.statNumber}>{stats.partial}</div>
+                  <div className={styles.statLabel}>Partial</div>
+                </div>
+              </div>
+              <div className={styles.statCard}>
+                <div className={styles.statIcon}>
+                  <CheckCircle className={styles.statIconSvg} />
+                </div>
+                <div className={styles.statContent}>
+                  <div className={styles.statNumber}>{stats.completed}</div>
+                  <div className={styles.statLabel}>Completed</div>
                 </div>
               </div>
             </div>
@@ -500,7 +465,7 @@ export function AccountantAppointments() {
           {loading ? (
             <div className={styles.loadingContainer}>
               <div className={styles.loadingSpinner}></div>
-              <p className={styles.loadingText}>Loading pending payments...</p>
+              <p className={styles.loadingText}>Loading appointments...</p>
             </div>
           ) : (
             <div className={styles.tableContainer}>
@@ -522,20 +487,20 @@ export function AccountantAppointments() {
                     </th>
                     <th>
                       <div className={styles.headerCell}>
-                        <Clock className={styles.headerIcon} />
-                        Time
-                      </div>
-                    </th>
-                    <th>
-                      <div className={styles.headerCell}>
                         <FileText className={styles.headerIcon} />
-                        Description
+                        Program Type
                       </div>
                     </th>
                     <th>
                       <div className={styles.headerCell}>
                         <DollarSign className={styles.headerIcon} />
-                        Payment Options
+                        Payment Status
+                      </div>
+                    </th>
+                    <th>
+                      <div className={styles.headerCell}>
+                        <DollarSign className={styles.headerIcon} />
+                        Remaining
                       </div>
                     </th>
                     <th className={styles.textCenter}>Actions</th>
@@ -548,8 +513,9 @@ export function AccountantAppointments() {
                         <td className={styles.indexCell}>{startIndex + index + 1}</td>
                         <td className={styles.patientCell}>
                           <div className={styles.patientInfo}>
-                            <span className={styles.patientName}>{appointment.patientName}</span>
-                            <span className={styles.patientId}>ID: {appointment.patientId}</span>
+                            <span className={styles.patientName}>
+                              {appointment.patientName || `Patient-${appointment.patientid}`}
+                            </span>
                           </div>
                         </td>
                         <td className={styles.dateCell}>
@@ -564,36 +530,38 @@ export function AccountantAppointments() {
                             <span className={styles.dateYear}>{new Date(appointment.date).getFullYear()}</span>
                           </div>
                         </td>
-                        <td className={styles.timeCell}>
-                          <span className={styles.timeValue}>{appointment.time}</span>
+                        <td className={styles.programTypeCell}>
+                          <span className={`${styles.programBadge} ${styles[appointment.programType]}`}>
+                            {appointment.programType?.replace("_", " ").toUpperCase()}
+                          </span>
                         </td>
-                        <td className={styles.descriptionCell}>
-                          <div className={styles.descriptionText} title={appointment.description}>
-                            {appointment.description}
-                          </div>
-                        </td>
-                        <td className={styles.paymentCell}>
-                          <div className={styles.paymentOptions}>
-                            <div className={styles.paymentOption}>
-                              <span className={styles.paymentLabel}>Cash:</span>
-                              <span className={styles.paymentAmount}>${cashPrice}</span>
-                            </div>
-                            <div className={styles.paymentOption}>
-                              <span className={styles.paymentLabel}>Installment:</span>
-                              <span className={styles.paymentAmount}>${installmentPrice}</span>
-                            </div>
-                          </div>
+                        <td className={styles.paymentStatusCell}>{getPaymentStatusBadge(appointment)}</td>
+                        <td className={styles.remainingCell}>
+                          <span
+                            className={`${styles.remainingAmount} ${appointment.paymentStatus === "FULLY_PAID" ? styles.fullyPaidAmount : ""}`}
+                          >
+                            {appointment.paymentStatus === "FULLY_PAID" ? "0" : getRemainingAmount(appointment)} EGP
+                          </span>
                         </td>
                         <td className={styles.actionsCell}>
                           <div className={styles.actionButtons}>
                             <button
-                              onClick={() => handlePaymentSelection(appointment)}
-                              className={`${styles.actionButton} ${styles.paymentButton}`}
-                              title="Process Payment"
-                              disabled={saving}
+                              onClick={() => handleViewDetails(appointment)}
+                              className={`${styles.actionButton} ${styles.viewButton}`}
+                              title="View Details"
                             >
-                              <DollarSign className={styles.actionIcon} />
+                              <Eye className={styles.actionIcon} />
                             </button>
+                            {appointment.programType === "full_program" &&
+                              appointment.paymentStatus !== "FULLY_PAID" && (
+                                <button
+                                  onClick={() => handleProcessPayment(appointment)}
+                                  className={`${styles.actionButton} ${styles.payButton}`}
+                                  title="Process Payment"
+                                >
+                                  <CreditCard className={styles.actionIcon} />
+                                </button>
+                              )}
                           </div>
                         </td>
                       </tr>
@@ -603,8 +571,12 @@ export function AccountantAppointments() {
                       <td colSpan="7" className={styles.noData}>
                         <div className={styles.emptyState}>
                           <DollarSign className={styles.emptyIcon} />
-                          <h3>No pending payments found</h3>
-                          <p>{search ? "Try adjusting your search" : "All active appointments have been processed"}</p>
+                          <h3>No appointments found</h3>
+                          <p>
+                            {search || filterStatus !== "active" || filterPaymentStatus !== "all"
+                              ? "Try adjusting your search or filters"
+                              : "No active appointments requiring payment at this time"}
+                          </p>
                         </div>
                       </td>
                     </tr>
@@ -636,240 +608,206 @@ export function AccountantAppointments() {
         </div>
       </div>
 
-      {/* Payment Selection Modal */}
+      {/* Payment Modal */}
       {showPaymentModal && selectedAppointment && (
         <div className={styles.modalOverlay} onClick={closeModals}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3 className={styles.modalTitle}>Select Payment Method</h3>
+              <h3 className={styles.modalTitle}>Complete Payment</h3>
               <button onClick={closeModals} className={styles.closeButton}>
                 <X className={styles.closeIcon} />
               </button>
             </div>
             <div className={styles.modalBody}>
-              <div className={styles.paymentSelection}>
-                <div className={styles.appointmentInfo}>
-                  <h4>Patient: {selectedAppointment.patientName}</h4>
-                  <p>Date: {new Date(selectedAppointment.date).toLocaleDateString()}</p>
-                  <p>Time: {selectedAppointment.time}</p>
-                  {Object.keys(validationErrors).length > 0 && (
-                    <div className={styles.validationErrors}>
-                      <AlertCircle className={styles.errorIcon} />
-                      <div>
-                        {Object.entries(validationErrors).map(([field, error]) => (
-                          <p key={field} className={styles.errorText}>
-                            {error}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+              <div className={styles.paymentSummary}>
+                <h4>Payment Summary</h4>
+                <div className={styles.summaryRow}>
+                  <span>Patient:</span>
+                  <span>{selectedAppointment.patientName}</span>
                 </div>
-
-                <div className={styles.paymentMethods}>
-                  <div
-                    className={`${styles.paymentMethod} ${paymentType === "cash" ? styles.selected : ""}`}
-                    onClick={() => setPaymentType("cash")}
-                  >
-                    <div className={styles.paymentMethodIcon}>
-                      <DollarSign className={styles.paymentMethodIconSvg} />
-                    </div>
-                    <div className={styles.paymentMethodContent}>
-                      <h5>Cash Payment</h5>
-                      <p className={styles.paymentMethodPrice}>${cashPrice}</p>
-                      <p className={styles.paymentMethodDesc}>Immediate payment completion</p>
-                    </div>
-                  </div>
-
-                  <div
-                    className={`${styles.paymentMethod} ${paymentType === "installment" ? styles.selected : ""}`}
-                    onClick={() => setPaymentType("installment")}
-                  >
-                    <div className={styles.paymentMethodIcon}>
-                      <CheckSquare className={styles.paymentMethodIconSvg} />
-                    </div>
-                    <div className={styles.paymentMethodContent}>
-                      <h5>Installment (Checks)</h5>
-                      <p className={styles.paymentMethodPrice}>${installmentPrice}</p>
-                      <p className={styles.paymentMethodDesc}>Payment via multiple checks</p>
-                    </div>
-                  </div>
+                <div className={styles.summaryRow}>
+                  <span>Program:</span>
+                  <span>Full Program</span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span>Already Paid:</span>
+                  <span>1,000 EGP</span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span>Remaining Amount:</span>
+                  <span className={styles.remainingHighlight}>4,000 EGP</span>
                 </div>
               </div>
+
+              <div className={styles.paymentMethodSection}>
+                <h4>Payment Method</h4>
+                <div className={styles.paymentOptions}>
+                  <label className={styles.paymentOption}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="cash"
+                      checked={paymentMethod === "cash"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                    />
+                    <span>Cash Payment (4,000 EGP)</span>
+                  </label>
+                  <label className={styles.paymentOption}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="installment"
+                      checked={paymentMethod === "installment"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                    />
+                    <span>Installment Payment (Checks)</span>
+                  </label>
+                </div>
+              </div>
+
+              {paymentMethod === "installment" && (
+                <div className={styles.checkDetailsSection}>
+                  <div className={styles.checkHeader}>
+                    <h4>Check Details</h4>
+                    <div className={styles.checkActions}>
+                      <button onClick={addCheck} className={styles.addCheckButton} type="button">
+                        <Plus className={styles.buttonIcon} />
+                        Add Check
+                      </button>
+                      <div className={styles.totalAmount}>Total: {getTotalCheckAmount()} EGP (Min: 4,000 EGP)</div>
+                    </div>
+                  </div>
+                  {checkDetails.map((check, index) => (
+                    <div key={index} className={styles.checkForm}>
+                      <div className={styles.checkFormHeader}>
+                        <h5>Check #{index + 1}</h5>
+                        {checkDetails.length > 1 && (
+                          <button onClick={() => removeCheck(index)} className={styles.removeCheckButton} type="button">
+                            <Minus className={styles.buttonIcon} />
+                          </button>
+                        )}
+                      </div>
+                      <div className={styles.checkFormGrid}>
+                        <div className={styles.formGroup}>
+                          <label>Amount (EGP) *</label>
+                          <input
+                            type="number"
+                            value={check.amount}
+                            onChange={(e) => updateCheckDetail(index, "amount", e.target.value)}
+                            className={styles.formInput}
+                            placeholder="Enter amount"
+                            min="1"
+                            required
+                          />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <label>Check Number *</label>
+                          <input
+                            type="text"
+                            value={check.checkNumber}
+                            onChange={(e) => updateCheckDetail(index, "checkNumber", e.target.value)}
+                            className={styles.formInput}
+                            placeholder="Enter check number"
+                            required
+                          />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <label>Bank Name</label>
+                          <input
+                            type="text"
+                            value={check.bankName}
+                            onChange={(e) => updateCheckDetail(index, "bankName", e.target.value)}
+                            className={styles.formInput}
+                            placeholder="Enter bank name"
+                          />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <label>Due Date *</label>
+                          <input
+                            type="date"
+                            value={check.dueDate}
+                            onChange={(e) => updateCheckDetail(index, "dueDate", e.target.value)}
+                            className={styles.formInput}
+                            min={new Date().toISOString().split("T")[0]}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <div className={styles.modalFooter}>
-              <button onClick={closeModals} className={styles.cancelButton} disabled={saving}>
+              <button onClick={closeModals} className={styles.cancelButton} disabled={processing}>
                 Cancel
               </button>
-              {paymentType === "cash" && (
-                <button onClick={handleCashPayment} className={styles.cashButton} disabled={saving}>
-                  <DollarSign className={styles.buttonIcon} />
-                  {saving ? "Processing..." : "Process Cash Payment"}
-                </button>
-              )}
-              {paymentType === "installment" && (
-                <button onClick={handleInstallmentPayment} className={styles.installmentButton} disabled={saving}>
-                  <CheckSquare className={styles.buttonIcon} />
-                  Setup Installment
-                </button>
-              )}
+              <button onClick={handleCompletePayment} className={styles.completeButton} disabled={processing}>
+                <CreditCard className={styles.buttonIcon} />
+                {processing
+                  ? "Processing..."
+                  : paymentMethod === "cash"
+                    ? "Complete Payment (4,000 EGP)"
+                    : `Complete Payment (${getTotalCheckAmount()} EGP)`}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Checks Management Modal */}
-      {showChecksModal && selectedAppointment && (
+      {/* View Details Modal */}
+      {showViewModal && selectedAppointment && (
         <div className={styles.modalOverlay} onClick={closeModals}>
-          <div className={`${styles.modal} ${styles.checksModal}`} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3 className={styles.modalTitle}>Manage Installment Checks</h3>
+              <h3 className={styles.modalTitle}>Appointment Details</h3>
               <button onClick={closeModals} className={styles.closeButton}>
                 <X className={styles.closeIcon} />
               </button>
             </div>
             <div className={styles.modalBody}>
-              <div className={styles.checksContainer}>
-                <div className={styles.appointmentInfo}>
-                  <h4>Patient: {selectedAppointment.patientName}</h4>
-                  <p>Total Amount: ${installmentPrice}</p>
-                  <p>Current Total: ${getTotalChecksAmount()}</p>
-                  <p>Remaining: ${installmentPrice - getTotalChecksAmount()}</p>
-                  <div className={styles.infoNote}>
-                    <AlertCircle className={styles.infoIcon} />
-                    <span>
-                      Checks will be saved for tracking. Money records will be created when checks are processed.
-                    </span>
-                  </div>
+              <div className={styles.detailsGrid}>
+                <div className={styles.detailItem}>
+                  <label>Patient Name:</label>
+                  <span>{selectedAppointment.patientName}</span>
                 </div>
-
-                {/* Add New Check Form */}
-                <div className={styles.addCheckForm}>
-                  <h5>Add New Check</h5>
-                  <div className={styles.checkFormGrid}>
-                    <div className={styles.formGroup}>
-                      <label className={styles.formLabel}>Check Number *</label>
-                      <input
-                        type="text"
-                        value={newCheck.checkNumber}
-                        onChange={(e) => setNewCheck({ ...newCheck, checkNumber: e.target.value })}
-                        className={`${styles.formInput} ${checkValidationErrors.checkNumber ? styles.errorInput : ""}`}
-                        placeholder="Enter check number"
-                      />
-                      {checkValidationErrors.checkNumber && (
-                        <span className={styles.errorText}>{checkValidationErrors.checkNumber}</span>
-                      )}
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.formLabel}>Bank Name *</label>
-                      <input
-                        type="text"
-                        value={newCheck.bankName}
-                        onChange={(e) => setNewCheck({ ...newCheck, bankName: e.target.value })}
-                        className={`${styles.formInput} ${checkValidationErrors.bankName ? styles.errorInput : ""}`}
-                        placeholder="Enter bank name"
-                      />
-                      {checkValidationErrors.bankName && (
-                        <span className={styles.errorText}>{checkValidationErrors.bankName}</span>
-                      )}
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.formLabel}>Amount *</label>
-                      <input
-                        type="number"
-                        value={newCheck.amount}
-                        onChange={(e) => setNewCheck({ ...newCheck, amount: e.target.value })}
-                        className={`${styles.formInput} ${checkValidationErrors.amount ? styles.errorInput : ""}`}
-                        placeholder="Enter amount"
-                        min="0"
-                        step="0.01"
-                        max={installmentPrice - getTotalChecksAmount()}
-                      />
-                      {checkValidationErrors.amount && (
-                        <span className={styles.errorText}>{checkValidationErrors.amount}</span>
-                      )}
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.formLabel}>Due Date *</label>
-                      <input
-                        type="date"
-                        value={newCheck.dueDate}
-                        onChange={(e) => setNewCheck({ ...newCheck, dueDate: e.target.value })}
-                        className={`${styles.formInput} ${checkValidationErrors.dueDate ? styles.errorInput : ""}`}
-                        min={new Date().toISOString().split("T")[0]}
-                      />
-                      {checkValidationErrors.dueDate && (
-                        <span className={styles.errorText}>{checkValidationErrors.dueDate}</span>
-                      )}
-                    </div>
-                    <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-                      <label className={styles.formLabel}>Notes</label>
-                      <input
-                        type="text"
-                        value={newCheck.notes}
-                        onChange={(e) => setNewCheck({ ...newCheck, notes: e.target.value })}
-                        className={styles.formInput}
-                        placeholder="Optional notes"
-                        maxLength="200"
-                      />
-                    </div>
-                  </div>
-                  <button onClick={addCheck} className={styles.addCheckButton}>
-                    <Plus className={styles.buttonIcon} />
-                    Add Check
-                  </button>
+                <div className={styles.detailItem}>
+                  <label>Date:</label>
+                  <span>{new Date(selectedAppointment.date).toLocaleDateString()}</span>
                 </div>
-
-                {/* Checks List */}
-                {checks.length > 0 && (
-                  <div className={styles.checksList}>
-                    <h5>Added Checks ({checks.length})</h5>
-                    <div className={styles.checksTable}>
-                      {checks.map((check) => (
-                        <div key={check.id} className={styles.checkItem}>
-                          <div className={styles.checkDetails}>
-                            <div className={styles.checkInfo}>
-                              <span className={styles.checkNumber}>#{check.checkNumber}</span>
-                              <span className={styles.checkBank}>{check.bankName}</span>
-                            </div>
-                            <div className={styles.checkMeta}>
-                              <span className={styles.checkAmount}>${check.amount}</span>
-                              <span className={styles.checkDate}>Due: {check.dueDate}</span>
-                            </div>
-                            {check.notes && <div className={styles.checkNotes}>{check.notes}</div>}
-                          </div>
-                          <button onClick={() => removeCheck(check.id)} className={styles.removeCheckButton}>
-                            <Trash2 className={styles.removeCheckIcon} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <div className={styles.checksTotal}>
-                      <strong>
-                        Total: ${getTotalChecksAmount()} / ${installmentPrice}
-                        {getTotalChecksAmount() !== installmentPrice && (
-                          <span className={styles.totalWarning}>
-                            {" "}
-                            (Remaining: ${installmentPrice - getTotalChecksAmount()})
-                          </span>
-                        )}
-                      </strong>
-                    </div>
-                  </div>
-                )}
+                <div className={styles.detailItem}>
+                  <label>Time:</label>
+                  <span>{selectedAppointment.time}</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <label>Program Type:</label>
+                  <span>{selectedAppointment.programType?.replace("_", " ").toUpperCase()}</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <label>Total Amount:</label>
+                  <span>{selectedAppointment.totalAmount} EGP</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <label>Paid Amount:</label>
+                  <span>{selectedAppointment.paidAmount} EGP</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <label>Remaining Amount:</label>
+                  <span>{selectedAppointment.remainingAmount} EGP</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <label>Payment Status:</label>
+                  {getPaymentStatusBadge(selectedAppointment)}
+                </div>
+                <div className={styles.detailItem}>
+                  <label>Description:</label>
+                  <span>{selectedAppointment.description}</span>
+                </div>
               </div>
             </div>
             <div className={styles.modalFooter}>
-              <button onClick={closeModals} className={styles.cancelButton} disabled={saving}>
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveChecks}
-                className={styles.saveChecksButton}
-                disabled={saving || checks.length === 0 || getTotalChecksAmount() !== installmentPrice}
-              >
-                <Save className={styles.buttonIcon} />
-                {saving ? "Saving..." : "Save Checks Only"}
+              <button onClick={closeModals} className={styles.cancelButton}>
+                Close
               </button>
             </div>
           </div>

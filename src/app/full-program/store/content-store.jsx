@@ -2,9 +2,8 @@
 
 import { create } from "zustand"
 
-const useContentStore = create((set) => ({
+export const useContentStore = create((set) => ({
   activeContent: null,
   setActiveContent: (content) => set({ activeContent: content }),
+  clearActiveContent: () => set({ activeContent: null }),
 }))
-
-export { useContentStore }

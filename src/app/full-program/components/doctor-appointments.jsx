@@ -1,7 +1,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Calendar, Clock, User, FileText, X, Save, CheckCircle, XCircle, RotateCcw } from 'lucide-react'
+import {
+  Search,
+  Calendar,
+  Clock,
+  User,
+  FileText,
+  X,
+  Save,
+  CheckCircle,
+  XCircle,
+  RotateCcw,
+  DollarSign,
+} from "lucide-react"
 import styles from "../styles/doctor-appointments.module.css"
 import axiosInstance from "@/helper/axiosSetup"
 
@@ -14,8 +26,8 @@ export function DoctorAppointments() {
   const [totalPages, setTotalPages] = useState(1)
   const [filterStatus, setFilterStatus] = useState("all")
   const [filterTimeframe, setFilterTimeframe] = useState("all")
-
-  const itemsPerPage = 10
+  const [filterPaymentStatus, setFilterPaymentStatus] = useState("all")
+  const [itemsPerPage] = useState(10)
 
   // Modal states
   const [showRescheduleModal, setShowRescheduleModal] = useState(false)
@@ -35,7 +47,7 @@ export function DoctorAppointments() {
 
   useEffect(() => {
     filterAppointments()
-  }, [appointments, search, filterStatus, filterTimeframe])
+  }, [appointments, search, filterStatus, filterTimeframe, filterPaymentStatus])
 
   const fetchPatientName = async (patientId) => {
     try {
@@ -59,9 +71,9 @@ export function DoctorAppointments() {
           const patientName = await fetchPatientName(appointment.patientid)
           return {
             ...appointment,
-            patientName: patientName
+            patientName: patientName,
           }
-        })
+        }),
       )
 
       // Sort appointments by date and time
@@ -111,6 +123,11 @@ export function DoctorAppointments() {
       })
     }
 
+    // Payment status filter
+    if (filterPaymentStatus !== "all") {
+      filtered = filtered.filter((appointment) => appointment.paymentStatus === filterPaymentStatus)
+    }
+
     setFilteredAppointments(filtered)
     setTotalPages(Math.ceil(filtered.length / itemsPerPage))
     setCurrentPage(1)
@@ -125,19 +142,17 @@ export function DoctorAppointments() {
     setCurrentPage(page)
   }
 
-const parseAppointmentDateTime = (date, time) => {
-  if (!date || !time) {
-    console.error("Invalid date or time:", date, time)
-    return null
+  const parseAppointmentDateTime = (date, time) => {
+    if (!date || !time) {
+      console.error("Invalid date or time:", date, time)
+      return null
+    }
+    const dateParts = date.split("T")[0]
+    const timeParts = time.split("T")[1]?.split("Z")[0] || time
+    const formattedTime = timeParts.includes(":") && timeParts.split(":").length === 2 ? timeParts + ":00" : timeParts
+    const formattedDateTime = `${dateParts}T${formattedTime}`
+    return new Date(formattedDateTime)
   }
-
-  const dateParts = date.split("T")[0]
-  const timeParts = time.split("T")[1]?.split("Z")[0] || time
-  const formattedTime = timeParts.includes(":") && timeParts.split(":").length === 2 ? timeParts + ":00" : timeParts
-  const formattedDateTime = `${dateParts}T${formattedTime}`
-  return new Date(formattedDateTime)
-}
-
 
   const getAppointmentStatus = (appointment) => {
     const currentDateTime = new Date()
@@ -157,37 +172,52 @@ const parseAppointmentDateTime = (date, time) => {
     }
   }
 
-  const handleMarkAsDone = async (appointmentId) => {
+  const getPaymentStatusBadge = (appointment) => {
+    const { paymentStatus, paymentPercentage } = appointment
+
+    switch (paymentStatus) {
+      case "FULLY_PAID":
+        return <span className={`${styles.paymentBadge} ${styles.fullyPaid}`}>Fully Paid</span>
+      case "PARTIALLY_PAID":
+        return (
+          <span className={`${styles.paymentBadge} ${styles.partiallyPaid}`}>
+            Partially Paid ({paymentPercentage || 0}%)
+          </span>
+        )
+      case "PENDING":
+        return <span className={`${styles.paymentBadge} ${styles.pending}`}>Pending</span>
+      default:
+        return <span className={`${styles.paymentBadge} ${styles.pending}`}>Unknown</span>
+    }
+  }
+
+  const handleMarkAsActive = async (appointmentId) => {
     try {
       setSaving(true)
       const response = await axiosInstance.put(`/full/fullprogram/${appointmentId}`, {
         status: "active",
       })
-
       setAppointments(appointments.map((app) => (app._id === appointmentId ? { ...app, status: "active" } : app)))
-
-      alert("Appointment marked as done!")
+      alert("Appointment marked as active! Patient can now proceed to payment.")
     } catch (error) {
-      console.error("Error marking appointment as done:", error)
-      alert("Error marking appointment as done")
+      console.error("Error marking appointment as active:", error)
+      alert("Error marking appointment as active")
     } finally {
       setSaving(false)
     }
   }
 
-  const handleMarkAsComplete = async (appointmentId) => {
+  const handleMarkAsDone = async (appointmentId) => {
     try {
       setSaving(true)
       const response = await axiosInstance.put(`/full/fullprogram/${appointmentId}`, {
         status: "completed",
       })
-
       setAppointments(appointments.map((app) => (app._id === appointmentId ? { ...app, status: "completed" } : app)))
-
       alert("Appointment marked as completed!")
     } catch (error) {
-      console.error("Error marking appointment as completed:", error)
-      alert("Error marking appointment as completed")
+      console.error("Error marking appointment as done:", error)
+      alert("Error marking appointment as done")
     } finally {
       setSaving(false)
     }
@@ -216,9 +246,7 @@ const parseAppointmentDateTime = (date, time) => {
         time: rescheduleData.time,
         description: `${selectedAppointment.description} [Rescheduled: ${rescheduleData.reason}]`,
       })
-
       const updatedAppointments = appointments.map((app) => (app._id === selectedAppointment._id ? response.data : app))
-
       setAppointments(updatedAppointments)
       setShowRescheduleModal(false)
       setSelectedAppointment(null)
@@ -237,11 +265,9 @@ const parseAppointmentDateTime = (date, time) => {
       const response = await axiosInstance.put(`/full/fullprogram/${selectedAppointment._id}`, {
         status: "cancelled",
       })
-
       setAppointments(
         appointments.map((app) => (app._id === selectedAppointment._id ? { ...app, status: "cancelled" } : app)),
       )
-
       setShowCancelModal(false)
       setSelectedAppointment(null)
       alert("Appointment cancelled successfully!")
@@ -280,19 +306,87 @@ const parseAppointmentDateTime = (date, time) => {
       )
     }
 
+    // Full Program specific logic
+    if (appointment.programType === "full_program") {
+      if (appointment.status === "not active") {
+        return (
+          <div className={styles.actionButtons}>
+            <button
+              className={`${styles.actionButton} ${styles.activateButton}`}
+              onClick={() => handleMarkAsActive(appointment._id)}
+              title="Mark as Active"
+              disabled={saving}
+            >
+              <CheckCircle className={styles.actionIcon} />
+            </button>
+            <button
+              onClick={() => handleReschedule(appointment)}
+              className={`${styles.actionButton} ${styles.rescheduleButton}`}
+              title="Reschedule"
+              disabled={saving}
+            >
+              <RotateCcw className={styles.actionIcon} />
+            </button>
+            <button
+              onClick={() => handleCancelAppointment(appointment)}
+              className={`${styles.actionButton} ${styles.cancelButton}`}
+              title="Cancel"
+              disabled={saving}
+            >
+              <XCircle className={styles.actionIcon} />
+            </button>
+          </div>
+        )
+      } else if (appointment.status === "active") {
+        // Check if this is a full program and show appropriate status
+        if (appointment.programType === "full_program") {
+          if (appointment.paymentStatus === "FULLY_PAID") {
+            return (
+              <div className={styles.actionButtons}>
+                <span className={styles.paidText}>Paid</span>
+              </div>
+            )
+          } else {
+            return (
+              <div className={styles.actionButtons}>
+                <span className={styles.activeText}>Ready for Payment</span>
+              </div>
+            )
+          }
+        } else {
+          return (
+            <div className={styles.actionButtons}>
+              <span className={styles.activeText}>Active</span>
+            </div>
+          )
+        }
+      }
+    }
+
+    // For other program types
     if (appointment.status === "active") {
-      return (
-        <div className={styles.actionButtons}>
-          <button
-            className={`${styles.actionButton} ${styles.completeButton}`}
-            onClick={() => handleMarkAsComplete(appointment._id)}
-            title="Mark as Complete"
-            disabled={saving}
-          >
-            <CheckCircle className={styles.actionIcon} />
-          </button>
-        </div>
-      )
+      // Check if this is a full program and show payment status
+      if (appointment.programType === "full_program") {
+        if (appointment.paymentStatus === "FULLY_PAID") {
+          return (
+            <div className={styles.actionButtons}>
+              <span className={styles.paidText}>Paid</span>
+            </div>
+          )
+        } else {
+          return (
+            <div className={styles.actionButtons}>
+              <span className={styles.activeText}>Ready for Payment</span>
+            </div>
+          )
+        }
+      } else {
+        return (
+          <div className={styles.actionButtons}>
+            <span className={styles.activeText}>Active</span>
+          </div>
+        )
+      }
     }
 
     // For upcoming appointments or overdue ones
@@ -351,6 +445,9 @@ const parseAppointmentDateTime = (date, time) => {
     }).length,
     active: appointments.filter((app) => app.status === "active").length,
     completed: appointments.filter((app) => app.status === "completed").length,
+    pendingPayment: appointments.filter(
+      (app) => app.paymentStatus === "PENDING" || app.paymentStatus === "PARTIALLY_PAID",
+    ).length,
   }
 
   return (
@@ -360,7 +457,7 @@ const parseAppointmentDateTime = (date, time) => {
           <div className={styles.headerContent}>
             <div className={styles.headerLeft}>
               <h2 className={styles.pageTitle}>Doctor Appointments Dashboard</h2>
-              <p className={styles.pageSubtitle}>Manage all patient appointments</p>
+              <p className={styles.pageSubtitle}>Manage all patient appointments and track payment status</p>
             </div>
             <div className={styles.headerActions}>
               <form onSubmit={handleSearch} className={styles.searchForm}>
@@ -378,7 +475,6 @@ const parseAppointmentDateTime = (date, time) => {
               </form>
             </div>
           </div>
-
           <div className={styles.filtersContainer}>
             <div className={styles.filterRow}>
               <div className={styles.filterGroup}>
@@ -389,13 +485,12 @@ const parseAppointmentDateTime = (date, time) => {
                   onChange={(e) => setFilterStatus(e.target.value)}
                 >
                   <option value="all">All Status</option>
-                  <option value="not active">Pending</option>
+                  <option value="not active">Not Active</option>
                   <option value="active">Active</option>
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
               </div>
-
               <div className={styles.filterGroup}>
                 <label className={styles.filterLabel}>Timeframe</label>
                 <select
@@ -408,12 +503,25 @@ const parseAppointmentDateTime = (date, time) => {
                   <option value="past">Past</option>
                 </select>
               </div>
-
-              {(filterStatus !== "all" || filterTimeframe !== "all") && (
+              <div className={styles.filterGroup}>
+                <label className={styles.filterLabel}>Payment</label>
+                <select
+                  className={styles.filterSelect}
+                  value={filterPaymentStatus}
+                  onChange={(e) => setFilterPaymentStatus(e.target.value)}
+                >
+                  <option value="all">All Payments</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="PARTIALLY_PAID">Partially Paid</option>
+                  <option value="FULLY_PAID">Fully Paid</option>
+                </select>
+              </div>
+              {(filterStatus !== "all" || filterTimeframe !== "all" || filterPaymentStatus !== "all") && (
                 <button
                   onClick={() => {
                     setFilterStatus("all")
                     setFilterTimeframe("all")
+                    setFilterPaymentStatus("all")
                   }}
                   className={styles.clearFiltersButton}
                 >
@@ -421,7 +529,6 @@ const parseAppointmentDateTime = (date, time) => {
                 </button>
               )}
             </div>
-
             <div className={styles.statsContainer}>
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>
@@ -432,7 +539,6 @@ const parseAppointmentDateTime = (date, time) => {
                   <div className={styles.statLabel}>Total</div>
                 </div>
               </div>
-
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>
                   <Clock className={styles.statIconSvg} />
@@ -442,7 +548,6 @@ const parseAppointmentDateTime = (date, time) => {
                   <div className={styles.statLabel}>Upcoming</div>
                 </div>
               </div>
-
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>
                   <Save className={styles.statIconSvg} />
@@ -452,7 +557,6 @@ const parseAppointmentDateTime = (date, time) => {
                   <div className={styles.statLabel}>Active</div>
                 </div>
               </div>
-
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>
                   <CheckCircle className={styles.statIconSvg} />
@@ -462,10 +566,18 @@ const parseAppointmentDateTime = (date, time) => {
                   <div className={styles.statLabel}>Completed</div>
                 </div>
               </div>
+              <div className={styles.statCard}>
+                <div className={styles.statIcon}>
+                  <DollarSign className={styles.statIconSvg} />
+                </div>
+                <div className={styles.statContent}>
+                  <div className={styles.statNumber}>{stats.pendingPayment}</div>
+                  <div className={styles.statLabel}>Pending Payment</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-
         <div className={styles.cardBody}>
           {loading ? (
             <div className={styles.loadingContainer}>
@@ -499,7 +611,13 @@ const parseAppointmentDateTime = (date, time) => {
                     <th>
                       <div className={styles.headerCell}>
                         <FileText className={styles.headerIcon} />
-                        Description
+                        Program Type
+                      </div>
+                    </th>
+                    <th>
+                      <div className={styles.headerCell}>
+                        <DollarSign className={styles.headerIcon} />
+                        Payment Status
                       </div>
                     </th>
                     <th>Status</th>
@@ -515,7 +633,9 @@ const parseAppointmentDateTime = (date, time) => {
                           <td className={styles.indexCell}>{startIndex + index + 1}</td>
                           <td className={styles.patientCell}>
                             <div className={styles.patientInfo}>
-                              <span className={styles.patientName}>{appointment.patientName || `Patient-${appointment.patientid}`}</span>
+                              <span className={styles.patientName}>
+                                {appointment.patientName || `Patient-${appointment.patientid}`}
+                              </span>
                             </div>
                           </td>
                           <td className={styles.dateCell}>
@@ -533,10 +653,20 @@ const parseAppointmentDateTime = (date, time) => {
                           <td className={styles.timeCell}>
                             <span className={styles.timeValue}>{appointment.time}</span>
                           </td>
-                          <td className={styles.descriptionCell}>
-                            <div className={styles.descriptionText} title={appointment.description}>
-                              {appointment.description}
-                            </div>
+                          <td className={styles.programTypeCell}>
+                            <span className={`${styles.programBadge} ${styles[appointment.programType]}`}>
+                              {appointment.programType?.replace("_", " ").toUpperCase()}
+                            </span>
+                          </td>
+                          <td className={styles.paymentStatusCell}>
+                            {getPaymentStatusBadge(appointment)}
+                            {appointment.totalAmount && (
+                              <div className={styles.paymentDetails}>
+                                <small>
+                                  {appointment.paidAmount || 0}/{appointment.totalAmount} EGP
+                                </small>
+                              </div>
+                            )}
                           </td>
                           <td className={styles.statusCell}>
                             <span className={`${styles.statusBadge} ${styles[status.type]}`}>{status.label}</span>
@@ -547,12 +677,15 @@ const parseAppointmentDateTime = (date, time) => {
                     })
                   ) : (
                     <tr>
-                      <td colSpan="7" className={styles.noData}>
+                      <td colSpan="8" className={styles.noData}>
                         <div className={styles.emptyState}>
                           <Calendar className={styles.emptyIcon} />
                           <h3>No appointments found</h3>
                           <p>
-                            {search || filterStatus !== "all" || filterTimeframe !== "all"
+                            {search ||
+                            filterStatus !== "all" ||
+                            filterTimeframe !== "all" ||
+                            filterPaymentStatus !== "all"
                               ? "Try adjusting your search or filters"
                               : "No appointments are scheduled at this time"}
                           </p>
@@ -564,7 +697,6 @@ const parseAppointmentDateTime = (date, time) => {
               </table>
             </div>
           )}
-
           {filteredAppointments.length > 0 && (
             <div className={styles.paginationContainer}>
               <span className={styles.paginationInfo}>
@@ -660,8 +792,9 @@ const parseAppointmentDateTime = (date, time) => {
                 </div>
                 <h4 className={styles.deleteTitle}>Cancel Appointment?</h4>
                 <p className={styles.deleteMessage}>
-                  Are you sure you want to cancel the appointment for <strong>{selectedAppointment.patientName || `Patient-${selectedAppointment.patientid}`}</strong>{" "}
-                  on <strong>{new Date(selectedAppointment.date).toLocaleDateString()}</strong> at{" "}
+                  Are you sure you want to cancel the appointment for{" "}
+                  <strong>{selectedAppointment.patientName || `Patient-${selectedAppointment.patientid}`}</strong> on{" "}
+                  <strong>{new Date(selectedAppointment.date).toLocaleDateString()}</strong> at{" "}
                   <strong>{selectedAppointment.time}</strong>?
                 </p>
                 <p className={styles.deleteWarning}>This action can be undone by rescheduling.</p>

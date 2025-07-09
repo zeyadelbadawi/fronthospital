@@ -1,128 +1,183 @@
-'use client';
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useRouter } from 'next/navigation';
-import jwt_decode from 'jwt-decode';
-import { User, Mail, Phone, Edit3, Lock, Eye, EyeOff, Save, X, Stethoscope } from 'lucide-react';
-import styles from '../styles/profile-view.module.css';
+"use client"
+import { useState, useEffect } from "react"
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  Shield,
+  Edit3,
+  Save,
+  X,
+  Eye,
+  EyeOff,
+  Lock,
+  FileText,
+  Building2,
+  Clock,
+} from "lucide-react"
 
+import axiosInstance from "@/helper/axiosSetup"
+import styles from "../styles/profile-view.module.css"
+import DoctorProfilePlans from "./doctor-profile-plans"
+import { getCurrentUser } from "@/app/full-program/utils/auth-utils"
 const PublicProfileDoctor = () => {
-  const router = useRouter();
-  const [doctor, setDoctor] = useState(null);
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-  const [doctorId, setDoctorId] = useState(null);
-  const [activeTab, setActiveTab] = useState('edit-profile');
-  const [loading, setLoading] = useState(true);
+  const user = getCurrentUser()
+  const [activeTab, setActiveTab] = useState("profile")
+  const [profile, setProfile] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  // Form states
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    dateOfBirth: "",
+    specialization: "",
+    experience: "",
+  })
+
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  })
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('You must log in to access this page');
-      router.push('/sign-in');
-      return;
+    if (user?.id) {
+      fetchProfile()
+    }
+  }, [user?.id])
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true)
+      const response = await axiosInstance.get(`/authentication/doctor/${user?.id}`)
+      const profileData = response.data
+      setProfile(profileData)
+      setFormData({
+        name: profileData.name || "",
+        email: profileData.email || "",
+        phone: profileData.phone || "",
+        address: profileData.address || "",
+        dateOfBirth: profileData.dateOfBirth ? profileData.dateOfBirth.split("T")[0] : "",
+        specialization: profileData.specialization || "",
+        experience: profileData.experience || "",
+      })
+    } catch (error) {
+      console.error("Error fetching profile:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSaveProfile = async () => {
+    try {
+      setSaving(true)
+      await axiosInstance.put(`/authentication/doctor/${user?.id}`, formData)
+      await fetchProfile()
+      setEditing(false)
+      alert("Profile updated successfully!")
+    } catch (error) {
+      console.error("Error updating profile:", error)
+      alert("Failed to update profile. Please try again.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      alert("New passwords don't match!")
+      return
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      alert("New password must be at least 6 characters long!")
+      return
     }
 
     try {
-      const decodedToken = jwt_decode(token);
-      const userRole = decodedToken?.role;
-      const userId = decodedToken?.id;
-      
-      if (!userRole || !userId || userRole !== 'doctor') {
-        alert('You must be a doctor to access this page');
-        router.push('/sign-in');
-        return;
-      }
-      
-      setDoctorId(userId);
-
-      const fetchDoctor = async () => {
-        try {
-          const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/doctor/${userId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          setDoctor(response.data);
-          setUsername(response.data.username);
-          setEmail(response.data.email);
-          setPhone(response.data.phone);
-          setLoading(false);
-        } catch (error) {
-          console.error('Error fetching doctor data:', error);
-          setLoading(false);
-        }
-      };
-
-      fetchDoctor();
+      setSaving(true)
+      await axiosInstance.put(`/authentication/change-password/${user?.id}`, {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      })
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      })
+      alert("Password changed successfully!")
     } catch (error) {
-      console.error('Invalid token:', error);
-      alert('Invalid or expired token');
-      router.push('/sign-in');
+      console.error("Error changing password:", error)
+      alert("Failed to change password. Please check your current password.")
+    } finally {
+      setSaving(false)
     }
-  }, [router]);
+  }
 
-  const handlePasswordChange = async (e) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      alert("Passwords don't match!");
-      return;
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  const handlePasswordChange = (field, value) => {
+    setPasswordData((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "Not provided"
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+  }
+
+  const getInitials = (name) => {
+    // Add safety check for undefined/null name
+    if (!name || typeof name !== "string") {
+      return "DR" // Default initials
     }
-    try {
-      const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/authentication/doctor-password/${doctorId}`, { password: newPassword });
-      if (response.status === 200) {
-        alert('Password updated successfully');
-        setPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-      }
-    } catch (error) {
-      console.error('Error updating password:', error);
-      alert('Error updating password');
-    }
-  };
-
-  const togglePasswordVisibility = () => {
-    setPasswordVisible(!passwordVisible);
-  };
-
-  const toggleConfirmPasswordVisibility = () => {
-    setConfirmPasswordVisible(!confirmPasswordVisible);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const updatedDoctor = { username, email, phone };
-    try {
-      const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/authentication/edit-doctor/${doctorId}`, updatedDoctor);
-      if (response.status === 200) {
-        alert('Doctor updated successfully');
-      }
-    } catch (error) {
-      console.error('Error updating doctor:', error);
-      alert('Error updating doctor');
-    }
-  };
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+  }
 
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-        <div className={styles.loadingText}>Loading your profile...</div>
+      <div className={styles.container}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}></div>
+          <p className={styles.loadingText}>Loading your profile...</p>
+        </div>
       </div>
-    );
+    )
   }
 
-  if (!doctor) {
+  if (!profile) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingText}>Profile not found</div>
+      <div className={styles.container}>
+        <div className={styles.loadingContainer}>
+          <p>Profile not found</p>
+        </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -133,43 +188,56 @@ const PublicProfileDoctor = () => {
           <div className={styles.profileHeader}></div>
           <div className={styles.profileContent}>
             <div className={styles.avatarContainer}>
-              <div className={styles.avatar}>
-                Dr. {username.charAt(0).toUpperCase()}
-              </div>
-              <h2 className={styles.profileName}>Dr. {username}</h2>
-              <p className={styles.profileEmail}>{email}</p>
+              <div className={styles.avatar}>{getInitials(profile?.name || "Doctor")}</div>
+              <h2 className={styles.profileName}>{profile?.name || "Loading..."}</h2>
+              <p className={styles.profileEmail}>{profile?.email || "Loading..."}</p>
               <div className={styles.profileBadge}>
-                <Stethoscope className={styles.profileBadgeIcon} />
+                <Shield className={styles.profileBadgeIcon} />
                 Doctor
               </div>
             </div>
 
             <div className={styles.infoSection}>
               <h3 className={styles.infoTitle}>
-                <Stethoscope className={styles.infoTitleIcon} />
-                Doctor Information
+                <User className={styles.infoTitleIcon} />
+                Quick Info
               </h3>
               <ul className={styles.infoList}>
-                <li className={styles.infoItem}>
-                  <span className={styles.infoLabel}>
-                    <User className={styles.infoLabelIcon} />
-                    Username
-                  </span>
-                  <span className={styles.infoValue}>{username}</span>
-                </li>
-                <li className={styles.infoItem}>
-                  <span className={styles.infoLabel}>
-                    <Mail className={styles.infoLabelIcon} />
-                    Email
-                  </span>
-                  <span className={styles.infoValue}>{email}</span>
-                </li>
                 <li className={styles.infoItem}>
                   <span className={styles.infoLabel}>
                     <Phone className={styles.infoLabelIcon} />
                     Phone
                   </span>
-                  <span className={styles.infoValue}>{phone}</span>
+                  <span className={`${styles.infoValue} ${!profile.phone ? styles.notProvided : ""}`}>
+                    {profile.phone || "Not provided"}
+                  </span>
+                </li>
+                <li className={styles.infoItem}>
+                  <span className={styles.infoLabel}>
+                    <MapPin className={styles.infoLabelIcon} />
+                    Address
+                  </span>
+                  <span className={`${styles.infoValue} ${!profile.address ? styles.notProvided : ""}`}>
+                    {profile.address || "Not provided"}
+                  </span>
+                </li>
+                <li className={styles.infoItem}>
+                  <span className={styles.infoLabel}>
+                    <Building2 className={styles.infoLabelIcon} />
+                    Departments
+                  </span>
+                  <span className={styles.infoValue}>
+                    {profile.departments?.map((dept) => dept.name).join(", ") || "Not assigned"}
+                  </span>
+                </li>
+                <li className={styles.infoItem}>
+                  <span className={styles.infoLabel}>
+                    <Calendar className={styles.infoLabelIcon} />
+                    Experience
+                  </span>
+                  <span className={`${styles.infoValue} ${!profile.experience ? styles.notProvided : ""}`}>
+                    {profile.experience || "Not provided"}
+                  </span>
                 </li>
               </ul>
             </div>
@@ -180,15 +248,16 @@ const PublicProfileDoctor = () => {
         <div className={styles.mainContent}>
           <div className={styles.contentHeader}>
             <h1 className={styles.contentTitle}>Doctor Profile</h1>
-            <p className={styles.contentSubtitle}>Manage your professional profile and account settings</p>
+            <p className={styles.contentSubtitle}>Manage your profile information and settings</p>
           </div>
 
+          {/* Tabs */}
           <div className={styles.tabsContainer}>
             <ul className={styles.tabsList}>
               <li className={styles.tabItem}>
                 <button
-                  className={`${styles.tabButton} ${activeTab === 'edit-profile' ? styles.active : ''}`}
-                  onClick={() => setActiveTab('edit-profile')}
+                  className={`${styles.tabButton} ${activeTab === "profile" ? styles.active : ""}`}
+                  onClick={() => setActiveTab("profile")}
                 >
                   <Edit3 className={styles.tabIcon} />
                   Edit Profile
@@ -196,153 +265,278 @@ const PublicProfileDoctor = () => {
               </li>
               <li className={styles.tabItem}>
                 <button
-                  className={`${styles.tabButton} ${activeTab === 'change-password' ? styles.active : ''}`}
-                  onClick={() => setActiveTab('change-password')}
+                  className={`${styles.tabButton} ${activeTab === "password" ? styles.active : ""}`}
+                  onClick={() => setActiveTab("password")}
                 >
                   <Lock className={styles.tabIcon} />
                   Change Password
                 </button>
               </li>
+              <li className={styles.tabItem}>
+                <button
+                  className={`${styles.tabButton} ${activeTab === "plans" ? styles.active : ""}`}
+                  onClick={() => setActiveTab("plans")}
+                >
+                  <FileText className={styles.tabIcon} />
+                  My Plans
+                </button>
+              </li>
             </ul>
           </div>
 
+          {/* Tab Content */}
           <div className={styles.tabContent}>
-            {/* Edit Profile Tab */}
-            <div className={`${styles.tabPane} ${activeTab === 'edit-profile' ? styles.active : ''}`}>
-              <form onSubmit={handleSubmit} className={styles.form}>
+            {/* Profile Tab */}
+            <div className={`${styles.tabPane} ${activeTab === "profile" ? styles.active : ""}`}>
+              <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
-                    <label htmlFor="username" className={styles.formLabel}>
+                    <label className={styles.formLabel}>
                       <User className={styles.labelIcon} />
-                      Username <span className={styles.required}>*</span>
+                      Full Name <span className={styles.required}>*</span>
                     </label>
                     <input
                       type="text"
                       className={styles.formInput}
-                      id="username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Enter Username"
+                      value={formData.name}
+                      onChange={(e) => handleInputChange("name", e.target.value)}
+                      disabled={!editing}
+                      required
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label htmlFor="email" className={styles.formLabel}>
+                    <label className={styles.formLabel}>
                       <Mail className={styles.labelIcon} />
-                      Email <span className={styles.required}>*</span>
+                      Email Address <span className={styles.required}>*</span>
                     </label>
                     <input
                       type="email"
                       className={styles.formInput}
-                      id="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter email address"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange("email", e.target.value)}
+                      disabled={!editing}
+                      required
                     />
                   </div>
                 </div>
-                <div className={styles.formGroup}>
-                  <label htmlFor="phone" className={styles.formLabel}>
-                    <Phone className={styles.labelIcon} />
-                    Phone Number <span className={styles.required}>*</span>
+
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>
+                      <Phone className={styles.labelIcon} />
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      className={styles.formInput}
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange("phone", e.target.value)}
+                      disabled={!editing}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>
+                      <Calendar className={styles.labelIcon} />
+                      Date of Birth
+                    </label>
+                    <input
+                      type="date"
+                      className={styles.formInput}
+                      value={formData.dateOfBirth}
+                      onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
+                      disabled={!editing}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>
+                      <Shield className={styles.labelIcon} />
+                      Specialization
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.formInput}
+                      value={formData.specialization}
+                      onChange={(e) => handleInputChange("specialization", e.target.value)}
+                      disabled={!editing}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>
+                      <Clock className={styles.labelIcon} />
+                      Experience
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.formInput}
+                      value={formData.experience}
+                      onChange={(e) => handleInputChange("experience", e.target.value)}
+                      disabled={!editing}
+                      placeholder="e.g., 5 years"
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formGroup + " " + styles.fullWidth}>
+                  <label className={styles.formLabel}>
+                    <MapPin className={styles.labelIcon} />
+                    Address
                   </label>
-                  <input
-                    type="tel"
-                    className={styles.formInput}
-                    id="phone"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Enter phone number"
+                  <textarea
+                    className={styles.formTextarea}
+                    value={formData.address}
+                    onChange={(e) => handleInputChange("address", e.target.value)}
+                    disabled={!editing}
+                    rows={3}
                   />
                 </div>
+
                 <div className={styles.formActions}>
-                  <button
-                    type="button"
-                    className={styles.cancelButton}
-                    onClick={() => router.push('/dashboard')}
-                  >
-                    <X className={styles.buttonIcon} />
-                    Cancel
-                  </button>
-                  <button type="submit" className={styles.saveButton}>
-                    <Save className={styles.buttonIcon} />
-                    Save Changes
-                  </button>
+                  {editing ? (
+                    <>
+                      <button
+                        type="button"
+                        className={styles.cancelButton}
+                        onClick={() => {
+                          setEditing(false)
+                          fetchProfile()
+                        }}
+                        disabled={saving}
+                      >
+                        <X className={styles.buttonIcon} />
+                        Cancel
+                      </button>
+                      <button type="button" className={styles.saveButton} onClick={handleSaveProfile} disabled={saving}>
+                        <Save className={styles.buttonIcon} />
+                        {saving ? "Saving..." : "Save Changes"}
+                      </button>
+                    </>
+                  ) : (
+                    <button type="button" className={styles.saveButton} onClick={() => setEditing(true)}>
+                      <Edit3 className={styles.buttonIcon} />
+                      Edit Profile
+                    </button>
+                  )}
                 </div>
               </form>
             </div>
 
-            {/* Change Password Tab */}
-            <div className={`${styles.tabPane} ${activeTab === 'change-password' ? styles.active : ''}`}>
-              <form onSubmit={handlePasswordChange} className={styles.form}>
+            {/* Password Tab */}
+            <div className={`${styles.tabPane} ${activeTab === "password" ? styles.active : ""}`}>
+              <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
                 <div className={styles.formGroup}>
-                  <label htmlFor="your-password" className={styles.formLabel}>
+                  <label className={styles.formLabel}>
+                    <Lock className={styles.labelIcon} />
+                    Current Password <span className={styles.required}>*</span>
+                  </label>
+                  <div className={styles.passwordContainer}>
+                    <input
+                      type={showCurrentPassword ? "text" : "password"}
+                      className={styles.formInput}
+                      value={passwordData.currentPassword}
+                      onChange={(e) => handlePasswordChange("currentPassword", e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className={styles.passwordToggle}
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    >
+                      {showCurrentPassword ? (
+                        <EyeOff className={styles.passwordToggleIcon} />
+                      ) : (
+                        <Eye className={styles.passwordToggleIcon} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>
                     <Lock className={styles.labelIcon} />
                     New Password <span className={styles.required}>*</span>
                   </label>
                   <div className={styles.passwordContainer}>
                     <input
-                      type={passwordVisible ? "text" : "password"}
+                      type={showNewPassword ? "text" : "password"}
                       className={styles.formInput}
-                      id="your-password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Enter New Password"
+                      value={passwordData.newPassword}
+                      onChange={(e) => handlePasswordChange("newPassword", e.target.value)}
+                      required
+                      minLength={6}
                     />
                     <button
                       type="button"
                       className={styles.passwordToggle}
-                      onClick={togglePasswordVisibility}
+                      onClick={() => setShowNewPassword(!showNewPassword)}
                     >
-                      {passwordVisible ? 
-                        <EyeOff className={styles.passwordToggleIcon} /> : 
+                      {showNewPassword ? (
+                        <EyeOff className={styles.passwordToggleIcon} />
+                      ) : (
                         <Eye className={styles.passwordToggleIcon} />
-                      }
+                      )}
                     </button>
                   </div>
                 </div>
+
                 <div className={styles.formGroup}>
-                  <label htmlFor="confirm-password" className={styles.formLabel}>
+                  <label className={styles.formLabel}>
                     <Lock className={styles.labelIcon} />
-                    Confirm Password <span className={styles.required}>*</span>
+                    Confirm New Password <span className={styles.required}>*</span>
                   </label>
                   <div className={styles.passwordContainer}>
                     <input
-                      type={confirmPasswordVisible ? "text" : "password"}
+                      type={showConfirmPassword ? "text" : "password"}
                       className={styles.formInput}
-                      id="confirm-password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm Password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => handlePasswordChange("confirmPassword", e.target.value)}
+                      required
+                      minLength={6}
                     />
                     <button
                       type="button"
                       className={styles.passwordToggle}
-                      onClick={toggleConfirmPasswordVisibility}
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
-                      {confirmPasswordVisible ? 
-                        <EyeOff className={styles.passwordToggleIcon} /> : 
+                      {showConfirmPassword ? (
+                        <EyeOff className={styles.passwordToggleIcon} />
+                      ) : (
                         <Eye className={styles.passwordToggleIcon} />
-                      }
+                      )}
                     </button>
                   </div>
                 </div>
+
                 <div className={styles.formActions}>
-                  <button type="button" className={styles.cancelButton}>
-                    <X className={styles.buttonIcon} />
-                    Cancel
-                  </button>
-                  <button type="submit" className={styles.saveButton}>
-                    <Save className={styles.buttonIcon} />
-                    Save Password
+                  <button
+                    type="button"
+                    className={styles.saveButton}
+                    onClick={handleChangePassword}
+                    disabled={
+                      saving ||
+                      !passwordData.currentPassword ||
+                      !passwordData.newPassword ||
+                      !passwordData.confirmPassword
+                    }
+                  >
+                    <Lock className={styles.buttonIcon} />
+                    {saving ? "Changing..." : "Change Password"}
                   </button>
                 </div>
               </form>
+            </div>
+
+            {/* Plans Tab */}
+            <div className={`${styles.tabPane} ${activeTab === "plans" ? styles.active : ""}`}>
+              <DoctorProfilePlans />
             </div>
           </div>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default PublicProfileDoctor;
+export default PublicProfileDoctor

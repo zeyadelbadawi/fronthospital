@@ -9,20 +9,20 @@ const HomeComSix = () => {
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        const { data } = await axiosInstance.get("/authentication/latest-appointments")
-        setAppointments(data)
-      } catch (err) {
-        console.error("Failed to load latest appointments:", err)
-      } finally {
-        setLoading(false)
-      }
-    }
+  // useEffect(() => {
+  //   const fetchAppointments = async () => {
+  //     try {
+  //       const { data } = await axiosInstance.get("/authentication/latest-appointments")
+  //       setAppointments(data)
+  //     } catch (err) {
+  //       console.error("Failed to load latest appointments:", err)
+  //     } finally {
+  //       setLoading(false)
+  //     }
+  //   }
 
-    fetchAppointments()
-  }, [])
+  //   fetchAppointments()
+  // }, [])
 
   const formatDate = (iso) =>
     new Date(iso).toLocaleDateString("en-US", {

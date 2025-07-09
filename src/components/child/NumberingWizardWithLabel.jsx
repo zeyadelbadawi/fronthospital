@@ -24,6 +24,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
   const [assignmentError, setAssignmentError] = useState("")
   const [assignmentResults, setAssignmentResults] = useState(null)
   const [validationErrors, setValidationErrors] = useState({})
+
   const [programData, setProgramData] = useState({
     programType: "",
     patientId,
@@ -104,6 +105,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
   // Enhanced validation functions
   const validateStep = (step) => {
     const errors = {}
+
     switch (step) {
       case 0:
         if (!evaluationType) {
@@ -141,6 +143,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
       const checkResponse = await axiosInstance.get(
         `${process.env.NEXT_PUBLIC_API_URL}/school/school-assignments?search=${patientId}`,
       )
+
       const existingAssignments = checkResponse.data.assignments || []
       const isAlreadyAssigned = existingAssignments.some(
         (assignment) => assignment.patient && assignment.patient._id === patientId,
@@ -230,6 +233,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
 
   const nextStep = async () => {
     console.log("patientId in nextStep:", patientId)
+
     if (!validateStep(currentStep)) {
       return
     }
@@ -271,57 +275,71 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
     setAssignmentResults(null)
 
     try {
-      const price = getProgramPrice(programData.programType) + totalPrice
+      const programType = programData.programType
+      let totalAmount = 0
+      let initialPayment = 0
+
+      // تحديد المبالغ حسب نوع البرنامج
+      if (programType === "full_program") {
+        totalAmount = 5000 // إجمالي الـ Full Program
+        initialPayment = 1000 // الدفعة الأولى في الـ Wizard
+      } else {
+        // School أو Single Session - نفس اللوجيك القديم
+        totalAmount = getProgramPrice(programType) + totalPrice
+        initialPayment = totalAmount // دفع كامل
+      }
 
       // Save the program first
-      const response = await axiosInstance.post("/authentication/saveProgram", {
+      const programPayload = {
         ...programData,
         patientId,
-        price,
         programKind: selectedServices.map((service) => service.value),
-      })
+        programType,
+        totalAmount,
+        paidAmount: initialPayment,
+        remainingAmount: totalAmount - initialPayment,
+        paymentStatus: initialPayment >= totalAmount ? "FULLY_PAID" : "PARTIALLY_PAID",
+        paymentMethod: programType === "full_program" ? "MIXED" : "CASH",
+      }
+
+      const response = await axiosInstance.post("/authentication/saveProgram", programPayload)
 
       if (response.status === 200) {
         const programId = response.data.program._id
-        const programType = programData.programType
 
-        // Store assignment results if available
-        if (response.data.assignments) {
-          setAssignmentResults(response.data.assignments)
-          if (response.data.assignments.totalFailed > 0) {
-            setAssignmentError(`${response.data.assignments.totalFailed} service assignments failed`)
-          }
-        }
-
-        // Save money record
+        // Save money record للدفعة الأولى
         const moneyResponse = await axiosInstance.post("/authentication/saveMoneyRecord", {
           patientId,
           programId,
-          price,
+          price: initialPayment,
           status: "completed",
           invoiceId: `INV-${Math.random().toString(36).substring(2, 15)}`,
           programType,
+          comment: `Initial payment for ${programType} - Patient: ${patientName}`,
           patientName,
         })
 
         if (moneyResponse.status === 200) {
           console.log("Payment and money record saved successfully")
 
-          // Auto-assign to all departments for full program
-          if (programType === "full_program") {
-            console.log("Auto-assigning patient to all departments for full program")
-            await autoAssignToAllDepartments(patientId, description)
-          }
+          // Assignment logic - فقط للـ School و Single Session
+          if (programType !== "full_program") {
+            // Auto-assign to all departments for full program (القديم)
+            if (programType === "full_program") {
+              console.log("Auto-assigning patient to all departments for full program")
+              await autoAssignToAllDepartments(patientId, description)
+            }
 
-          // If this is a school evaluation, create PatientSchoolAssignment
-          if (programType === "school_evaluation") {
-            console.log("Creating school assignment for patient:", patientId)
-            const assignmentResult = await createPatientSchoolAssignment(patientId, description)
-            if (!assignmentResult.success) {
-              setAssignmentError(assignmentResult.error)
-              console.error("School assignment failed:", assignmentResult.error)
-            } else {
-              console.log("School assignment created successfully")
+            // If this is a school evaluation, create PatientSchoolAssignment
+            if (programType === "school_evaluation") {
+              console.log("Creating school assignment for patient:", patientId)
+              const assignmentResult = await createPatientSchoolAssignment(patientId, description)
+              if (!assignmentResult.success) {
+                setAssignmentError(assignmentResult.error)
+                console.error("School assignment failed:", assignmentResult.error)
+              } else {
+                console.log("School assignment created successfully")
+              }
             }
           }
 
@@ -353,17 +371,17 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           padding: 2rem 1rem;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-        
+
         .rukn-wizard-container {
           max-width: 64rem;
           margin: 0 auto;
         }
-        
+
         .rukn-header {
           text-align: center;
           margin-bottom: 2rem;
         }
-        
+
         .rukn-header-icon {
           display: inline-flex;
           align-items: center;
@@ -374,12 +392,12 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           border-radius: 50%;
           margin-bottom: 1rem;
         }
-        
+
         .rukn-header-icon span {
           font-size: 1.5rem;
           color: white;
         }
-        
+
         .rukn-main-title {
           font-size: 1.875rem;
           font-weight: 700;
@@ -387,7 +405,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 0.5rem;
           margin-top: 0;
         }
-        
+
         .rukn-sub-title {
           font-size: 1.25rem;
           font-weight: 600;
@@ -395,12 +413,12 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 0.5rem;
           margin-top: 0;
         }
-        
+
         .rukn-description {
           color: #6b7280;
           margin: 0;
         }
-        
+
         .rukn-progress-card {
           background: white;
           border-radius: 0.75rem;
@@ -408,7 +426,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           padding: 1.5rem;
           margin-bottom: 2rem;
         }
-        
+
         .rukn-steps-container {
           display: flex;
           align-items: center;
@@ -416,7 +434,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 2rem;
           position: relative;
         }
-        
+
         .rukn-step {
           display: flex;
           flex-direction: column;
@@ -424,7 +442,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           flex: 1;
           position: relative;
         }
-        
+
         .rukn-step-circle {
           width: 3rem;
           height: 3rem;
@@ -437,33 +455,33 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 0.5rem;
           transition: all 0.3s ease;
         }
-        
+
         .rukn-step-circle.active {
           background-color: #2563eb;
           color: white;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-        
+
         .rukn-step-circle.inactive {
           background-color: #e5e7eb;
           color: #6b7280;
         }
-        
+
         .rukn-step-title {
           font-size: 0.75rem;
           font-weight: 500;
           text-align: center;
           padding: 0 0.5rem;
         }
-        
+
         .rukn-step-title.active {
           color: #2563eb;
         }
-        
+
         .rukn-step-title.inactive {
           color: #6b7280;
         }
-        
+
         .rukn-step-line {
           position: absolute;
           height: 2px;
@@ -472,37 +490,37 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           left: calc(50% + 1.5rem);
           transition: all 0.3s ease;
         }
-        
+
         .rukn-step-line.active {
           background-color: #2563eb;
         }
-        
+
         .rukn-step-line.inactive {
           background-color: #e5e7eb;
         }
-        
+
         .rukn-main-card {
           background: white;
           border-radius: 0.75rem;
           box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
           overflow: hidden;
         }
-        
+
         .rukn-card-content {
           padding: 2rem;
         }
-        
+
         .rukn-step-content {
           display: flex;
           flex-direction: column;
           gap: 1.5rem;
         }
-        
+
         .rukn-step-header {
           text-align: center;
           margin-bottom: 2rem;
         }
-        
+
         .rukn-step-header h3 {
           font-size: 1.5rem;
           font-weight: 700;
@@ -510,30 +528,30 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 0.5rem;
           margin-top: 0;
         }
-        
+
         .rukn-step-header p {
           color: #6b7280;
           margin: 0;
         }
-        
+
         .rukn-form-group {
           display: flex;
           flex-direction: column;
           gap: 1rem;
         }
-        
+
         .rukn-form-grid {
           display: grid;
           grid-template-columns: 1fr;
           gap: 1.5rem;
         }
-        
+
         @media (min-width: 768px) {
           .rukn-form-grid {
             grid-template-columns: 1fr 1fr;
           }
         }
-        
+
         .rukn-label {
           display: block;
           font-size: 0.875rem;
@@ -541,7 +559,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           color: #374151;
           margin-bottom: 0.75rem;
         }
-        
+
         .rukn-select,
         .rukn-input,
         .rukn-textarea {
@@ -554,48 +572,48 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           transition: border-color 0.2s ease;
           box-sizing: border-box;
         }
-        
+
         .rukn-select:focus,
         .rukn-input:focus,
         .rukn-textarea:focus {
           outline: none;
           border-color: #3b82f6;
         }
-        
+
         .rukn-select.error,
         .rukn-input.error,
         .rukn-textarea.error {
           border-color: #ef4444;
         }
-        
+
         .rukn-textarea {
           resize: none;
           min-height: 6rem;
         }
-        
+
         .rukn-service-total {
           margin-top: 0.75rem;
           padding: 0.75rem;
           background: #eff6ff;
           border-radius: 0.5rem;
         }
-        
+
         .rukn-service-total p {
           color: #1e40af;
           font-weight: 600;
           margin: 0;
         }
-        
+
         .rukn-button-group {
           display: flex;
           justify-content: space-between;
           padding-top: 1.5rem;
         }
-        
+
         .rukn-button-group.end {
           justify-content: flex-end;
         }
-        
+
         .rukn-button {
           padding: 0.75rem 2rem;
           font-weight: 600;
@@ -605,31 +623,31 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           transition: all 0.2s ease;
           font-size: 1rem;
         }
-        
+
         .rukn-button-primary {
           background-color: #2563eb;
           color: white;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-        
+
         .rukn-button-primary:hover:not(:disabled) {
           background-color: #1d4ed8;
         }
-        
+
         .rukn-button-primary:disabled {
           background-color: #d1d5db;
           cursor: not-allowed;
         }
-        
+
         .rukn-button-secondary {
           background-color: #e5e7eb;
           color: #374151;
         }
-        
+
         .rukn-button-secondary:hover {
           background-color: #d1d5db;
         }
-        
+
         .rukn-button-success {
           background-color: #059669;
           color: white;
@@ -637,23 +655,23 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           font-size: 1.125rem;
           box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
-        
+
         .rukn-button-success:hover:not(:disabled) {
           background-color: #047857;
         }
-        
+
         .rukn-button-success:disabled {
           background-color: #d1d5db;
           cursor: not-allowed;
         }
-        
+
         .rukn-payment-summary {
           background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
           border-radius: 0.5rem;
           padding: 1.5rem;
           margin-bottom: 1.5rem;
         }
-        
+
         .rukn-payment-summary h4 {
           font-size: 1.125rem;
           font-weight: 600;
@@ -661,21 +679,21 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 1rem;
           margin-top: 0;
         }
-        
+
         .rukn-payment-row {
           display: flex;
           justify-content: space-between;
           margin-bottom: 0.5rem;
         }
-        
+
         .rukn-payment-row span:first-child {
           color: #6b7280;
         }
-        
+
         .rukn-payment-row span:last-child {
           font-weight: 600;
         }
-        
+
         .rukn-payment-total {
           display: flex;
           justify-content: space-between;
@@ -686,25 +704,25 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           border-top: 1px solid #e5e7eb;
           margin-top: 0.5rem;
         }
-        
+
         .rukn-payment-center {
           text-align: center;
         }
-        
+
         .rukn-payment-note {
           font-size: 0.875rem;
           color: #6b7280;
           margin-top: 0.75rem;
           margin-bottom: 0;
         }
-        
+
         .rukn-success-container {
           text-align: center;
           display: flex;
           flex-direction: column;
           gap: 1.5rem;
         }
-        
+
         .rukn-success-icon {
           display: inline-flex;
           align-items: center;
@@ -715,11 +733,11 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           border-radius: 50%;
           margin: 0 auto 1.5rem;
         }
-        
+
         .rukn-success-icon span {
           font-size: 2.5rem;
         }
-        
+
         .rukn-success-title {
           font-size: 1.875rem;
           font-weight: 700;
@@ -727,14 +745,14 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 1rem;
           margin-top: 0;
         }
-        
+
         .rukn-success-message {
           font-size: 1.125rem;
           color: #6b7280;
           margin-bottom: 1.5rem;
           margin-top: 0;
         }
-        
+
         .rukn-next-steps {
           background: #f0fdf4;
           border-radius: 0.5rem;
@@ -742,14 +760,14 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           max-width: 28rem;
           margin: 0 auto;
         }
-        
+
         .rukn-next-steps h4 {
           font-weight: 600;
           color: #166534;
           margin-bottom: 0.5rem;
           margin-top: 0;
         }
-        
+
         .rukn-next-steps ul {
           font-size: 0.875rem;
           color: #15803d;
@@ -757,28 +775,28 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           padding: 0;
           margin: 0;
         }
-        
+
         .rukn-next-steps li {
           margin-bottom: 0.25rem;
         }
-        
+
         .rukn-footer {
           text-align: center;
           margin-top: 2rem;
           color: #6b7280;
         }
-        
+
         .rukn-footer p {
           font-size: 0.875rem;
           margin: 0;
         }
-        
+
         .rukn-document-container {
           border: 2px solid #e5e7eb;
           border-radius: 0.5rem;
           overflow: hidden;
         }
-        
+
         .rukn-error-message {
           background-color: #fef2f2;
           border: 1px solid #fecaca;
@@ -788,7 +806,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 1rem;
           font-size: 0.875rem;
         }
-        
+
         .rukn-warning-message {
           background-color: #fffbeb;
           border: 1px solid #fed7aa;
@@ -798,7 +816,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 1rem;
           font-size: 0.875rem;
         }
-        
+
         .rukn-assignment-results {
           background: #f0f9ff;
           border: 1px solid #0ea5e9;
@@ -807,11 +825,11 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           border-radius: 0.5rem;
           margin-bottom: 1rem;
         }
-        
+
         .rukn-assignment-summary p {
           margin: 0.25rem 0;
         }
-        
+
         .rukn-assignment-final-results {
           background: #f0fdf4;
           border: 1px solid #22c55e;
@@ -820,38 +838,38 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           border-radius: 0.5rem;
           margin: 1rem 0;
         }
-        
+
         .rukn-service-assignment {
           margin: 0.5rem 0;
           font-size: 0.875rem;
         }
-        
+
         .rukn-error-text {
           color: #ef4444;
           font-size: 0.875rem;
           margin-top: 0.25rem;
           display: block;
         }
-        
+
         @media (max-width: 767px) {
           .rukn-steps-container {
             flex-wrap: wrap;
             gap: 1rem;
           }
-          
+
           .rukn-step {
             flex: 0 0 calc(50% - 0.5rem);
           }
-          
+
           .rukn-step-line {
             display: none;
           }
-          
+
           .rukn-button-group {
             flex-direction: column;
             gap: 1rem;
           }
-          
+
           .rukn-button-group.end {
             align-items: stretch;
           }
@@ -1120,20 +1138,46 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
 
                   <div className="rukn-payment-summary">
                     <h4>Payment Summary</h4>
-                    <div className="rukn-payment-row">
-                      <span>Program Fee:</span>
-                      <span>${getProgramPrice(programData.programType)}</span>
-                    </div>
-                    {totalPrice > 0 && (
-                      <div className="rukn-payment-row">
-                        <span>Additional Services:</span>
-                        <span>${totalPrice}</span>
-                      </div>
+                    {programData.programType === "full_program" ? (
+                      <>
+                        <div className="rukn-payment-row">
+                          <span>Full Program Total:</span>
+                          <span>5,000 EGP</span>
+                        </div>
+                        <div className="rukn-payment-row">
+                          <span>Initial Payment (Today):</span>
+                          <span>1,000 EGP</span>
+                        </div>
+                        <div className="rukn-payment-row">
+                          <span>Remaining (After Consultation):</span>
+                          <span>4,000 EGP</span>
+                        </div>
+                        <div className="rukn-payment-total">
+                          <span>Paying Now:</span>
+                          <span>1,000 EGP</span>
+                        </div>
+                        <p className="rukn-payment-note">
+                          You'll complete the remaining payment after your consultation with the doctor.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="rukn-payment-row">
+                          <span>Program Fee:</span>
+                          <span>${getProgramPrice(programData.programType)}</span>
+                        </div>
+                        {totalPrice > 0 && (
+                          <div className="rukn-payment-row">
+                            <span>Additional Services:</span>
+                            <span>${totalPrice}</span>
+                          </div>
+                        )}
+                        <div className="rukn-payment-total">
+                          <span>Total Amount:</span>
+                          <span>${getProgramPrice(programData.programType) + totalPrice}</span>
+                        </div>
+                      </>
                     )}
-                    <div className="rukn-payment-total">
-                      <span>Total Amount:</span>
-                      <span>${getProgramPrice(programData.programType) + totalPrice}</span>
-                    </div>
                   </div>
 
                   <div className="rukn-payment-center">

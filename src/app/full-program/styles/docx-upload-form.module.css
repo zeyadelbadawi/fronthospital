@@ -1,0 +1,250 @@
+/* Custom CSS for DOCX Upload Form - Completely Isolated */
+
+.modalUploadForm {
+  padding: 2rem;
+  /* Define CSS variables locally within this component */
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --shadow-light: 0 4px 15px 0 rgba(31, 38, 135, 0.37);
+  --shadow-heavy: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --border-radius: 15px;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Custom drop zone styling */
+.customDropZone {
+  border: 3px dashed #e0e6ed;
+  border-radius: var(--border-radius);
+  background: linear-gradient(145deg, #f8f9ff, #ffffff);
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.customDropZone::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: var(--transition);
+}
+
+.customDropZone:hover::before {
+  left: 100%;
+}
+
+.customDropZone:hover {
+  border-color: #667eea;
+  background: linear-gradient(145deg, #f0f4ff, #ffffff);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-light);
+}
+
+.dragActive {
+  border-color: #667eea;
+  background: var(--success-gradient);
+  color: white;
+  transform: scale(1.02);
+  box-shadow: var(--shadow-heavy);
+}
+
+.customUploadIcon {
+  font-size: 3.5rem;
+  color: #667eea;
+  transition: var(--transition);
+}
+
+.customDropZone:hover .customUploadIcon {
+  transform: scale(1.1);
+  color: #5a67d8;
+}
+
+.dragActive .customUploadIcon {
+  color: white;
+  animation: bounce 0.6s ease-in-out;
+}
+
+.customUploadText {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #4a5568;
+  transition: var(--transition);
+}
+
+.customUploadSubtext {
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.dragActive .customUploadText,
+.dragActive .customUploadSubtext {
+  color: white;
+}
+
+/* File preview styling */
+.customFilePreview {
+  background: linear-gradient(145deg, #f7fafc, #edf2f7);
+  border: 2px solid #e2e8f0;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.customFilePreview::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-gradient);
+}
+
+.customFilePreview:hover {
+  transform: translateX(5px);
+  box-shadow: var(--shadow-light);
+}
+
+.customFileIcon {
+  font-size: 2.5rem;
+  color: #667eea;
+}
+
+.customRemoveBtn {
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.customRemoveBtn:hover {
+  transform: scale(1.1);
+  background-color: #dc3545 !important;
+  border-color: #dc3545 !important;
+  color: white !important;
+}
+
+/* Submit button styling */
+.customSubmitBtn {
+  background: var(--primary-gradient) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  color: white !important;
+}
+
+.customSubmitBtn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: var(--transition);
+}
+
+.customSubmitBtn:hover::before {
+  left: 100%;
+}
+
+.customSubmitBtn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-heavy) !important;
+  background: var(--primary-gradient) !important;
+}
+
+.customSubmitBtn:active {
+  transform: translateY(0) !important;
+}
+
+.customSubmitBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Focus styles for accessibility - scoped to this component */
+.customDropZone:focus-within {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Animations - scoped to this component */
+@keyframes bounce {
+  0%,
+  20%,
+  53%,
+  80%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%,
+  43% {
+    transform: translate3d(0, -15px, 0);
+  }
+  70% {
+    transform: translate3d(0, -7px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+/* Responsive design - only affects this component */
+@media (max-width: 768px) {
+  .customUploadIcon {
+    font-size: 2.5rem;
+  }
+
+  .customUploadText {
+    font-size: 1rem;
+  }
+
+  .modalUploadForm {
+    padding: 1.5rem;
+  }
+}

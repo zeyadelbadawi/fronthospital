@@ -1,7 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
-import ThemeToggleButton from "../helper/ThemeToggleButton"
 import Link from "next/link"
 import axiosInstance from "../helper/axiosSetup"
 import { Icon } from "@iconify/react"
@@ -719,7 +718,6 @@ const MasterLayout = ({ children }) => {
               </div>
               <div className="col-auto">
                 <div className="d-flex flex-wrap align-items-center gap-3">
-                  <ThemeToggleButton />
 
                   {/* Notification Dropdown */}
                   <div className="dropdown">

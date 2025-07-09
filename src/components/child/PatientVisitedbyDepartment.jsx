@@ -78,22 +78,22 @@ export default function PatientVisitedDepartment() {
     },
   }
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const { data } = await axiosInstance.get("/authentication/evaluations/stats")
-        const { counts, total } = data
-        const pct = TYPE_META.map(({ key }) => (total ? Math.round((counts[key] / total) * 100) : 0))
-        setSeries(pct)
-      } catch (err) {
-        console.error("Failed loading stats:", err)
-      } finally {
-        setLoading(false)
-      }
-    }
+  // useEffect(() => {
+  //   const fetchStats = async () => {
+  //     try {
+  //       const { data } = await axiosInstance.get("/authentication/evaluations/stats")
+  //       const { counts, total } = data
+  //       const pct = TYPE_META.map(({ key }) => (total ? Math.round((counts[key] / total) * 100) : 0))
+  //       setSeries(pct)
+  //     } catch (err) {
+  //       console.error("Failed loading stats:", err)
+  //     } finally {
+  //       setLoading(false)
+  //     }
+  //   }
 
-    fetchStats()
-  }, [])
+  //   fetchStats()
+  // }, [])
 
   if (loading) {
     return (

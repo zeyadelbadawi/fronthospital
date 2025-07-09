@@ -37,9 +37,12 @@ const departments = [
     { id: "New-Evaulations", name: "Upcoming Evaulations", type: "upcoming-Evaulations" },
         { id: "doctor", name: "doctor", type: "doctor" },
       { id: "accountant", name: "accountant", type: "accountant" },
+      { id: "plan", name: "plan", type: "plan" },
 
     ],
   },
+
+  
   {
     id: "physical-therapy",
     name: "Physical Therapy",

@@ -72,7 +72,6 @@ const formatDepartments = (departments) => {
     .sort((a, b) => a.localeCompare(b)) // Sort them alphabetically
     .join(", "); // Join them into a comma-separated string
 };
-
   return (
     <div className={styles.container}>
       <div className={styles.card}>
@@ -95,7 +94,6 @@ const formatDepartments = (departments) => {
             </Link>
           </div>
         </div>
-
         <div className={styles.cardBody}>
           {loading ? (
             <div className={styles.loadingContainer}>
@@ -137,22 +135,19 @@ const formatDepartments = (departments) => {
                           <button
                             className={`${styles.actionButton} ${styles.viewButton}`}
                             onClick={() => handleView(doctor._id)}
-                            title="View Details"
-                          >
+                            title="View Details">
                             <Eye className={styles.actionIcon} />
                           </button>
                           <button
                             className={`${styles.actionButton} ${styles.editButton}`}
                             onClick={() => handleEdit(doctor._id)}
-                            title="Edit Doctor"
-                          >
+                            title="Edit Doctor">
                             <Edit className={styles.actionIcon} />
                           </button>
                           <button
                             className={`${styles.actionButton} ${styles.deleteButton}`}
                             onClick={() => handleDelete(doctor._id)}
-                            title="Delete Doctor"
-                          >
+                            title="Delete Doctor">
                             <Trash2 className={styles.actionIcon} />
                           </button>
                         </div>
@@ -163,7 +158,6 @@ const formatDepartments = (departments) => {
               </table>
             </div>
           )}
-
           {doctors.length > 0 && (
             <div className={styles.paginationContainer}>
               <span className={styles.paginationInfo}>
@@ -175,8 +169,7 @@ const formatDepartments = (departments) => {
                   <button
                     key={i}
                     className={`${styles.paginationButton} ${currentPage === i + 1 ? styles.active : ""}`}
-                    onClick={() => handlePageChange(i + 1)}
-                  >
+                    onClick={() => handlePageChange(i + 1)}>
                     {i + 1}
                   </button>
                 ))}
@@ -188,5 +181,4 @@ const formatDepartments = (departments) => {
     </div>
   );
 };
-
 export default DoctorListLayer;

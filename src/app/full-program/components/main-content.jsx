@@ -97,6 +97,9 @@ export function MainContent() {
       }else if (type === "accountant") {
         return <AccountantAppointments />
       }
+      else if (type == "plan"){
+        return <AllPatientsAba/>
+      }
       
  
     }
