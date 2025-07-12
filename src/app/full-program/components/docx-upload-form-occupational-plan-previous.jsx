@@ -170,7 +170,7 @@ export default function DocxUploadFormOccupationalPlanPrevious({ onSuccess, onCl
   }
 
   const currentYear = new Date().getFullYear()
-  const years = Array.from({ length: currentYear - 2000 + 6 }, (_, i) => 2000 + i)
+const years = Array.from({ length: currentYear - 2000 + 1 }, (_, i) => currentYear - i)
 
   if (viewMode === "existing") {
     return (
