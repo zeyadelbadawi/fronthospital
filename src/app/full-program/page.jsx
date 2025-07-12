@@ -7,30 +7,43 @@ import MasterLayout from "@/masterLayout/MasterLayout"
 import { isAuthenticated } from "./utils/auth-utils"
 import "./globals.css"
 import styles from "./styles/globals.module.css"
+import Breadcrumb from "@/components/Breadcrumb"
 
 export default function FullProgramPage() {
   const [activeContent, setActiveContent] = useState("dashboard")
   const [isAuth, setIsAuth] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [selectedAbaPatientId, setSelectedAbaPatientId] = useState(null)
+  const [selectedOccupationalPatientId, setSelectedOccupationalPatientId] = useState(null)
 
   useEffect(() => {
-    // Check authentication status
     const checkAuth = () => {
       const authenticated = isAuthenticated()
       setIsAuth(authenticated)
       setLoading(false)
-      
+
       if (!authenticated) {
-        // Redirect to login if not authenticated
-        window.location.href = '/sign-in'
+        window.location.href = "/sign-in"
       }
     }
 
     checkAuth()
   }, [])
 
-  const handleContentChange = (content) => {
+  const handleContentChange = (content, patientId = null) => {
+    console.log("handleContentChange called with content:", content, "and patientId:", patientId)
     setActiveContent(content)
+    if (content === "aba-plan-editor" || content === "aba-exam-editor") {
+      setSelectedAbaPatientId(patientId)
+    } 
+    else if (content === "occupational-plan-editor" || content === "occupational-exam-editor") {
+      setSelectedOccupationalPatientId(patientId)
+    }
+    else
+    {
+      setSelectedAbaPatientId(null)
+      setSelectedOccupationalPatientId(null)
+    }
   }
 
   if (loading) {
@@ -52,7 +65,7 @@ export default function FullProgramPage() {
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Authentication Required</h2>
           <p className="text-gray-600 mb-6">Please log in to access the Healthcare System.</p>
           <button
-            onClick={() => window.location.href = '/login'}
+            onClick={() => (window.location.href = "/login")}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
           >
             Go to Login
@@ -64,9 +77,20 @@ export default function FullProgramPage() {
 
   return (
     <MasterLayout>
+        <Breadcrumb 
+  heading="Full Program" 
+  title="Full Program" 
+/>
       <div className={styles.appContainer}>
         <AppSidebarUpdated onContentChange={handleContentChange} />
-        <MainContentUpdated activeContent={activeContent} />
+        <MainContentUpdated
+          activeContent={activeContent}
+          selectedAbaPatientId={selectedAbaPatientId}
+          selectedOccupationalPatientId={selectedOccupationalPatientId}
+
+          onBackToDashboard={() => handleContentChange("dashboard")}
+          onNavigateContent={handleContentChange} // NEW: Pass handleContentChange as onNavigateContent
+        />
       </div>
     </MasterLayout>
   )

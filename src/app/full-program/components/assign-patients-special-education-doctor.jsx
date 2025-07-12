@@ -2,20 +2,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
-import {
-  Search,
-  AlertCircle,
-  Users,
-  UserCheck,
-  RefreshCw,
-  Phone,
-  Mail,
-  User,
-  Calendar,
-  Eye,
-  ClipboardList,
-  FileText,
-} from "lucide-react"
+import { Search, AlertCircle, Users, UserCheck, RefreshCw, Phone, Mail, User, Calendar, Eye, ClipboardList, FileText } from 'lucide-react'
 import axiosInstance from "@/helper/axiosSetup"
 import { getCurrentUserId } from "../utils/auth-utils"
 import styles from "../styles/speech-upcoming-appointments.module.css"
@@ -102,7 +89,6 @@ const AssignPatientsSpecialEducationDoctor = () => {
     if (!endDate) return false
     return new Date(endDate) < new Date()
   }
-
 
   const handleViewDetails = (assignment) => {
     setSelectedAssignment(assignment)
@@ -369,36 +355,36 @@ const AssignPatientsSpecialEducationDoctor = () => {
                             </span>
                           </td>
                           <td className={styles.actionsCell}>
-                         <div className={styles.actionButtons}>
-                                                       {/* View Details Button */}
-                                                       <button
-                                                         onClick={() => handleViewDetails(assignment)}
-                                                         className={`${styles.actionButton} ${styles.viewButton}`}
-                                                         title="View Details"
-                                                       >
-                                                         <Eye className={styles.actionIcon} />
-                                                       </button>
-                         
-                                                       {/* Plan Button */}
-                                                       <button
-                                                         onClick={() => handlePlanClick(assignment.patient?._id)}
-                                                         className={`${styles.actionButton} ${styles.editButton}`}
-                                                         title="Student Plan"
-                                                         disabled={!assignment.patient?._id}
-                                                       >
-                                                         <ClipboardList className={styles.actionIcon} />
-                                                       </button>
-                         
-                                                       {/* Exam Button */}
-                                                       <button
-                                                         onClick={() => handleExamClick(assignment.patient?._id)}
-                                                         className={`${styles.actionButton} ${styles.deleteButton}`}
-                                                         title="Student Exam"
-                                                         disabled={!assignment.patient?._id}
-                                                       >
-                                                         <FileText className={styles.actionIcon} />
-                                                       </button>
-                                                     </div>
+                            <div className={styles.actionButtons}>
+                              {/* View Details Button */}
+                              <button
+                                onClick={() => handleViewDetails(assignment)}
+                                className={`${styles.actionButton} ${styles.viewButton}`}
+                                title="View Details"
+                              >
+                                <Eye className={styles.actionIcon} />
+                              </button>
+
+                              {/* Plan Button */}
+                              <button
+                                onClick={() => handlePlanClick(assignment.patient?._id)}
+                                className={`${styles.actionButton} ${styles.editButton}`}
+                                title="Student Plan"
+                                disabled={!assignment.patient?._id}
+                              >
+                                <ClipboardList className={styles.actionIcon} />
+                              </button>
+
+                              {/* Exam Button */}
+                              <button
+                                onClick={() => handleExamClick(assignment.patient?._id)}
+                                className={`${styles.actionButton} ${styles.deleteButton}`}
+                                title="Student Exam"
+                                disabled={!assignment.patient?._id}
+                              >
+                                <FileText className={styles.actionIcon} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       )

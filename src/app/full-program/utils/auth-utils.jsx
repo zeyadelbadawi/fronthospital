@@ -18,6 +18,9 @@ const decodeJWT = (token) => {
 
 // Check if user is authenticated
 export const isAuthenticated = () => {
+  // Check if we're in the browser
+  if (typeof window === "undefined") return false
+
   const token = localStorage.getItem("token")
   if (!token) return false
 
@@ -36,6 +39,9 @@ export const isAuthenticated = () => {
 
 // Get current user info from token
 export const getCurrentUser = () => {
+  // Check if we're in the browser
+  if (typeof window === "undefined") return null
+
   const token = localStorage.getItem("token")
   if (!token) return null
 
@@ -88,11 +94,17 @@ export const isAccountant = () => {
 
 // Logout function
 export const logout = () => {
+  // Check if we're in the browser
+  if (typeof window === "undefined") return
+
   localStorage.removeItem("token")
   window.location.href = "/login"
 }
 
 // Get token
 export const getToken = () => {
+  // Check if we're in the browser
+  if (typeof window === "undefined") return null
+
   return localStorage.getItem("token")
 }

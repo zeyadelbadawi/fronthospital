@@ -1,5 +1,4 @@
 /* Enhanced styles for AccountantAppointments component */
-
 .upcomingContainer {
   min-height: 100vh;
   padding: 2rem 1rem;
@@ -1139,7 +1138,7 @@
 .filterRow {
   display: flex;
   gap: 1rem;
-  align-items: end;
+  align-items: flex-end;
   margin-bottom: 1.5rem;
 }
 

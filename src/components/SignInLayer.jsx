@@ -41,11 +41,11 @@ const SignInLayer = () => {
       if (role === "admin") {
         router.push("/")
       } else if (role === "patient") {
-        router.push("/email")
+        router.push("/")
       } else if (role === "doctor") {
-        router.push("/chat-message")
+        router.push("/profile-doctor")
       } else if (role === "accountant") {
-        router.push("/Payment-Transactions")
+        router.push("/profile-accountant")
       }
     } catch (error) {
       console.error(error)

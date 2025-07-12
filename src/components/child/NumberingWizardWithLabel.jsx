@@ -323,8 +323,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           console.log("Payment and money record saved successfully")
 
           // Assignment logic - فقط للـ School و Single Session
-          if (programType !== "full_program") {
-            // Auto-assign to all departments for full program (القديم)
+
             if (programType === "full_program") {
               console.log("Auto-assigning patient to all departments for full program")
               await autoAssignToAllDepartments(patientId, description)
@@ -341,7 +340,6 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                 console.log("School assignment created successfully")
               }
             }
-          }
 
           setCurrentStep(4)
         }

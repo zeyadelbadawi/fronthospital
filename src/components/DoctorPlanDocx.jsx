@@ -1,172 +1,135 @@
-"use client";
-// Todo :Add more component in toolbar of ej2-react-documenteditor
-import { useEffect, useRef } from "react";
-import {
-  DocumentEditorContainerComponent,
-  Toolbar,
-  Inject,
-} from "@syncfusion/ej2-react-documenteditor";
-import axiosInstance from "@/helper/axiosSetup";
-export default function DoctorPLanDocx({ filePath }) {
-  console.log("filePath", filePath);
-  const documentEditorContainerRef = useRef(null);
+"use client"
 
-  // Load Syncfusion styles
-  useEffect(() => {
-    const head = document.head;
-    const link1 = document.createElement("link");
-    link1.rel = "stylesheet";
-    link1.href = "https://cdn.syncfusion.com/ej2/23.1.36/material.css";
-    link1.id = "syncfusion-style";
+import { useEffect, useRef, forwardRef, useImperativeHandle } from "react"
+import { DocumentEditorContainerComponent, Toolbar, Inject } from "@syncfusion/ej2-react-documenteditor"
+import axiosInstance from "@/helper/axiosSetup"
 
-    head.appendChild(link1);
+const DoctorPLanDocx = forwardRef(
+  ({ filePath, doctorId, departmentId, documentId, fileName, quarterOfYear, year }, ref) => {
+    console.log("filePath", filePath)
+    const documentEditorContainerRef = useRef(null)
 
-    return () => {
-      const existing = document.getElementById("syncfusion-style");
-      if (existing) head.removeChild(existing);
-    };
-  }, []);
+    // Load Syncfusion styles
+    useEffect(() => {
+      const head = document.head
+      const link1 = document.createElement("link")
+      link1.rel = "stylesheet"
+      link1.href = "https://cdn.syncfusion.com/ej2/23.1.36/material.css"
+      link1.id = "syncfusion-style"
+      head.appendChild(link1)
+      return () => {
+        const existing = document.getElementById("syncfusion-style")
+        if (existing) head.removeChild(existing)
+      }
+    }, [])
 
-  // Load the document when the component mounts
-  useEffect(() => {
-    if (documentEditorContainerRef.current) {
-      documentEditorContainerRef.current.documentEditor.open(filePath);
-    }
-  }, [filePath]);
+    // Load the document when the component mounts
+    useEffect(() => {
+      if (documentEditorContainerRef.current) {
+        documentEditorContainerRef.current.documentEditor.open(filePath)
+      }
+    }, [filePath])
 
-  // Function to download the document
-  const onDownload = () => {
-    const editor = documentEditorContainerRef.current;
-    if (editor) {
-      editor.documentEditor.save(
-        `${userData.patientId + new Date().getSeconds()}`,
-        "Docx"
-      );
-    }
-  };
-
-  // Function to save the document as a blob
-  const onSave = async () => {
-    const editor = documentEditorContainerRef.current;
-    if (editor) {
-      try {
-        const documentContent = await editor.documentEditor.saveAsBlob("Docx");
-
-        const formData = new FormData();
-        formData.append(
-          "document",
-          documentContent,
-          `${userData.patientId + new Date().getSeconds()}.docx`
-        );
-        formData.append("patientId", userData.patientId);
-
-        // Send the form data to your server
-        const response = await axiosInstance.post(planEndpoint, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-
-        // Handle the response as needed
-        if (response.status === 200) {
-          console.log("Document saved successfully:", response.data);
-        }
-      } catch (error) {
-        console.error("Error saving document:", error.response);
+    // Function to download the document
+    const onDownload = () => {
+      const editor = documentEditorContainerRef.current
+      if (editor && fileName) {
+        editor.documentEditor.save(`${fileName.split(".")[0] || "doctor_plan"}_${doctorId}_${departmentId}`, "Docx")
+      } else {
+        console.warn("Cannot download: Document editor not ready or fileName is missing.")
       }
     }
-  };
 
-  const DocxHeader = () => {
+    // Function to save the document as a blob
+    const onSave = async () => {
+      const editor = documentEditorContainerRef.current
+      if (editor && documentId) {
+        try {
+          const documentContent = await editor.documentEditor.saveAsBlob("Docx")
+          const formData = new FormData()
+          formData.append(
+            "document",
+            documentContent,
+            fileName || `${doctorId}_${departmentId}_${new Date().getTime()}.docx`,
+          )
+          formData.append("doctorId", doctorId)
+          formData.append("departmentId", departmentId)
+          formData.append("quarterOfYear", quarterOfYear)
+          formData.append("year", year)
+          // Send the form data to your server to update the existing document
+          const response = await axiosInstance.put(
+            `${process.env.NEXT_PUBLIC_API_URL}/doctorFile/update-plan/${documentId}`,
+            formData,
+            {
+              headers: { "Content-Type": "multipart/form-data" },
+            },
+          )
+          // Handle the response as needed
+          if (response.status === 200) {
+            console.log("Document saved successfully:", response.data)
+            // alert("Document saved successfully!") // تم استبدالها بـ toast
+          } else {
+            console.error("Failed to save document:", response.data)
+            // alert("Failed to save document.") // تم استبدالها بـ toast
+          }
+        } catch (error) {
+          console.error("Error saving document:", error.response || error)
+          // alert("Error saving document. Please try again.") // تم استبدالها بـ toast
+          throw error // إعادة رمي الخطأ ليتم التعامل معه في المكون الأب
+        }
+      } else {
+        console.warn("Cannot save: Document editor not ready or documentId is missing.")
+        throw new Error("Document editor not ready or documentId is missing.") // رمي خطأ ليتم التعامل معه في المكون الأب
+      }
+    }
+
+    // استخدام useImperativeHandle لتعريض الوظائف إلى المكون الأب
+    useImperativeHandle(ref, () => ({
+      onSave: onSave,
+      onDownload: onDownload,
+    }))
+
     return (
-      <div className="bg-primary text-white py-2 px-4 d-flex justify-content-between align-items-center">
-        <span className="ms-5">{"docxName"}</span>
-        <div className="ms-5 d-flex">
-          <button
-            onClick={onDownload}
-            className="btn text-white d-flex align-items-center me-4"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="bi bi-download h4 bg-white"
-              viewBox="0 0 16 16"
-            >
-              <path
-                fillRule="evenodd"
-                d="M8 0a1 1 0 0 1 1 1v10.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-5 5a1 1 0 0 1-1.414 0l-5-5a1 1 0 1 1 1.414-1.414L7 11.586V1a1 1 0 0 1 1-1z"
-              />
-            </svg>
-            <span className="d-none d-sm-inline ms-2">Download</span>
-          </button>
-          <button
-            onClick={onSave}
-            className="btn text-white d-flex align-items-center me-4"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="bi bi-download h4 bg-white"
-              viewBox="0 0 16 16"
-            >
-              <path
-                fillRule="evenodd"
-                d="M8 0a1 1 0 0 1 1 1v10.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-5 5a1 1 0 0 1-1.414 0l-5-5a1 1 0 1 1 1.414-1.414L7 11.586V1a1 1 0 0 1 1-1z"
-              />
-            </svg>
-            <span className="d-none d-sm-inline ms-2">Save</span>
-          </button>
-          <button className="btn text-white d-flex align-items-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="bi bi-printer h4 bg-white"
-              viewBox="0 0 16 16"
-            >
-              <path
-                fillRule="evenodd"
-                d="M4.5 1a1 1 0 0 1 1 1V3h5V2a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1V8h-5v5a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1V2a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v4h3V2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2v3a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V8h-3V2a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1V2a1 1 0 0 1 1-1h1z"
-              />
-            </svg>
-            <span className="d-none d-sm-inline ms-2">Print</span>
-          </button>
-        </div>
+      <div className="h-full">
+        <DocumentEditorContainerComponent
+          id="container"
+            height="1000px"
+            width="auto"
+          enableToolbar={true}
+          ref={documentEditorContainerRef}
+          autoResizeOnVisibilityChange={true}
+          locale="en-US"
+          serviceUrl={process.env.NEXT_PUBLIC_SYNCFUSION_SERVICE_URL}
+          toolbarItems={[
+            "Undo",
+            "Redo",
+            "Image",
+            "Table",
+            "Hyperlink",
+            "Bookmark",
+            "TableOfContents",
+            "Header",
+            "Footer",
+            "PageSetup",
+            "PageNumber",
+            "Break",
+            "InsertFootnote",
+            "InsertEndnote",
+            "Find",
+            "Comments",
+            "TrackChanges",
+            "RestrictEditing",
+            "FormFields",
+            "UpdateFields",
+          ]}
+        >
+          <Inject services={[Toolbar]} />
+        </DocumentEditorContainerComponent>
       </div>
-    );
-  };
+    )
+  },
+)
 
-  return (
-    <div>
-      {/* <DocxHeader /> */}
-      <DocumentEditorContainerComponent
-        id="container"
-        height="100vh"
-        enableToolbar={true}
-        ref={documentEditorContainerRef}
-        autoResizeOnVisibilityChange={true}
-        locale="en-US"
-        serviceUrl={process.env.NEXT_PUBLIC_SYNCFUSION_SERVICE_URL}
-        toolbarItems={[
-          "Undo",
-          "Redo",
-          "Image",
-          "Table",
-          "Hyperlink",
-          "Bookmark",
-          "TableOfContents",
-          "Header",
-          "Footer",
-          "PageSetup",
-          "PageNumber",
-          "Break",
-          "InsertFootnote",
-          "InsertEndnote",
-          "Find",
-          "Comments",
-          "TrackChanges",
-          "RestrictEditing",
-          "FormFields",
-          "UpdateFields",
-          // 'Open', 'New' are excluded
-        ]}
-      >
-        <Inject services={[Toolbar]} />
-      </DocumentEditorContainerComponent>
-    </div>
-  );
-}
+DoctorPLanDocx.displayName = "DoctorPLanDocx"
+
+export default DoctorPLanDocx

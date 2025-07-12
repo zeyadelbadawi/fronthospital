@@ -2,7 +2,6 @@
 
 .documentPage {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 2rem 0;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   /* Define CSS variables locally within this component */
@@ -399,8 +398,6 @@
 
 /* ----------------------------------------------------------------- */
 
-
-
 /* Enhanced styles for PatientSchoolPlanEditor component */
 
 .planEditorContainer {
@@ -427,6 +424,8 @@
   padding: 2.5rem;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .planHeader::before {
@@ -441,12 +440,64 @@
   pointer-events: none;
 }
 
-.headerContent {
+.headerTopRow {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.topRightActions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+/* New style for header action buttons */
+.headerActionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  font-weight: 600;
+  width: fit-content;
+  backdrop-filter: blur(10px);
+}
+
+.headerActionButton:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-4px); /* Consistent hover effect */
+}
+
+.headerActionButton .backIcon {
+  /* Reusing backIcon for consistency */
+  width: 1.125rem;
+  height: 1.125rem;
+  transition: transform 0.3s ease;
+}
+
+.headerActionButton:hover .backIcon {
+  transform: translateX(-2px);
+}
+
+.headerBottomRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
   flex-wrap: wrap;
-  gap: 2rem;
+  gap: 1.5rem;
   position: relative;
   z-index: 1;
 }
@@ -458,6 +509,7 @@
 }
 
 .backButton {
+  /* This class is now redundant, but kept for reference if needed elsewhere */
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
@@ -686,7 +738,6 @@
 
 /* Body Styles */
 .planBody {
-  padding: 2.5rem;
   background: #fafbfc;
   display: grid;
   grid-template-columns: 50fr 1fr;
@@ -874,7 +925,6 @@
   justify-content: center;
   min-height: 100vh;
   gap: 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   text-align: center;
   padding: 2rem;
@@ -938,14 +988,37 @@
     gap: 1.5rem;
   }
 
-  .headerContent {
+  .planHeader {
+    padding: 2rem;
+  }
+
+  .headerTopRow {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .topRightActions {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .topRightActions .headerActionButton {
+    /* Apply to the new class */
+    width: 100%;
+    justify-content: center;
+  }
+
+  .headerBottomRow {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 1.5rem;
   }
 
-  .headerActions {
-    justify-content: stretch;
+  .documentActions {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .appointmentsButton,
@@ -969,18 +1042,9 @@
     padding: 1.5rem;
   }
 
-  .headerActions {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
   .statsContainer {
     grid-template-columns: 1fr;
     padding: 1.5rem;
-  }
-
-  .documentActions {
-    flex-wrap: wrap;
   }
 }
 
@@ -1051,7 +1115,9 @@
 .backButton:focus,
 .appointmentsButton:focus,
 .saveButton:focus,
-.actionButton:focus {
+.actionButton:focus,
+.headerActionButton:focus {
+  /* Added new class */
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }

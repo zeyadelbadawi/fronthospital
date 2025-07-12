@@ -6,8 +6,6 @@ import {
   FileText,
   Download,
   Eye,
-  Calendar,
-  Building2,
   ChevronRight,
   ChevronDown,
   Search,
@@ -18,6 +16,7 @@ import {
 import axiosInstance from "@/helper/axiosSetup"
 import { getCurrentUser } from "@/app/full-program/utils/auth-utils"
 import styles from "../styles/profile-view.module.css"
+import DoctorPlanDocx from "./DoctorPlanDocx"
 
 const DoctorProfilePlans = () => {
   const user = getCurrentUser()
@@ -28,6 +27,7 @@ const DoctorProfilePlans = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedYear, setSelectedYear] = useState("all")
   const [selectedQuarter, setSelectedQuarter] = useState("all")
+  const [viewingDocument, setViewingDocument] = useState(null)
 
   useEffect(() => {
     if (user?.id) {
@@ -153,7 +153,15 @@ const DoctorProfilePlans = () => {
   }
 
   const handleView = (plan) => {
-    window.open(plan.fullPath, "_blank")
+    setViewingDocument({
+      filePath: `${process.env.NEXT_PUBLIC_API_URL}${plan.fullPath}`,
+      fileName: plan.fileName,
+      plan: plan,
+    })
+  }
+
+  const handleCloseViewer = () => {
+    setViewingDocument(null)
   }
 
   const getUniqueYears = () => {
@@ -197,58 +205,52 @@ const DoctorProfilePlans = () => {
   const filteredPlans = getFilteredPlans()
   const uniqueYears = getUniqueYears()
 
+  // If viewing a document, show the document viewer instead
+  if (viewingDocument) {
+    return (
+      <div>
+        {/* Header with close button */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "1rem",
+            borderBottom: "1px solid #e5e7eb",
+            backgroundColor: "#f9fafb",
+          }}
+        >
+          <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <FileText size={20} />
+            {viewingDocument.fileName}
+          </h3>
+          <button
+            onClick={handleCloseViewer}
+            style={{
+              background: "#dc2626",
+              color: "white",
+              border: "none",
+              padding: "0.5rem 1rem",
+              borderRadius: "0.5rem",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
+            ← Back to Plans
+          </button>
+        </div>
+        {/* Document viewer */}
+        <DoctorPlanDocx filePath={viewingDocument.filePath} />
+      </div>
+    )
+  }
+
   return (
     <div>
       {/* Header with Stats */}
       <div style={{ marginBottom: "2rem" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "1rem",
-            marginBottom: "2rem",
-          }}
-        >
-          <div
-            style={{
-              background: "linear-gradient(135deg, #dbeafe, #bfdbfe)",
-              padding: "1.5rem",
-              borderRadius: "1rem",
-              textAlign: "center",
-            }}
-          >
-            <FileText size={24} color="#1e40af" style={{ marginBottom: "0.5rem" }} />
-            <div style={{ fontSize: "2rem", fontWeight: "700", color: "#1e40af" }}>{plans.length}</div>
-            <div style={{ fontSize: "0.875rem", color: "#1e40af", fontWeight: "600" }}>Total Plans</div>
-          </div>
-          <div
-            style={{
-              background: "linear-gradient(135deg, #dcfce7, #bbf7d0)",
-              padding: "1.5rem",
-              borderRadius: "1rem",
-              textAlign: "center",
-            }}
-          >
-            <Building2 size={24} color="#059669" style={{ marginBottom: "0.5rem" }} />
-            <div style={{ fontSize: "2rem", fontWeight: "700", color: "#059669" }}>
-              {Object.keys(folderStructure).length}
-            </div>
-            <div style={{ fontSize: "0.875rem", color: "#059669", fontWeight: "600" }}>Departments</div>
-          </div>
-          <div
-            style={{
-              background: "linear-gradient(135deg, #fef3c7, #fde68a)",
-              padding: "1.5rem",
-              borderRadius: "1rem",
-              textAlign: "center",
-            }}
-          >
-            <Calendar size={24} color="#d97706" style={{ marginBottom: "0.5rem" }} />
-            <div style={{ fontSize: "2rem", fontWeight: "700", color: "#d97706" }}>{uniqueYears.length}</div>
-            <div style={{ fontSize: "0.875rem", color: "#d97706", fontWeight: "600" }}>Years</div>
-          </div>
-        </div>
-
         {/* Search and Filters */}
         <div
           style={{

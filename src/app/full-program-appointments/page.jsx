@@ -17,7 +17,7 @@ const Page = () => {
                 {/* Breadcrumb */}
                 <Breadcrumb
                     heading="Full Program Appointments"
-                    title="Dashboard / Full Program Appointments"
+                    title="Full Program Appointments"
                 />
                 <ModelProvider>
 

@@ -66,8 +66,8 @@
 .sidebarHeader {
   padding: 2rem 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative;
-  z-index: 1;
+    position: relative;
+  overflow: hidden;
 }
 
 .logoSection {
@@ -500,7 +500,6 @@
 .welcomeIcon {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -650,11 +649,13 @@
 }
 
 .cardHeader {
-  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
-  color: var(--white);
-  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white; /* Ensure all text within header is white by default */
+  padding: 2.5rem;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .cardHeader::before {

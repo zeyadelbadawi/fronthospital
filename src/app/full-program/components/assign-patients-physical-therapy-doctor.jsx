@@ -2,20 +2,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
-import {
-  Search,
-  AlertCircle,
-  Users,
-  UserCheck,
-  RefreshCw,
-  Phone,
-  Mail,
-  User,
-  Calendar,
-  Eye,
-  ClipboardList,
-  FileText,
-} from "lucide-react"
+import { Search, AlertCircle, Users, UserCheck, RefreshCw, Phone, Mail, User, Calendar, Eye, ClipboardList, FileText } from 'lucide-react'
 import axiosInstance from "@/helper/axiosSetup"
 import { getCurrentUserId } from "../utils/auth-utils"
 import styles from "../styles/speech-upcoming-appointments.module.css"
@@ -102,7 +89,6 @@ const AssignPatientsPhysicalTherapyDoctor = () => {
     if (!endDate) return false
     return new Date(endDate) < new Date()
   }
-
 
   const handleViewDetails = (assignment) => {
     setSelectedAssignment(assignment)
@@ -369,7 +355,7 @@ const AssignPatientsPhysicalTherapyDoctor = () => {
                             </span>
                           </td>
                           <td className={styles.actionsCell}>
-                          <div className={styles.actionButtons}>
+                            <div className={styles.actionButtons}>
                               {/* View Details Button */}
                               <button
                                 onClick={() => handleViewDetails(assignment)}

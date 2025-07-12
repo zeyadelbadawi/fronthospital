@@ -31,13 +31,21 @@ import AdminAssignOccupationalTherapy from "./admin-assign-occupational-therapy"
 import AdminAssignSpecialEducation from "./admin-assign-special-education"
 import AdminAssignSpeech from "./admin-assign-speech"
 import AdminAssignABA from "./admin-assign-aba"
-import DoctorPlan from "./DoctorPlan" // Added this import
+import DoctorPlan from "./DoctorPlan"
 import styles from "../styles/speech-upcoming-appointments.module.css"
 import { DoctorAppointments } from "./doctor-appointments"
 import { AccountantAppointments } from "./accountant-appointments"
+import { usePathname } from "next/navigation"
+import ABAPlanView from "./aba-plan-view"
+import ABAExamView from "./aba-exam-view" // Import the new ABAExamView
 
-const MainContentUpdated = ({ activeContent }) => {
+import OccupationalExamView from "./occupational-exam-view"
+import OccupationalPlanView from "./occupational-plan-view" // Import the new ABAExamView
+
+// Added onNavigateContent as a new prop
+const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccupationalPatientId, onBackToDashboard, onNavigateContent }) => {
   const user = getCurrentUser()
+  const pathname = usePathname()
   const [dashboardData, setDashboardData] = useState({
     stats: [],
     departments: [],
@@ -45,7 +53,6 @@ const MainContentUpdated = ({ activeContent }) => {
     error: null,
   })
 
-  // Added state for doctor departments
   const [doctorDepartment, setDoctorDepartment] = useState(null)
 
   useEffect(() => {
@@ -53,7 +60,6 @@ const MainContentUpdated = ({ activeContent }) => {
     const fetchDashboardData = async () => {
       try {
         setDashboardData((prev) => ({ ...prev, loading: true, error: null }))
-        // Fetch different data based on user role
         if (user?.role === "admin") {
           await fetchAdminDashboardData()
         } else if (user?.role === "doctor") {
@@ -73,14 +79,12 @@ const MainContentUpdated = ({ activeContent }) => {
     fetchDashboardData()
   }, [user?.id, user?.role])
 
-  // Added useEffect to fetch doctor departments
   useEffect(() => {
     if (user?.role === "doctor" && user?.id) {
       fetchDoctorDepartments()
     }
   }, [user?.id, user?.role])
 
-  // Added function to fetch doctor departments
   const fetchDoctorDepartments = async () => {
     try {
       const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/doctorFile/doctor-deps/${user?.id}`)
@@ -91,14 +95,12 @@ const MainContentUpdated = ({ activeContent }) => {
     }
   }
 
-  // Updated utility function to get department ID by name
   const getDepartmentIdByName = (name) => {
     if (!doctorDepartment || !Array.isArray(doctorDepartment)) {
       console.log("No doctor departments available")
       return null
     }
 
-    // Map the display names to actual database names
     const departmentNameMap = {
       ABA: "ABA",
       Speech: "speech",
@@ -107,10 +109,8 @@ const MainContentUpdated = ({ activeContent }) => {
       "Special Education": "SpecialEducation",
     }
 
-    // Get the database name for the requested department
     const dbName = departmentNameMap[name] || name
 
-    // Find department by exact database name match
     const department = doctorDepartment.find((dept) => {
       const deptName = dept.name || ""
       return deptName === dbName
@@ -122,17 +122,13 @@ const MainContentUpdated = ({ activeContent }) => {
 
   const fetchAdminDashboardData = async () => {
     try {
-      // Fetch all patients count
       const patientsResponse = await axiosInstance.get("/authentication/patients")
       const totalPatients = patientsResponse.data.totalPatients || patientsResponse.data.patients?.length || 0
 
-      // Fetch all doctors count
       const doctorsResponse = await axiosInstance.get("/authentication/doctors")
       const totalDoctors = doctorsResponse.data.totalDoctors || doctorsResponse.data.doctors?.length || 0
 
-      // Fetch department-specific data with both assignments and doctors
       const departmentData = await Promise.all([
-        // ABA Department
         Promise.all([
           axiosInstance.get("/aba/patient-assignments").catch(() => ({ data: { pagination: { totalItems: 0 } } })),
           axiosInstance
@@ -145,7 +141,6 @@ const MainContentUpdated = ({ activeContent }) => {
           doctors: doctorsRes.data.doctors?.length || 0,
         })),
 
-        // Speech Department
         Promise.all([
           axiosInstance.get("/speech/patient-assignments").catch(() => ({ data: { pagination: { totalItems: 0 } } })),
           axiosInstance
@@ -158,7 +153,6 @@ const MainContentUpdated = ({ activeContent }) => {
           doctors: doctorsRes.data.doctors?.length || 0,
         })),
 
-        // Physical Therapy Department
         Promise.all([
           axiosInstance
             .get("/physicalTherapy/patient-assignments")
@@ -173,7 +167,6 @@ const MainContentUpdated = ({ activeContent }) => {
           doctors: doctorsRes.data.doctors?.length || 0,
         })),
 
-        // Occupational Therapy Department
         Promise.all([
           axiosInstance
             .get("/OccupationalTherapy/patient-assignments")
@@ -188,7 +181,6 @@ const MainContentUpdated = ({ activeContent }) => {
           doctors: doctorsRes.data.doctors?.length || 0,
         })),
 
-        // Special Education Department
         Promise.all([
           axiosInstance
             .get("/SpecialEducation/patient-assignments")
@@ -204,7 +196,6 @@ const MainContentUpdated = ({ activeContent }) => {
         })),
       ])
 
-      // Calculate total assignments across all departments
       setDashboardData({
         stats: [
           { label: "Full Program Students", value: totalPatients.toString(), icon: Users, color: "blue" },
@@ -223,15 +214,10 @@ const MainContentUpdated = ({ activeContent }) => {
   const fetchDoctorDashboardData = async () => {
     try {
       const doctorId = user.id
-      // For doctors, we'll try to get their assignments from different departments
-      // Since we don't have a unified doctor assignment endpoint, we'll use the existing endpoints
       let myAssignments = []
       let totalPatients = 0
 
-      // Try to fetch from different department assignment endpoints
       try {
-        // This would need to be implemented in your backend to filter by doctor
-        // For now, we'll use placeholder data
         const appointmentsResponse = await axiosInstance.get("/authentication/appointments", {
           params: { limit: 100 },
         })
@@ -239,23 +225,19 @@ const MainContentUpdated = ({ activeContent }) => {
         totalPatients = myAssignments.length
       } catch (error) {
         console.log("Could not fetch doctor assignments:", error)
-        // Use placeholder data
         totalPatients = 0
         myAssignments = []
       }
 
-      // Calculate today's sessions
       const today = new Date().toDateString()
       const todaySessions = myAssignments.filter(
         (assignment) => new Date(assignment.date).toDateString() === today,
       ).length
 
-      // Calculate this week's sessions
       const weekStart = new Date()
       weekStart.setDate(weekStart.getDate() - weekStart.getDay())
       const thisWeekSessions = myAssignments.filter((assignment) => new Date(assignment.date) >= weekStart).length
 
-      // Calculate completed sessions
       const completedSessions = myAssignments.filter(
         (assignment) => assignment.status === "completed" || assignment.status === "active",
       ).length
@@ -267,7 +249,7 @@ const MainContentUpdated = ({ activeContent }) => {
           { label: "This Week", value: thisWeekSessions.toString(), icon: Activity, color: "purple" },
           { label: "Completed Sessions", value: completedSessions.toString(), icon: Shield, color: "red" },
         ],
-        departments: [], // Doctors don't need department overview
+        departments: [],
         loading: false,
         error: null,
       })
@@ -279,20 +261,17 @@ const MainContentUpdated = ({ activeContent }) => {
   const fetchPatientDashboardData = async () => {
     try {
       const patientId = user.id
-      // For patients, we can try to get their data
       let mySessions = 0
       let completedSessions = 0
       let upcomingSessions = 0
 
       try {
-        // Try to get patient's appointments/sessions
         const appointmentsResponse = await axiosInstance.get("/authentication/appointments", {
           params: { search: user.name || "", limit: 100 },
         })
         const myAppointments = appointmentsResponse.data.appointments || []
         mySessions = myAppointments.length
 
-        // Calculate completed and upcoming
         const now = new Date()
         completedSessions = myAppointments.filter((apt) => new Date(apt.date) < now).length
         upcomingSessions = myAppointments.filter((apt) => new Date(apt.date) >= now).length
@@ -316,7 +295,6 @@ const MainContentUpdated = ({ activeContent }) => {
     }
   }
 
-  // Create a separate refresh function that can be called manually
   const handleRefreshDashboard = async () => {
     if (!user?.id) return
     try {
@@ -379,7 +357,6 @@ const MainContentUpdated = ({ activeContent }) => {
       ]
     }
 
-    // Map real data to department cards
     const iconMap = {
       ABA: Brain,
       Speech: MessageSquare,
@@ -420,15 +397,51 @@ const MainContentUpdated = ({ activeContent }) => {
       color: colorMap[dept.name] || "blue",
       stats: {
         patients: dept.patients,
-        doctors: dept.doctors, // Now showing real doctor count from the API
+        doctors: dept.doctors,
         sessions: dept.assignments,
       },
     }))
   }
 
   const renderContent = () => {
-    switch (activeContent) {
-      case "dashboard":
+    console.log("MainContentUpdated - activeContent:", activeContent)
+    console.log("MainContentUpdated - selectedAbaPatientId:", selectedAbaPatientId)
+    
+    console.log("MainContentUpdated - user role:", user?.role)
+    console.log("MainContentUpdated - doctorDepartment:", doctorDepartment)
+
+    // Handle initial/dashboard view based on user role
+    if (activeContent === "dashboard") {
+      if (user?.role === "doctor" || user?.role === "accountant") {
+        return (
+          <div className={styles.upcomingContainer}>
+            <div className={styles.upcomingCard}>
+              <div className={styles.cardHeader}>
+                <div className={styles.headerContent}>
+                  <div className={styles.titleSection}>
+                    <h1 className={styles.pageTitle}>
+                      <Shield className={styles.titleIcon} />
+                      Welcome, {user?.role}
+                    </h1>
+                    <p className={styles.pageSubtitle}>Select an option from the sidebar to get started.</p>
+                  </div>
+                </div>
+              </div>
+              <div className={styles.cardBody}>
+                <div className={styles.welcomeMessage}>
+                  <Shield className={styles.welcomeIcon} />
+                  <h3>Getting Started</h3>
+                  <p>
+                    Use the navigation menu on the left to access different sections of the healthcare management
+                    system.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      } else if (user?.role === "admin") {
+        // Admin role, show full dashboard
         return (
           <div className={styles.upcomingContainer}>
             <div className={styles.upcomingCard}>
@@ -452,7 +465,6 @@ const MainContentUpdated = ({ activeContent }) => {
                     </button>
                   </div>
                 </div>
-                {/* Loading State */}
                 {dashboardData.loading ? (
                   <div className={styles.statsContainer}>
                     {[1, 2, 3, 4].map((i) => (
@@ -468,7 +480,6 @@ const MainContentUpdated = ({ activeContent }) => {
                     ))}
                   </div>
                 ) : (
-                  /* Stats Container */
                   <div className={styles.statsContainer}>
                     {dashboardData.stats.map((stat, index) => (
                       <div key={index} className={styles.statItem}>
@@ -485,7 +496,6 @@ const MainContentUpdated = ({ activeContent }) => {
                 )}
               </div>
               <div className={styles.cardBody}>
-                {/* Error Display */}
                 {dashboardData.error && (
                   <div
                     style={{
@@ -548,6 +558,13 @@ const MainContentUpdated = ({ activeContent }) => {
             </div>
           </div>
         )
+      }
+    }
+
+    // If activeContent is not 'dashboard' or the initial welcome, proceed with the switch
+    switch (activeContent) {
+      case "dashboard": // This case is now handled by the if-else if block above, so it can be removed or return null
+        return null // Should not be reached if the logic above is correct.
 
       case "all-patients":
         return (
@@ -593,7 +610,6 @@ const MainContentUpdated = ({ activeContent }) => {
           </AccessControl>
         )
 
-      // ABA Department Cases
       case "all-patients-aba":
         return (
           <AccessControl allowedRoles={["admin"]}>
@@ -604,7 +620,9 @@ const MainContentUpdated = ({ activeContent }) => {
       case "assign-patients-aba":
         return (
           <AccessControl allowedRoles={["doctor"]}>
-            <AssignPatientsABADoctor />
+            {/* Corrected: Pass onNavigateContent directly */}
+            <AssignPatientsABADoctor onViewAbaPlan={onNavigateContent} onViewAbaExam={onNavigateContent} />{" "}
+            {/* Pass onViewAbaExam */}
           </AccessControl>
         )
 
@@ -622,7 +640,148 @@ const MainContentUpdated = ({ activeContent }) => {
           </AccessControl>
         )
 
-      // Added ABA Doctor Plan case
+      case "aba-plan-editor":
+        const hasAccessABA = doctorDepartment?.some((dept) => dept.name === "ABA")
+
+        if (user?.role !== "doctor") {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Access Denied</h3>
+                    <p>Only doctors can access department plans.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        if (!doctorDepartment || doctorDepartment.length === 0) {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Loading...</h3>
+                    <p>Loading your department information...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        if (hasAccessABA && selectedAbaPatientId) {
+          return <ABAPlanView patientId={selectedAbaPatientId} onBack={onBackToDashboard} />
+        } else if (hasAccessABA && !selectedAbaPatientId) {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Users className={styles.comingSoonIcon} />
+                    <h3>No Patient Selected</h3>
+                    <p>Please select a patient from "My ABA Students" to view their plan.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        } else {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Access Denied</h3>
+                    <p>You don't have access to ABA department plans.</p>
+                    <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
+                      Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+      case "aba-exam-editor": // NEW CASE FOR ABA EXAM EDITOR
+        console.log("Inside aba-exam-editor case. selectedAbaPatientId:", selectedAbaPatientId)
+        const hasAccessABAExam = doctorDepartment?.some((dept) => dept.name === "ABA")
+        console.log("Inside aba-exam-editor case. hasAccess (ABA):", hasAccessABAExam)
+
+        if (user?.role !== "doctor") {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Access Denied</h3>
+                    <p>Only doctors can access department exams.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        if (!doctorDepartment || doctorDepartment.length === 0) {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Loading...</h3>
+                    <p>Loading your department information...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        if (hasAccessABAExam && selectedAbaPatientId) {
+          return <ABAExamView patientId={selectedAbaPatientId} onBack={onBackToDashboard} />
+        } else if (hasAccessABAExam && !selectedAbaPatientId) {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Users className={styles.comingSoonIcon} />
+                    <h3>No Patient Selected</h3>
+                    <p>Please select a patient from "My ABA Students" to view their exam.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        } else {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Access Denied</h3>
+                    <p>You don't have access to ABA department exams.</p>
+                    <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
+                      Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
       case "doctor-plan-aba":
         return (
           <AccessControl allowedRoles={["doctor"]}>
@@ -663,7 +822,6 @@ const MainContentUpdated = ({ activeContent }) => {
                 )
               }
 
-              // Check if doctor has access to ABA
               const hasAccess = doctorDepartment.some((dept) => {
                 const deptName = dept.name || ""
                 return deptName === "ABA"
@@ -698,7 +856,6 @@ const MainContentUpdated = ({ activeContent }) => {
           </AccessControl>
         )
 
-      // Speech Department Cases
       case "all-patients-speech":
         return (
           <AccessControl allowedRoles={["admin"]}>
@@ -727,7 +884,6 @@ const MainContentUpdated = ({ activeContent }) => {
           </AccessControl>
         )
 
-      // Added Speech Doctor Plan case
       case "doctor-plan-speech":
         return (
           <AccessControl allowedRoles={["doctor"]}>
@@ -768,7 +924,6 @@ const MainContentUpdated = ({ activeContent }) => {
                 )
               }
 
-              // Check if doctor has access to Speech
               const hasAccess = doctorDepartment.some((dept) => {
                 const deptName = dept.name || ""
                 return deptName === "speech"
@@ -784,16 +939,14 @@ const MainContentUpdated = ({ activeContent }) => {
               } else {
                 return (
                   <div className={styles.upcomingContainer}>
-                    <div className={styles.upcomingCard}>
-                      <div className={styles.cardBody}>
-                        <div className={styles.comingSoon}>
-                          <Shield className={styles.comingSoonIcon} />
-                          <h3>Access Denied</h3>
-                          <p>You don't have access to Speech department plans.</p>
-                          <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
-                            Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
-                          </p>
-                        </div>
+                    <div className={styles.cardBody}>
+                      <div className={styles.comingSoon}>
+                        <Shield className={styles.comingSoonIcon} />
+                        <h3>Access Denied</h3>
+                        <p>You don't have access to Speech department plans.</p>
+                        <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
+                          Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -803,7 +956,6 @@ const MainContentUpdated = ({ activeContent }) => {
           </AccessControl>
         )
 
-      // Physical Therapy Department Cases
       case "all-patients-physical-therapy":
         return (
           <AccessControl allowedRoles={["admin"]}>
@@ -832,7 +984,6 @@ const MainContentUpdated = ({ activeContent }) => {
           </AccessControl>
         )
 
-      // Added Physical Therapy Doctor Plan case
       case "doctor-plan-physical-therapy":
         return (
           <AccessControl allowedRoles={["doctor"]}>
@@ -873,7 +1024,6 @@ const MainContentUpdated = ({ activeContent }) => {
                 )
               }
 
-              // Check if doctor has access to Physical Therapy
               const hasAccess = doctorDepartment.some((dept) => {
                 const deptName = dept.name || ""
                 return deptName === "physicalTherapy"
@@ -889,16 +1039,14 @@ const MainContentUpdated = ({ activeContent }) => {
               } else {
                 return (
                   <div className={styles.upcomingContainer}>
-                    <div className={styles.upcomingCard}>
-                      <div className={styles.cardBody}>
-                        <div className={styles.comingSoon}>
-                          <Shield className={styles.comingSoonIcon} />
-                          <h3>Access Denied</h3>
-                          <p>You don't have access to Physical Therapy department plans.</p>
-                          <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
-                            Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
-                          </p>
-                        </div>
+                    <div className={styles.cardBody}>
+                      <div className={styles.comingSoon}>
+                        <Shield className={styles.comingSoonIcon} />
+                        <h3>Access Denied</h3>
+                        <p>You don't have access to Physical Therapy department plans.</p>
+                        <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
+                          Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -908,7 +1056,6 @@ const MainContentUpdated = ({ activeContent }) => {
           </AccessControl>
         )
 
-      // Occupational Therapy Department Cases
       case "all-patients-occupational-therapy":
         return (
           <AccessControl allowedRoles={["admin"]}>
@@ -919,7 +1066,8 @@ const MainContentUpdated = ({ activeContent }) => {
       case "assign-patients-occupational-therapy":
         return (
           <AccessControl allowedRoles={["doctor"]}>
-            <AssignPatientsOccupationalTherapyDoctor />
+                        <AssignPatientsOccupationalTherapyDoctor onViewoccupationalPlan={onNavigateContent} onViewoccupationalExam={onNavigateContent} />{" "}
+
           </AccessControl>
         )
 
@@ -937,7 +1085,156 @@ const MainContentUpdated = ({ activeContent }) => {
           </AccessControl>
         )
 
-      // Added Occupational Therapy Doctor Plan case
+
+
+
+
+        case "occupational-plan-editor":
+            const hasAccessOccupational = doctorDepartment?.some((dept) => dept.name === "OccupationalTherapy")
+
+            if (user?.role !== "doctor") {
+            return (
+                <div className={styles.upcomingContainer}>
+                <div className={styles.upcomingCard}>
+                    <div className={styles.cardBody}>
+                    <div className={styles.comingSoon}>
+                        <Shield className={styles.comingSoonIcon} />
+                        <h3>Access Denied</h3>
+                        <p>Only doctors can access department plans.</p>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            )
+            }
+
+            if (!doctorDepartment || doctorDepartment.length === 0) {
+            return (
+                <div className={styles.upcomingContainer}>
+                <div className={styles.upcomingCard}>
+                    <div className={styles.cardBody}>
+                    <div className={styles.comingSoon}>
+                        <Shield className={styles.comingSoonIcon} />
+                        <h3>Loading...</h3>
+                        <p>Loading your department information...</p>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            )
+            }
+
+            if (hasAccessOccupational && selectedOccupationalPatientId) {
+            return <OccupationalPlanView patientId={selectedOccupationalPatientId} onBack={onBackToDashboard} />
+            } else if (hasAccessOccupational && !selectedOccupationalPatientId) {
+            return (
+                <div className={styles.upcomingContainer}>
+                <div className={styles.upcomingCard}>
+                    <div className={styles.cardBody}>
+                    <div className={styles.comingSoon}>
+                        <Users className={styles.comingSoonIcon} />
+                        <h3>No Patient Selected</h3>
+                        <p>Please select a patient from "My Occupational Therapy Students" to view their plan.</p>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            )
+            } else {
+            return (
+                <div className={styles.upcomingContainer}>
+                <div className={styles.upcomingCard}>
+                    <div className={styles.cardBody}>
+                    <div className={styles.comingSoon}>
+                        <Shield className={styles.comingSoonIcon} />
+                        <h3>Access Denied</h3>
+                        <p>You don't have access to Occupational therapy department plans.</p>
+                        <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
+                        Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
+                        </p>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            )
+            }
+
+        case "occupational-exam-editor": // NEW CASE FOR Occupational EXAM EDITOR
+            console.log("Inside Occupational-exam-editor case. selectedOccupationalPatientId:", selectedOccupationalPatientId)
+            const hasAccessOccupationalExam = doctorDepartment?.some((dept) => dept.name === "OccupationalTherapy")
+            console.log("Inside OccupationalTherapy-exam-editor case. hasAccess (OccupationalTherapy):", hasAccessOccupationalExam)
+
+            if (user?.role !== "doctor") {
+            return (
+                <div className={styles.upcomingContainer}>
+                <div className={styles.upcomingCard}>
+                    <div className={styles.cardBody}>
+                    <div className={styles.comingSoon}>
+                        <Shield className={styles.comingSoonIcon} />
+                        <h3>Access Denied</h3>
+                        <p>Only doctors can access department exams.</p>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            )
+            }
+
+            if (!doctorDepartment || doctorDepartment.length === 0) {
+            return (
+                <div className={styles.upcomingContainer}>
+                <div className={styles.upcomingCard}>
+                    <div className={styles.cardBody}>
+                    <div className={styles.comingSoon}>
+                        <Shield className={styles.comingSoonIcon} />
+                        <h3>Loading...</h3>
+                        <p>Loading your department information...</p>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            )
+            }
+
+            if (hasAccessOccupationalExam && selectedOccupationalPatientId) {
+            return <OccupationalExamView patientId={selectedOccupationalPatientId} onBack={onBackToDashboard} />
+            } else if (hasAccessOccupationalExam && !selectedOccupationalPatientId) {
+            return (
+                <div className={styles.upcomingContainer}>
+                <div className={styles.upcomingCard}>
+                    <div className={styles.cardBody}>
+                    <div className={styles.comingSoon}>
+                        <Users className={styles.comingSoonIcon} />
+                        <h3>No Patient Selected</h3>
+                        <p>Please select a patient from "My Occupational Therapy Students" to view their exam.</p>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            )
+            } else {
+            return (
+                <div className={styles.upcomingContainer}>
+                <div className={styles.upcomingCard}>
+                    <div className={styles.cardBody}>
+                    <div className={styles.comingSoon}>
+                        <Shield className={styles.comingSoonIcon} />
+                        <h3>Access Denied</h3>
+                        <p>You don't have access to Occupational Therapy department exams.</p>
+                        <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
+                        Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
+                        </p>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            )
+            }
+
+
+
+
+
       case "doctor-plan-occupational-therapy":
         return (
           <AccessControl allowedRoles={["doctor"]}>
@@ -978,7 +1275,6 @@ const MainContentUpdated = ({ activeContent }) => {
                 )
               }
 
-              // Check if doctor has access to Occupational Therapy
               const hasAccess = doctorDepartment.some((dept) => {
                 const deptName = dept.name || ""
                 return deptName === "OccupationalTherapy"
@@ -994,16 +1290,14 @@ const MainContentUpdated = ({ activeContent }) => {
               } else {
                 return (
                   <div className={styles.upcomingContainer}>
-                    <div className={styles.upcomingCard}>
-                      <div className={styles.cardBody}>
-                        <div className={styles.comingSoon}>
-                          <Shield className={styles.comingSoonIcon} />
-                          <h3>Access Denied</h3>
-                          <p>You don't have access to Occupational Therapy department plans.</p>
-                          <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
-                            Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
-                          </p>
-                        </div>
+                    <div className={styles.cardBody}>
+                      <div className={styles.comingSoon}>
+                        <Shield className={styles.comingSoonIcon} />
+                        <h3>Access Denied</h3>
+                        <p>You don't have access to Occupational Therapy department plans.</p>
+                        <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
+                          Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -1013,7 +1307,6 @@ const MainContentUpdated = ({ activeContent }) => {
           </AccessControl>
         )
 
-      // Special Education Department Cases
       case "all-patients-special-education":
         return (
           <AccessControl allowedRoles={["admin"]}>
@@ -1042,7 +1335,6 @@ const MainContentUpdated = ({ activeContent }) => {
           </AccessControl>
         )
 
-      // Added Special Education Doctor Plan case
       case "doctor-plan-special-education":
         return (
           <AccessControl allowedRoles={["doctor"]}>
@@ -1083,7 +1375,6 @@ const MainContentUpdated = ({ activeContent }) => {
                 )
               }
 
-              // Check if doctor has access to Special Education
               const hasAccess = doctorDepartment.some((dept) => {
                 const deptName = dept.name || ""
                 return deptName === "SpecialEducation"
@@ -1099,16 +1390,14 @@ const MainContentUpdated = ({ activeContent }) => {
               } else {
                 return (
                   <div className={styles.upcomingContainer}>
-                    <div className={styles.upcomingCard}>
-                      <div className={styles.cardBody}>
-                        <div className={styles.comingSoon}>
-                          <Shield className={styles.comingSoonIcon} />
-                          <h3>Access Denied</h3>
-                          <p>You don't have access to Special Education department plans.</p>
-                          <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
-                            Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
-                          </p>
-                        </div>
+                    <div className={styles.cardBody}>
+                      <div className={styles.comingSoon}>
+                        <Shield className={styles.comingSoonIcon} />
+                        <h3>Access Denied</h3>
+                        <p>You don't have access to Special Education department plans.</p>
+                        <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
+                          Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
+                        </p>
                       </div>
                     </div>
                   </div>

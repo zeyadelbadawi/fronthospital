@@ -1,33 +1,37 @@
-import { useState, useEffect } from "react";
-import axiosInstance from "@/helper/axiosSetup";
+"use client"
 
-const usePlan = (patientId) => {
-  const [plan, setPlan] = useState({
-    title: "",
-    filePath: "",
-    fileName: "",
-  });
-  const [loading, setLoading] = useState(true);
+import { useState, useEffect, useCallback } from "react"
+import axiosInstance from "@/helper/axiosSetup"
+
+const usePlan = (patientId, department) => {
+  const [plan, setPlan] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const fetchPlan = useCallback(async () => {
+    if (!patientId || !department) {
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/${department}/plan/${patientId}`)
+      setPlan(response.data)
+    } catch (err) {
+      console.error(`Error fetching ${department} plan for patient ${patientId}:`, err)
+      setError(err)
+      setPlan(null) // Ensure plan is null on error
+    } finally {
+      setLoading(false)
+    }
+  }, [patientId, department])
 
   useEffect(() => {
-    const fetchPlan = async () => {
-      try {
-        const response = await axiosInstance.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/aba/plan/${patientId}`
-        );
-        setPlan(response.data || { title: "", filePath: "", fileName: "" });
-      } catch (error) {
-        console.error("Error fetching plan:", error);
-        setPlan({ title: "", filePath: "", fileName: "" }); // fallback to empty plan
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchPlan()
+  }, [fetchPlan])
 
-    fetchPlan();
-  }, [patientId]);
+  return { plan, loading, error, refetchPlan: fetchPlan }
+}
 
-  return { plan, loading };
-};
-
-export default usePlan;
+export default usePlan

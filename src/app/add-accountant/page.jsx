@@ -17,7 +17,7 @@ const Page = () => {
 
         <Breadcrumb 
   heading="Add Accountant" 
-  title="Dashboard / Add Accountant" 
+  title="Add Accountant" 
 />
 
         {/* AddUserLayer */}

@@ -9,7 +9,6 @@ import {
   Palette,
   BookOpen,
   Settings,
-  LogOut,
   ChevronDown,
   ChevronRight,
   User,
@@ -18,9 +17,9 @@ import {
   DollarSign,
   FileText,
 } from "lucide-react"
-import { isAuthenticated, getCurrentUser, logout } from "../utils/auth-utils"
+import { isAuthenticated, getCurrentUser } from "../utils/auth-utils"
 import axiosInstance from "@/helper/axiosSetup"
-import styles from "../styles/speech-upcoming-appointments.module.css"
+import styles from "../styles/sidebar.module.css"
 
 const AppSidebarUpdated = ({ onContentChange }) => {
   const [activeItem, setActiveItem] = useState("dashboard")
@@ -97,12 +96,6 @@ const AppSidebarUpdated = ({ onContentChange }) => {
     }))
   }
 
-  const handleLogout = () => {
-    if (confirm("Are you sure you want to logout?")) {
-      logout()
-    }
-  }
-
   if (!isAuthenticated()) {
     return (
       <div className={styles.sidebar}>
@@ -121,7 +114,6 @@ const AppSidebarUpdated = ({ onContentChange }) => {
   const isDoctorAssignedToDepartment = (departmentName) => {
     if (user?.role !== "doctor") return true // Non-doctors see all
     if (loadingDepartments) return true // Show all while loading
-
     // Map department names to match database values
     const departmentMap = {
       ABA: ["ABA", "Applied Behavior Analysis", "Behavioral Analysis"],
@@ -200,6 +192,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "doctor-plan-aba",
           roles: ["doctor"],
         },
+       
         {
           id: "admin-assign-aba",
           label: "Admin Assign ABA",
@@ -246,6 +239,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "doctor-plan-speech",
           roles: ["doctor"],
         },
+
         {
           id: "admin-assign-speech",
           label: "Admin Assign Speech",
@@ -292,6 +286,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "doctor-plan-physical-therapy",
           roles: ["doctor"],
         },
+
         {
           id: "admin-assign-physical-therapy",
           label: "Admin Assign PT",
@@ -338,6 +333,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "doctor-plan-occupational-therapy",
           roles: ["doctor"],
         },
+
         {
           id: "admin-assign-occupational-therapy",
           label: "Admin Assign OT",
@@ -384,6 +380,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "doctor-plan-special-education",
           roles: ["doctor"],
         },
+
         {
           id: "admin-assign-special-education",
           label: "Admin Assign SE",
@@ -408,17 +405,14 @@ const AppSidebarUpdated = ({ onContentChange }) => {
     if (section.roles && !section.roles.includes(user?.role)) {
       return false
     }
-
     // For doctors, also check department assignments
     if (user?.role === "doctor" && section.departmentName) {
       return isDoctorAssignedToDepartment(section.departmentName)
     }
-
     // For non-department sections or non-doctors, check if any items are accessible
     if (!section.departmentName) {
       return section.items?.some((item) => item.roles.includes(user?.role)) || section.roles?.includes(user?.role)
     }
-
     return true
   })
 
@@ -432,11 +426,10 @@ const AppSidebarUpdated = ({ onContentChange }) => {
               <User className={styles.userAvatarIcon} />
             </div>
             <div className={styles.userDetails}>
-              <p className={styles.userRole}>{user.role}</p>
-              <p className={styles.userId}>ID: {user.id?.slice(-6)}</p>
+              <p className={styles.userRole}> {user.role} Dashboard</p>
               {user.role === "doctor" && (
                 <p className={styles.userDepartments}>
-                  {loadingDepartments ? "Loading..." : `Depts: ${doctorDepartments.length}`}
+                  {loadingDepartments ? "Loading..." : `Assigned to ${doctorDepartments.length} Departments`}
                 </p>
               )}
             </div>
@@ -508,12 +501,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
       </nav>
 
       {/* Footer */}
-      <div className={styles.sidebarFooter}>
-        <button onClick={handleLogout} className={styles.logoutButton}>
-          <LogOut className={styles.logoutIcon} />
-          <span>Logout</span>
-        </button>
-      </div>
+      
     </div>
   )
 }

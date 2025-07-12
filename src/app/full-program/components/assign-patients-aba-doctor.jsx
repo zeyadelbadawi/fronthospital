@@ -1,6 +1,5 @@
 "use client"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import {
   Search,
   AlertCircle,
@@ -17,9 +16,9 @@ import {
 } from "lucide-react"
 import axiosInstance from "@/helper/axiosSetup"
 import { getCurrentUserId } from "../utils/auth-utils"
-import styles from "../styles/speech-upcoming-appointments.module.css"
-
-const AssignPatientsABADoctor = () => {
+import styles from "@/app/full-program/styles/speech-upcoming-appointments.module.css"
+const AssignPatientsABADoctor = ({ onViewAbaPlan, onViewAbaExam }) => {
+  // Added onViewAbaExam prop
   const [assignments, setAssignments] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -35,7 +34,6 @@ const AssignPatientsABADoctor = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false)
 
   const doctorId = getCurrentUserId()
-  const router = useRouter()
 
   useEffect(() => {
     fetchDoctorStudents()
@@ -47,7 +45,6 @@ const AssignPatientsABADoctor = () => {
       setError("")
       console.log("Fetching students for doctor:", doctorId)
 
-      // Try the new endpoint first
       let response
       try {
         response = await axiosInstance.get(`/doctor-student-assignment/doctor-students/${doctorId}/ABA`, {
@@ -55,7 +52,6 @@ const AssignPatientsABADoctor = () => {
         })
       } catch (error) {
         if (error.response?.status === 404) {
-          // Fallback to alternative endpoint
           console.log("Primary endpoint not found, trying alternative...")
           response = await axiosInstance.get(`/doctor-student-assignment/doctor-assignments/${doctorId}`, {
             params: {
@@ -75,7 +71,6 @@ const AssignPatientsABADoctor = () => {
       setAssignments(assignmentsData)
       setTotalPages(response.data.totalPages || 1)
 
-      // Calculate stats
       const total = assignmentsData.length
       const active = assignmentsData.filter(
         (a) => !isSubscriptionExpired(a.subscriptionEndDate) && a.status === "active",
@@ -107,19 +102,30 @@ const AssignPatientsABADoctor = () => {
   }
 
   const handlePlanClick = (patientId) => {
+    console.log("handlePlanClick called for patient ID:", patientId)
     if (!patientId) {
-      console.error("Patient ID is missing")
+      console.error("Patient ID is missing for plan click.")
       return
     }
-    router.push(`/ABA/plan/${patientId}`)
+    if (onViewAbaPlan) {
+      onViewAbaPlan("aba-plan-editor", patientId)
+    } else {
+      console.warn("onViewAbaPlan prop is not provided to AssignPatientsABADoctor.")
+    }
   }
 
   const handleExamClick = (patientId) => {
+    console.log("handleExamClick called for patient ID:", patientId)
     if (!patientId) {
-      console.error("Patient ID is missing")
+      console.error("Patient ID is missing for exam click.")
       return
     }
-    router.push(`/ABA/exam/${patientId}`)
+    if (onViewAbaExam) {
+      // Use the new prop
+      onViewAbaExam("aba-exam-editor", patientId) // Navigate to the new exam editor
+    } else {
+      console.warn("onViewAbaExam prop is not provided to AssignPatientsABADoctor.")
+    }
   }
 
   const closeModal = () => {
@@ -142,9 +148,7 @@ const AssignPatientsABADoctor = () => {
 
   return (
     <div className={styles.upcomingContainer}>
-      {/* Main Unified Card - Header, Stats, Search, and Students Table */}
       <div className={styles.upcomingCard}>
-        {/* Header with Stats */}
         <div className={styles.cardHeader}>
           <div className={styles.headerContent}>
             <div className={styles.titleSection}>
@@ -155,17 +159,10 @@ const AssignPatientsABADoctor = () => {
               <p className={styles.pageSubtitle}>Manage and view your assigned ABA students</p>
             </div>
             <div className={styles.headerActions}>
-              <button
-                onClick={fetchDoctorStudents}
-                disabled={loading}
-                className={`${styles.actionButton} ${styles.viewButton}`}
-              >
-                <RefreshCw className={`${styles.actionIcon} ${loading ? "animate-spin" : ""}`} />
-              </button>
+      
             </div>
           </div>
 
-          {/* Stats */}
           <div className={styles.statsContainer}>
             <div className={styles.statItem}>
               <div className={styles.statNumber}>{stats.total}</div>
@@ -181,7 +178,6 @@ const AssignPatientsABADoctor = () => {
             </div>
           </div>
 
-          {/* Search integrated in header */}
           <div className={styles.filtersContainer} style={{ marginTop: "2rem" }}>
             <div className={styles.searchForm}>
               <div className={styles.searchInputContainer}>
@@ -198,7 +194,6 @@ const AssignPatientsABADoctor = () => {
           </div>
         </div>
 
-        {/* Error Display */}
         {error && (
           <div className={styles.cardBody}>
             <div
@@ -220,7 +215,6 @@ const AssignPatientsABADoctor = () => {
           </div>
         )}
 
-        {/* Students Table Section - Integrated in the same card */}
         <div className={styles.cardBody}>
           <div style={{ marginBottom: "2rem" }}>
             <h2
@@ -367,7 +361,6 @@ const AssignPatientsABADoctor = () => {
                           </td>
                           <td className={styles.actionsCell}>
                             <div className={styles.actionButtons}>
-                              {/* View Details Button */}
                               <button
                                 onClick={() => handleViewDetails(assignment)}
                                 className={`${styles.actionButton} ${styles.viewButton}`}
@@ -376,7 +369,6 @@ const AssignPatientsABADoctor = () => {
                                 <Eye className={styles.actionIcon} />
                               </button>
 
-                              {/* Plan Button */}
                               <button
                                 onClick={() => handlePlanClick(assignment.patient?._id)}
                                 className={`${styles.actionButton} ${styles.editButton}`}
@@ -386,9 +378,8 @@ const AssignPatientsABADoctor = () => {
                                 <ClipboardList className={styles.actionIcon} />
                               </button>
 
-                              {/* Exam Button */}
                               <button
-                                onClick={() => handleExamClick(assignment.patient?._id)}
+                                onClick={() => handleExamClick(assignment.patient?._id)} // Call the new handler
                                 className={`${styles.actionButton} ${styles.deleteButton}`}
                                 title="Student Exam"
                                 disabled={!assignment.patient?._id}
@@ -404,7 +395,6 @@ const AssignPatientsABADoctor = () => {
                 </table>
               </div>
 
-              {/* Pagination */}
               {totalPages > 1 && (
                 <div className={styles.paginationContainer}>
                   <div className={styles.paginationInfo}>
@@ -443,7 +433,6 @@ const AssignPatientsABADoctor = () => {
         </div>
       </div>
 
-      {/* Details Modal */}
       {showDetailsModal && selectedAssignment && (
         <div className={styles.modalOverlay} onClick={closeModal}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -473,20 +462,8 @@ const AssignPatientsABADoctor = () => {
                     {selectedAssignment.patient?.phone || selectedAssignment.patientId?.phone || "Not provided"}
                   </div>
                 </div>
-                <div className={styles.detailItem}>
-                  <div className={styles.detailLabel}>Patient ID</div>
-                  <div className={styles.detailValue}>
-                    {selectedAssignment.patient?.patientId || selectedAssignment.patientId?.patientId || "Not assigned"}
-                  </div>
-                </div>
-                <div className={styles.detailItem}>
-                  <div className={styles.detailLabel}>Disability Type</div>
-                  <div className={styles.detailValue}>
-                    {selectedAssignment.patient?.disabilityType ||
-                      selectedAssignment.patientId?.disabilityType ||
-                      "Not specified"}
-                  </div>
-                </div>
+                
+                
                 <div className={styles.detailItem}>
                   <div className={styles.detailLabel}>Department</div>
                   <div className={styles.detailValue}>{selectedAssignment.department || "ABA"}</div>
@@ -533,12 +510,7 @@ const AssignPatientsABADoctor = () => {
                     </span>
                   </div>
                 </div>
-                {selectedAssignment.notes && (
-                  <div className={`${styles.detailItem} ${styles.fullWidth}`}>
-                    <div className={styles.detailLabel}>Notes</div>
-                    <div className={styles.detailValue}>{selectedAssignment.notes}</div>
-                  </div>
-                )}
+             
               </div>
             </div>
             <div className={styles.modalFooter}>

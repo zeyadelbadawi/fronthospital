@@ -356,7 +356,7 @@ const MasterLayout = ({ children }) => {
           padding: 1rem 1.5rem;
           position: sticky;
           top: 0;
-          z-index: 100;
+          z-index: 10000000000000;
           box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
 
