@@ -49,7 +49,9 @@ const PatientPlanEditor = () => {
       alert("Plan saved successfully!");
     } catch (error) {
       console.error("Error saving plan:", error);
-      alert("Error saving plan: " + (error.response?.data?.message || error.message));
+      alert(
+        "Error saving plan: " + (error.response?.data?.message || error.message)
+      );
     } finally {
       setSaving(false);
     }
@@ -82,13 +84,20 @@ const PatientPlanEditor = () => {
                   <label className="form-label">Document Viewer</label>
                   <SyncfusionDocx
                     userData={{
-                      docxId: plan._id,
+                      docxId: plan._id || "no-data",
                       patientId,
                       filePath: plan.filePath
                         ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/ABA/plan/${plan.filePath}`
                         : `${process.env.NEXT_PUBLIC_API_URL}/uploads/ABA/plan/ABA-plan-defoult.docx`,
                       fileName: plan.fileName || "ABA-plan-defoult.docx",
                       docxName: `ABA-plan-${patient.name}.docx`,
+                      isList: false,
+                      notifyEmail: true,
+                      notifyNto: true,
+                      rule: "Patient",
+                      to: patient.email,
+                      title: "ABA Plan",
+                      message: "Your aba plan has been updated",
                     }}
                     planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/aba/upload-plan`}
                   />
@@ -99,7 +108,8 @@ const PatientPlanEditor = () => {
                 <div className="row mt-3">
                   <div className="col-12">
                     <small className="text-muted">
-                      Last modified: {new Date(plan.lastModified).toLocaleString()}
+                      Last modified:{" "}
+                      {new Date(plan.lastModified).toLocaleString()}
                     </small>
                   </div>
                 </div>

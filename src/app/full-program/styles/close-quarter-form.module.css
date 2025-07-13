@@ -1,0 +1,415 @@
+/* Close Quarter Form Styles - Completely Isolated */
+
+.closeQuarterForm {
+  padding: 2rem;
+  /* Define CSS variables locally within this component */
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --shadow-light: 0 4px 15px 0 rgba(31, 38, 135, 0.37);
+  --shadow-heavy: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --border-radius: 15px;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Form Header Styles */
+.formHeader {
+  margin-bottom: 2rem;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+}
+
+.titleIcon {
+  font-size: 2rem;
+  color: #667eea;
+  margin-right: 0.75rem;
+}
+
+.formTitle {
+  margin: 0;
+  color: #2d3748;
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+.closeButton {
+  border: 2px solid #e2e8f0;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  color: #6b7280;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  border-color: #dc3545;
+  background-color: #dc3545;
+  color: white;
+  transform: rotate(90deg) scale(1.1);
+}
+
+.closeIcon {
+  font-size: 1.2rem;
+}
+
+.formDescription {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 0;
+  font-size: 0.95rem;
+}
+
+.headerDivider {
+  margin: 1.5rem 0;
+  border-color: #e2e8f0;
+  border-width: 2px;
+}
+
+/* Quarter Selection Info Box */
+.quarterInfoBox {
+  background: linear-gradient(145deg, #dbeafe, #bfdbfe);
+  border: 2px solid #3b82f6;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.quarterInfoBox::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-gradient);
+}
+
+.quarterIcon {
+  font-size: 1.5rem;
+  color: #1d4ed8;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.quarterInfoContent {
+  flex-grow: 1;
+}
+
+.quarterInfoTitle {
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+  color: #1e40af;
+  font-size: 1rem;
+}
+
+.quarterInfoSubtitle {
+  margin-bottom: 0;
+  font-size: 0.875rem;
+  color: #3730a3;
+}
+
+/* Form Fields Styling */
+.formRow {
+  margin-bottom: 1.5rem;
+}
+
+.formColumn {
+  margin-bottom: 1rem;
+}
+
+.formLabel {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.formInput,
+.formSelect {
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  transition: var(--transition);
+  background: white;
+}
+
+.formInput:focus,
+.formSelect:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  outline: none;
+}
+
+.formInput.readOnly {
+  background-color: #f8f9fa;
+  color: #6b7280;
+}
+
+.formInput.invalid,
+.formSelect.invalid {
+  border-color: #dc3545;
+}
+
+.errorMessage {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.formText {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* Warning Notice */
+.warningNotice {
+  background: linear-gradient(145deg, #fef3c7, #fde68a);
+  border: 2px solid #f59e0b;
+  border-radius: var(--border-radius);
+  padding: 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.warningNotice::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--warning-gradient);
+}
+
+.warningIcon {
+  color: #d97706;
+  margin-right: 0.75rem;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.warningContent {
+  color: #92400e;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.warningContent strong {
+  color: #78350f;
+}
+
+/* Submit Button */
+.submitButton {
+  background: var(--primary-gradient);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+  padding: 1rem 2rem;
+  width: 100%;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.submitButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: var(--transition);
+}
+
+.submitButton:hover::before {
+  left: 100%;
+}
+
+.submitButton:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-heavy);
+}
+
+.submitButton:active {
+  transform: translateY(0);
+}
+
+.submitButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.submitButton:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.loadingSpinner {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.closeQuarterForm {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.quarterInfoBox:hover {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Focus States for Accessibility */
+.closeButton:focus,
+.submitButton:focus,
+.formInput:focus,
+.formSelect:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .closeQuarterForm {
+    padding: 1.5rem;
+  }
+
+  .headerContent {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .titleSection {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .closeButton {
+    align-self: flex-end;
+  }
+
+  .formTitle {
+    font-size: 1.25rem;
+  }
+
+  .quarterInfoBox {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .quarterIcon {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .closeQuarterForm {
+    padding: 1rem;
+  }
+
+  .formTitle {
+    font-size: 1.125rem;
+  }
+
+  .titleIcon {
+    font-size: 1.5rem;
+  }
+
+  .quarterInfoBox {
+    padding: 1rem;
+  }
+
+  .warningNotice {
+    padding: 1rem;
+  }
+}
+
+/* Enhanced Hover Effects */
+.formInput:hover,
+.formSelect:hover {
+  border-color: #9ca3af;
+}
+
+.quarterInfoBox:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-light);
+}
+
+.warningNotice:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+
+/* Loading State */
+.submitButton.loading {
+  pointer-events: none;
+}
+
+.submitButton.loading::before {
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}

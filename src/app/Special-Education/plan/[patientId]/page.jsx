@@ -260,7 +260,7 @@ const PatientPlanEditor = () => {
                   <label className="form-label">Document Viewer</label>
                   <SyncfusionDocx
                     userData={{
-                      docxId: plan._id,
+                      docxId: plan._id || "no-data",
                       patientId,
                       filePath: `${
                         process.env.NEXT_PUBLIC_API_URL
@@ -270,6 +270,13 @@ const PatientPlanEditor = () => {
                       fileName:
                         plan.fileName || "Special-Education-plan-defoult.docx",
                       docxName: `Special-Education-plan-${patient.name}.docx`,
+                      isList: false,
+                      notifyEmail: true,
+                      notifyNto: true,
+                      rule: "Patient",
+                      to: patient.email,
+                      title: "Special Education plan",
+                      message: "Your special education plan has been updated",
                     }}
                     planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/SpecialEducation/upload-plan`}
                   />

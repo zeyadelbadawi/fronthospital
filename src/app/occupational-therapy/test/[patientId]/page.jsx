@@ -179,7 +179,9 @@ const PatientExamEditor = () => {
           <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
               <div>
-                <h5 className="mb-0">Occupational Therapy Exam - {patient.name}</h5>
+                <h5 className="mb-0">
+                  Occupational Therapy Exam - {patient.name}
+                </h5>
                 <small className="text-muted">Patient ID: {patient._id}</small>
               </div>
               {/* <div className="d-flex gap-2">
@@ -260,16 +262,26 @@ const PatientExamEditor = () => {
                   <label className="form-label">Document Viewer</label>
                   <SyncfusionDocx
                     userData={{
-                      docxId: exam._id,
+                      docxId: exam._id || "no-data",
                       patientId,
                       filePath: `${
                         process.env.NEXT_PUBLIC_API_URL
                       }/uploads/Occupational-therapy/exam/${
-                        exam.filePath || "Occupational-therapy-exam-defoult.docx"
+                        exam.filePath ||
+                        "Occupational-therapy-exam-defoult.docx"
                       }`,
                       fileName:
-                        exam.fileName || "Occupational-Therapy-exam-defoult.docx",
+                        exam.fileName ||
+                        "Occupational-Therapy-exam-defoult.docx",
                       docxName: `Occupational-Therapy-exam-${patient.name}.docx`,
+                      isList: false,
+                      notifyEmail: true,
+                      notifyNto: true,
+                      rule: "Patient",
+                      to: patient.email,
+                      title: "Occupational Therapy Exam",
+                      message:
+                        "Your occupational therapy exam has been uploaded",
                     }}
                     examEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/OccupationalTherapy/upload-exam`}
                   />

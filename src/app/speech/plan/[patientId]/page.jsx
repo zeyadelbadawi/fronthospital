@@ -260,16 +260,22 @@ const PatientPlanEditor = () => {
                   <label className="form-label">Document Viewer</label>
                   <SyncfusionDocx
                     userData={{
-                      docxId: plan._id,
+                      docxId: plan._id || "no-data",
                       patientId,
                       filePath: `${
                         process.env.NEXT_PUBLIC_API_URL
                       }/uploads/Speech/plan/${
                         plan.filePath || "speech-plan-defoult.docx"
                       }`,
-                      fileName:
-                        plan.fileName || "speech-plan-defoult.docx",
+                      fileName: plan.fileName || "speech-plan-defoult.docx",
                       docxName: `speech-plan-${patient.name}.docx`,
+                      isList: false,
+                      notifyEmail: true,
+                      notifyNto: true,
+                      rule: "Patient",
+                      to: patient.email,
+                      title: "Speech Plan",
+                      message: "Your speech plan has been updated",
                     }}
                     planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/speech/upload-plan`}
                   />

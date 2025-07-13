@@ -258,18 +258,27 @@ const PatientExamEditor = () => {
               <div className="row ">
                 <div className="col-12 ">
                   <label className="form-label">Document Viewer</label>
-                 <SyncfusionDocx
-  userData={{
-    docxId: exam._id,
-    patientId,
-    filePath: `${
-      process.env.NEXT_PUBLIC_API_URL
-    }/uploads/ABA/exam/${exam.filePath || "ABA-exam-defoult.docx"}`, // Fallback to default file if no exam.filePath
-    fileName: exam.fileName || "ABA-exam-defoult.docx", // Use default file name if no fileName
-    docxName: `ABA-exam-${patient.name}.docx`,
-  }}
-  planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/aba/upload-exam`}
-/>
+                  <SyncfusionDocx
+                    userData={{
+                      docxId: exam._id || "no-data",
+                      patientId,
+                      filePath: `${
+                        process.env.NEXT_PUBLIC_API_URL
+                      }/uploads/ABA/exam/${
+                        exam.filePath || "ABA-exam-defoult.docx"
+                      }`, // Fallback to default file if no exam.filePath
+                      fileName: exam.fileName || "ABA-exam-defoult.docx", // Use default file name if no fileName
+                      docxName: `ABA-exam-${patient.name}.docx`,
+                      isList: false,
+                      notifyEmail: true,
+                      notifyNto: true,
+                      rule: "Patient",
+                      to: patient.email,
+                      title: "ABA Exam",
+                      message: "Your aba exam has been uploaded",
+                    }}
+                    planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/aba/upload-exam`}
+                  />
 
                   {/* {exam.filePath ? (
                     <div

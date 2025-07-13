@@ -56,6 +56,7 @@ export default function AppointmentPage() {
       setLoading(true);
       const response = await axiosInstance.get("/appointments/");
       setAppointments(response.data);
+      setTotalPages(Math.ceil(response?.data?.appointments?.length / 10));
       console.log("Appointments fetched successfully:", response.data);
     } catch (error) {
       setLoading(false);
@@ -79,6 +80,15 @@ export default function AppointmentPage() {
     setIsLoading(false);
     setCurrentId(null);
     closeDeleteModal();
+  };
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -221,8 +231,8 @@ export default function AppointmentPage() {
         <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
           <span>
             Showing {(currentPage - 1) * 10 + 1} to{" "}
-            {Math.min(currentPage * 10, appointments.length)} of{" "}
-            {appointments.length} entries
+            {Math.min(currentPage * 10, appointments?.appointments?.length)} of{" "}
+            {appointments?.appointments?.length} entries
           </span>
           <ul className="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
             {Array.from({ length: totalPages }, (_, i) => (
@@ -253,6 +263,10 @@ export default function AppointmentPage() {
         <AppointmentUpdate
           appointmentId={currentId}
           currentData={selectedAppointment}
+          onSuccess={() => {
+            fetchAppointments();
+            onUpdateClose();
+          }}
         />
       </UpdateModel>
 
@@ -261,7 +275,13 @@ export default function AppointmentPage() {
         color={"bg-danger"}
         title={"Delete Appointment Slot"}
       >
-        <DeleteAppointment currentId={currentId} />
+        <DeleteAppointment
+          currentId={currentId}
+          onSuccess={() => {
+            fetchAppointments();
+            onDeleteClose();
+          }}
+        />
       </DeleteModel>
     </div>
   );

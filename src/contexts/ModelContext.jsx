@@ -5,6 +5,7 @@ export const ModelContextInst = createContext();
 export const ModelProvider = ({ children }) => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDocxSave, setIsDocxSave] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const openUpdateModal = () => {
@@ -37,6 +38,8 @@ export const ModelProvider = ({ children }) => {
         closeUpdateModal,
         closeDeleteModal,
         openDeleteModal,
+        isDocxSave,
+        setIsDocxSave,
       }}
     >
       {children}

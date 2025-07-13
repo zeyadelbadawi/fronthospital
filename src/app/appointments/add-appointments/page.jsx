@@ -208,7 +208,7 @@ export default function AppointmentBooking() {
             Appointment Booking System
           </h1>
           <p className="lead text-muted">
-            Select multiple appointment slots for different departments
+            Select appointment slots for different departments and doctors
           </p>
         </div>
 

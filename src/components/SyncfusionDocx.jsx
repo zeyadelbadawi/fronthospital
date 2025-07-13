@@ -1,15 +1,17 @@
 "use client";
 // Todo :Add more component in toolbar of ej2-react-documenteditor
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useContext } from "react";
+import { ModelContextInst } from "@/contexts/ModelContext";
 import {
   DocumentEditorContainerComponent,
   Toolbar,
   Inject,
 } from "@syncfusion/ej2-react-documenteditor";
 import axiosInstance from "@/helper/axiosSetup";
-export default function SyncfusionDocx({ userData, planEndpoint }) {
+export default function SyncfusionDocx({ userData, planEndpoint, email }) {
   console.log("SyncfusionDocx", userData);
   const documentEditorContainerRef = useRef(null);
+  //const { isDocxSave, setIsDocxSave } = useContext(ModelContextInst);
 
   // Load Syncfusion styles
   useEffect(() => {
@@ -101,8 +103,17 @@ export default function SyncfusionDocx({ userData, planEndpoint }) {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      //console.log("eeeee", response.data);
+
       // Handle the response as needed
       if (response.status === 200) {
+        //setIsDocxSave(true);
+        if (userData.notifyNto) {
+          sendNotification();
+        }
+        if (userData.notifyEmail) {
+          sendEmail(response.data.fullPath);
+        }
         console.log("Document saved successfully:", response.data);
       } else {
         console.error("Error saving document:", response.statusText);
@@ -116,6 +127,54 @@ export default function SyncfusionDocx({ userData, planEndpoint }) {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url); */
+    }
+  };
+
+  const sendEmail = async (filePath) => {
+    try {
+      // Send the form data to your server
+      const response = await axiosInstance.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/email/send-email`,
+        {
+          to: userData.to,
+          filePath,
+          subject: userData.title,
+          text: userData.message,
+        }
+      );
+      console.log("email send successfully ", response.data);
+    } catch (error) {
+      console.log("Error while send email", error);
+    }
+  };
+  const sendNotification = async () => {
+    try {
+      let response;
+      if (userData.isList) {
+        response = await axiosInstance.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/notification/send`,
+          {
+            receiverIds: userData.doctorIds,
+            rule: userData.rule,
+            title: userData.title,
+            message: userData.message,
+          }
+        );
+      } else {
+        // Send the form data to your server
+        response = await axiosInstance.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/notification/send`,
+          {
+            receiverId: userData.patientId,
+            rule: userData.rule,
+            title: userData.title,
+            message: userData.message,
+          }
+        );
+      }
+      console.log("Notification send successfully", response.data);
+    } catch (error) {
+      console.log("Error while send notification", error);
     }
   };
 

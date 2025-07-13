@@ -179,7 +179,9 @@ const PatientExamEditor = () => {
           <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
               <div>
-                <h5 className="mb-0">Special Education Exam - {patient.name}</h5>
+                <h5 className="mb-0">
+                  Special Education Exam - {patient.name}
+                </h5>
                 <small className="text-muted">Patient ID: {patient._id}</small>
               </div>
               {/* <div className="d-flex gap-2">
@@ -260,7 +262,7 @@ const PatientExamEditor = () => {
                   <label className="form-label">Document Viewer</label>
                   <SyncfusionDocx
                     userData={{
-                      docxId: exam._id,
+                      docxId: exam._id || "no-data",
                       patientId,
                       filePath: `${
                         process.env.NEXT_PUBLIC_API_URL
@@ -270,6 +272,13 @@ const PatientExamEditor = () => {
                       fileName:
                         exam.fileName || "Special-Education-exam-defoult.docx",
                       docxName: `Special-Education-exam-${patient.name}.docx`,
+                      isList: false,
+                      notifyEmail: true,
+                      notifyNto: true,
+                      rule: "Patient",
+                      to: patient.email,
+                      title: "Special Education Exam",
+                      message: "Your special education exam has been uploaded",
                     }}
                     planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/SpecialEducation/upload-exam`}
                   />

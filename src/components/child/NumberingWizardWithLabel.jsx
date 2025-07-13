@@ -1,25 +1,31 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import DatePicker from "react-datepicker"
-import "react-datepicker/dist/react-datepicker.css"
-import { useRouter } from "next/navigation"
-import axiosInstance from "@/helper/axiosSetup"
-import Select from "react-select"
-import SyncfusionDocx from "@/components/SyncfusionDocx"
+import { useState, useEffect } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { useRouter } from "next/navigation";
+import axiosInstance from "@/helper/axiosSetup";
+import Select from "react-select";
+import SyncfusionDocx from "@/components/SyncfusionDocx";
 
-const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, patientName }) => {
-  const [selectedDay, setSelectedDay] = useState(null)
-  const [selectedTime, setSelectedTime] = useState(null)
-  const [description, setDescription] = useState("")
-  const [evaluationType, setEvaluationType] = useState("")
-  const [blurred, setBlurred] = useState(false)
-  const router = useRouter()
-  const [isAlreadyBooked, setIsAlreadyBooked] = useState(false)
-  const [selectedSchool, setSelectedSchool] = useState("")
-  const [plan, setPlan] = useState(null)
-  const [selectedServices, setSelectedServices] = useState([])
-  const [totalPrice, setTotalPrice] = useState(0)
+const NumberingWizardWithLabel = ({
+  currentStep,
+  setCurrentStep,
+  patientId,
+  patientName,
+}) => {
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedTime, setSelectedTime] = useState(null);
+  const [description, setDescription] = useState("");
+  const [evaluationType, setEvaluationType] = useState("");
+  const [blurred, setBlurred] = useState(false);
+  const router = useRouter();
+  const [isAlreadyBooked, setIsAlreadyBooked] = useState(false);
+  const [selectedSchool, setSelectedSchool] = useState("");
+  const [plan, setPlan] = useState(null);
+  const [selectedServices, setSelectedServices] = useState([]);
+  const [doctorsIds, setDoctorsIds] = useState();
+  const [totalPrice, setTotalPrice] = useState(0);
   const [programData, setProgramData] = useState({
     programType: "",
     patientId,
@@ -28,80 +34,109 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
     description: "",
     programKind: "",
     unicValue: "",
-  })
+  });
 
   const serviceOptions = [
     { value: "physical_therapy", label: "Physical Therapy", price: 100 },
     { value: "ABA", label: "ABA", price: 300 },
-    { value: "occupational_therapy", label: "Occupational Therapy", price: 1200 },
+    {
+      value: "occupational_therapy",
+      label: "Occupational Therapy",
+      price: 1200,
+    },
     { value: "special_education", label: "Special Education", price: 500 },
     { value: "speech", label: "Speech", price: 230 },
-  ]
+  ];
 
   const handleServiceChange = (selectedOptions = []) => {
-    setSelectedServices(selectedOptions)
-    const newPrice = selectedOptions.reduce((total, option) => total + option.price, 0)
-    setTotalPrice(newPrice)
-  }
+    setSelectedServices(selectedOptions);
+    const newPrice = selectedOptions.reduce(
+      (total, option) => total + option.price,
+      0
+    );
+    setTotalPrice(newPrice);
+  };
+
+  const getDoctorsIds = () => {
+    try {
+      axiosInstance
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/notification/doctor-ids`)
+        .then((response) => {
+          console.log("Doctors IDs fetched:", response.data);
+          setDoctorsIds(response.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching doctors IDs:", error);
+        });
+    } catch (error) {
+      console.error("Error fetching doctors IDs:", error);
+    }
+  };
 
   useEffect(() => {
-    console.log("patientId received in useEffect:", patientId)
+    getDoctorsIds();
+  }, []);
+
+  useEffect(() => {
+    console.log("patientId received in useEffect:", patientId);
     const fetchPlanData = async () => {
       try {
-        console.log("Fetching plan data for patientId:", patientId)
-        const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/DrastHala/plan/${patientId}`)
-        console.log("Plan data fetched:", response.data)
-        setPlan(response.data)
+        console.log("Fetching plan data for patientId:", patientId);
+        const response = await axiosInstance.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/DrastHala/plan/${patientId}`
+        );
+        console.log("Plan data fetched:", response.data);
+        setPlan(response.data);
       } catch (error) {
-        console.error("Error fetching plan data:", error)
+        console.error("Error fetching plan data:", error);
       }
-    }
+    };
 
     if (patientId) {
-      fetchPlanData()
+      fetchPlanData();
     }
-  }, [patientId])
+  }, [patientId]);
 
   const getProgramPrice = (programType) => {
     switch (programType) {
       case "full_program":
-        return 1000
+        return 1000;
       case "single_session":
-        return 100
+        return 100;
       case "school_evaluation":
-        return 400
+        return 400;
       default:
-        return 0
+        return 0;
     }
-  }
+  };
 
   useEffect(() => {
     if (currentStep === 0) {
-      setSelectedServices([])
+      setSelectedServices([]);
     }
     if (currentStep === 3) {
-      setEvaluationType("")
-      setDescription("")
+      setEvaluationType("");
+      setDescription("");
     }
-  }, [currentStep])
+  }, [currentStep]);
 
   const filterWeekdays = (date) => {
-    const day = date.getDay()
-    return day === 0 || day === 5
-  }
+    const day = date.getDay();
+    return day === 0 || day === 5;
+  };
 
   const nextStep = async () => {
-    console.log("patientId in nextStep:", patientId)
+    console.log("patientId in nextStep:", patientId);
 
     if (currentStep < 4) {
       try {
-        let programType = ""
+        let programType = "";
         if (evaluationType === "full_package_evaluation") {
-          programType = "full_program"
+          programType = "full_program";
         } else if (evaluationType === "single_session") {
-          programType = "single_session"
+          programType = "single_session";
         } else if (evaluationType === "school_evaluation") {
-          programType = "school_evaluation"
+          programType = "school_evaluation";
         }
 
         const updatedProgramData = {
@@ -111,50 +146,53 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           time: selectedTime,
           description,
           programKind: evaluationType === "single_session" ? "Single" : "",
-        }
+        };
 
-        setProgramData(updatedProgramData)
-        setCurrentStep(currentStep + 1)
+        setProgramData(updatedProgramData);
+        setCurrentStep(currentStep + 1);
       } catch (error) {
-        console.error("Error saving program:", error)
+        console.error("Error saving program:", error);
       }
     }
-  }
+  };
 
   const handlePayment = async () => {
     try {
-      const price = getProgramPrice(programData.programType) + totalPrice
+      const price = getProgramPrice(programData.programType) + totalPrice;
 
       const response = await axiosInstance.post("/authentication/saveProgram", {
         ...programData,
         patientId,
         price,
         programKind: selectedServices.map((service) => service.value),
-      })
+      });
 
       if (response.status === 200) {
-        const programId = response.data.program._id
-        const programType = programData.programType
+        const programId = response.data.program._id;
+        const programType = programData.programType;
 
-        const moneyResponse = await axiosInstance.post("/authentication/saveMoneyRecord", {
-          patientId,
-          programId,
-          price,
-          status: "completed",
-          invoiceId: `INV-${Math.random().toString(36).substring(2, 15)}`,
-          programType,
-          patientName,
-        })
+        const moneyResponse = await axiosInstance.post(
+          "/authentication/saveMoneyRecord",
+          {
+            patientId,
+            programId,
+            price,
+            status: "completed",
+            invoiceId: `INV-${Math.random().toString(36).substring(2, 15)}`,
+            programType,
+            patientName,
+          }
+        );
 
         if (moneyResponse.status === 200) {
-          console.log("Payment and money record saved successfully")
-          setCurrentStep(4)
+          console.log("Payment and money record saved successfully");
+          setCurrentStep(4);
         }
       }
     } catch (error) {
-      console.error("Error saving program:", error)
+      console.error("Error saving program:", error);
     }
-  }
+  };
 
   const steps = [
     { number: 1, title: "Select Evaluation Type", icon: "📋" },
@@ -162,7 +200,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
     { number: 3, title: "Word Document", icon: "📄" },
     { number: 4, title: "Payment", icon: "💳" },
     { number: 5, title: "Complete", icon: "✅" },
-  ]
+  ];
 
   return (
     <>
@@ -171,19 +209,20 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           min-height: 100vh;
           background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
           padding: 2rem 1rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            sans-serif;
         }
-        
+
         .rukn-wizard-container {
           max-width: 64rem;
           margin: 0 auto;
         }
-        
+
         .rukn-header {
           text-align: center;
           margin-bottom: 2rem;
         }
-        
+
         .rukn-header-icon {
           display: inline-flex;
           align-items: center;
@@ -194,12 +233,12 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           border-radius: 50%;
           margin-bottom: 1rem;
         }
-        
+
         .rukn-header-icon span {
           font-size: 1.5rem;
           color: white;
         }
-        
+
         .rukn-main-title {
           font-size: 1.875rem;
           font-weight: 700;
@@ -207,7 +246,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 0.5rem;
           margin-top: 0;
         }
-        
+
         .rukn-sub-title {
           font-size: 1.25rem;
           font-weight: 600;
@@ -215,12 +254,12 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 0.5rem;
           margin-top: 0;
         }
-        
+
         .rukn-description {
           color: #6b7280;
           margin: 0;
         }
-        
+
         .rukn-progress-card {
           background: white;
           border-radius: 0.75rem;
@@ -228,7 +267,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           padding: 1.5rem;
           margin-bottom: 2rem;
         }
-        
+
         .rukn-steps-container {
           display: flex;
           align-items: center;
@@ -236,7 +275,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 2rem;
           position: relative;
         }
-        
+
         .rukn-step {
           display: flex;
           flex-direction: column;
@@ -244,7 +283,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           flex: 1;
           position: relative;
         }
-        
+
         .rukn-step-circle {
           width: 3rem;
           height: 3rem;
@@ -257,33 +296,33 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 0.5rem;
           transition: all 0.3s ease;
         }
-        
+
         .rukn-step-circle.active {
           background-color: #2563eb;
           color: white;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-        
+
         .rukn-step-circle.inactive {
           background-color: #e5e7eb;
           color: #6b7280;
         }
-        
+
         .rukn-step-title {
           font-size: 0.75rem;
           font-weight: 500;
           text-align: center;
           padding: 0 0.5rem;
         }
-        
+
         .rukn-step-title.active {
           color: #2563eb;
         }
-        
+
         .rukn-step-title.inactive {
           color: #6b7280;
         }
-        
+
         .rukn-step-line {
           position: absolute;
           height: 2px;
@@ -292,37 +331,37 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           left: calc(50% + 1.5rem);
           transition: all 0.3s ease;
         }
-        
+
         .rukn-step-line.active {
           background-color: #2563eb;
         }
-        
+
         .rukn-step-line.inactive {
           background-color: #e5e7eb;
         }
-        
+
         .rukn-main-card {
           background: white;
           border-radius: 0.75rem;
           box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
           overflow: hidden;
         }
-        
+
         .rukn-card-content {
           padding: 2rem;
         }
-        
+
         .rukn-step-content {
           display: flex;
           flex-direction: column;
           gap: 1.5rem;
         }
-        
+
         .rukn-step-header {
           text-align: center;
           margin-bottom: 2rem;
         }
-        
+
         .rukn-step-header h3 {
           font-size: 1.5rem;
           font-weight: 700;
@@ -330,30 +369,30 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 0.5rem;
           margin-top: 0;
         }
-        
+
         .rukn-step-header p {
           color: #6b7280;
           margin: 0;
         }
-        
+
         .rukn-form-group {
           display: flex;
           flex-direction: column;
           gap: 1rem;
         }
-        
+
         .rukn-form-grid {
           display: grid;
           grid-template-columns: 1fr;
           gap: 1.5rem;
         }
-        
+
         @media (min-width: 768px) {
           .rukn-form-grid {
             grid-template-columns: 1fr 1fr;
           }
         }
-        
+
         .rukn-label {
           display: block;
           font-size: 0.875rem;
@@ -361,7 +400,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           color: #374151;
           margin-bottom: 0.75rem;
         }
-        
+
         .rukn-select,
         .rukn-input,
         .rukn-textarea {
@@ -374,42 +413,42 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           transition: border-color 0.2s ease;
           box-sizing: border-box;
         }
-        
+
         .rukn-select:focus,
         .rukn-input:focus,
         .rukn-textarea:focus {
           outline: none;
           border-color: #3b82f6;
         }
-        
+
         .rukn-textarea {
           resize: none;
           min-height: 6rem;
         }
-        
+
         .rukn-service-total {
           margin-top: 0.75rem;
           padding: 0.75rem;
           background: #eff6ff;
           border-radius: 0.5rem;
         }
-        
+
         .rukn-service-total p {
           color: #1e40af;
           font-weight: 600;
           margin: 0;
         }
-        
+
         .rukn-button-group {
           display: flex;
           justify-content: space-between;
           padding-top: 1.5rem;
         }
-        
+
         .rukn-button-group.end {
           justify-content: flex-end;
         }
-        
+
         .rukn-button {
           padding: 0.75rem 2rem;
           font-weight: 600;
@@ -419,31 +458,31 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           transition: all 0.2s ease;
           font-size: 1rem;
         }
-        
+
         .rukn-button-primary {
           background-color: #2563eb;
           color: white;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-        
+
         .rukn-button-primary:hover:not(:disabled) {
           background-color: #1d4ed8;
         }
-        
+
         .rukn-button-primary:disabled {
           background-color: #d1d5db;
           cursor: not-allowed;
         }
-        
+
         .rukn-button-secondary {
           background-color: #e5e7eb;
           color: #374151;
         }
-        
+
         .rukn-button-secondary:hover {
           background-color: #d1d5db;
         }
-        
+
         .rukn-button-success {
           background-color: #059669;
           color: white;
@@ -451,18 +490,18 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           font-size: 1.125rem;
           box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
-        
+
         .rukn-button-success:hover {
           background-color: #047857;
         }
-        
+
         .rukn-payment-summary {
           background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
           border-radius: 0.5rem;
           padding: 1.5rem;
           margin-bottom: 1.5rem;
         }
-        
+
         .rukn-payment-summary h4 {
           font-size: 1.125rem;
           font-weight: 600;
@@ -470,21 +509,21 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 1rem;
           margin-top: 0;
         }
-        
+
         .rukn-payment-row {
           display: flex;
           justify-content: space-between;
           margin-bottom: 0.5rem;
         }
-        
+
         .rukn-payment-row span:first-child {
           color: #6b7280;
         }
-        
+
         .rukn-payment-row span:last-child {
           font-weight: 600;
         }
-        
+
         .rukn-payment-total {
           display: flex;
           justify-content: space-between;
@@ -495,25 +534,25 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           border-top: 1px solid #e5e7eb;
           margin-top: 0.5rem;
         }
-        
+
         .rukn-payment-center {
           text-align: center;
         }
-        
+
         .rukn-payment-note {
           font-size: 0.875rem;
           color: #6b7280;
           margin-top: 0.75rem;
           margin-bottom: 0;
         }
-        
+
         .rukn-success-container {
           text-align: center;
           display: flex;
           flex-direction: column;
           gap: 1.5rem;
         }
-        
+
         .rukn-success-icon {
           display: inline-flex;
           align-items: center;
@@ -524,11 +563,11 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           border-radius: 50%;
           margin: 0 auto 1.5rem;
         }
-        
+
         .rukn-success-icon span {
           font-size: 2.5rem;
         }
-        
+
         .rukn-success-title {
           font-size: 1.875rem;
           font-weight: 700;
@@ -536,14 +575,14 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           margin-bottom: 1rem;
           margin-top: 0;
         }
-        
+
         .rukn-success-message {
           font-size: 1.125rem;
           color: #6b7280;
           margin-bottom: 1.5rem;
           margin-top: 0;
         }
-        
+
         .rukn-next-steps {
           background: #f0fdf4;
           border-radius: 0.5rem;
@@ -551,14 +590,14 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           max-width: 28rem;
           margin: 0 auto;
         }
-        
+
         .rukn-next-steps h4 {
           font-weight: 600;
           color: #166534;
           margin-bottom: 0.5rem;
           margin-top: 0;
         }
-        
+
         .rukn-next-steps ul {
           font-size: 0.875rem;
           color: #15803d;
@@ -566,47 +605,47 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           padding: 0;
           margin: 0;
         }
-        
+
         .rukn-next-steps li {
           margin-bottom: 0.25rem;
         }
-        
+
         .rukn-footer {
           text-align: center;
           margin-top: 2rem;
           color: #6b7280;
         }
-        
+
         .rukn-footer p {
           font-size: 0.875rem;
           margin: 0;
         }
-        
+
         .rukn-document-container {
           border: 2px solid #e5e7eb;
           border-radius: 0.5rem;
           overflow: hidden;
         }
-        
+
         @media (max-width: 767px) {
           .rukn-steps-container {
             flex-wrap: wrap;
             gap: 1rem;
           }
-          
+
           .rukn-step {
             flex: 0 0 calc(50% - 0.5rem);
           }
-          
+
           .rukn-step-line {
             display: none;
           }
-          
+
           .rukn-button-group {
             flex-direction: column;
             gap: 1rem;
           }
-          
+
           .rukn-button-group.end {
             align-items: stretch;
           }
@@ -617,7 +656,6 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
         <div className="rukn-wizard-container">
           {/* Header */}
           <div className="rukn-header">
-          
             <h4 className="rukn-sub-title">Book Your Appointment</h4>
           </div>
 
@@ -626,14 +664,26 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
             <div className="rukn-steps-container">
               {steps.map((step, index) => (
                 <div key={step.number} className="rukn-step">
-                  <div className={`rukn-step-circle ${currentStep >= index ? "active" : "inactive"}`}>
+                  <div
+                    className={`rukn-step-circle ${
+                      currentStep >= index ? "active" : "inactive"
+                    }`}
+                  >
                     {currentStep > index ? "✓" : step.icon}
                   </div>
-                  <span className={`rukn-step-title ${currentStep >= index ? "active" : "inactive"}`}>
+                  <span
+                    className={`rukn-step-title ${
+                      currentStep >= index ? "active" : "inactive"
+                    }`}
+                  >
                     {step.title}
                   </span>
                   {index < steps.length - 1 && (
-                    <div className={`rukn-step-line ${currentStep > index ? "active" : "inactive"}`} />
+                    <div
+                      className={`rukn-step-line ${
+                        currentStep > index ? "active" : "inactive"
+                      }`}
+                    />
                   )}
                 </div>
               ))}
@@ -648,7 +698,9 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                 <div className="rukn-step-content">
                   <div className="rukn-step-header">
                     <h3>Select Evaluation Type</h3>
-                    <p>Choose the type of evaluation that best suits your needs</p>
+                    <p>
+                      Choose the type of evaluation that best suits your needs
+                    </p>
                   </div>
 
                   <div className="rukn-form-group">
@@ -657,20 +709,28 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                       className="rukn-select"
                       value={evaluationType}
                       onChange={(e) => {
-                        const type = e.target.value
-                        setEvaluationType(type)
-                        if (type) setCurrentStep(1)
+                        const type = e.target.value;
+                        setEvaluationType(type);
+                        if (type) setCurrentStep(1);
                       }}
                     >
                       <option value="">Choose your evaluation type...</option>
-                      <option value="school_evaluation">🏫 School Evaluation</option>
-                      <option value="full_package_evaluation">📦 Full Package Evaluation</option>
+                      <option value="school_evaluation">
+                        🏫 School Evaluation
+                      </option>
+                      <option value="full_package_evaluation">
+                        📦 Full Package Evaluation
+                      </option>
                       <option value="single_session">👤 Single Session</option>
                     </select>
                   </div>
 
                   <div className="rukn-button-group end">
-                    <button onClick={nextStep} disabled={!evaluationType} className="rukn-button rukn-button-primary">
+                    <button
+                      onClick={nextStep}
+                      disabled={!evaluationType}
+                      className="rukn-button rukn-button-primary"
+                    >
                       Continue →
                     </button>
                   </div>
@@ -714,8 +774,8 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                         className="rukn-input"
                         placeholderText="Choose a time"
                         filterTime={(time) => {
-                          const hour = time.getHours()
-                          return hour >= 12 && hour <= 20
+                          const hour = time.getHours();
+                          return hour >= 12 && hour <= 20;
                         }}
                       />
                     </div>
@@ -767,7 +827,11 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                     >
                       ← Back
                     </button>
-                    <button type="button" onClick={nextStep} className="rukn-button rukn-button-primary">
+                    <button
+                      type="button"
+                      onClick={nextStep}
+                      className="rukn-button rukn-button-primary"
+                    >
                       Continue →
                     </button>
                   </div>
@@ -791,6 +855,13 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                           filePath: `${process.env.NEXT_PUBLIC_API_URL}/uploads/DRAST-7ALA/plan/${plan.filePath}`,
                           fileName: plan.fileName || "default.docx",
                           docxName: `Case study of student: ${patientName}.docx`,
+                          notifyEmail: false,
+                          notifyNto: true,
+                          doctorIds: doctorsIds,
+                          rule: "Doctor",
+                          isList: true,
+                          title: `Case study of student: ${patientName}`,
+                          message: ` Case study of student: ${patientName} is  updated at ${new Date().toLocaleString()}`,
                         }}
                         planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/DrastHala/upload-plan`}
                       />
@@ -803,6 +874,13 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                           filePath: `${process.env.NEXT_PUBLIC_API_URL}/uploads/DRAST-7ALA/plan/default.docx`, // Default file path
                           fileName: "default.docx", // Default file name
                           // docxName: `physical-therapy-plan-${patientName}.docx`,
+                          notifyEmail: false,
+                          notifyNto: true,
+                          doctorIds: doctorsIds,
+                          rule: "Doctor",
+                          isList: true,
+                          title: `Case study of student: ${patientName}`,
+                          message: ` Case study of student: ${patientName} is  created at ${new Date().toLocaleString()}`,
                         }}
                         planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/DrastHala/upload-plan`}
                       />
@@ -817,7 +895,11 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                     >
                       ← Back
                     </button>
-                    <button type="button" onClick={() => setCurrentStep(3)} className="rukn-button rukn-button-primary">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(3)}
+                      className="rukn-button rukn-button-primary"
+                    >
                       Proceed to Payment →
                     </button>
                   </div>
@@ -846,15 +928,23 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                     )}
                     <div className="rukn-payment-total">
                       <span>Total Amount:</span>
-                      <span>${getProgramPrice(programData.programType) + totalPrice}</span>
+                      <span>
+                        ${getProgramPrice(programData.programType) + totalPrice}
+                      </span>
                     </div>
                   </div>
 
                   <div className="rukn-payment-center">
-                    <button type="button" onClick={handlePayment} className="rukn-button rukn-button-success">
+                    <button
+                      type="button"
+                      onClick={handlePayment}
+                      className="rukn-button rukn-button-success"
+                    >
                       💳 Complete Payment
                     </button>
-                    <p className="rukn-payment-note">Secure payment processing • SSL encrypted</p>
+                    <p className="rukn-payment-note">
+                      Secure payment processing • SSL encrypted
+                    </p>
                   </div>
                 </div>
               )}
@@ -867,13 +957,17 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                   </div>
                   <h3 className="rukn-success-title">Congratulations!</h3>
                   <p className="rukn-success-message">
-                    Your appointment has been successfully booked at Rukn Elwatikon Rehabilitation Center.
+                    Your appointment has been successfully booked at Rukn
+                    Elwatikon Rehabilitation Center.
                   </p>
                   <div className="rukn-next-steps">
                     <h4>What's Next?</h4>
                     <ul>
                       <li>• You'll receive a confirmation email shortly</li>
-                      <li>• Our team will contact you 24 hours before your appointment</li>
+                      <li>
+                        • Our team will contact you 24 hours before your
+                        appointment
+                      </li>
                       <li>• Please arrive 15 minutes early</li>
                     </ul>
                   </div>
@@ -881,12 +975,10 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
               )}
             </div>
           </div>
-
-        
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default NumberingWizardWithLabel
+export default NumberingWizardWithLabel;
