@@ -324,10 +324,6 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
 
           // Assignment logic - فقط للـ School و Single Session
 
-            if (programType === "full_program") {
-              console.log("Auto-assigning patient to all departments for full program")
-              await autoAssignToAllDepartments(patientId, description)
-            }
 
             // If this is a school evaluation, create PatientSchoolAssignment
             if (programType === "school_evaluation") {

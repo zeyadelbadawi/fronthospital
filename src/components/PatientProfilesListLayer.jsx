@@ -47,7 +47,7 @@ const PatientProfilesListLayer = () => {
   }
 
   const handleView = (patientId) => {
-    router.push(`/marketplace-details?id=${patientId}`)
+    router.push(`/patient-profile?id=${patientId}`)
   }
 
   return (

@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import { UserPlus, AlertCircle, Users, UserCheck, RefreshCw, Save, Calendar, Eye } from "lucide-react"
 import AccessControl from "./access-control"
-import styles from "../styles/speech-upcoming-appointments.module.css"
+import styles from "../styles/admin-assign.module.css" // Import the new CSS module
 import axiosInstance from "@/helper/axiosSetup"
 
 const AdminAssignSpeech = () => {
@@ -15,7 +15,6 @@ const AdminAssignSpeech = () => {
   const [subscriptionEndDate, setSubscriptionEndDate] = useState("")
   const [notes, setNotes] = useState("")
   const [message, setMessage] = useState("")
-  const [debugInfo, setDebugInfo] = useState("")
   const [formErrors, setFormErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -34,7 +33,6 @@ const AdminAssignSpeech = () => {
   const fetchData = async () => {
     try {
       setLoading(true)
-      setDebugInfo("Starting data fetch...")
 
       // Fetch Speech patients from PatientSpeechAssignment collection
       console.log("Fetching Speech patients from PatientSpeechAssignment...")
@@ -106,9 +104,7 @@ const AdminAssignSpeech = () => {
         expiredAssignments,
       })
 
-      setDebugInfo(
-        `Loaded: ${totalPatients} speech patients, ${totalDoctors} doctors, ${assignedPatients} doctor assignments`,
-      )
+
 
       if (doctorsData.length === 0) {
         setMessage(
@@ -124,7 +120,6 @@ const AdminAssignSpeech = () => {
     } catch (error) {
       console.error("Error fetching data:", error)
       setMessage("Error loading data: " + (error.response?.data?.message || error.message))
-      setDebugInfo("Error: " + error.message)
     } finally {
       setLoading(false)
     }
@@ -217,16 +212,15 @@ const AdminAssignSpeech = () => {
       <div className={styles.loadingContainer}>
         <div className={styles.loadingSpinner}></div>
         <p className={styles.loadingText}>Loading speech assignments...</p>
-        {debugInfo && <p style={{ fontSize: "0.875rem", color: "#64748b", marginTop: "0.5rem" }}>{debugInfo}</p>}
       </div>
     )
   }
 
   return (
     <AccessControl allowedRoles={["admin"]}>
-      <div className={styles.upcomingContainer}>
+      <div className={styles.adminContainer}>
         {/* Main Header Card with Stats and Assignment Form */}
-        <div className={styles.upcomingCard}>
+        <div className={styles.adminCard}>
           <div className={styles.cardHeader}>
             <div className={styles.headerContent}>
               <div className={styles.titleSection}>
@@ -265,27 +259,9 @@ const AdminAssignSpeech = () => {
                 <div className={styles.statNumber}>{stats.totalDoctors}</div>
                 <div className={styles.statLabel}>Available Doctors</div>
               </div>
-              <div className={styles.statItem}>
-                <div className={styles.statNumber}>{stats.expiredAssignments}</div>
-                <div className={styles.statLabel}>Expired</div>
-              </div>
+        
             </div>
 
-            {debugInfo && (
-              <div
-                style={{
-                  fontSize: "0.875rem",
-                  color: "rgba(255, 255, 255, 0.8)",
-                  marginTop: "1rem",
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  padding: "0.75rem 1rem",
-                  borderRadius: "0.5rem",
-                  backdropFilter: "blur(10px)",
-                }}
-              >
-                {debugInfo}
-              </div>
-            )}
           </div>
 
           {/* Message Display */}

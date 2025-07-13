@@ -15,6 +15,9 @@ export default function FullProgramPage() {
   const [loading, setLoading] = useState(true)
   const [selectedAbaPatientId, setSelectedAbaPatientId] = useState(null)
   const [selectedOccupationalPatientId, setSelectedOccupationalPatientId] = useState(null)
+  const [selectedPhysicalPatientId, setSelectedPhysicalPatientId] = useState(null)
+  const [selectedSpecialPatientId, setSelectedSpecialPatientId] = useState(null)
+  const [selectedSpeechPatientId, setSelectedSpeechPatientId] = useState(null)
 
   useEffect(() => {
     const checkAuth = () => {
@@ -39,10 +42,24 @@ export default function FullProgramPage() {
     else if (content === "occupational-plan-editor" || content === "occupational-exam-editor") {
       setSelectedOccupationalPatientId(patientId)
     }
+        else if (content === "physical-plan-editor" || content === "physical-exam-editor") {
+      setSelectedPhysicalPatientId(patientId)
+    }
+        else if (content === "special-plan-editor" || content === "special-exam-editor") {
+      setSelectedSpecialPatientId(patientId)
+    }
+        else if (content === "speech-plan-editor" || content === "speech-exam-editor") {
+      setSelectedSpeechPatientId(patientId)
+    }
     else
     {
       setSelectedAbaPatientId(null)
       setSelectedOccupationalPatientId(null)
+      setSelectedSpeechPatientId(null)
+      setSelectedSpecialPatientId(null)
+      setSelectedPhysicalPatientId(null)
+
+
     }
   }
 
@@ -87,7 +104,9 @@ export default function FullProgramPage() {
           activeContent={activeContent}
           selectedAbaPatientId={selectedAbaPatientId}
           selectedOccupationalPatientId={selectedOccupationalPatientId}
-
+          selectedPhysicalPatientId={selectedPhysicalPatientId}
+          selectedSpecialPatientId={selectedSpecialPatientId}
+          selectedSpeechPatientId={selectedSpeechPatientId}
           onBackToDashboard={() => handleContentChange("dashboard")}
           onNavigateContent={handleContentChange} // NEW: Pass handleContentChange as onNavigateContent
         />

@@ -84,7 +84,7 @@ export function DoctorAppointments() {
       })
 
       console.log("Fetched all appointments:", sortedAppointments)
-      setAppointments(sortedAppointments)
+setAppointments(sortedAppointments.filter(app => app.programType === "full_program"))
     } catch (error) {
       console.error("Error fetching appointments:", error)
     } finally {

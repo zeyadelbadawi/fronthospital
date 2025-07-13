@@ -67,7 +67,7 @@ export function AccountantAppointments() {
 
       // Filter for active appointments and fetch patient names
       const activeAppointments = data.filter(
-        (appointment) => appointment.status === "active" || appointment.programType === "full_program",
+        (appointment) => appointment.status === "active" && appointment.programType === "full_program",
       )
 
       const appointmentsWithNames = await Promise.all(
