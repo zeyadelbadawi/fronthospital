@@ -17,6 +17,7 @@ import {
 import axiosInstance from "@/helper/axiosSetup"
 import { getCurrentUserId } from "../utils/auth-utils"
 import styles from "@/app/full-program/styles/speech-upcoming-appointments.module.css"
+
 const AssignPatientsABADoctor = ({ onViewAbaPlan, onViewAbaExam }) => {
   // Added onViewAbaExam prop
   const [assignments, setAssignments] = useState([])
@@ -33,6 +34,13 @@ const AssignPatientsABADoctor = ({ onViewAbaPlan, onViewAbaExam }) => {
   const [selectedAssignment, setSelectedAssignment] = useState(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
 
+
+  
+    // New states for the subscription checker
+    const [isCheckingSubscriptions, setIsCheckingSubscriptions] = useState(false)
+    const [subscriptionCheckMessage, setSubscriptionCheckMessage] = useState("")
+    const [subscriptionCheckError, setSubscriptionCheckError] = useState(false)
+  
   const doctorId = getCurrentUserId()
 
   useEffect(() => {
@@ -89,6 +97,27 @@ const AssignPatientsABADoctor = ({ onViewAbaPlan, onViewAbaExam }) => {
   const handleSearch = (e) => {
     setSearchTerm(e.target.value)
     setCurrentPage(1)
+  }
+
+
+    // New function to trigger the manual subscription checker
+  const handleManualSubscriptionCheck = async () => {
+    setIsCheckingSubscriptions(true)
+    setSubscriptionCheckMessage("")
+    setSubscriptionCheckError(false)
+    try {
+      const response = await axiosInstance.post("/manualSubscriptionChecker/manual-check-subscriptions")
+      setSubscriptionCheckMessage(response.data.message || "Subscription check completed.")
+      setSubscriptionCheckError(false)
+      console.log("Subscription check results:", response.data.results)
+      // Optionally, you might want to refresh patient lists or dashboard data here
+    } catch (error) {
+      console.error("Error triggering manual subscription check:", error)
+      setSubscriptionCheckMessage(error.response?.data?.message || "Failed to perform subscription check.")
+      setSubscriptionCheckError(true)
+    } finally {
+      setIsCheckingSubscriptions(false)
+    }
   }
 
   const isSubscriptionExpired = (endDate) => {

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
-import { useRouter } from "next/navigation"
 import axiosInstance from "@/helper/axiosSetup"
 import Select from "react-select"
 import SyncfusionDocx from "@/components/SyncfusionDocx"
@@ -13,10 +12,6 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
   const [selectedTime, setSelectedTime] = useState(null)
   const [description, setDescription] = useState("")
   const [evaluationType, setEvaluationType] = useState("")
-  const [blurred, setBlurred] = useState(false)
-  const router = useRouter()
-  const [isAlreadyBooked, setIsAlreadyBooked] = useState(false)
-  const [selectedSchool, setSelectedSchool] = useState("")
   const [plan, setPlan] = useState(null)
   const [selectedServices, setSelectedServices] = useState([])
   const [totalPrice, setTotalPrice] = useState(0)
@@ -52,6 +47,8 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
       setValidationErrors((prev) => ({ ...prev, services: null }))
     }
   }
+  const [hasActiveFullProgram, setHasActiveFullProgram] = useState(false)
+
 
   useEffect(() => {
     console.log("patientId received in useEffect:", patientId)
@@ -70,6 +67,24 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
       fetchPlanData()
     }
   }, [patientId])
+
+ useEffect(() => {
+    const checkActiveFullProgram = async () => {
+      if (patientId) {
+        try {
+          const response = await axiosInstance.get(
+            `${process.env.NEXT_PUBLIC_API_URL}/authentication/check-active-full-program/${patientId}`,
+          )
+          setHasActiveFullProgram(response.data.hasActiveFullProgram)
+        } catch (error) {
+          console.error("Error checking active full program status:", error)
+          setHasActiveFullProgram(false) // Default to false on error
+        }
+      }
+    }
+    checkActiveFullProgram()
+  }, [patientId])
+
 
   const getProgramPrice = (programType) => {
     switch (programType) {
@@ -321,8 +336,6 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
 
         if (moneyResponse.status === 200) {
           console.log("Payment and money record saved successfully")
-
-          // Assignment logic - فقط للـ School و Single Session
 
 
             // If this is a school evaluation, create PatientSchoolAssignment
@@ -923,8 +936,9 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                     >
                       <option value="">Choose your evaluation type...</option>
                       <option value="school_evaluation">🏫 School Evaluation</option>
-                      <option value="full_package_evaluation">📦 Full Package Evaluation</option>
-                      <option value="single_session">👤 Single Session</option>
+   <option value="full_package_evaluation" disabled={hasActiveFullProgram}>
+                        📦 Full Package Evaluation {hasActiveFullProgram && "(Already Active)"}
+                      </option>                      <option value="single_session">👤 Single Session</option>
                     </select>
                     {validationErrors.evaluationType && (
                       <span className="rukn-error-text">{validationErrors.evaluationType}</span>

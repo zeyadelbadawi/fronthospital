@@ -43,7 +43,7 @@ export function AccountantAppointments() {
 
   useEffect(() => {
     fetchActiveAppointments()
-  }, [])
+  }, []) // [^2]
 
   useEffect(() => {
     filterAppointments()
@@ -64,12 +64,10 @@ export function AccountantAppointments() {
     try {
       const response = await axiosInstance.get("/full/fullprogram")
       const data = response.data
-
       // Filter for active appointments and fetch patient names
       const activeAppointments = data.filter(
         (appointment) => appointment.status === "active" && appointment.programType === "full_program",
       )
-
       const appointmentsWithNames = await Promise.all(
         activeAppointments.map(async (appointment) => {
           const patientName = await fetchPatientName(appointment.patientid)
@@ -79,14 +77,12 @@ export function AccountantAppointments() {
           }
         }),
       )
-
       // Sort by date
       const sortedAppointments = appointmentsWithNames.sort((a, b) => {
         const dateTimeA = new Date(`${a.date}T${a.time}`)
         const dateTimeB = new Date(`${b.date}T${b.time}`)
         return dateTimeB - dateTimeA
       })
-
       console.log("Fetched active appointments:", sortedAppointments)
       setAppointments(sortedAppointments)
     } catch (error) {
@@ -98,7 +94,6 @@ export function AccountantAppointments() {
 
   const filterAppointments = () => {
     let filtered = appointments
-
     // Search filter
     if (search) {
       filtered = filtered.filter(
@@ -107,17 +102,14 @@ export function AccountantAppointments() {
           (appointment.description && appointment.description.toLowerCase().includes(search.toLowerCase())),
       )
     }
-
     // Status filter
     if (filterStatus !== "all") {
       filtered = filtered.filter((appointment) => appointment.status === filterStatus)
     }
-
     // Payment status filter
     if (filterPaymentStatus !== "all") {
       filtered = filtered.filter((appointment) => appointment.paymentStatus === filterPaymentStatus)
     }
-
     setFilteredAppointments(filtered)
     setTotalPages(Math.ceil(filtered.length / itemsPerPage))
     setCurrentPage(1)
@@ -134,7 +126,6 @@ export function AccountantAppointments() {
 
   const getPaymentStatusBadge = (appointment) => {
     const { paymentStatus, paymentPercentage } = appointment
-
     switch (paymentStatus) {
       case "FULLY_PAID":
         return <span className={`${styles.statusBadge} ${styles.fullyPaid}`}>Fully Paid</span>
@@ -154,24 +145,20 @@ export function AccountantAppointments() {
     if (appointment.remainingAmount !== undefined) {
       return appointment.remainingAmount
     }
-
     // Fallback calculation if remainingAmount is not available
     const totalAmount = appointment.totalAmount || (appointment.programType === "full_program" ? 5000 : 0)
     const paidAmount = appointment.paidAmount || 0
-
     return Math.max(0, totalAmount - paidAmount)
   }
 
   const handleProcessPayment = (appointment) => {
     setSelectedAppointment(appointment)
     setPaymentMethod("cash")
-
     // Reset check details with empty values for customization
     setCheckDetails([
       { amount: "", checkNumber: "", bankName: "", dueDate: "" },
       { amount: "", checkNumber: "", bankName: "", dueDate: "" },
     ])
-
     setShowPaymentModal(true)
   }
 
@@ -202,7 +189,6 @@ export function AccountantAppointments() {
   const validateCheckDetails = () => {
     const errors = []
     let totalAmount = 0
-
     checkDetails.forEach((check, index) => {
       if (!check.amount || Number.parseFloat(check.amount) <= 0) {
         errors.push(`Check ${index + 1}: Amount is required and must be greater than 0`)
@@ -215,60 +201,53 @@ export function AccountantAppointments() {
       }
       totalAmount += Number.parseFloat(check.amount) || 0
     })
-
     if (totalAmount < 4000) {
       errors.push(`Total check amount (${totalAmount} EGP) must be at least 4000 EGP`)
     }
-
     return errors
   }
 
   const handleCompletePayment = async () => {
-  if (!selectedAppointment) return;
-
-  // Validate installment details if needed
-  if (paymentMethod === "installment") {
-    const validationErrors = validateCheckDetails();
-    if (validationErrors.length > 0) {
-      alert("Please fix the following errors:\n" + validationErrors.join("\n"));
-      return;
+    if (!selectedAppointment) return
+    // Validate installment details if needed
+    if (paymentMethod === "installment") {
+      const validationErrors = validateCheckDetails()
+      if (validationErrors.length > 0) {
+        alert("Please fix the following errors:\n" + validationErrors.join("\n"))
+        return
+      }
+    }
+    setProcessing(true)
+    try {
+      const totalCheckAmount = getTotalCheckAmount()
+      const paymentData = {
+        appointmentId: selectedAppointment._id,
+        paymentMethod: paymentMethod,
+        amount: paymentMethod === "cash" ? 4000 : totalCheckAmount,
+        patientId: selectedAppointment.patientid,
+        patientName: selectedAppointment.patientName,
+        checkDetails: paymentMethod === "installment" ? checkDetails : null,
+      }
+      const response = await axiosInstance.post("/authentication/completeFullProgramPayment", paymentData)
+      if (response.status === 200) {
+        // Assign to departments if the payment is successful, regardless of the payment method
+        await assignToAllDepartments(
+          response.data.patientId,
+          response.data.programDescription,
+          selectedAppointment.patientName,
+        )
+        alert("Payment completed successfully! Patient has been assigned to all departments.")
+        setShowPaymentModal(false)
+        setSelectedAppointment(null)
+        fetchActiveAppointments() // Refresh the list
+      }
+    } catch (error) {
+      console.error("Error completing payment:", error)
+      alert("Error completing payment: " + (error.response?.data?.message || error.message))
+    } finally {
+      setProcessing(false)
     }
   }
-
-  setProcessing(true);
-  try {
-    const totalCheckAmount = getTotalCheckAmount();
-    const paymentData = {
-      appointmentId: selectedAppointment._id,
-      paymentMethod: paymentMethod,
-      amount: paymentMethod === "cash" ? 4000 : totalCheckAmount,
-      patientId: selectedAppointment.patientid,
-      patientName: selectedAppointment.patientName,
-      checkDetails: paymentMethod === "installment" ? checkDetails : null,
-    };
-
-    const response = await axiosInstance.post("/authentication/completeFullProgramPayment", paymentData);
-
-    if (response.status === 200) {
-      // Assign to departments if the payment is successful, regardless of the payment method
-      await assignToAllDepartments(
-        response.data.patientId,
-        response.data.programDescription,
-        selectedAppointment.patientName
-      );
-
-      alert("Payment completed successfully! Patient has been assigned to all departments.");
-      setShowPaymentModal(false);
-      setSelectedAppointment(null);
-      fetchActiveAppointments(); // Refresh the list
-    }
-  } catch (error) {
-    console.error("Error completing payment:", error);
-    alert("Error completing payment: " + (error.response?.data?.message || error.message));
-  } finally {
-    setProcessing(false);
-  }
-};
 
   // Add this new function to handle assignments to all 5 departments
   const assignToAllDepartments = async (patientId, description, patientName) => {
@@ -292,9 +271,7 @@ export function AccountantAppointments() {
           patientId: patientId,
           notes: description || `Full program assignment for ${patientName} - ${dept.name}`,
         }
-
         const response = await axiosInstance.post(dept.endpoint, assignmentData)
-
         if (response.status === 201) {
           assignmentResults.totalAssigned++
           assignmentResults.details.push({
@@ -314,13 +291,10 @@ export function AccountantAppointments() {
         console.error(`Error assigning to ${dept.name}:`, error)
       }
     }
-
     console.log("Assignment Results:", assignmentResults)
-
     if (assignmentResults.totalFailed > 0) {
       console.warn(`${assignmentResults.totalFailed} department assignments failed`)
     }
-
     return assignmentResults
   }
 
@@ -379,7 +353,6 @@ export function AccountantAppointments() {
               </form>
             </div>
           </div>
-
           <div className={styles.filtersContainer}>
             <div className={styles.filterRow}>
               <div className={styles.filterGroup}>
@@ -419,7 +392,6 @@ export function AccountantAppointments() {
                 </button>
               )}
             </div>
-
             <div className={styles.statsContainer}>
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>
@@ -460,7 +432,6 @@ export function AccountantAppointments() {
             </div>
           </div>
         </div>
-
         <div className={styles.cardBody}>
           {loading ? (
             <div className={styles.loadingContainer}>
@@ -585,7 +556,6 @@ export function AccountantAppointments() {
               </table>
             </div>
           )}
-
           {filteredAppointments.length > 0 && (
             <div className={styles.paginationContainer}>
               <span className={styles.paginationInfo}>
@@ -607,7 +577,6 @@ export function AccountantAppointments() {
           )}
         </div>
       </div>
-
       {/* Payment Modal */}
       {showPaymentModal && selectedAppointment && (
         <div className={styles.modalOverlay} onClick={closeModals}>
@@ -638,7 +607,6 @@ export function AccountantAppointments() {
                   <span className={styles.remainingHighlight}>4,000 EGP</span>
                 </div>
               </div>
-
               <div className={styles.paymentMethodSection}>
                 <h4>Payment Method</h4>
                 <div className={styles.paymentOptions}>
@@ -664,7 +632,6 @@ export function AccountantAppointments() {
                   </label>
                 </div>
               </div>
-
               {paymentMethod === "installment" && (
                 <div className={styles.checkDetailsSection}>
                   <div className={styles.checkHeader}>
@@ -754,7 +721,6 @@ export function AccountantAppointments() {
           </div>
         </div>
       )}
-
       {/* View Details Modal */}
       {showViewModal && selectedAppointment && (
         <div className={styles.modalOverlay} onClick={closeModals}>
@@ -802,6 +768,14 @@ export function AccountantAppointments() {
                 <div className={styles.detailItem}>
                   <label>Description:</label>
                   <span>{selectedAppointment.description}</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <label>Subscription End Date:</label>
+                  <span>
+                    {selectedAppointment.subscriptionEndDate
+                      ? new Date(selectedAppointment.subscriptionEndDate).toLocaleDateString()
+                      : "N/A"}
+                  </span>
                 </div>
               </div>
             </div>

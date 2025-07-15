@@ -45,7 +45,7 @@ import PhysicalExamView from "./physical-exam-view"
 import SpecialPlanView from "./special-plan-view"
 import SpeechPlanView from "./speech-plan-view"
 import SpeechExamView from "./speech-exam-view"
-
+import SpecialExamView from "./special-exam-view"
 // Added onNavigateContent as a new prop
 const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccupationalPatientId, selectedPhysicalPatientId, selectedSpecialPatientId, selectedSpeechPatientId, onBackToDashboard, onNavigateContent }) => {
   const user = getCurrentUser()
@@ -998,7 +998,7 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
         }
 
         if (hasAccessSpeechExam && selectedSpeechPatientId) {
-          return <SpeechPlanView patientId={selectedSpeechPatientId} onBack={onBackToDashboard} />
+          return <SpeechExamView patientId={selectedSpeechPatientId} onBack={onBackToDashboard} />
         } else if (hasAccessSpeechExam && !selectedSpeechPatientId) {
           return (
             <div className={styles.upcomingContainer}>

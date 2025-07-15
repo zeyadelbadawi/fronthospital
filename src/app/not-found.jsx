@@ -8,7 +8,7 @@ export default function NotFound() {
       {/* MasterLayout */}
       <MasterLayout>
         {/* Breadcrumb */}
-        <Breadcrumb title='404' />
+        <Breadcrumb title='404 - not found' />
 
         {/* ErrorLayer */}
         <ErrorLayer />
