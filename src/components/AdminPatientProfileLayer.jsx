@@ -2,8 +2,29 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import axios from "axios"
-import { User, Mail, Phone, MapPin, Calendar, Edit3, Lock, Eye, EyeOff, Save, X, Activity } from "lucide-react"
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  Edit3,
+  Lock,
+  Eye,
+  EyeOff,
+  Save,
+  X,
+  Activity,
+  BookOpen,
+  GraduationCap,
+  FileText,
+  Users,
+} from "lucide-react"
 import styles from "../styles/profile-view.module.css"
+import FullProgramTab from "./FullProgramTab"
+import SchoolTab from "./SchoolTab"
+import SingleProgramTab from "./SingleProgramTab"
+import CaseStudyTab from "./CaseStudyTab"
 
 const AdminPatientProfileLayer = () => {
   const router = useRouter()
@@ -22,6 +43,12 @@ const AdminPatientProfileLayer = () => {
   const [patientId, setPatientId] = useState(null)
   const [activeTab, setActiveTab] = useState("edit-profile")
   const [loading, setLoading] = useState(true)
+
+  // States for program data
+  const [fullProgramData, setFullProgramData] = useState([])
+  const [schoolData, setSchoolData] = useState([])
+  const [fullProgramLoading, setFullProgramLoading] = useState(false)
+  const [schoolLoading, setSchoolLoading] = useState(false)
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -51,6 +78,48 @@ const AdminPatientProfileLayer = () => {
       fetchPatient()
     }
   }, [patientId])
+
+  // Fetch Full Program Data
+  const fetchFullProgramData = async () => {
+    if (!patientId) return
+
+    setFullProgramLoading(true)
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/full/patient/${patientId}`)
+      setFullProgramData(response.data)
+    } catch (error) {
+      console.error("Error fetching full program data:", error)
+      setFullProgramData([])
+    } finally {
+      setFullProgramLoading(false)
+    }
+  }
+
+  // Fetch School Data
+  const fetchSchoolData = async () => {
+    if (!patientId) return
+
+    setSchoolLoading(true)
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/school/patient/${patientId}`)
+      setSchoolData(response.data)
+    } catch (error) {
+      console.error("Error fetching school data:", error)
+      setSchoolData([])
+    } finally {
+      setSchoolLoading(false)
+    }
+  }
+
+  // Load data when switching to specific tabs
+  useEffect(() => {
+    if (activeTab === "full-program" && fullProgramData.length === 0) {
+      fetchFullProgramData()
+    }
+    if (activeTab === "school" && schoolData.length === 0) {
+      fetchSchoolData()
+    }
+  }, [activeTab, patientId])
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible)
@@ -198,7 +267,7 @@ const AdminPatientProfileLayer = () => {
         <div className={styles.mainContent}>
           <div className={styles.contentHeader}>
             <h1 className={styles.contentTitle}>Student Profile Management</h1>
-            <p className={styles.contentSubtitle}>Manage student information and account settings</p>
+            <p className={styles.contentSubtitle}>Manage student information, view programs, and track progress</p>
           </div>
 
           <div className={styles.tabsContainer}>
@@ -219,6 +288,42 @@ const AdminPatientProfileLayer = () => {
                 >
                   <Lock className={styles.tabIcon} />
                   Change Password
+                </button>
+              </li>
+              <li className={styles.tabItem}>
+                <button
+                  className={`${styles.tabButton} ${activeTab === "full-program" ? styles.active : ""}`}
+                  onClick={() => setActiveTab("full-program")}
+                >
+                  <Users className={styles.tabIcon} />
+                  Full Program
+                </button>
+              </li>
+              <li className={styles.tabItem}>
+                <button
+                  className={`${styles.tabButton} ${activeTab === "school" ? styles.active : ""}`}
+                  onClick={() => setActiveTab("school")}
+                >
+                  <GraduationCap className={styles.tabIcon} />
+                  School
+                </button>
+              </li>
+              <li className={styles.tabItem}>
+                <button
+                  className={`${styles.tabButton} ${activeTab === "single-program" ? styles.active : ""}`}
+                  onClick={() => setActiveTab("single-program")}
+                >
+                  <BookOpen className={styles.tabIcon} />
+                  Single Program
+                </button>
+              </li>
+              <li className={styles.tabItem}>
+                <button
+                  className={`${styles.tabButton} ${activeTab === "case-study" ? styles.active : ""}`}
+                  onClick={() => setActiveTab("case-study")}
+                >
+                  <FileText className={styles.tabIcon} />
+                  Case Study
                 </button>
               </li>
             </ul>
@@ -390,6 +495,31 @@ const AdminPatientProfileLayer = () => {
                   </button>
                 </div>
               </form>
+            </div>
+
+            {/* Full Program Tab */}
+            <div className={`${styles.tabPane} ${activeTab === "full-program" ? styles.active : ""}`}>
+              <FullProgramTab
+                patientId={patientId}
+                fullProgramData={fullProgramData}
+                loading={fullProgramLoading}
+                isAdminView={true}
+              />
+            </div>
+
+            {/* School Tab */}
+            <div className={`${styles.tabPane} ${activeTab === "school" ? styles.active : ""}`}>
+              <SchoolTab patientId={patientId} schoolData={schoolData} loading={schoolLoading} isAdminView={true} />
+            </div>
+
+            {/* Single Program Tab */}
+            <div className={`${styles.tabPane} ${activeTab === "single-program" ? styles.active : ""}`}>
+              <SingleProgramTab patientId={patientId} isAdminView={true} />
+            </div>
+
+            {/* Case Study Tab */}
+            <div className={`${styles.tabPane} ${activeTab === "case-study" ? styles.active : ""}`}>
+              <CaseStudyTab patientId={patientId} isAdminView={true} />
             </div>
           </div>
         </div>
