@@ -6,7 +6,6 @@
 }
 
 .profileWrapper {
-  max-width: 1400px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 2fr;

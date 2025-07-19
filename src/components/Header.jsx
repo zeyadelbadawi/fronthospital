@@ -1,7 +1,9 @@
 "use client"
 import Link from "next/link"
 import { useState } from "react"
+import { RiGlobalLine, RiArrowDownSLine } from "react-icons/ri"
 import styles from "../styles/Header.module.css"
+import { useLanguage } from "../contexts/LanguageContext"
 
 export default function Header({
   user,
@@ -12,25 +14,32 @@ export default function Header({
   title = "Rukn Elwatikon Center Client Portal",
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const { language, toggleLanguage } = useLanguage()
+
+  const isRTL = language === "ar"
 
   return (
-    <header className={styles.header}>
+    <header className={`${styles.header} ${isRTL ? styles.rtl : styles.ltr}`}>
       <Link href="/clientportal" className={styles.logoContainer}>
         <img src={logoSrc || "/placeholder.svg"} className={styles.logo} alt="Rukn Elwatikon Center Logo" />
       </Link>
 
       <div className={styles.titleContainer}>
-        <h1 className={styles.title}>{title}</h1>
+        <h3 className={styles.title}>{language === "ar" ? "بوابة مركز ركن الواتيكون للمرضى" : title}</h3>
       </div>
 
       <div className={styles.userSection}>
+        {/* Language Switcher */}
+        <button className={styles.languageButton} onClick={toggleLanguage}>
+          <RiGlobalLine />
+          <span>{language === "en" ? "العربية" : "English"}</span>
+        </button>
+
         {!loading && user && user.role === "patient" ? (
           <div className={styles.dropdown}>
             <button className={styles.dropdownButton} onClick={() => setDropdownOpen(!dropdownOpen)}>
               {user.name}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M7 10l5 5 5-5z" />
-              </svg>
+              <RiArrowDownSLine />
             </button>
 
             {dropdownOpen && (
@@ -40,7 +49,7 @@ export default function Header({
                   className={styles.dropdownItem}
                   onClick={() => setDropdownOpen(false)}
                 >
-                  My Appointments
+                  {language === "ar" ? "مواعيدي" : "My Appointments"}
                 </Link>
                 <hr className={styles.dropdownDivider} />
                 <button
@@ -50,14 +59,14 @@ export default function Header({
                     onLogout()
                   }}
                 >
-                  Log out
+                  {language === "ar" ? "تسجيل الخروج" : "Log out"}
                 </button>
               </div>
             )}
           </div>
         ) : (
           <button className={styles.loginButton} onClick={onLoginClick}>
-            Login
+            {language === "ar" ? "تسجيل الدخول" : "Login"}
           </button>
         )}
       </div>

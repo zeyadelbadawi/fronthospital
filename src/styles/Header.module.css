@@ -11,6 +11,14 @@
   z-index: 100;
 }
 
+.rtl {
+  direction: rtl;
+}
+
+.ltr {
+  direction: ltr;
+}
+
 .logoContainer {
   display: flex;
   align-items: center;
@@ -47,6 +55,29 @@
 .userSection {
   display: flex;
   align-items: center;
+  gap: 1rem;
+}
+
+.languageButton {
+  background: rgba(233, 30, 99, 0.1);
+  color: #e91e63;
+  border: 2px solid #e91e63;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.languageButton:hover {
+  background: #e91e63;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
 }
 
 .loginButton {
@@ -101,6 +132,11 @@
   z-index: 1000;
 }
 
+.rtl .dropdownMenu {
+  right: auto;
+  left: 0;
+}
+
 .dropdownItem {
   display: block;
   width: 100%;
@@ -112,6 +148,10 @@
   text-align: left;
   cursor: pointer;
   transition: background-color 0.2s;
+}
+
+.rtl .dropdownItem {
+  text-align: right;
 }
 
 .dropdownItem:hover {
@@ -149,5 +189,10 @@
 
   .logo {
     height: 60px;
+  }
+
+  .userSection {
+    width: 100%;
+    justify-content: center;
   }
 }

@@ -14,23 +14,21 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  AlertTriangle,
   GraduationCap,
   BookOpen,
-  Users,
-  Award,
-  Target,
-  RefreshCw,
+  FileX,
+  PlayCircle,
+  PauseCircle,
+  AlertTriangle,
 } from "lucide-react"
 import styles from "../styles/school-tab.module.css"
 import PatientDocumentViewer from "./PatientDocumentViewer"
 
 const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, error, setError }) => {
   const [expandedPrograms, setExpandedPrograms] = useState(new Set())
+  const [expandedAppointments, setExpandedAppointments] = useState(new Set())
   const [viewingDocument, setViewingDocument] = useState(null)
-  const [schoolAssignment, setSchoolAssignment] = useState(null)
-  const [schoolPlans, setSchoolPlans] = useState([])
-  const [refreshing, setRefreshing] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
   const documentViewerRef = useRef(null)
 
   useEffect(() => {
@@ -44,44 +42,87 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
     setError(null)
 
     try {
-      // Fetch school assignment
-      let assignmentData = null
-      try {
-        const assignmentResponse = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/school/school-assignments?search=${patientId}`,
-        )
-        if (assignmentResponse.data.assignments && assignmentResponse.data.assignments.length > 0) {
-          assignmentData = assignmentResponse.data.assignments.find(
-            (assignment) => assignment.patient._id === patientId,
-          )
-        }
-      } catch (assignmentError) {
-        console.log("No school assignment found for patient")
-      }
-
-      setSchoolAssignment(assignmentData)
-
-      // Fetch school programs (appointments)
-      const programsResponse = await axios.get(
+      // Fetch school programs for this patient
+      const schoolResponse = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs/by-patient/${patientId}`,
       )
 
-      const appointments = programsResponse.data.appointments || []
+      const schoolPrograms = schoolResponse.data.appointments || []
 
-      // Group appointments by unicValue
-      const groupedPrograms = groupAppointmentsByUnicValue(appointments)
+      // Group appointments by unicValue (program group)
+      const groupedPrograms = groupAppointmentsByUnicValue(schoolPrograms)
 
-      // Fetch school plans
-      let plansData = []
-      try {
-        const plansResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/school/plan/${patientId}`)
-        plansData = plansResponse.data ? [plansResponse.data] : []
-      } catch (planError) {
-        console.log("No school plans found for patient")
-      }
+      // Fetch school plans for each program group
+      const programsWithPlans = await Promise.all(
+        groupedPrograms.map(async (program) => {
+          try {
+            // جلب الخطط المحددة لهذا البرنامج باستخدام unicValue
+            const plansResponse = await axios.get(
+              `${process.env.NEXT_PUBLIC_API_URL}/school/plan/${patientId}/${program.unicValue}`,
+            )
 
-      setSchoolPlans(plansData)
-      setSchoolData(groupedPrograms)
+            const plans = plansResponse.data
+              ? Array.isArray(plansResponse.data)
+                ? plansResponse.data.filter((plan) => plan.filePath && plan.filePath.trim() !== "")
+                : plansResponse.data.filePath && plansResponse.data.filePath.trim() !== ""
+                  ? [plansResponse.data]
+                  : []
+              : []
+
+            return {
+              ...program,
+              plans,
+              totalFiles: plans.length,
+              planExists: plans.length > 0,
+            }
+          } catch (error) {
+            console.error(`Error fetching school plans for program ${program.unicValue}:`, error)
+
+            // إذا فشل الـ API المحدد، جرب الـ API العام كـ fallback
+            try {
+              const fallbackResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/school/plan/${patientId}`)
+              const allPlans = fallbackResponse.data
+                ? Array.isArray(fallbackResponse.data)
+                  ? fallbackResponse.data
+                  : [fallbackResponse.data]
+                : []
+
+              // فلتر الخطط حسب unicValue إذا كان متوفر في البيانات
+              const filteredPlans = allPlans.filter(
+                (plan) =>
+                  (plan.unicValue === program.unicValue || plan.programId === program.unicValue || !plan.unicValue) &&
+                  plan.filePath &&
+                  plan.filePath.trim() !== "",
+              )
+
+              return {
+                ...program,
+                plans: filteredPlans,
+                totalFiles: filteredPlans.length,
+                planExists: filteredPlans.length > 0,
+              }
+            } catch (fallbackError) {
+              console.error(`Fallback error for program ${program.unicValue}:`, fallbackError)
+              return {
+                ...program,
+                plans: [],
+                totalFiles: 0,
+                planExists: false,
+              }
+            }
+          }
+        }),
+      )
+
+      // Sort programs by creation date (oldest first, but display newest first)
+      // This means the first created program gets index 1, but appears last in the list
+      const sortedPrograms = programsWithPlans.sort((a, b) => {
+        const dateA = new Date(a.createdAt || a.appointments[0]?.createdAt)
+        const dateB = new Date(b.createdAt || b.appointments[0]?.createdAt)
+        return dateB - dateA // Newest first in display
+      })
+
+      setSchoolData(sortedPrograms)
     } catch (error) {
       console.error("Error fetching school data:", error)
       setError("Failed to load school data. Please try again.")
@@ -90,13 +131,6 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
     }
   }
 
-  const handleRefresh = async () => {
-    setRefreshing(true)
-    await fetchSchoolData()
-    setRefreshing(false)
-  }
-
-  // Group appointments by unicValue to create programs
   const groupAppointmentsByUnicValue = (appointments) => {
     const grouped = {}
 
@@ -108,116 +142,256 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
           appointments: [],
           totalAppointments: 0,
           completedAppointments: 0,
-          programStatus: "upcoming",
+          status: "not_started",
           createdAt: appointment.createdAt,
-          programType: appointment.programType || "school_evaluation",
-          programKind: appointment.programKind || "School",
         }
       }
+
       grouped[unicValue].appointments.push(appointment)
       grouped[unicValue].totalAppointments++
+
       if (appointment.status === "completed") {
         grouped[unicValue].completedAppointments++
       }
     })
 
-    // Determine program status and sort appointments
+    // Determine overall program status with smart logic
     Object.values(grouped).forEach((program) => {
-      // Sort appointments by date and time
+      // Sort appointments within each program by date first
       program.appointments.sort((a, b) => {
-        const dateA = new Date(`${a.date}T${a.time}`)
-        const dateB = new Date(`${b.date}T${b.time}`)
+        const dateA = parseAppointmentDateTime(a)
+        const dateB = parseAppointmentDateTime(b)
         return dateA - dateB
       })
 
-      // Determine program status
-      program.programStatus = determineProgramStatus(program)
+      // Get program status using smart logic
+      program.smartStatus = getProgramSmartStatus(program)
+
+      // Keep original status for backward compatibility
+      if (program.completedAppointments === 0) {
+        program.status = "not_started"
+      } else if (program.completedAppointments === program.totalAppointments) {
+        program.status = "completed"
+      } else {
+        program.status = "in_progress"
+      }
     })
 
-    // Convert to array and sort by creation date (newest first)
-    return Object.values(grouped).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    return Object.values(grouped)
   }
 
-  // Determine program status based on appointments
-  const determineProgramStatus = (program) => {
-    const now = new Date()
-    const { appointments, completedAppointments, totalAppointments } = program
+  // دالة لتحليل التاريخ والوقت بشكل صحيح
+  const parseAppointmentDateTime = (appointment) => {
+    try {
+      // إذا كان التاريخ يحتوي على الوقت (ISO format)
+      if (appointment.date && appointment.date.includes("T")) {
+        // استخدم التاريخ كما هو لأنه يحتوي على الوقت
+        const appointmentDate = new Date(appointment.date)
 
-    // Check if all appointments are completed
-    if (completedAppointments === totalAppointments) {
-      return "completed"
+        // إذا كان هناك وقت منفصل، استبدل الوقت في التاريخ
+        if (appointment.time) {
+          const [hours, minutes] = appointment.time.split(":")
+          appointmentDate.setHours(Number.parseInt(hours, 10), Number.parseInt(minutes, 10), 0, 0)
+        }
+
+        return appointmentDate
+      } else {
+        // إذا كان التاريخ والوقت منفصلين
+        const dateStr = appointment.date
+        const timeStr = appointment.time || "00:00"
+
+        // دمج التاريخ والوقت
+        const combinedDateTime = new Date(`${dateStr}T${timeStr}:00`)
+        return combinedDateTime
+      }
+    } catch (error) {
+      console.error("Error parsing appointment date/time:", error, appointment)
+      return new Date() // fallback to current date
+    }
+  }
+
+  const getProgramSmartStatus = (program) => {
+    const now = new Date()
+
+    // التأكد من وجود مواعيد
+    if (!program.appointments || program.appointments.length === 0) {
+      return {
+        type: "unknown",
+        message: "No appointments found",
+        showPlans: false,
+        color: "gray",
+        icon: "help",
+      }
     }
 
-    // Check if any appointment is in progress or upcoming
-    const hasUpcomingAppointments = appointments.some((apt) => {
-      const appointmentDateTime = new Date(`${apt.date}T${apt.time}`)
-      return appointmentDateTime > now && apt.status !== "completed"
-    })
+    const firstAppointment = program.appointments[0]
 
-    const hasPastIncompleteAppointments = appointments.some((apt) => {
-      const appointmentDateTime = new Date(`${apt.date}T${apt.time}`)
-      return appointmentDateTime <= now && apt.status !== "completed"
-    })
+    // تحليل تاريخ ووقت الموعد الأول
+    const firstAppointmentTime = parseAppointmentDateTime(firstAppointment)
 
-    if (hasUpcomingAppointments) {
-      return "active"
-    } else if (hasPastIncompleteAppointments) {
-      return "missed"
-    } else {
-      return "completed"
+    // التحقق من صحة التاريخ
+    if (isNaN(firstAppointmentTime.getTime())) {
+      return {
+        type: "unknown",
+        message: "Invalid appointment date/time",
+        showPlans: false,
+        color: "gray",
+        icon: "help",
+      }
+    }
+
+    console.log("Program:", program.unicValue)
+    console.log("First appointment raw data:", {
+      date: firstAppointment.date,
+      time: firstAppointment.time,
+      status: firstAppointment.status,
+    })
+    console.log("First appointment parsed time:", firstAppointmentTime)
+    console.log("Current time:", now)
+    console.log("Time comparison:", firstAppointmentTime > now ? "Future" : "Past")
+
+    // الحالة 1: الموعد الأول لم يأتي بعد ولم يكتمل
+    if (firstAppointmentTime > now && firstAppointment.status !== "completed") {
+      return {
+        type: "upcoming",
+        message: "Program scheduled - First appointment is upcoming",
+        showPlans: false,
+        color: "blue",
+        icon: "clock",
+      }
+    }
+
+    // الحالة 2: الموعد الأول فات وقته ولم يكتمل (ملغي)
+    if (firstAppointmentTime <= now && firstAppointment.status !== "completed") {
+      return {
+        type: "cancelled",
+        message: "Program cancelled - First appointment was missed",
+        showPlans: false,
+        color: "red",
+        icon: "x",
+      }
+    }
+
+    // الحالة 3، 4، 5: الموعد الأول مكتمل
+    if (firstAppointment.status === "completed") {
+      // الحالة 5: جميع المواعيد مكتملة - ONLY show plans when ALL appointments are completed
+      if (program.completedAppointments === program.totalAppointments) {
+        return {
+          type: "completed",
+          message: "Program completed - All appointments finished",
+          showPlans: true, // Only show plans when program is fully completed
+          color: "green",
+          icon: "check",
+        }
+      } else {
+        // الحالة 3 و 4: البرنامج نشط مع بعض المواعيد المكتملة - DON'T show plans yet
+        const nextIncompleteAppointment = program.appointments.find((apt) => apt.status !== "completed")
+
+        let message = "Program active - "
+        if (nextIncompleteAppointment) {
+          const nextAppointmentTime = parseAppointmentDateTime(nextIncompleteAppointment)
+
+          if (!isNaN(nextAppointmentTime.getTime())) {
+            if (nextAppointmentTime > now) {
+              message += "Next appointment is upcoming"
+            } else {
+              message += "Next appointment is ready"
+            }
+          } else {
+            message += "In progress"
+          }
+        } else {
+          message += "In progress"
+        }
+
+        return {
+          type: "active",
+          message: message,
+          showPlans: false, // Don't show plans until program is fully completed
+          color: "green",
+          icon: "play",
+        }
+      }
+    }
+
+    // Default fallback - لا يجب أن نصل هنا
+    console.warn("Unexpected program state:", program)
+    return {
+      type: "unknown",
+      message: "Program status unknown",
+      showPlans: false,
+      color: "gray",
+      icon: "help",
     }
   }
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
+    try {
+      const date = new Date(dateString)
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    } catch (error) {
+      return "Invalid Date"
+    }
   }
 
   const formatTime = (timeString) => {
-    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    })
+    try {
+      if (timeString && timeString.includes(":")) {
+        const [hours, minutes] = timeString.split(":")
+        const date = new Date()
+        date.setHours(Number.parseInt(hours, 10), Number.parseInt(minutes, 10), 0, 0)
+        return date.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })
+      }
+      return timeString || "No time"
+    } catch (error) {
+      return "Invalid Time"
+    }
   }
 
-  const toggleExpanded = (unicValue) => {
-    setExpandedPrograms((prev) => {
+  const toggleExpanded = (type, id) => {
+    const setterMap = {
+      program: setExpandedPrograms,
+      appointment: setExpandedAppointments,
+    }
+
+    const setter = setterMap[type]
+    setter((prev) => {
       const newSet = new Set(prev)
-      if (newSet.has(unicValue)) {
-        newSet.delete(unicValue)
+      if (newSet.has(id)) {
+        newSet.delete(id)
       } else {
-        newSet.add(unicValue)
+        newSet.add(id)
       }
       return newSet
     })
   }
 
-  // Helper function to construct proper file URL
-  const getFileUrl = (plan) => {
+  const getFileUrl = (file) => {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL
-    let filePath = plan.filePath || ""
+    let filePath = file.filePath || ""
 
-    // Remove leading slash if present to avoid double slashes
     if (filePath.startsWith("/")) {
       filePath = filePath.substring(1)
     }
 
-    // Check if filePath already contains the base URL
     if (filePath.startsWith("http")) {
       return filePath
     }
 
-    // Construct the full URL for school plans
     return `${baseUrl}/uploads/school-plan/plan/${filePath}`
   }
 
-  const handleFileDownload = async (plan) => {
+  const handleFileDownload = async (file) => {
     try {
-      const fileUrl = getFileUrl(plan)
+      const fileUrl = getFileUrl(file)
       console.log("Downloading file from:", fileUrl)
 
       const response = await axios.get(fileUrl, { responseType: "blob" })
@@ -225,7 +399,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
       const url = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement("a")
       link.href = url
-      link.setAttribute("download", plan.fileName || plan.title)
+      link.setAttribute("download", file.fileName || file.title)
       document.body.appendChild(link)
       link.click()
       link.remove()
@@ -236,15 +410,15 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
     }
   }
 
-  const handleViewFile = (plan) => {
-    const fileUrl = getFileUrl(plan)
+  const handleViewFile = (file) => {
+    const fileUrl = getFileUrl(file)
     console.log("Viewing file from:", fileUrl)
 
     setViewingDocument({
       filePath: fileUrl,
-      fileName: plan.fileName || plan.title,
+      fileName: file.fileName || file.title,
       fileType: "School Plan",
-      file: plan,
+      file: file,
     })
   }
 
@@ -252,266 +426,94 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
     setViewingDocument(null)
   }
 
-  const getAppointmentStatus = (appointment) => {
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "completed":
+        return <CheckCircle className={`${styles.statusIcon} ${styles.completedIcon}`} />
+      case "in_progress":
+        return <Clock className={`${styles.statusIcon} ${styles.inProgressIcon}`} />
+      case "not_started":
+        return <AlertCircle className={`${styles.statusIcon} ${styles.notStartedIcon}`} />
+      default:
+        return <AlertCircle className={`${styles.statusIcon} ${styles.notStartedIcon}`} />
+    }
+  }
+
+  const getSmartStatusIcon = (smartStatus) => {
+    switch (smartStatus.icon) {
+      case "check":
+        return <CheckCircle className={`${styles.smartStatusIcon} ${styles.completedIcon}`} />
+      case "play":
+        return <PlayCircle className={`${styles.smartStatusIcon} ${styles.activeIcon}`} />
+      case "clock":
+        return <Clock className={`${styles.smartStatusIcon} ${styles.upcomingIcon}`} />
+      case "x":
+        return <XCircle className={`${styles.smartStatusIcon} ${styles.cancelledIcon}`} />
+      case "pause":
+        return <PauseCircle className={`${styles.smartStatusIcon} ${styles.pausedIcon}`} />
+      default:
+        return <AlertTriangle className={`${styles.smartStatusIcon} ${styles.unknownIcon}`} />
+    }
+  }
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case "completed":
+        return "Completed"
+      case "in_progress":
+        return "In Progress"
+      case "not_started":
+        return "Not Started"
+      default:
+        return "Unknown"
+    }
+  }
+
+  const getAppointmentStatusIcon = (appointment) => {
     const now = new Date()
-    const appointmentDateTime = new Date(`${appointment.date}T${appointment.time}`)
+    const appointmentDateTime = parseAppointmentDateTime(appointment)
 
     if (appointment.status === "completed") {
-      return "completed"
-    } else if (appointmentDateTime > now) {
-      return "upcoming"
+      return <CheckCircle className={`${styles.appointmentStatusIcon} ${styles.completedIcon}`} />
+    } else if (appointmentDateTime < now) {
+      return <XCircle className={`${styles.appointmentStatusIcon} ${styles.missedIcon}`} />
     } else {
-      return "missed"
+      return <Clock className={`${styles.appointmentStatusIcon} ${styles.upcomingIcon}`} />
     }
   }
 
-  const getTimeUntilAppointment = (appointment) => {
+  const getAppointmentStatusText = (appointment) => {
     const now = new Date()
-    const appointmentDateTime = new Date(`${appointment.date}T${appointment.time}`)
-    const diffMs = appointmentDateTime - now
-    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
-    const diffHours = Math.ceil(diffMs / (1000 * 60 * 60))
+    const appointmentDateTime = parseAppointmentDateTime(appointment)
 
-    if (diffMs < 0) {
-      return "Past"
-    } else if (diffHours <= 1) {
-      return "Soon"
-    } else if (diffHours <= 24) {
-      return `In ${diffHours} hours`
-    } else if (diffDays === 1) {
-      return "Tomorrow"
-    } else if (diffDays <= 7) {
-      return `In ${diffDays} days`
+    if (appointment.status === "completed") {
+      return "Completed"
+    } else if (appointmentDateTime < now) {
+      return "Missed"
     } else {
-      return `In ${Math.ceil(diffDays / 7)} weeks`
+      return "Upcoming"
     }
   }
 
-  // Render school assignment card
-  const renderSchoolAssignmentCard = () => {
-    if (!schoolAssignment) {
-      return (
-        <div className={`${styles.assignmentCard} ${styles.noAssignmentCard}`}>
-         
-        </div>
-      )
-    }
+  // Calculate program number based on creation order
+  const getProgramNumber = (program, allPrograms) => {
+    // Sort all programs by creation date (oldest first) to get the correct numbering
+    const sortedByCreation = [...allPrograms].sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.appointments[0]?.createdAt)
+      const dateB = new Date(b.createdAt || b.appointments[0]?.createdAt)
+      return dateA - dateB // Oldest first for numbering
+    })
 
-    return (
-      <div className={`${styles.assignmentCard} ${styles.activeAssignmentCard}`}>
-        <div className={styles.assignmentHeader}>
-          <div className={styles.assignmentInfo}>
-            <GraduationCap className={`${styles.assignmentIcon} ${styles.activeAssignmentIcon}`} />
-            <div className={styles.assignmentDetails}>
-              <h4 className={styles.assignmentTitle}>School Program Assignment</h4>
-              <p className={styles.assignmentDates}>Assigned on {formatDate(schoolAssignment.assignedDate)}</p>
-              <p className={styles.assignmentDescription}>
-                Status: <span className={styles.statusActive}>{schoolAssignment.status}</span>
-              </p>
-              {schoolAssignment.notes && <p className={styles.assignmentNotes}>Notes: {schoolAssignment.notes}</p>}
-            </div>
-          </div>
-          <div className={styles.assignmentStats}>
-            <div className={`${styles.statBadge} ${styles.activeAssignmentBadge}`}>
-              <span className={styles.statLabel}>Active</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Render school program card
-  const renderSchoolProgramCard = (program, index) => {
-    const { programStatus } = program
-
-    return (
-      <div key={program.unicValue} className={`${styles.programCard} ${styles[`${programStatus}Card`]}`}>
-        <div className={styles.programHeader} onClick={() => toggleExpanded(program.unicValue)}>
-          <div className={styles.programInfo}>
-            {expandedPrograms.has(program.unicValue) ? (
-              <ChevronDown className={styles.chevron} />
-            ) : (
-              <ChevronRight className={styles.chevron} />
-            )}
-            {programStatus === "completed" && (
-              <CheckCircle className={`${styles.programIcon} ${styles.completedIcon}`} />
-            )}
-            {programStatus === "active" && <BookOpen className={`${styles.programIcon} ${styles.activeIcon}`} />}
-            {programStatus === "missed" && <XCircle className={`${styles.programIcon} ${styles.missedIcon}`} />}
-            <div className={styles.programDetails}>
-              <h4 className={styles.programTitle}>School Program {index + 1}</h4>
-              <p className={styles.programDates}>
-                {program.appointments.length > 0 && (
-                  <>
-                    {formatDate(program.appointments[0].date)} -{" "}
-                    {formatDate(program.appointments[program.appointments.length - 1].date)}
-                  </>
-                )}
-              </p>
-              <p className={styles.programDescription}>Program ID: {program.unicValue}</p>
-            </div>
-          </div>
-          <div className={styles.programStats}>
-            <div className={`${styles.statBadge} ${styles[`${programStatus}Badge`]}`}>
-              <span className={styles.statNumber}>{program.completedAppointments}</span>
-              <span className={styles.statLabel}>completed</span>
-            </div>
-            <div className={`${styles.statBadge} ${styles[`${programStatus}Badge`]}`}>
-              <span className={styles.statNumber}>{program.totalAppointments}</span>
-              <span className={styles.statLabel}>total</span>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.statusMessage}>
-          <div className={`${styles.statusContent} ${styles[`${programStatus}Status`]}`}>
-            {programStatus === "completed" && <Award className={styles.statusIcon} />}
-            {programStatus === "active" && <Target className={styles.statusIcon} />}
-            {programStatus === "missed" && <AlertTriangle className={styles.statusIcon} />}
-            <div className={styles.statusText}>
-              {programStatus === "completed" && (
-                <>
-                  <h5>Program Completed Successfully!</h5>
-                  <p>
-                    You have completed all {program.totalAppointments} appointments in this school program. Great job!
-                  </p>
-                </>
-              )}
-              {programStatus === "active" && (
-                <>
-                  <h5>Program In Progress</h5>
-                  <p>
-                    You have completed {program.completedAppointments} out of {program.totalAppointments} appointments.
-                    Keep up the good work!
-                  </p>
-                </>
-              )}
-              {programStatus === "missed" && (
-                <>
-                  <h5>Attention Required</h5>
-                  <p>
-                    Some appointments in this program were missed. Please contact your coordinator to reschedule or
-                    discuss next steps.
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {expandedPrograms.has(program.unicValue) && (
-          <div className={styles.programContent}>
-            <div className={styles.appointmentsSection}>
-              <div className={styles.sectionHeader}>
-                <Calendar className={styles.sectionIcon} />
-                <h5 className={styles.sectionTitle}>Appointments ({program.totalAppointments})</h5>
-              </div>
-              <div className={styles.appointmentsList}>
-                {program.appointments.map((appointment) => {
-                  const appointmentStatus = getAppointmentStatus(appointment)
-                  const timeUntil = getTimeUntilAppointment(appointment)
-
-                  return (
-                    <div
-                      key={appointment._id}
-                      className={`${styles.appointmentItem} ${styles[`${appointmentStatus}Appointment`]}`}
-                    >
-                      <div className={styles.appointmentInfo}>
-                        {appointmentStatus === "completed" && <CheckCircle className={styles.appointmentStatusIcon} />}
-                        {appointmentStatus === "upcoming" && <Clock className={styles.appointmentStatusIcon} />}
-                        {appointmentStatus === "missed" && <XCircle className={styles.appointmentStatusIcon} />}
-                        <div className={styles.appointmentDetails}>
-                          <span className={styles.appointmentDate}>
-                            {formatDate(appointment.date)} at {formatTime(appointment.time)}
-                          </span>
-                          <span className={styles.appointmentDescription}>{appointment.description}</span>
-                        </div>
-                      </div>
-                      <div className={styles.appointmentStatus}>
-                        {appointmentStatus === "completed" && (
-                          <span className={`${styles.statusBadge} ${styles.completedBadge}`}>Completed</span>
-                        )}
-                        {appointmentStatus === "upcoming" && (
-                          <span className={`${styles.statusBadge} ${styles.upcomingBadge}`}>{timeUntil}</span>
-                        )}
-                        {appointmentStatus === "missed" && (
-                          <span className={`${styles.statusBadge} ${styles.missedBadge}`}>Missed</span>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  // Render school plans section
-  const renderSchoolPlansSection = () => {
-    if (schoolPlans.length === 0) {
-      return (
-        <div className={styles.plansSection}>
-          <div className={styles.sectionHeader}>
-            <FileText className={styles.sectionIcon} />
-            <h5 className={styles.sectionTitle}>School Plans</h5>
-          </div>
-          <div className={styles.emptyPlans}>
-            <FileText className={styles.emptyIcon} />
-            <p className={styles.emptyText}>No school plans available yet.</p>
-          </div>
-        </div>
-      )
-    }
-
-    return (
-      <div className={styles.plansSection}>
-        <div className={styles.sectionHeader}>
-          <FileText className={styles.sectionIcon} />
-          <h5 className={styles.sectionTitle}>School Plans ({schoolPlans.length})</h5>
-        </div>
-        <div className={styles.plansList}>
-          {schoolPlans.map((plan) => (
-            <div key={plan._id} className={styles.planItem}>
-              <div className={styles.planInfo}>
-                <FileText className={styles.planIcon} />
-                <div className={styles.planDetails}>
-                  <span className={styles.planTitle}>{plan.title || plan.fileName}</span>
-                  <div className={styles.planMetadata}>
-                    <span className={styles.planType}>School Plan</span>
-                    <span className={styles.planDate}>
-                      Last modified: {formatDate(plan.lastModified || plan.createdAt)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className={styles.planActions}>
-                <button className={styles.viewButton} onClick={() => handleViewFile(plan)} title="View Document">
-                  <Eye size={16} />
-                </button>
-                <button
-                  className={styles.downloadButton}
-                  onClick={() => handleFileDownload(plan)}
-                  title="Download Document"
-                >
-                  <Download size={16} />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
+    // Find the index of current program in the creation-sorted list
+    const programIndex = sortedByCreation.findIndex((p) => p.unicValue === program.unicValue)
+    return programIndex + 1 // Program numbers start from 1
   }
 
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
         <Loader2 className={styles.loadingSpinner} />
-        <p className={styles.loadingText}>Loading your school program data...</p>
+        <p className={styles.loadingText}>Loading your school data...</p>
       </div>
     )
   }
@@ -535,7 +537,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
         <div className={styles.documentViewerHeader}>
           <button onClick={handleBackToFiles} className={styles.backButton}>
             <ArrowLeft size={20} />
-            Back to School Program
+            Back to Files
           </button>
           <div className={styles.documentInfo}>
             <FileText size={20} className={styles.documentIcon} />
@@ -556,32 +558,182 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
     )
   }
 
+  if (!schoolData.length) {
+    return (
+      <div className={styles.emptyContainer}>
+        <GraduationCap className={styles.emptyIcon} />
+        <h3 className={styles.emptyTitle}>No School Programs</h3>
+        <p className={styles.emptyText}>You don't have any school programs yet.</p>
+      </div>
+    )
+  }
+
   return (
-    <div className={styles.schoolTabContainer}>
-      {/* Header */}
-     
+    <div className={styles.schoolContainer}>
+      <div className={styles.programsList}>
+        {schoolData.map((program) => {
+          const programNumber = getProgramNumber(program, schoolData)
 
-      {/* School Assignment Card */}
-      {renderSchoolAssignmentCard()}
+          return (
+            <div
+              key={program.unicValue}
+              className={`${styles.programCard} ${styles[program.smartStatus.type + "Card"]}`}
+            >
+              <div className={styles.programHeader} onClick={() => toggleExpanded("program", program.unicValue)}>
+                <div className={styles.programInfo}>
+                  {expandedPrograms.has(program.unicValue) ? (
+                    <ChevronDown className={styles.chevron} />
+                  ) : (
+                    <ChevronRight className={styles.chevron} />
+                  )}
+                  <GraduationCap className={`${styles.programIcon} ${styles[program.smartStatus.type + "Icon"]}`} />
+                  <div className={styles.programDetails}>
+                    <h4 className={styles.programTitle}>School Program {programNumber}</h4>
+                    <p className={styles.programId}>Program ID: {program.unicValue}</p>
+                    <div className={styles.programProgress}>
+                      <span className={styles.progressText}>
+                        {program.completedAppointments} of {program.totalAppointments} sessions completed
+                      </span>
+                      <div className={styles.progressBar}>
+                        <div
+                          className={`${styles.progressFill} ${styles[program.smartStatus.type + "Progress"]}`}
+                          style={{
+                            width: `${(program.completedAppointments / program.totalAppointments) * 100}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className={styles.programStats}>
+                  <div className={`${styles.statBadge} ${styles[program.smartStatus.type + "Badge"]}`}>
+                    {getSmartStatusIcon(program.smartStatus)}
+                    <span className={styles.statLabel}>{program.smartStatus.message}</span>
+                  </div>
+                  {program.smartStatus.showPlans && (
+                    <div className={`${styles.statBadge} ${styles.filesBadge}`}>
+                      <span className={styles.statNumber}>{program.totalFiles}</span>
+                      <span className={styles.statLabel}>files</span>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-      {/* School Programs */}
-      {schoolData.length > 0 ? (
-        <div className={styles.programsList}>
-          
-          {schoolData.map((program, index) => renderSchoolProgramCard(program, index))}
-        </div>
-      ) : (
-        <div className={styles.emptyContainer}>
-          <GraduationCap className={styles.emptyIcon} />
-          <h3 className={styles.emptyTitle}>No School Programs</h3>
-          <p className={styles.emptyText}>You don't have any school programs scheduled yet.</p>
-        </div>
-      )}
+              {expandedPrograms.has(program.unicValue) && (
+                <div className={styles.programContent}>
+                  {/* Smart Status Message */}
+                  <div className={`${styles.smartStatusMessage} ${styles[program.smartStatus.type + "Message"]}`}>
+                    {getSmartStatusIcon(program.smartStatus)}
+                    <span className={styles.smartStatusText}>{program.smartStatus.message}</span>
+                  </div>
 
-      {/* School Plans */}
-      {renderSchoolPlansSection()}
+                  {/* Appointments Section */}
+                  <div className={styles.appointmentsSection}>
+                    <div className={styles.sectionHeader}>
+                      <Calendar className={styles.sectionIcon} />
+                      <h5 className={styles.sectionTitle}>Appointments ({program.totalAppointments})</h5>
+                    </div>
+                    <div className={styles.appointmentsList}>
+                      {program.appointments.map((appointment) => (
+                        <div key={appointment._id} className={styles.appointmentItem}>
+                          <div className={styles.appointmentInfo}>
+                            {getAppointmentStatusIcon(appointment)}
+                            <div className={styles.appointmentDetails}>
+                              <span className={styles.appointmentDate}>
+                                {formatDate(appointment.date)} at {formatTime(appointment.time)}
+                              </span>
+                              <span className={styles.appointmentDescription}>{appointment.description}</span>
+                            </div>
+                          </div>
+                          <div className={styles.appointmentStatus}>
+                            <span
+                              className={`${styles.statusBadge} ${styles[getAppointmentStatusText(appointment).toLowerCase() + "Status"]}`}
+                            >
+                              {getAppointmentStatusText(appointment)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Files Section - Only show if smartStatus allows */}
+                  {program.smartStatus.showPlans && (
+                    <div className={styles.filesSection}>
+                      <div className={styles.sectionHeader}>
+                        <BookOpen className={styles.sectionIcon} />
+                        <h5 className={styles.sectionTitle}>School Plans ({program.plans.length})</h5>
+                      </div>
+
+                      {program.plans.length > 0 ? (
+                        <div className={styles.filesList}>
+                          {program.plans.map((plan) => (
+                            <div key={plan._id} className={styles.fileItem}>
+                              <div className={styles.fileInfo}>
+                                <FileText className={styles.fileIcon} />
+                                <div className={styles.fileDetails}>
+                                  <span className={styles.fileName}>{plan.title || plan.fileName}</span>
+                                  <div className={styles.fileMetadata}>
+                                    <span className={styles.fileType}>School Plan</span>
+                                    <span className={styles.fileDate}>
+                                      Modified: {formatDate(plan.lastModified || plan.createdAt)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className={styles.fileActions}>
+                                <button
+                                  className={styles.viewButton}
+                                  onClick={() => handleViewFile(plan)}
+                                  title="View Document"
+                                >
+                                  <Eye size={16} />
+                                </button>
+                                <button
+                                  className={styles.downloadButton}
+                                  onClick={() => handleFileDownload(plan)}
+                                  title="Download Document"
+                                >
+                                  <Download size={16} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className={styles.noPlanContainer}>
+                          <FileX className={styles.noPlanIcon} />
+                          <h4 className={styles.noPlanTitle}>No Plans Available</h4>
+                          <p className={styles.noPlanText}>Your plan didn't created yet</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Hidden Plans Message for non-showPlans status */}
+                  {!program.smartStatus.showPlans && (
+                    <div
+                      className={`${styles.hiddenPlansMessage} ${styles[program.smartStatus.type + "HiddenMessage"]}`}
+                    >
+                      <FileX className={styles.hiddenPlansIcon} />
+                      <span className={styles.hiddenPlansText}>
+                        {program.smartStatus.type === "upcoming"
+                          ? "Plans will be available after your program is completed"
+                          : program.smartStatus.type === "active"
+                            ? "Plans will be available after all appointments are completed"
+                            : "Plans are not available for cancelled programs"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
 
 export default SchoolTab
+    

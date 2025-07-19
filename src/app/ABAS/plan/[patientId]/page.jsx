@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, User, FileText, Save, Clock, Mail, Phone, Calendar, Brain, Download, Upload, Eye, Edit3, CheckCircle, AlertCircle } from 'lucide-react'
 import axiosInstance from "@/helper/axiosSetup"
-import SyncfusionDocx from "@/components/SyncfusionDocx"
+import SyncfusionDocxCase from "@/components/SyncfusionDocxCase"
 import styles from "../styles/patient-school-plan-editor.module.css"
 
 const PatientPlanEditor = () => {
@@ -172,7 +172,7 @@ const PatientPlanEditor = () => {
         <div className={styles.planBody}>
           <div className={styles.documentSection}>
             <div className={styles.documentContainer}>
-        <SyncfusionDocx
+        <SyncfusionDocxCase
                             userData={{
                               docxId: plan._id,
                               patientId,

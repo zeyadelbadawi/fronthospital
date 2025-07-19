@@ -1,39 +1,44 @@
 "use client"
-
 import { useState, useEffect } from "react"
-import { Search, ClipboardList, ClipboardCheck, Users, Brain, Calendar, Phone, Mail, User, X } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { Search, ClipboardList, ClipboardCheck, Brain, Calendar, User, X, Hash, Clock, FileText } from "lucide-react"
 import axiosInstance from "@/helper/axiosSetup"
 import { useContentStore } from "../store/content-store"
+import PatientSchoolPlanEditor from "./patient-school-plan-editor"
 import styles from "../styles/speech-upcoming-appointments.module.css"
 
 const AllPatientsSchool = () => {
-  const [assignments, setAssignments] = useState([])
+  const [programs, setPrograms] = useState([])
   const [search, setSearch] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [totalPrograms, setTotalPrograms] = useState(0)
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [selectedProgram, setSelectedProgram] = useState(null)
   const setActiveContent = useContentStore((state) => state.setActiveContent)
 
   useEffect(() => {
-    fetchschoolPatients()
+    fetchSchoolPrograms()
   }, [currentPage, search])
 
-  const fetchschoolPatients = async () => {
+  const fetchSchoolPrograms = async () => {
     setLoading(true)
     try {
       const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/school/school-assignments?page=${currentPage}&search=${search}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/school/school-programs?page=${currentPage}&search=${search}&limit=10`,
       )
 
-      const assignmentsData = Array.isArray(response.data) ? response.data : response.data.assignments || []
+      console.log("API Response:", response.data)
 
-      setAssignments(assignmentsData)
+      // Handle both array and object responses
+      const programsData = response.data.programs || response.data || []
+      setPrograms(Array.isArray(programsData) ? programsData : [])
       setTotalPages(response.data.totalPages || 1)
+      setTotalPrograms(response.data.totalPrograms || programsData.length || 0)
     } catch (error) {
-      console.error("Error fetching school Students:", error)
-      setAssignments([])
+      console.error("Error fetching school programs:", error)
+      setPrograms([])
+      setTotalPages(1)
+      setTotalPrograms(0)
     } finally {
       setLoading(false)
     }
@@ -46,19 +51,105 @@ const AllPatientsSchool = () => {
   const handleSearch = (e) => {
     e.preventDefault()
     setCurrentPage(1)
-    fetchschoolPatients()
+    fetchSchoolPrograms()
   }
 
   const handleBackToWelcome = () => {
     setActiveContent(null)
   }
 
-  const getPatientProperty = (assignment, property) => {
-    if (!assignment || !assignment.patient) return "N/A"
-    return assignment.patient[property] || "N/A"
+  const handleViewPlan = (program) => {
+    if (!program.patientId || !program.unicValue) {
+      console.error("Missing patientId or unicValue:", program)
+      showErrorMessage("Cannot open plan: Missing required information")
+      return
+    }
+
+    console.log("Opening plan for:", {
+      patientId: program.patientId,
+      unicValue: program.unicValue,
+    })
+
+    // Set the selected program to open the plan editor component
+    setSelectedProgram({
+      patientId: program.patientId,
+      unicValue: program.unicValue,
+      patientName: program.patientName,
+    })
   }
 
+  const handleBackFromPlanEditor = () => {
+    setSelectedProgram(null)
+    // Refresh the programs list
+    fetchSchoolPrograms()
+  }
 
+  const showErrorMessage = (message) => {
+    // Simple error notification
+    const toast = document.createElement("div")
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #ef4444;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      z-index: 1000;
+      font-weight: 500;
+    `
+    toast.textContent = message
+    document.body.appendChild(toast)
+
+    setTimeout(() => {
+      document.body.removeChild(toast)
+    }, 4000)
+  }
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A"
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    } catch (error) {
+      return "Invalid Date"
+    }
+  }
+
+  const formatTime = (timeString) => {
+    if (!timeString) return "N/A"
+    return timeString
+  }
+
+  const getStatusBadgeClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case "active":
+        return styles.active
+      case "completed":
+        return styles.completed
+      case "pending":
+        return styles.pending
+      case "cancelled":
+        return styles.cancelled
+      default:
+        return styles.unknown
+    }
+  }
+
+  // If a program is selected, show the plan editor
+  if (selectedProgram) {
+    return (
+      <PatientSchoolPlanEditor
+        patientId={selectedProgram.patientId}
+        unicValue={selectedProgram.unicValue}
+        onBack={handleBackFromPlanEditor}
+      />
+    )
+  }
 
   const itemsPerPage = 10
   const startIndex = (currentPage - 1) * itemsPerPage
@@ -72,9 +163,12 @@ const AllPatientsSchool = () => {
             <div className={styles.headerLeft}>
               <button onClick={handleBackToWelcome} className={styles.backButton}>
                 <X className={styles.backIcon} />
-                Back to All School Appointments
+                Back to Dashboard
               </button>
-              <h2 className={styles.pageTitle}>School Evaluation Students</h2>
+              <div className={styles.titleSection}>
+                <h2 className={styles.pageTitle}>School Group Programs</h2>
+                <p className={styles.pageSubtitle}>Manage individual plans for each unique school program</p>
+              </div>
             </div>
             <div className={styles.headerActions}>
               <form onSubmit={handleSearch} className={styles.searchForm}>
@@ -85,19 +179,32 @@ const AllPatientsSchool = () => {
                     name="search"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search Students..."
+                    placeholder="Search Programs..."
                   />
                   <Search className={styles.searchIcon} />
                 </div>
               </form>
             </div>
           </div>
-
           <div className={styles.filtersContainer}>
             <div className={styles.statsContainer}>
               <div className={styles.statItem}>
-                <span className={styles.statNumber}>{assignments.length}</span>
-                <span className={styles.statLabel}>Total Students</span>
+                <span className={styles.statNumber}>{totalPrograms}</span>
+                <span className={styles.statLabel}>Total Programs</span>
+              </div>
+              <div className={styles.statItem}>
+                <span className={styles.statNumber}>{programs.filter((p) => p.planExists).length}</span>
+                <span className={styles.statLabel}>With Plans</span>
+              </div>
+              <div className={styles.statItem}>
+                <span className={styles.statNumber}>{programs.filter((p) => !p.planExists).length}</span>
+                <span className={styles.statLabel}>Need Plans</span>
+              </div>
+              <div className={styles.statItem}>
+                <span className={styles.statNumber}>
+                  {programs.reduce((sum, p) => sum + (p.totalSessions || 1), 0)}
+                </span>
+                <span className={styles.statLabel}>Total Sessions</span>
               </div>
             </div>
           </div>
@@ -107,18 +214,30 @@ const AllPatientsSchool = () => {
           {loading ? (
             <div className={styles.loadingContainer}>
               <div className={styles.loadingSpinner}></div>
-              <p className={styles.loadingText}>Loading school Students...</p>
+              <p className={styles.loadingText}>Loading school programs...</p>
             </div>
-          ) : assignments.length === 0 ? (
+          ) : programs.length === 0 ? (
             <div className={styles.noData}>
               <div className={styles.emptyState}>
                 <Brain className={styles.emptyIcon} />
-                <h3>No school Students Found</h3>
+                <h3>No School Programs Found</h3>
                 <p>
                   {search
-                    ? "No Students match your search criteria. Try adjusting your search terms."
-                    : "No Students are currently assigned to the school Evaluation."}
+                    ? "No programs match your search criteria. Try adjusting your search terms."
+                    : "No school programs are currently available."}
                 </p>
+                {search && (
+                  <button
+                    onClick={() => {
+                      setSearch("")
+                      setCurrentPage(1)
+                      fetchSchoolPrograms()
+                    }}
+                    className={styles.clearSearchButton}
+                  >
+                    Clear Search
+                  </button>
+                )}
               </div>
             </div>
           ) : (
@@ -130,86 +249,112 @@ const AllPatientsSchool = () => {
                     <th>
                       <div className={styles.headerCell}>
                         <User className={styles.headerIcon} />
-                        Students Name
+                        Patient Name
                       </div>
                     </th>
                     <th>
                       <div className={styles.headerCell}>
-                        <Mail className={styles.headerIcon} />
-                        Email
-                      </div>
-                    </th>
-                    <th>
-                      <div className={styles.headerCell}>
-                        <Phone className={styles.headerIcon} />
-                        Phone
+                        <Hash className={styles.headerIcon} />
+                        Program ID
                       </div>
                     </th>
                     <th>
                       <div className={styles.headerCell}>
                         <Calendar className={styles.headerIcon} />
-                        Assigned Date
+                        Sessions
+                      </div>
+                    </th>
+                    <th>
+                      <div className={styles.headerCell}>
+                        <Clock className={styles.headerIcon} />
+                        Time
                       </div>
                     </th>
                     <th>
                       <div className={styles.headerCell}>
                         <Brain className={styles.headerIcon} />
+                        Description
+                      </div>
+                    </th>
+                    <th>
+                      <div className={styles.headerCell}>
+                        <ClipboardCheck className={styles.headerIcon} />
                         Status
                       </div>
                     </th>
-                    <th className={styles.textCenter}>View Plan</th>
+                    <th>
+                      <div className={styles.headerCell}>
+                        <FileText className={styles.headerIcon} />
+                        Plan
+                      </div>
+                    </th>
+                    <th className={styles.textCenter}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {assignments.map((assignment, index) => (
-                    <tr key={assignment._id || index} className={styles.tableRow}>
+                  {programs.map((program, index) => (
+                    <tr key={`${program.patientId}-${program.unicValue}` || index} className={styles.tableRow}>
                       <td className={styles.indexCell}>{startIndex + index + 1}</td>
                       <td className={styles.patientCell}>
                         <div className={styles.patientInfo}>
-                          <span className={styles.patientName}>{getPatientProperty(assignment, "name")}</span>
-                          <span className={styles.patientId}>ID: {assignment.patient?._id?.slice(-8) || "N/A"}</span>
+                          <span className={styles.patientName}>{program.patientName || "Unknown Patient"}</span>
+                          <span className={styles.patientId}>ID: {program.patientId?.slice(-8) || "N/A"}</span>
                         </div>
                       </td>
-                      <td className={styles.dateCell}>
-                        <div className={styles.dateInfo}>
-                          <span className={styles.dateValue}>{getPatientProperty(assignment, "email")}</span>
+                      <td className={styles.uniqueValueCell}>
+                        <div className={styles.uniqueValueInfo}>
+                          <span className={styles.uniqueValue}>{program.unicValue || "N/A"}</span>
+                        </div>
+                      </td>
+                      <td className={styles.sessionsCell}>
+                        <div className={styles.sessionsInfo}>
+                          <span className={styles.sessionsCount}>{program.totalSessions || 1}</span>
+                          <span className={styles.sessionsLabel}>sessions</span>
                         </div>
                       </td>
                       <td className={styles.timeCell}>
-                        <span className={styles.timeValue}>{getPatientProperty(assignment, "phone")}</span>
+                        <span className={styles.timeValue}>{formatTime(program.time)}</span>
                       </td>
                       <td className={styles.descriptionCell}>
-                        <div className={styles.descriptionText}>
-                          {assignment.assignedDate
-                            ? new Date(assignment.assignedDate).toLocaleDateString("en-US", {
-                                weekday: "short",
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })
-                            : "N/A"}
+                        <div className={styles.descriptionText} title={program.description}>
+                          {program.description || "No description"}
                         </div>
                       </td>
                       <td className={styles.typeCell}>
+                        <span className={`${styles.typeBadge} ${getStatusBadgeClass(program.status)}`}>
+                          {program.status || "Unknown"}
+                        </span>
+                      </td>
+                      <td className={styles.planStatusCell}>
                         <span
-                          className={`${styles.typeBadge} ${
-                            assignment.status === "active" ? styles.therapy : styles.assessment
-                          }`}
+                          className={`${styles.planBadge} ${program.planExists ? styles.planExists : styles.planMissing}`}
                         >
-                          {assignment.status || "Unknown"}
+                          {program.planExists ? (
+                            <>
+                              <ClipboardCheck className={styles.planIcon} />
+                              Ready
+                            </>
+                          ) : (
+                            <>
+                              <ClipboardList className={styles.planIcon} />
+                              Needed
+                            </>
+                          )}
                         </span>
                       </td>
                       <td className={styles.actionsCell}>
                         <div className={styles.actionButtons}>
-                          <button 
-                                                    onClick={() => router.push(`/school-plan/plan/${assignment.patient?._id}`)}
+                          <button
+                            onClick={() => handleViewPlan(program)}
                             className={`${styles.actionButton} ${styles.editButton}`}
-                            title="Studnet Plan"
-                            disabled={!assignment.patient?._id}
+                            title={program.planExists ? "Edit Program Plan" : "Create Program Plan"}
+                            disabled={!program.patientId || !program.unicValue}
                           >
                             <ClipboardList className={styles.actionIcon} />
+                            <span className={styles.actionText}>
+                              {program.planExists ? "Edit Plan" : "Create Plan"}
+                            </span>
                           </button>
-
                         </div>
                       </td>
                     </tr>
@@ -219,21 +364,39 @@ const AllPatientsSchool = () => {
             </div>
           )}
 
-          {assignments.length > 0 && (
+          {programs.length > 0 && totalPages > 1 && (
             <div className={styles.paginationContainer}>
               <span className={styles.paginationInfo}>
-                Showing {startIndex + 1} to {Math.min(endIndex, assignments.length)} of {assignments.length} Students
+                Showing {startIndex + 1} to {Math.min(endIndex, programs.length)} of {totalPrograms} Programs
               </span>
               <div className={styles.paginationButtons}>
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button
-                    key={i}
-                    className={`${styles.paginationButton} ${currentPage === i + 1 ? styles.active : ""}`}
-                    onClick={() => handlePageChange(i + 1)}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+                <button
+                  className={`${styles.paginationButton} ${currentPage === 1 ? styles.disabled : ""}`}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const pageNum = currentPage <= 3 ? i + 1 : currentPage - 2 + i
+                  if (pageNum > totalPages) return null
+                  return (
+                    <button
+                      key={pageNum}
+                      className={`${styles.paginationButton} ${currentPage === pageNum ? styles.active : ""}`}
+                      onClick={() => handlePageChange(pageNum)}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                })}
+                <button
+                  className={`${styles.paginationButton} ${currentPage === totalPages ? styles.disabled : ""}`}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
               </div>
             </div>
           )}

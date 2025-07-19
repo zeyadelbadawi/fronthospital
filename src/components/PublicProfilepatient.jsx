@@ -23,6 +23,8 @@ import {
 import styles from "../styles/profile-view.module.css"
 import FullProgramTab from "./FullProgramTab"
 import SchoolTab from "./SchoolTab"
+import SingleProgramTab from "./SingleProgramTab"
+import CaseStudyTab from "./CaseStudyTab"
 
 const PublicProfilepatient = ({ patientID }) => {
   const router = useRouter()
@@ -295,9 +297,30 @@ const PublicProfilepatient = ({ patientID }) => {
                     onClick={() => setActiveTab("school")}
                   >
                     <GraduationCap className={styles.tabIcon} />
-                    School Program
+                    School
                   </button>
                 </li>
+
+                <li className={styles.tabItem}>
+                  <button
+                    className={`${styles.tabButton} ${activeTab === "single" ? styles.active : ""}`}
+                    onClick={() => setActiveTab("single")}
+                  >
+                    <GraduationCap className={styles.tabIcon} />
+                    Single
+                  </button>
+                </li>
+
+          <li className={styles.tabItem}>
+                  <button
+                    className={`${styles.tabButton} ${activeTab === "case" ? styles.active : ""}`}
+                    onClick={() => setActiveTab("case")}
+                  >
+                    <GraduationCap className={styles.tabIcon} />
+                    case stydy
+                  </button>
+                </li>
+
               </ul>
             </div>
 
@@ -477,6 +500,21 @@ const PublicProfilepatient = ({ patientID }) => {
                   setError={setSchoolError}
                 />
               </div>
+
+              <div className={`${styles.tabPane} ${activeTab === "single" ? styles.active : ""}`}>
+                <SingleProgramTab
+                  patientId={patientId}
+
+                />
+              </div>
+
+              <div className={`${styles.tabPane} ${activeTab === "case" ? styles.active : ""}`}>
+                <CaseStudyTab
+                  patientId={patientId}
+
+                />
+              </div>
+
             </div>
           </div>
         </div>
