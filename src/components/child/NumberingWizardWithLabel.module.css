@@ -1,0 +1,528 @@
+.ruknBookingWizard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+  padding: 2rem 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.ruknWizardContainer {
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+.ruknHeader {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.ruknHeaderIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  background-color: #2563eb;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+}
+
+.ruknHeaderIcon span {
+  font-size: 1.5rem;
+  color: white;
+}
+
+.ruknMainTitle {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+}
+
+.ruknSubTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2563eb;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+}
+
+.ruknDescription {
+  color: #6b7280;
+  margin: 0;
+}
+
+.ruknProgressCard {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.ruknStepsContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.ruknStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.ruknStepCircle {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.ruknStepCircle.active {
+  background-color: #2563eb;
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.ruknStepCircle.inactive {
+  background-color: #e5e7eb;
+  color: #6b7280;
+}
+
+.ruknStepTitle {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  padding: 0 0.5rem;
+}
+
+.ruknStepTitle.active {
+  color: #2563eb;
+}
+
+.ruknStepTitle.inactive {
+  color: #6b7280;
+}
+
+.ruknStepLine {
+  position: absolute;
+  height: 2px;
+  width: 4rem;
+  top: 1.5rem;
+  left: calc(50% + 1.5rem);
+  transition: all 0.3s ease;
+}
+
+.ruknStepLine.active {
+  background-color: #2563eb;
+}
+
+.ruknStepLine.inactive {
+  background-color: #e5e7eb;
+}
+
+.ruknMainCard {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.ruknCardContent {
+  padding: 2rem;
+}
+
+.ruknStepContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ruknStepHeader {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.ruknStepHeader h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+}
+
+.ruknStepHeader p {
+  color: #6b7280;
+  margin: 0;
+}
+
+.ruknFormGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ruknFormGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .ruknFormGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.ruknLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.75rem;
+}
+
+.ruknSelect,
+.ruknInput,
+.ruknTextarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  color: #374151;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.ruknSelect:focus,
+.ruknInput:focus,
+.ruknTextarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.ruknSelect.error,
+.ruknInput.error,
+.ruknTextarea.error {
+  border-color: #ef4444;
+}
+
+.ruknTextarea {
+  resize: none;
+  min-height: 6rem;
+}
+
+.ruknServiceTotal {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: #eff6ff;
+  border-radius: 0.5rem;
+}
+
+.ruknServiceTotal p {
+  color: #1e40af;
+  font-weight: 600;
+  margin: 0;
+}
+
+.ruknButtonGroup {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 1.5rem;
+}
+
+.ruknButtonGroup.end {
+  justify-content: flex-end;
+}
+
+.ruknButton {
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+
+.ruknButtonPrimary {
+  background-color: #2563eb;
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.ruknButtonPrimary:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.ruknButtonPrimary:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.ruknButtonSecondary {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.ruknButtonSecondary:hover {
+  background-color: #d1d5db;
+}
+
+.ruknButtonSuccess {
+  background-color: #059669;
+  color: white;
+  padding: 1rem 3rem;
+  font-size: 1.125rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.ruknButtonSuccess:hover:not(:disabled) {
+  background-color: #047857;
+}
+
+.ruknButtonSuccess:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.ruknPaymentSummary {
+  background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.ruknPaymentSummary h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+  margin-top: 0;
+}
+
+.ruknPaymentRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.ruknPaymentRow span:first-child {
+  color: #6b7280;
+}
+
+.ruknPaymentRow span:last-child {
+  font-weight: 600;
+}
+
+.ruknPaymentTotal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #2563eb;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 0.5rem;
+}
+
+.ruknPaymentCenter {
+  text-align: center;
+}
+
+.ruknPaymentNote {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.75rem;
+  margin-bottom: 0;
+}
+
+.ruknSuccessContainer {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ruknSuccessIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 6rem;
+  height: 6rem;
+  background-color: #dcfce7;
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+}
+
+.ruknSuccessIcon span {
+  font-size: 2.5rem;
+}
+
+.ruknSuccessTitle {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1rem;
+  margin-top: 0;
+}
+
+.ruknSuccessMessage {
+  font-size: 1.125rem;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+  margin-top: 0;
+}
+
+.ruknNextSteps {
+  background: #f0fdf4;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.ruknNextSteps h4 {
+  font-weight: 600;
+  color: #166534;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+}
+
+.ruknNextSteps ul {
+  font-size: 0.875rem;
+  color: #15803d;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ruknNextSteps li {
+  margin-bottom: 0.25rem;
+}
+
+.ruknFooter {
+  text-align: center;
+  margin-top: 2rem;
+  color: #6b7280;
+}
+
+.ruknFooter p {
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.ruknDocumentContainer {
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.ruknErrorMessage {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.ruknWarningMessage {
+  background-color: #fffbeb;
+  border: 1px solid #fed7aa;
+  color: #d97706;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.ruknAssignmentResults {
+  background: #f0f9ff;
+  border: 1px solid #0ea5e9;
+  color: #0c4a6e;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.ruknAssignmentSummary p {
+  margin: 0.25rem 0;
+}
+
+.ruknAssignmentFinalResults {
+  background: #f0fdf4;
+  border: 1px solid #22c55e;
+  color: #166534;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+.ruknServiceAssignment {
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+}
+
+.ruknErrorText {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.loadingSpinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 767px) {
+  .ruknStepsContainer {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .ruknStep {
+    flex: 0 0 calc(50% - 0.5rem);
+  }
+
+  .ruknStepLine {
+    display: none;
+  }
+
+  .ruknButtonGroup {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .ruknButtonGroup.end {
+    align-items: stretch;
+  }
+}

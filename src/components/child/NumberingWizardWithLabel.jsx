@@ -1,11 +1,26 @@
 "use client"
+import { useState, useEffect, useMemo, useCallback, Suspense } from "react"
+import dynamic from "next/dynamic"
+import styles from "./NumberingWizardWithLabel.module.css"
 
-import { useState, useEffect } from "react"
-import DatePicker from "react-datepicker"
-import "react-datepicker/dist/react-datepicker.css"
-import axiosInstance from "@/helper/axiosSetup"
-import Select from "react-select"
-import SyncfusionDocx from "@/components/SyncfusionDocx"
+// Dynamic imports للمكونات الثقيلة
+const DatePicker = dynamic(() => import("react-datepicker"), {
+  ssr: false,
+  loading: () => <div className={styles.loadingSpinner}></div>,
+})
+
+const Select = dynamic(() => import("react-select"), {
+  ssr: false,
+  loading: () => <div className={styles.loadingSpinner}></div>,
+})
+
+const SyncfusionDocx = dynamic(() => import("@/components/SyncfusionDocx"), {
+  ssr: false,
+  loading: () => <div>Loading document editor...</div>,
+})
+
+// تحميل CSS للـ DatePicker بشكل منفصل
+import("react-datepicker/dist/react-datepicker.css")
 
 const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, patientName }) => {
   const [selectedDay, setSelectedDay] = useState(null)
@@ -19,6 +34,20 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
   const [assignmentError, setAssignmentError] = useState("")
   const [assignmentResults, setAssignmentResults] = useState(null)
   const [validationErrors, setValidationErrors] = useState({})
+  const [hasActiveFullProgram, setHasActiveFullProgram] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Memoized service options
+  const serviceOptions = useMemo(
+    () => [
+      { value: "physical_therapy", label: "Physical Therapy", price: 100 },
+      { value: "ABA", label: "ABA", price: 300 },
+      { value: "occupational_therapy", label: "Occupational Therapy", price: 1200 },
+      { value: "special_education", label: "Special Education", price: 500 },
+      { value: "speech", label: "Speech", price: 230 },
+    ],
+    [],
+  )
 
   const [programData, setProgramData] = useState({
     programType: "",
@@ -30,15 +59,15 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
     unicValue: "",
   })
 
-  const serviceOptions = [
-    { value: "physical_therapy", label: "Physical Therapy", price: 100 },
-    { value: "ABA", label: "ABA", price: 300 },
-    { value: "occupational_therapy", label: "Occupational Therapy", price: 1200 },
-    { value: "special_education", label: "Special Education", price: 500 },
-    { value: "speech", label: "Speech", price: 230 },
-  ]
+  // Helper function to format time to HH:MM
+  const formatTimeToHHMM = useCallback((date) => {
+    if (!date) return null
+    const hours = date.getHours().toString().padStart(2, "0")
+    const minutes = date.getMinutes().toString().padStart(2, "0")
+    return `${hours}:${minutes}`
+  }, [])
 
-  const handleServiceChange = (selectedOptions = []) => {
+  const handleServiceChange = useCallback((selectedOptions = []) => {
     setSelectedServices(selectedOptions)
     const newPrice = selectedOptions.reduce((total, option) => total + option.price, 0)
     setTotalPrice(newPrice)
@@ -46,47 +75,57 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
     if (selectedOptions.length > 0) {
       setValidationErrors((prev) => ({ ...prev, services: null }))
     }
-  }
-  const [hasActiveFullProgram, setHasActiveFullProgram] = useState(false)
+  }, [])
 
+  // Lazy loading للـ axios instance
+  const getAxiosInstance = useCallback(async () => {
+    const { default: axiosInstance } = await import("@/helper/axiosSetup")
+    return axiosInstance
+  }, [])
 
+  // تحسين استدعاءات API
   useEffect(() => {
-    console.log("patientId received in useEffect:", patientId)
-    const fetchPlanData = async () => {
+    let isMounted = true
+
+    const fetchData = async () => {
+      if (!patientId) return
+
+      setIsLoading(true)
       try {
-        console.log("Fetching plan data for patientId:", patientId)
-        const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/DrastHala/plan/${patientId}`)
-        console.log("Plan data fetched:", response.data)
-        setPlan(response.data)
+        const axiosInstance = await getAxiosInstance()
+
+        // استدعاء البيانات بشكل متوازي
+        const [planResponse, programResponse] = await Promise.allSettled([
+          axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/DrastHala/plan/${patientId}`),
+          axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/check-active-full-program/${patientId}`),
+        ])
+
+        if (isMounted) {
+          if (planResponse.status === "fulfilled") {
+            setPlan(planResponse.value.data)
+          }
+
+          if (programResponse.status === "fulfilled") {
+            setHasActiveFullProgram(programResponse.value.data.hasActiveFullProgram)
+          }
+        }
       } catch (error) {
-        console.error("Error fetching plan data:", error)
-      }
-    }
-
-    if (patientId) {
-      fetchPlanData()
-    }
-  }, [patientId])
-
- useEffect(() => {
-    const checkActiveFullProgram = async () => {
-      if (patientId) {
-        try {
-          const response = await axiosInstance.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/authentication/check-active-full-program/${patientId}`,
-          )
-          setHasActiveFullProgram(response.data.hasActiveFullProgram)
-        } catch (error) {
-          console.error("Error checking active full program status:", error)
-          setHasActiveFullProgram(false) // Default to false on error
+        console.error("Error fetching data:", error)
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
         }
       }
     }
-    checkActiveFullProgram()
-  }, [patientId])
 
+    fetchData()
 
-  const getProgramPrice = (programType) => {
+    return () => {
+      isMounted = false
+    }
+  }, [patientId, getAxiosInstance])
+
+  const getProgramPrice = useCallback((programType) => {
     switch (programType) {
       case "full_program":
         return 1000
@@ -97,7 +136,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
       default:
         return 0
     }
-  }
+  }, [])
 
   useEffect(() => {
     if (currentStep === 0) {
@@ -112,143 +151,92 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
     }
   }, [currentStep])
 
-  const filterWeekdays = (date) => {
+  const filterWeekdays = useCallback((date) => {
     const day = date.getDay()
     return day === 0 || day === 5
-  }
+  }, [])
 
   // Enhanced validation functions
-  const validateStep = (step) => {
-    const errors = {}
-
-    switch (step) {
-      case 0:
-        if (!evaluationType) {
-          errors.evaluationType = "Please select an evaluation type"
-        }
-        break
-      case 1:
-        if (!selectedDay) {
-          errors.selectedDay = "Please select a date"
-        }
-        if (!selectedTime) {
-          errors.selectedTime = "Please select a time"
-        }
-        if (!description.trim()) {
-          errors.description = "Please provide a description"
-        }
-        if (evaluationType === "single_session" && selectedServices.length === 0) {
-          errors.services = "Please select at least one service"
-        }
-        break
-      case 2:
-        // Document step is optional
-        break
-      default:
-        break
-    }
-
-    setValidationErrors(errors)
-    return Object.keys(errors).length === 0
-  }
+  const validateStep = useCallback(
+    (step) => {
+      const errors = {}
+      switch (step) {
+        case 0:
+          if (!evaluationType) {
+            errors.evaluationType = "Please select an evaluation type"
+          }
+          break
+        case 1:
+          if (!selectedDay) {
+            errors.selectedDay = "Please select a date"
+          }
+          if (!selectedTime) {
+            errors.selectedTime = "Please select a time"
+          }
+          if (!description.trim()) {
+            errors.description = "Please provide a description"
+          }
+          if (evaluationType === "single_session" && selectedServices.length === 0) {
+            errors.services = "Please select at least one service"
+          }
+          break
+        case 2:
+          // Document step is optional
+          break
+        default:
+          break
+      }
+      setValidationErrors(errors)
+      return Object.keys(errors).length === 0
+    },
+    [evaluationType, selectedDay, selectedTime, description, selectedServices],
+  )
 
   // Enhanced assignment creation function
-  const createPatientSchoolAssignment = async (patientId, description) => {
-    try {
-      const checkResponse = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/school/school-assignments?search=${patientId}`,
-      )
-
-      const existingAssignments = checkResponse.data.assignments || []
-      const isAlreadyAssigned = existingAssignments.some(
-        (assignment) => assignment.patient && assignment.patient._id === patientId,
-      )
-
-      if (isAlreadyAssigned) {
-        console.log("Patient already assigned to school program")
-        return { success: true, message: "Patient already assigned to school program" }
-      }
-
-      const assignmentData = {
-        patientId: patientId,
-        notes: description || `School evaluation assignment for ${patientName}`,
-      }
-
-      const response = await axiosInstance.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/school/assign-to-school`,
-        assignmentData,
-      )
-
-      if (response.status === 201) {
-        console.log("Patient successfully assigned to school program:", response.data)
-        return { success: true, data: response.data }
-      }
-    } catch (error) {
-      console.error("Error creating school assignment:", error)
-      if (error.response?.status === 400 && error.response?.data?.message?.includes("already assigned")) {
-        return { success: true, message: "Patient already assigned to school program" }
-      }
-      return {
-        success: false,
-        error: error.response?.data?.message || "Failed to assign patient to school program",
-      }
-    }
-  }
-
-  // Auto-assignment function for full program
-  const autoAssignToAllDepartments = async (patientId, description) => {
-    const departments = [
-      { endpoint: "/aba/assign-to-ABA", name: "ABA" },
-      { endpoint: "/speech/assign-to-Speech", name: "Speech" },
-      { endpoint: "/SpecialEducation/assign-to-Special-Education" },
-      { endpoint: "/physicalTherapy/assign-to-physical", name: "Physical Therapy" },
-      { endpoint: "/OccupationalTherapy/assign-to-Occupational", name: "Occupational Therapy" },
-    ]
-
-    const assignmentResults = {
-      totalAssigned: 0,
-      totalFailed: 0,
-      details: [],
-    }
-
-    for (const dept of departments) {
+  const createPatientSchoolAssignment = useCallback(
+    async (patientId, description) => {
       try {
+        const axiosInstance = await getAxiosInstance()
+        const checkResponse = await axiosInstance.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/school/school-assignments?search=${patientId}`,
+        )
+        const existingAssignments = checkResponse.data.assignments || []
+        const isAlreadyAssigned = existingAssignments.some(
+          (assignment) => assignment.patient && assignment.patient._id === patientId,
+        )
+
+        if (isAlreadyAssigned) {
+          return { success: true, message: "Patient already assigned to school program" }
+        }
+
         const assignmentData = {
           patientId: patientId,
-          notes: description || `Full program assignment for ${patientName} - ${dept.name}`,
+          notes: description || `School evaluation assignment for ${patientName}`,
         }
 
-        const response = await axiosInstance.post(dept.endpoint, assignmentData)
+        const response = await axiosInstance.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/school/assign-to-school`,
+          assignmentData,
+        )
 
         if (response.status === 201) {
-          assignmentResults.totalAssigned++
-          assignmentResults.details.push({
-            department: dept.name,
-            success: true,
-            assignment: response.data,
-          })
-          console.log(`Successfully assigned to ${dept.name}:`, response.data)
+          return { success: true, data: response.data }
         }
       } catch (error) {
-        assignmentResults.totalFailed++
-        assignmentResults.details.push({
-          department: dept.name,
+        console.error("Error creating school assignment:", error)
+        if (error.response?.status === 400 && error.response?.data?.message?.includes("already assigned")) {
+          return { success: true, message: "Patient already assigned to school program" }
+        }
+        return {
           success: false,
-          error: error.response?.data?.message || `Failed to assign to ${dept.name}`,
-        })
-        console.error(`Error assigning to ${dept.name}:`, error)
+          error: error.response?.data?.message || "Failed to assign patient to school program",
+        }
       }
-    }
+    },
+    [getAxiosInstance, patientName],
+  )
 
-    setAssignmentResults(assignmentResults)
-    if (assignmentResults.totalFailed > 0) {
-      setAssignmentError(`${assignmentResults.totalFailed} department assignments failed`)
-    }
-  }
-
-  const nextStep = async () => {
-    console.log("patientId in nextStep:", patientId)
-
+  const nextStep = useCallback(async () => {
     if (!validateStep(currentStep)) {
       return
     }
@@ -264,11 +252,13 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           programType = "school_evaluation"
         }
 
+        const formattedTime = formatTimeToHHMM(selectedTime)
+
         const updatedProgramData = {
           ...programData,
           programType,
           date: selectedDay,
-          time: selectedTime,
+          time: formattedTime,
           description,
           programKind: evaluationType === "single_session" ? selectedServices.map((s) => s.value) : "",
         }
@@ -280,36 +270,47 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
         alert("An error occurred while processing your request. Please try again.")
       }
     }
-  }
+  }, [
+    currentStep,
+    validateStep,
+    evaluationType,
+    selectedDay,
+    selectedTime,
+    formatTimeToHHMM,
+    programData,
+    description,
+    selectedServices,
+    setCurrentStep,
+  ])
 
-  const handlePayment = async () => {
+  const handlePayment = useCallback(async () => {
     if (isProcessingPayment) return
-
     setIsProcessingPayment(true)
     setAssignmentError("")
     setAssignmentResults(null)
 
     try {
+      const axiosInstance = await getAxiosInstance()
       const programType = programData.programType
       let totalAmount = 0
       let initialPayment = 0
 
-      // تحديد المبالغ حسب نوع البرنامج
       if (programType === "full_program") {
-        totalAmount = 5000 // إجمالي الـ Full Program
-        initialPayment = 1000 // الدفعة الأولى في الـ Wizard
+        totalAmount = 5000
+        initialPayment = 1000
       } else {
-        // School أو Single Session - نفس اللوجيك القديم
         totalAmount = getProgramPrice(programType) + totalPrice
-        initialPayment = totalAmount // دفع كامل
+        initialPayment = totalAmount
       }
 
-      // Save the program first
+      const formattedTime = formatTimeToHHMM(selectedTime)
+
       const programPayload = {
         ...programData,
         patientId,
         programKind: selectedServices.map((service) => service.value),
         programType,
+        time: formattedTime,
         totalAmount,
         paidAmount: initialPayment,
         remainingAmount: totalAmount - initialPayment,
@@ -322,7 +323,6 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
       if (response.status === 200) {
         const programId = response.data.program._id
 
-        // Save money record للدفعة الأولى
         const moneyResponse = await axiosInstance.post("/authentication/saveMoneyRecord", {
           patientId,
           programId,
@@ -335,21 +335,12 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
         })
 
         if (moneyResponse.status === 200) {
-          console.log("Payment and money record saved successfully")
-
-
-            // If this is a school evaluation, create PatientSchoolAssignment
-            if (programType === "school_evaluation") {
-              console.log("Creating school assignment for patient:", patientId)
-              const assignmentResult = await createPatientSchoolAssignment(patientId, description)
-              if (!assignmentResult.success) {
-                setAssignmentError(assignmentResult.error)
-                console.error("School assignment failed:", assignmentResult.error)
-              } else {
-                console.log("School assignment created successfully")
-              }
+          if (programType === "school_evaluation") {
+            const assignmentResult = await createPatientSchoolAssignment(patientId, description)
+            if (!assignmentResult.success) {
+              setAssignmentError(assignmentResult.error)
             }
-
+          }
           setCurrentStep(4)
         }
       }
@@ -359,611 +350,138 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
     } finally {
       setIsProcessingPayment(false)
     }
-  }
-
-  const steps = [
-    { number: 1, title: "Select Evaluation Type", icon: "📋" },
-    { number: 2, title: "Request Evaluation", icon: "📅" },
-    { number: 3, title: "Word Document", icon: "📄" },
-    { number: 4, title: "Payment", icon: "💳" },
-    { number: 5, title: "Complete", icon: "✅" },
-  ]
-
-  return (
-    <>
-      <style jsx>{`
-        .rukn-booking-wizard {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
-          padding: 2rem 1rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-
-        .rukn-wizard-container {
-          max-width: 64rem;
-          margin: 0 auto;
-        }
-
-        .rukn-header {
-          text-align: center;
-          margin-bottom: 2rem;
-        }
-
-        .rukn-header-icon {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 4rem;
-          height: 4rem;
-          background-color: #2563eb;
-          border-radius: 50%;
-          margin-bottom: 1rem;
-        }
-
-        .rukn-header-icon span {
-          font-size: 1.5rem;
-          color: white;
-        }
-
-        .rukn-main-title {
-          font-size: 1.875rem;
-          font-weight: 700;
-          color: #1f2937;
-          margin-bottom: 0.5rem;
-          margin-top: 0;
-        }
-
-        .rukn-sub-title {
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #2563eb;
-          margin-bottom: 0.5rem;
-          margin-top: 0;
-        }
-
-        .rukn-description {
-          color: #6b7280;
-          margin: 0;
-        }
-
-        .rukn-progress-card {
-          background: white;
-          border-radius: 0.75rem;
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-          padding: 1.5rem;
-          margin-bottom: 2rem;
-        }
-
-        .rukn-steps-container {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 2rem;
-          position: relative;
-        }
-
-        .rukn-step {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          flex: 1;
-          position: relative;
-        }
-
-        .rukn-step-circle {
-          width: 3rem;
-          height: 3rem;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 0.875rem;
-          font-weight: 600;
-          margin-bottom: 0.5rem;
-          transition: all 0.3s ease;
-        }
-
-        .rukn-step-circle.active {
-          background-color: #2563eb;
-          color: white;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .rukn-step-circle.inactive {
-          background-color: #e5e7eb;
-          color: #6b7280;
-        }
-
-        .rukn-step-title {
-          font-size: 0.75rem;
-          font-weight: 500;
-          text-align: center;
-          padding: 0 0.5rem;
-        }
-
-        .rukn-step-title.active {
-          color: #2563eb;
-        }
-
-        .rukn-step-title.inactive {
-          color: #6b7280;
-        }
-
-        .rukn-step-line {
-          position: absolute;
-          height: 2px;
-          width: 4rem;
-          top: 1.5rem;
-          left: calc(50% + 1.5rem);
-          transition: all 0.3s ease;
-        }
-
-        .rukn-step-line.active {
-          background-color: #2563eb;
-        }
-
-        .rukn-step-line.inactive {
-          background-color: #e5e7eb;
-        }
-
-        .rukn-main-card {
-          background: white;
-          border-radius: 0.75rem;
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-        }
-
-        .rukn-card-content {
-          padding: 2rem;
-        }
-
-        .rukn-step-content {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-
-        .rukn-step-header {
-          text-align: center;
-          margin-bottom: 2rem;
-        }
-
-        .rukn-step-header h3 {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #1f2937;
-          margin-bottom: 0.5rem;
-          margin-top: 0;
-        }
-
-        .rukn-step-header p {
-          color: #6b7280;
-          margin: 0;
-        }
-
-        .rukn-form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-        }
-
-        .rukn-form-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 1.5rem;
-        }
-
-        @media (min-width: 768px) {
-          .rukn-form-grid {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
-
-        .rukn-label {
-          display: block;
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: #374151;
-          margin-bottom: 0.75rem;
-        }
-
-        .rukn-select,
-        .rukn-input,
-        .rukn-textarea {
-          width: 100%;
-          padding: 0.75rem 1rem;
-          border: 2px solid #e5e7eb;
-          border-radius: 0.5rem;
-          font-size: 1rem;
-          color: #374151;
-          transition: border-color 0.2s ease;
-          box-sizing: border-box;
-        }
-
-        .rukn-select:focus,
-        .rukn-input:focus,
-        .rukn-textarea:focus {
-          outline: none;
-          border-color: #3b82f6;
-        }
-
-        .rukn-select.error,
-        .rukn-input.error,
-        .rukn-textarea.error {
-          border-color: #ef4444;
-        }
-
-        .rukn-textarea {
-          resize: none;
-          min-height: 6rem;
-        }
-
-        .rukn-service-total {
-          margin-top: 0.75rem;
-          padding: 0.75rem;
-          background: #eff6ff;
-          border-radius: 0.5rem;
-        }
-
-        .rukn-service-total p {
-          color: #1e40af;
-          font-weight: 600;
-          margin: 0;
-        }
-
-        .rukn-button-group {
-          display: flex;
-          justify-content: space-between;
-          padding-top: 1.5rem;
-        }
-
-        .rukn-button-group.end {
-          justify-content: flex-end;
-        }
-
-        .rukn-button {
-          padding: 0.75rem 2rem;
-          font-weight: 600;
-          border-radius: 0.5rem;
-          border: none;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          font-size: 1rem;
-        }
-
-        .rukn-button-primary {
-          background-color: #2563eb;
-          color: white;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .rukn-button-primary:hover:not(:disabled) {
-          background-color: #1d4ed8;
-        }
-
-        .rukn-button-primary:disabled {
-          background-color: #d1d5db;
-          cursor: not-allowed;
-        }
-
-        .rukn-button-secondary {
-          background-color: #e5e7eb;
-          color: #374151;
-        }
-
-        .rukn-button-secondary:hover {
-          background-color: #d1d5db;
-        }
-
-        .rukn-button-success {
-          background-color: #059669;
-          color: white;
-          padding: 1rem 3rem;
-          font-size: 1.125rem;
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        .rukn-button-success:hover:not(:disabled) {
-          background-color: #047857;
-        }
-
-        .rukn-button-success:disabled {
-          background-color: #d1d5db;
-          cursor: not-allowed;
-        }
-
-        .rukn-payment-summary {
-          background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
-          border-radius: 0.5rem;
-          padding: 1.5rem;
-          margin-bottom: 1.5rem;
-        }
-
-        .rukn-payment-summary h4 {
-          font-size: 1.125rem;
-          font-weight: 600;
-          color: #1f2937;
-          margin-bottom: 1rem;
-          margin-top: 0;
-        }
-
-        .rukn-payment-row {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 0.5rem;
-        }
-
-        .rukn-payment-row span:first-child {
-          color: #6b7280;
-        }
-
-        .rukn-payment-row span:last-child {
-          font-weight: 600;
-        }
-
-        .rukn-payment-total {
-          display: flex;
-          justify-content: space-between;
-          font-size: 1.125rem;
-          font-weight: 700;
-          color: #2563eb;
-          padding-top: 0.5rem;
-          border-top: 1px solid #e5e7eb;
-          margin-top: 0.5rem;
-        }
-
-        .rukn-payment-center {
-          text-align: center;
-        }
-
-        .rukn-payment-note {
-          font-size: 0.875rem;
-          color: #6b7280;
-          margin-top: 0.75rem;
-          margin-bottom: 0;
-        }
-
-        .rukn-success-container {
-          text-align: center;
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-
-        .rukn-success-icon {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 6rem;
-          height: 6rem;
-          background-color: #dcfce7;
-          border-radius: 50%;
-          margin: 0 auto 1.5rem;
-        }
-
-        .rukn-success-icon span {
-          font-size: 2.5rem;
-        }
-
-        .rukn-success-title {
-          font-size: 1.875rem;
-          font-weight: 700;
-          color: #1f2937;
-          margin-bottom: 1rem;
-          margin-top: 0;
-        }
-
-        .rukn-success-message {
-          font-size: 1.125rem;
-          color: #6b7280;
-          margin-bottom: 1.5rem;
-          margin-top: 0;
-        }
-
-        .rukn-next-steps {
-          background: #f0fdf4;
-          border-radius: 0.5rem;
-          padding: 1.5rem;
-          max-width: 28rem;
-          margin: 0 auto;
-        }
-
-        .rukn-next-steps h4 {
-          font-weight: 600;
-          color: #166534;
-          margin-bottom: 0.5rem;
-          margin-top: 0;
-        }
-
-        .rukn-next-steps ul {
-          font-size: 0.875rem;
-          color: #15803d;
-          list-style: none;
-          padding: 0;
-          margin: 0;
-        }
-
-        .rukn-next-steps li {
-          margin-bottom: 0.25rem;
-        }
-
-        .rukn-footer {
-          text-align: center;
-          margin-top: 2rem;
-          color: #6b7280;
-        }
-
-        .rukn-footer p {
-          font-size: 0.875rem;
-          margin: 0;
-        }
-
-        .rukn-document-container {
-          border: 2px solid #e5e7eb;
-          border-radius: 0.5rem;
-          overflow: hidden;
-        }
-
-        .rukn-error-message {
-          background-color: #fef2f2;
-          border: 1px solid #fecaca;
-          color: #dc2626;
-          padding: 0.75rem;
-          border-radius: 0.5rem;
-          margin-bottom: 1rem;
-          font-size: 0.875rem;
-        }
-
-        .rukn-warning-message {
-          background-color: #fffbeb;
-          border: 1px solid #fed7aa;
-          color: #d97706;
-          padding: 0.75rem;
-          border-radius: 0.5rem;
-          margin-bottom: 1rem;
-          font-size: 0.875rem;
-        }
-
-        .rukn-assignment-results {
-          background: #f0f9ff;
-          border: 1px solid #0ea5e9;
-          color: #0c4a6e;
-          padding: 1rem;
-          border-radius: 0.5rem;
-          margin-bottom: 1rem;
-        }
-
-        .rukn-assignment-summary p {
-          margin: 0.25rem 0;
-        }
-
-        .rukn-assignment-final-results {
-          background: #f0fdf4;
-          border: 1px solid #22c55e;
-          color: #166534;
-          padding: 1rem;
-          border-radius: 0.5rem;
-          margin: 1rem 0;
-        }
-
-        .rukn-service-assignment {
-          margin: 0.5rem 0;
-          font-size: 0.875rem;
-        }
-
-        .rukn-error-text {
-          color: #ef4444;
-          font-size: 0.875rem;
-          margin-top: 0.25rem;
-          display: block;
-        }
-
-        @media (max-width: 767px) {
-          .rukn-steps-container {
-            flex-wrap: wrap;
-            gap: 1rem;
-          }
-
-          .rukn-step {
-            flex: 0 0 calc(50% - 0.5rem);
-          }
-
-          .rukn-step-line {
-            display: none;
-          }
-
-          .rukn-button-group {
-            flex-direction: column;
-            gap: 1rem;
-          }
-
-          .rukn-button-group.end {
-            align-items: stretch;
-          }
-        }
-      `}</style>
-
-      <div className="rukn-booking-wizard">
-        <div className="rukn-wizard-container">
-          {/* Header */}
-          <div className="rukn-header">
-            <h4 className="rukn-sub-title">Book Your Appointment</h4>
-          </div>
-
-          {/* Progress Steps */}
-          <div className="rukn-progress-card">
-            <div className="rukn-steps-container">
-              {steps.map((step, index) => (
-                <div key={step.number} className="rukn-step">
-                  <div className={`rukn-step-circle ${currentStep >= index ? "active" : "inactive"}`}>
-                    {currentStep > index ? "✓" : step.icon}
-                  </div>
-                  <span className={`rukn-step-title ${currentStep >= index ? "active" : "inactive"}`}>
-                    {step.title}
-                  </span>
-                  {index < steps.length - 1 && (
-                    <div className={`rukn-step-line ${currentStep > index ? "active" : "inactive"}`} />
-                  )}
-                </div>
-              ))}
+  }, [
+    isProcessingPayment,
+    getAxiosInstance,
+    programData,
+    getProgramPrice,
+    totalPrice,
+    formatTimeToHHMM,
+    selectedTime,
+    patientId,
+    selectedServices,
+    patientName,
+    createPatientSchoolAssignment,
+    description,
+    setCurrentStep,
+  ])
+
+  const steps = useMemo(
+    () => [
+      { number: 1, title: "Select Evaluation Type", icon: "📋" },
+      { number: 2, title: "Request Evaluation", icon: "📅" },
+      { number: 3, title: "Word Document", icon: "📄" },
+      { number: 4, title: "Payment", icon: "💳" },
+      { number: 5, title: "Complete", icon: "✅" },
+    ],
+    [],
+  )
+
+  if (isLoading) {
+    return (
+      <div className={styles.ruknBookingWizard}>
+        <div className={styles.ruknWizardContainer}>
+          <div className={styles.ruknMainCard}>
+            <div className={styles.ruknCardContent}>
+              <div style={{ textAlign: "center", padding: "2rem" }}>
+                <div className={styles.loadingSpinner}></div>
+                <p>Loading...</p>
+              </div>
             </div>
           </div>
+        </div>
+      </div>
+    )
+  }
 
-          {/* Main Content Card */}
-          <div className="rukn-main-card">
-            <div className="rukn-card-content">
-              {/* Step 1: Select Evaluation Type */}
-              {currentStep === 0 && (
-                <div className="rukn-step-content">
-                  <div className="rukn-step-header">
-                    <h3>Select Evaluation Type</h3>
-                    <p>Choose the type of evaluation that best suits your needs</p>
-                  </div>
+  return (
+    <div className={styles.ruknBookingWizard}>
+      <div className={styles.ruknWizardContainer}>
+        {/* Header */}
+        <div className={styles.ruknHeader}>
+          <h4 className={styles.ruknSubTitle}>Book Your Appointment</h4>
+        </div>
 
-                  {assignmentError && <div className="rukn-error-message">{assignmentError}</div>}
-
-                  <div className="rukn-form-group">
-                    <label className="rukn-label">Evaluation Type *</label>
-                    <select
-                      className={`rukn-select ${validationErrors.evaluationType ? "error" : ""}`}
-                      value={evaluationType}
-                      onChange={(e) => {
-                        const type = e.target.value
-                        setEvaluationType(type)
-                        setAssignmentError("")
-                        setValidationErrors((prev) => ({ ...prev, evaluationType: null }))
-                      }}
-                    >
-                      <option value="">Choose your evaluation type...</option>
-                      <option value="school_evaluation">🏫 School Evaluation</option>
-   <option value="full_package_evaluation" disabled={hasActiveFullProgram}>
-                        📦 Full Package Evaluation {hasActiveFullProgram && "(Already Active)"}
-                      </option>                      <option value="single_session">👤 Single Session</option>
-                    </select>
-                    {validationErrors.evaluationType && (
-                      <span className="rukn-error-text">{validationErrors.evaluationType}</span>
-                    )}
-                  </div>
-
-                  <div className="rukn-button-group end">
-                    <button onClick={nextStep} disabled={!evaluationType} className="rukn-button rukn-button-primary">
-                      Continue →
-                    </button>
-                  </div>
+        {/* Progress Steps */}
+        <div className={styles.ruknProgressCard}>
+          <div className={styles.ruknStepsContainer}>
+            {steps.map((step, index) => (
+              <div key={step.number} className={styles.ruknStep}>
+                <div className={`${styles.ruknStepCircle} ${currentStep >= index ? styles.active : styles.inactive}`}>
+                  {currentStep > index ? "✓" : step.icon}
                 </div>
-              )}
+                <span className={`${styles.ruknStepTitle} ${currentStep >= index ? styles.active : styles.inactive}`}>
+                  {step.title}
+                </span>
+                {index < steps.length - 1 && (
+                  <div className={`${styles.ruknStepLine} ${currentStep > index ? styles.active : styles.inactive}`} />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
 
-              {/* Step 2: Request Evaluation */}
-              {currentStep === 1 && (
-                <div className="rukn-step-content">
-                  <div className="rukn-step-header">
-                    <h3>Schedule Your Appointment</h3>
-                    <p>Select your preferred date, time, and provide details</p>
-                  </div>
+        {/* Main Content Card */}
+        <div className={styles.ruknMainCard}>
+          <div className={styles.ruknCardContent}>
+            {/* Step 1: Select Evaluation Type */}
+            {currentStep === 0 && (
+              <div className={styles.ruknStepContent}>
+                <div className={styles.ruknStepHeader}>
+                  <h3>Select Evaluation Type</h3>
+                  <p>Choose the type of evaluation that best suits your needs</p>
+                </div>
 
-                  <div className="rukn-form-grid">
-                    <div className="rukn-form-group">
-                      <label className="rukn-label">Select Day *</label>
+                {assignmentError && <div className={styles.ruknErrorMessage}>{assignmentError}</div>}
+
+                <div className={styles.ruknFormGroup}>
+                  <label className={styles.ruknLabel}>Evaluation Type *</label>
+                  <select
+                    className={`${styles.ruknSelect} ${validationErrors.evaluationType ? styles.error : ""}`}
+                    value={evaluationType}
+                    onChange={(e) => {
+                      const type = e.target.value
+                      setEvaluationType(type)
+                      setAssignmentError("")
+                      setValidationErrors((prev) => ({ ...prev, evaluationType: null }))
+                    }}
+                  >
+                    <option value="">Choose your evaluation type...</option>
+                    <option value="school_evaluation">🏫 School Evaluation</option>
+                    <option value="full_package_evaluation" disabled={hasActiveFullProgram}>
+                      📦 Full Package Evaluation {hasActiveFullProgram && "(Already Active)"}
+                    </option>
+                    <option value="single_session">👤 Single Session</option>
+                  </select>
+                  {validationErrors.evaluationType && (
+                    <span className={styles.ruknErrorText}>{validationErrors.evaluationType}</span>
+                  )}
+                </div>
+
+                <div className={`${styles.ruknButtonGroup} ${styles.end}`}>
+                  <button
+                    onClick={nextStep}
+                    disabled={!evaluationType}
+                    className={`${styles.ruknButton} ${styles.ruknButtonPrimary}`}
+                  >
+                    Continue →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Request Evaluation */}
+            {currentStep === 1 && (
+              <div className={styles.ruknStepContent}>
+                <div className={styles.ruknStepHeader}>
+                  <h3>Schedule Your Appointment</h3>
+                  <p>Select your preferred date, time, and provide details</p>
+                </div>
+
+                <div className={styles.ruknFormGrid}>
+                  <div className={styles.ruknFormGroup}>
+                    <label className={styles.ruknLabel}>Select Day *</label>
+                    <Suspense fallback={<div className={styles.loadingSpinner}></div>}>
                       <DatePicker
                         selected={selectedDay}
                         onChange={(date) => {
@@ -972,18 +490,20 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                         }}
                         filterDate={filterWeekdays}
                         placeholderText="Choose a date"
-                        className={`rukn-input ${validationErrors.selectedDay ? "error" : ""}`}
+                        className={`${styles.ruknInput} ${validationErrors.selectedDay ? styles.error : ""}`}
                         dateFormat="MMMM dd, yyyy"
                         calendarClassName="custom-calendar"
                         minDate={new Date()}
                       />
-                      {validationErrors.selectedDay && (
-                        <span className="rukn-error-text">{validationErrors.selectedDay}</span>
-                      )}
-                    </div>
+                    </Suspense>
+                    {validationErrors.selectedDay && (
+                      <span className={styles.ruknErrorText}>{validationErrors.selectedDay}</span>
+                    )}
+                  </div>
 
-                    <div className="rukn-form-group">
-                      <label className="rukn-label">Select Time *</label>
+                  <div className={styles.ruknFormGroup}>
+                    <label className={styles.ruknLabel}>Select Time *</label>
+                    <Suspense fallback={<div className={styles.loadingSpinner}></div>}>
                       <DatePicker
                         selected={selectedTime}
                         onChange={(date) => {
@@ -997,38 +517,45 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                         minTime={new Date().setHours(12, 0)}
                         maxTime={new Date().setHours(20, 0)}
                         dateFormat="h:mm aa"
-                        className={`rukn-input ${validationErrors.selectedTime ? "error" : ""}`}
+                        className={`${styles.ruknInput} ${validationErrors.selectedTime ? styles.error : ""}`}
                         placeholderText="Choose a time"
                         filterTime={(time) => {
                           const hour = time.getHours()
                           return hour >= 12 && hour <= 20
                         }}
                       />
-                      {validationErrors.selectedTime && (
-                        <span className="rukn-error-text">{validationErrors.selectedTime}</span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="rukn-form-group">
-                    <label className="rukn-label">Description *</label>
-                    <textarea
-                      className={`rukn-textarea ${validationErrors.description ? "error" : ""}`}
-                      placeholder="Please describe your needs or any specific requirements..."
-                      value={description}
-                      onChange={(e) => {
-                        setDescription(e.target.value)
-                        setValidationErrors((prev) => ({ ...prev, description: null }))
-                      }}
-                    />
-                    {validationErrors.description && (
-                      <span className="rukn-error-text">{validationErrors.description}</span>
+                    </Suspense>
+                    {validationErrors.selectedTime && (
+                      <span className={styles.ruknErrorText}>{validationErrors.selectedTime}</span>
+                    )}
+                    {selectedTime && (
+                      <div style={{ fontSize: "0.875rem", color: "#6b7280", marginTop: "0.5rem" }}>
+                        Selected time: {formatTimeToHHMM(selectedTime)}
+                      </div>
                     )}
                   </div>
+                </div>
 
-                  {evaluationType === "single_session" && (
-                    <div className="rukn-form-group">
-                      <label className="rukn-label">Select Services *</label>
+                <div className={styles.ruknFormGroup}>
+                  <label className={styles.ruknLabel}>Description *</label>
+                  <textarea
+                    className={`${styles.ruknTextarea} ${validationErrors.description ? styles.error : ""}`}
+                    placeholder="Please describe your needs or any specific requirements..."
+                    value={description}
+                    onChange={(e) => {
+                      setDescription(e.target.value)
+                      setValidationErrors((prev) => ({ ...prev, description: null }))
+                    }}
+                  />
+                  {validationErrors.description && (
+                    <span className={styles.ruknErrorText}>{validationErrors.description}</span>
+                  )}
+                </div>
+
+                {evaluationType === "single_session" && (
+                  <div className={styles.ruknFormGroup}>
+                    <label className={styles.ruknLabel}>Select Services *</label>
+                    <Suspense fallback={<div className={styles.loadingSpinner}></div>}>
                       <Select
                         isMulti
                         name="services"
@@ -1036,7 +563,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                         getOptionLabel={(e) => `${e.label} ($${e.price})`}
                         onChange={handleServiceChange}
                         placeholder="Choose your services..."
-                        className={validationErrors.services ? "error" : ""}
+                        className={validationErrors.services ? styles.error : ""}
                         styles={{
                           control: (base, state) => ({
                             ...base,
@@ -1048,41 +575,47 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                           }),
                         }}
                       />
-                      {validationErrors.services && (
-                        <span className="rukn-error-text">{validationErrors.services}</span>
-                      )}
-                      {totalPrice > 0 && (
-                        <div className="rukn-service-total">
-                          <p>Selected Services Total: ${totalPrice}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="rukn-button-group">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentStep(0)}
-                      className="rukn-button rukn-button-secondary"
-                    >
-                      ← Back
-                    </button>
-                    <button type="button" onClick={nextStep} className="rukn-button rukn-button-primary">
-                      Continue →
-                    </button>
+                    </Suspense>
+                    {validationErrors.services && (
+                      <span className={styles.ruknErrorText}>{validationErrors.services}</span>
+                    )}
+                    {totalPrice > 0 && (
+                      <div className={styles.ruknServiceTotal}>
+                        <p>Selected Services Total: ${totalPrice}</p>
+                      </div>
+                    )}
                   </div>
+                )}
+
+                <div className={styles.ruknButtonGroup}>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(0)}
+                    className={`${styles.ruknButton} ${styles.ruknButtonSecondary}`}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={nextStep}
+                    className={`${styles.ruknButton} ${styles.ruknButtonPrimary}`}
+                  >
+                    Continue →
+                  </button>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Step 3: Word Document */}
-              {currentStep === 2 && (
-                <div className="rukn-step-content">
-                  <div className="rukn-step-header">
-                    <h3>Review & Edit Document</h3>
-                    <p>Review and customize your treatment plan document</p>
-                  </div>
+            {/* Step 3: Word Document */}
+            {currentStep === 2 && (
+              <div className={styles.ruknStepContent}>
+                <div className={styles.ruknStepHeader}>
+                  <h3>Review & Edit Document</h3>
+                  <p>Review and customize your treatment plan document</p>
+                </div>
 
-                  <div className="rukn-document-container">
+                <div className={styles.ruknDocumentContainer}>
+                  <Suspense fallback={<div>Loading document editor...</div>}>
                     {plan && plan._id ? (
                       <SyncfusionDocx
                         userData={{
@@ -1105,149 +638,153 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
                         planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/DrastHala/upload-plan`}
                       />
                     )}
-                  </div>
-
-                  <div className="rukn-button-group">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentStep(1)}
-                      className="rukn-button rukn-button-secondary"
-                    >
-                      ← Back
-                    </button>
-                    <button type="button" onClick={() => setCurrentStep(3)} className="rukn-button rukn-button-primary">
-                      Proceed to Payment →
-                    </button>
-                  </div>
+                  </Suspense>
                 </div>
-              )}
 
-              {/* Step 4: Payment */}
-              {currentStep === 3 && (
-                <div className="rukn-step-content">
-                  <div className="rukn-step-header">
-                    <h3>Complete Payment</h3>
-                    <p>Secure payment processing for your appointment</p>
+                <div className={styles.ruknButtonGroup}>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(1)}
+                    className={`${styles.ruknButton} ${styles.ruknButtonSecondary}`}
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(3)}
+                    className={`${styles.ruknButton} ${styles.ruknButtonPrimary}`}
+                  >
+                    Proceed to Payment →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Payment */}
+            {currentStep === 3 && (
+              <div className={styles.ruknStepContent}>
+                <div className={styles.ruknStepHeader}>
+                  <h3>Complete Payment</h3>
+                  <p>Secure payment processing for your appointment</p>
+                </div>
+
+                {assignmentError && <div className={styles.ruknWarningMessage}>Warning: {assignmentError}</div>}
+
+                {assignmentResults && (
+                  <div className={styles.ruknAssignmentResults}>
+                    <h4>Service Assignment Results</h4>
+                    <div className={styles.ruknAssignmentSummary}>
+                      <p>✅ Successfully assigned: {assignmentResults.totalAssigned}</p>
+                      {assignmentResults.totalFailed > 0 && (
+                        <p>❌ Failed assignments: {assignmentResults.totalFailed}</p>
+                      )}
+                    </div>
                   </div>
+                )}
 
-                  {assignmentError && <div className="rukn-warning-message">Warning: {assignmentError}</div>}
-
-                  {assignmentResults && (
-                    <div className="rukn-assignment-results">
-                      <h4>Service Assignment Results</h4>
-                      <div className="rukn-assignment-summary">
-                        <p>✅ Successfully assigned: {assignmentResults.totalAssigned}</p>
-                        {assignmentResults.totalFailed > 0 && (
-                          <p>❌ Failed assignments: {assignmentResults.totalFailed}</p>
-                        )}
+                <div className={styles.ruknPaymentSummary}>
+                  <h4>Payment Summary</h4>
+                  {programData.programType === "full_program" ? (
+                    <>
+                      <div className={styles.ruknPaymentRow}>
+                        <span>Full Program Total:</span>
+                        <span>5,000 EGP</span>
                       </div>
-                    </div>
+                      <div className={styles.ruknPaymentRow}>
+                        <span>Initial Payment (Today):</span>
+                        <span>1,000 EGP</span>
+                      </div>
+                      <div className={styles.ruknPaymentRow}>
+                        <span>Remaining (After Consultation):</span>
+                        <span>4,000 EGP</span>
+                      </div>
+                      <div className={styles.ruknPaymentTotal}>
+                        <span>Paying Now:</span>
+                        <span>1,000 EGP</span>
+                      </div>
+                      <p className={styles.ruknPaymentNote}>
+                        You'll complete the remaining payment after your consultation with the doctor.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className={styles.ruknPaymentRow}>
+                        <span>Program Fee:</span>
+                        <span>${getProgramPrice(programData.programType)}</span>
+                      </div>
+                      {totalPrice > 0 && (
+                        <div className={styles.ruknPaymentRow}>
+                          <span>Additional Services:</span>
+                          <span>${totalPrice}</span>
+                        </div>
+                      )}
+                      <div className={styles.ruknPaymentTotal}>
+                        <span>Total Amount:</span>
+                        <span>${getProgramPrice(programData.programType) + totalPrice}</span>
+                      </div>
+                    </>
                   )}
+                </div>
 
-                  <div className="rukn-payment-summary">
-                    <h4>Payment Summary</h4>
-                    {programData.programType === "full_program" ? (
-                      <>
-                        <div className="rukn-payment-row">
-                          <span>Full Program Total:</span>
-                          <span>5,000 EGP</span>
-                        </div>
-                        <div className="rukn-payment-row">
-                          <span>Initial Payment (Today):</span>
-                          <span>1,000 EGP</span>
-                        </div>
-                        <div className="rukn-payment-row">
-                          <span>Remaining (After Consultation):</span>
-                          <span>4,000 EGP</span>
-                        </div>
-                        <div className="rukn-payment-total">
-                          <span>Paying Now:</span>
-                          <span>1,000 EGP</span>
-                        </div>
-                        <p className="rukn-payment-note">
-                          You'll complete the remaining payment after your consultation with the doctor.
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <div className="rukn-payment-row">
-                          <span>Program Fee:</span>
-                          <span>${getProgramPrice(programData.programType)}</span>
-                        </div>
-                        {totalPrice > 0 && (
-                          <div className="rukn-payment-row">
-                            <span>Additional Services:</span>
-                            <span>${totalPrice}</span>
-                          </div>
-                        )}
-                        <div className="rukn-payment-total">
-                          <span>Total Amount:</span>
-                          <span>${getProgramPrice(programData.programType) + totalPrice}</span>
-                        </div>
-                      </>
+                <div className={styles.ruknPaymentCenter}>
+                  <button
+                    type="button"
+                    onClick={handlePayment}
+                    disabled={isProcessingPayment}
+                    className={`${styles.ruknButton} ${styles.ruknButtonSuccess}`}
+                  >
+                    💳 {isProcessingPayment ? "Processing..." : "Complete Payment"}
+                  </button>
+                  <p className={styles.ruknPaymentNote}>Secure payment processing • SSL encrypted</p>
+                </div>
+              </div>
+            )}
+
+            {/* Step 5: Complete */}
+            {currentStep === 4 && (
+              <div className={styles.ruknSuccessContainer}>
+                <div className={styles.ruknSuccessIcon}>
+                  <span>🎉</span>
+                </div>
+                <h3 className={styles.ruknSuccessTitle}>Congratulations!</h3>
+                <p className={styles.ruknSuccessMessage}>
+                  Your appointment has been successfully booked at Rukn Elwatikon Rehabilitation Center.
+                  {programData.programType === "school_evaluation" &&
+                    " You have been assigned to our school evaluation program."}
+                </p>
+
+                {assignmentResults && (
+                  <div className={styles.ruknAssignmentFinalResults}>
+                    <h4>Service Assignments</h4>
+                    <p>You have been automatically assigned to {assignmentResults.totalAssigned} service(s).</p>
+                    {assignmentResults.details.map((result, index) => (
+                      <div key={index} className={styles.ruknServiceAssignment}>
+                        ✅ {result.assignment.notes}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className={styles.ruknNextSteps}>
+                  <h4>What's Next?</h4>
+                  <ul>
+                    <li>• You'll receive a confirmation email shortly</li>
+                    <li>• Our team will contact you 24 hours before your appointment</li>
+                    <li>• Please arrive 15 minutes early</li>
+                    {programData.programType === "school_evaluation" && (
+                      <li>• You can now access the school evaluation portal</li>
                     )}
-                  </div>
-
-                  <div className="rukn-payment-center">
-                    <button
-                      type="button"
-                      onClick={handlePayment}
-                      disabled={isProcessingPayment}
-                      className="rukn-button rukn-button-success"
-                    >
-                      💳 {isProcessingPayment ? "Processing..." : "Complete Payment"}
-                    </button>
-                    <p className="rukn-payment-note">Secure payment processing • SSL encrypted</p>
-                  </div>
+                    {assignmentResults && assignmentResults.totalAssigned > 0 && (
+                      <li>• You can view your service assignments in the respective department portals</li>
+                    )}
+                  </ul>
                 </div>
-              )}
-
-              {/* Step 5: Complete */}
-              {currentStep === 4 && (
-                <div className="rukn-success-container">
-                  <div className="rukn-success-icon">
-                    <span>🎉</span>
-                  </div>
-                  <h3 className="rukn-success-title">Congratulations!</h3>
-                  <p className="rukn-success-message">
-                    Your appointment has been successfully booked at Rukn Elwatikon Rehabilitation Center.
-                    {programData.programType === "school_evaluation" &&
-                      " You have been assigned to our school evaluation program."}
-                  </p>
-
-                  {assignmentResults && (
-                    <div className="rukn-assignment-final-results">
-                      <h4>Service Assignments</h4>
-                      <p>You have been automatically assigned to {assignmentResults.totalAssigned} service(s).</p>
-                      {assignmentResults.details.map((result, index) => (
-                        <div key={index} className="rukn-service-assignment">
-                          ✅ {result.assignment.notes}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="rukn-next-steps">
-                    <h4>What's Next?</h4>
-                    <ul>
-                      <li>• You'll receive a confirmation email shortly</li>
-                      <li>• Our team will contact you 24 hours before your appointment</li>
-                      <li>• Please arrive 15 minutes early</li>
-                      {programData.programType === "school_evaluation" && (
-                        <li>• You can now access the school evaluation portal</li>
-                      )}
-                      {assignmentResults && assignmentResults.totalAssigned > 0 && (
-                        <li>• You can view your service assignments in the respective department portals</li>
-                      )}
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

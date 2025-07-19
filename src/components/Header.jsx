@@ -1,8 +1,7 @@
-// components/Header.jsx
-"use client";
-import "bootstrap/dist/css/bootstrap.min.css";
-import Link from "next/link";
-import React from "react";
+"use client"
+import Link from "next/link"
+import { useState } from "react"
+import styles from "../styles/Header.module.css"
 
 export default function Header({
   user,
@@ -12,59 +11,56 @@ export default function Header({
   logoSrc = "/assets/logo.png",
   title = "Rukn Elwatikon Center Client Portal",
 }) {
-  return (
-    <header className="d-flex align-items-center justify-content-between px-4 py-3 border-bottom border-primary">
-<Link href="/clientportal" passHref>
-      <img
-        src={logoSrc}
-        style={{ height: 130, cursor: 'pointer' }}
-        alt="Logo"
-      />
-    </Link>      <h1 className="flex-grow-1 text-center h4 mb-0">{title}</h1>
+  const [dropdownOpen, setDropdownOpen] = useState(false)
 
-      {!loading && user && user.role === "patient" ? (
-        <div className="dropdown">
-          <button
-            className="btn btn-outline-primary border-2 rounded-pill px-4 dropdown-toggle"
-            type="button"
-            id="patientMenuBtn"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            {user.name}
+  return (
+    <header className={styles.header}>
+      <Link href="/clientportal" className={styles.logoContainer}>
+        <img src={logoSrc || "/placeholder.svg"} className={styles.logo} alt="Rukn Elwatikon Center Logo" />
+      </Link>
+
+      <div className={styles.titleContainer}>
+        <h1 className={styles.title}>{title}</h1>
+      </div>
+
+      <div className={styles.userSection}>
+        {!loading && user && user.role === "patient" ? (
+          <div className={styles.dropdown}>
+            <button className={styles.dropdownButton} onClick={() => setDropdownOpen(!dropdownOpen)}>
+              {user.name}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7 10l5 5 5-5z" />
+              </svg>
+            </button>
+
+            {dropdownOpen && (
+              <div className={styles.dropdownMenu}>
+                <Link
+                  href="/calendar-main-patient"
+                  className={styles.dropdownItem}
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  My Appointments
+                </Link>
+                <hr className={styles.dropdownDivider} />
+                <button
+                  className={`${styles.dropdownItem} ${styles.logoutItem}`}
+                  onClick={() => {
+                    setDropdownOpen(false)
+                    onLogout()
+                  }}
+                >
+                  Log out
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <button className={styles.loginButton} onClick={onLoginClick}>
+            Login
           </button>
-          <ul
-            className="dropdown-menu dropdown-menu-end mt-2"
-            aria-labelledby="patientMenuBtn"
-          >
-            <li>
-              <Link href="/calendar-main-patient" className="dropdown-item">
-                My Appointments
-              </Link>
-            </li>
-            <li>
-              <hr className="dropdown-divider" />
-            </li>
-            <li>
-              <button
-                className="dropdown-item text-danger"
-                onClick={onLogout}
-              >
-                Log out
-              </button>
-            </li>
-          </ul>
-          
-        </div>
-        
-      ) : (
-        <button
-          className="btn btn-outline-primary"
-          onClick={onLoginClick}
-        >
-          Login
-        </button>
-      )}
+        )}
+      </div>
     </header>
-  );
+  )
 }

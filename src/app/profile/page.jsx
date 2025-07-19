@@ -3,10 +3,8 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "@/helper/axiosSetup";
 import Header from "@/components/Header";
-import Breadcrumb from "@/components/Breadcrumb";
 import PublicProfilepatient from "@/components/PublicProfilepatient";
-import MasterLayout from "@/masterLayout/MasterLayout";
-import FullProgramComponent from "@/components/FullProgramComponent"
+
 
 export default function Page() {
   // --- Auth State & Header Handlers ---
@@ -120,7 +118,6 @@ export default function Page() {
         onLogout={handleLogout}
         
       />
-        <Breadcrumb title="Your Profile" />
       {/* Page Content */}
         <PublicProfilepatient patientID={user?.id} />
         {/* FullProgramcomponent */}

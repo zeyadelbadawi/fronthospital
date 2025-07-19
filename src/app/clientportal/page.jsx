@@ -1,309 +1,315 @@
-"use client";
-import React, { useEffect, useState } from "react";
-import axiosInstance from "@/helper/axiosSetup";
-import Link from "next/link";
+"use client"
+import { useEffect, useState } from "react"
+import axiosInstance from "../../helper/axiosSetup"
+import Link from "next/link"
 import {
   RiCalendarEventLine,
   RiGroupLine,
   RiCalendarCheckLine,
   RiFileListLine,
-} from "react-icons/ri";
-import Header from "@/components/Header";
+  RiShieldCheckLine,
+} from "react-icons/ri"
+import Header from "../../components/Header"
+import styles from "../../styles/ClientPortal.module.css"
 
 export default function ClientPortalPage() {
   // --- Auth & User State ---
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   // --- Modal Visibility ---
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false)
+  const [showSignupModal, setShowSignupModal] = useState(false)
 
   // --- Login Form State ---
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
+  const [loginEmail, setLoginEmail] = useState("")
+  const [loginPassword, setLoginPassword] = useState("")
 
   // --- Signup Form State ---
-  const [signName, setSignName] = useState("");
-  const [signEmail, setSignEmail] = useState("");
-  const [signPhone, setSignPhone] = useState("");
-  const [signGender, setSignGender] = useState("");
-  const [signPassword, setSignPassword] = useState("");
-  const [signConfirm, setSignConfirm] = useState("");
+  const [signName, setSignName] = useState("")
+  const [signEmail, setSignEmail] = useState("")
+  const [signPhone, setSignPhone] = useState("")
+  const [signGender, setSignGender] = useState("")
+  const [signPassword, setSignPassword] = useState("")
+  const [signConfirm, setSignConfirm] = useState("")
 
   // --- Fetch current user profile if token exists ---
   const loadProfile = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token")
     if (!token) {
-      setLoading(false);
-      return;
+      setLoading(false)
+      return
     }
     try {
-      const res = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/authentication/profile`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setUser(res.data);
+      const res = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setUser(res.data)
     } catch (err) {
       if (err.response?.status === 403) {
         try {
           const r = await axiosInstance.post(
             `${process.env.NEXT_PUBLIC_API_URL}/authentication/refresh`,
             {},
-            { withCredentials: true }
-          );
-          localStorage.setItem("token", r.data.accessToken);
-          const retry = await axiosInstance.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/authentication/profile`,
-            {
-              headers: { Authorization: `Bearer ${r.data.accessToken}` },
-            }
-          );
-          setUser(retry.data);
+            { withCredentials: true },
+          )
+          localStorage.setItem("token", r.data.accessToken)
+          const retry = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/profile`, {
+            headers: { Authorization: `Bearer ${r.data.accessToken}` },
+          })
+          setUser(retry.data)
         } catch {}
       }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    loadProfile();
-  }, []);
+    loadProfile()
+  }, [])
 
   // --- Logout Handler ---
   const handleLogout = async () => {
     try {
-      await axiosInstance.post("/authentication/logout", {}, { withCredentials: true });
-      localStorage.removeItem("token");
-      setUser(null);
-      setShowLoginModal(false);
-      setShowSignupModal(false);
+      await axiosInstance.post("/authentication/logout", {}, { withCredentials: true })
+      localStorage.removeItem("token")
+      setUser(null)
+      setShowLoginModal(false)
+      setShowSignupModal(false)
     } catch (err) {
-      console.error("Logout failed:", err);
+      console.error("Logout failed:", err)
     }
-  };
+  }
 
   // --- Card click guard ---
   const handleCardClick = (href) => (e) => {
     if (!user || user.role !== "patient") {
-      e.preventDefault();
-      setShowLoginModal(true);
+      e.preventDefault()
+      setShowLoginModal(true)
     }
-  };
+  }
 
   // --- Login submit ---
   const onLogin = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
-      const res = await axiosInstance.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/authentication/signin/patient`,
-        { email: loginEmail, password: loginPassword }
-      );
-      localStorage.setItem("token", res.data.accessToken);
-      setShowLoginModal(false);
-      await loadProfile();
+      const res = await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}/authentication/signin/patient`, {
+        email: loginEmail,
+        password: loginPassword,
+      })
+      localStorage.setItem("token", res.data.accessToken)
+      setShowLoginModal(false)
+      await loadProfile()
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
+      alert(err.response?.data?.message || "Login failed")
     }
-  };
+  }
 
   // --- Signup submit ---
   const onSignup = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
     if (signPassword !== signConfirm) {
-      alert("Passwords don’t match");
-      return;
+      alert("Passwords don't match")
+      return
     }
     try {
-      await axiosInstance.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/authentication/signup/patient`,
-        {
-          name: signName,
-          email: signEmail,
-          phone: signPhone,
-          gender: signGender,
-          password: signPassword,
-        }
-      );
-      alert("Registration successful—please log in");
-      setShowSignupModal(false);
-      setShowLoginModal(true);
+      await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}/authentication/signup/patient`, {
+        name: signName,
+        email: signEmail,
+        phone: signPhone,
+        gender: signGender,
+        password: signPassword,
+      })
+      alert("Registration successful—please log in")
+      setShowSignupModal(false)
+      setShowLoginModal(true)
     } catch (err) {
-      alert(err.response?.data?.message || "Signup failed");
+      alert(err.response?.data?.message || "Signup failed")
     }
-  };
+  }
 
   // --- Static content ---
   const disclaimerLines = [
     "PLEASE NOTE THAT THIS IS NOT AN EMERGENCY SERVICE.",
     "In case of an emergency, call 999 (police), 998 (ambulance), or go to the nearest A&E facility.",
-    "If you are unable to attend or wish to reschedule, please provide at least 24 hours’ notice; otherwise a cancellation fee may apply.",
+    "If you are unable to attend or wish to reschedule, please provide at least 24 hours' notice; otherwise a cancellation fee may apply.",
     "All correspondence is confidential. Please do not disclose your appointment or personal information outside this office.",
     "For in-person appointments, arrive 15 minutes early to complete any necessary paperwork.",
     "If you have insurance, bring your policy details (insurer name, policy number, subscriber ID).",
     "For telemedicine, ensure you have a stable internet connection, a compatible device, and a quiet private space.",
-  ];
+  ]
 
-  const cards = [
-    { href: "/wizard", Icon: RiCalendarEventLine, label: "Book Appointment" },
-    { href: "/profile", Icon: RiGroupLine, label: "My Profile" },
+  const services = [
+    {
+      href: "/wizard",
+      Icon: RiCalendarEventLine,
+      label: "Book Appointment",
+      description: "Schedule your next appointment with our specialists",
+    },
+    {
+      href: "/profile",
+      Icon: RiGroupLine,
+      label: "My Profile",
+      description: "View and update your personal information",
+    },
     {
       href: "/calendar-main-patient",
       Icon: RiCalendarCheckLine,
       label: "My Appointments",
+      description: "View your upcoming and past appointments",
     },
-    { href: "/my-invoices", Icon: RiFileListLine, label: "My Invoices" },
-  ];
+    {
+      href: "/my-invoices",
+      Icon: RiFileListLine,
+      label: "My Invoices",
+      description: "Access your billing information and payment history",
+    },
+  ]
 
   return (
-    <>
-      <div className="d-flex flex-column min-vh-100 bg-white">
-        <Header
-          user={user}
-          loading={loading}
-          onLoginClick={() => setShowLoginModal(true)}
-          onLogout={handleLogout}
-        />
+    <div className={styles.container}>
+      <Header user={user} loading={loading} onLoginClick={() => setShowLoginModal(true)} onLogout={handleLogout} />
 
-        <main className="container my-5 flex-grow-1">
-          {/* Disclaimer */}
-          <div className="card mb-4">
-            <div className="card-body">
-              {disclaimerLines.map((line, i) => (
-                <p key={i} className={i === 0 ? "fw-bold text-uppercase mb-3" : ""}>
-                  {line}
-                </p>
-              ))}
-            </div>
-          </div>
+      <main className={styles.main}>
+        {/* Welcome Section */}
+        <div className={styles.welcomeSection}>
+          <h4 className={styles.welcomeTitle}>Welcome to Your Health Portal</h4>
+        
+        </div>
 
-          {/* Buttons grid */}
-          <div className="row row-cols-1 row-cols-md-2 g-4">
-            {cards.map(({ href, Icon, label }, idx) => (
-              <div key={idx} className="col">
-                <Link
-                  href={href}
-                  className="btn btn-outline-primary shadow-sm w-100 h-100 d-flex flex-column justify-content-center align-items-center py-5"
-                  onClick={handleCardClick(href)}
-                >
-                  <Icon className="fs-1 mb-3" />
-                  <span className="h5 mb-0">{label}</span>
-                </Link>
-              </div>
-            ))}
+        {/* Disclaimer */}
+        <div className={styles.disclaimerCard}>
+          <div className={styles.disclaimerTitle}>
+            <RiShieldCheckLine />
+            Important Information
           </div>
-        </main>
-      </div>
+          {disclaimerLines.map((line, i) => (
+            <p key={i} className={styles.disclaimerText}>
+              {line}
+            </p>
+          ))}
+        </div>
+
+        {/* Services Grid */}
+        <div className={styles.servicesGrid}>
+          {services.map(({ href, Icon, label, description }, idx) => (
+            <Link key={idx} href={href} className={styles.serviceCard} onClick={handleCardClick(href)}>
+              <Icon className={styles.serviceIcon} />
+              <h3 className={styles.serviceTitle}>{label}</h3>
+              <p className={styles.serviceDescription}>{description}</p>
+            </Link>
+          ))}
+        </div>
+      </main>
 
       {/* Login Modal */}
-      <div className={`modal fade ${showLoginModal ? "show d-block" : ""}`} tabIndex="-1">
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Login</h5>
-              <button
-                type="button"
-                className="btn-close"
-                onClick={() => setShowLoginModal(false)}
-              />
+      {showLoginModal && (
+        <div className={styles.modal} onClick={() => setShowLoginModal(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>Welcome Back</h2>
+              <button className={styles.closeButton} onClick={() => setShowLoginModal(false)}>
+                ×
+              </button>
             </div>
-            <div className="modal-body">
-              <form onSubmit={onLogin}>
-                <div className="mb-3">
-                  <label className="form-label">Email</label>
+            <div className={styles.modalBody}>
+              <form onSubmit={onLogin} className={styles.form}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Email Address</label>
                   <input
                     type="email"
-                    className="form-control"
+                    className={styles.input}
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     required
+                    placeholder="Enter your email"
                   />
                 </div>
-                <div className="mb-3">
-                  <label className="form-label">Password</label>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Password</label>
                   <input
                     type="password"
-                    className="form-control"
+                    className={styles.input}
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     required
+                    placeholder="Enter your password"
                   />
                 </div>
-                <div className="form-check mb-3">
-                  <input id="remember" type="checkbox" className="form-check-input" />
-                  <label htmlFor="remember" className="form-check-label">
-                    Remember me
-                  </label>
+                <div className={styles.checkbox}>
+                  <input id="remember" type="checkbox" className={styles.checkboxInput} />
+                  <label htmlFor="remember">Remember me</label>
                 </div>
-                <button type="submit" className="btn btn-primary w-100 mb-2">
-                  Login
+                <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`}>
+                  Sign In
                 </button>
               </form>
-              <div className="text-center">
+              <div className={styles.textCenter}>
                 <button
-                  className="btn btn-link"
+                  className={styles.linkButton}
                   onClick={() => {
-                    setShowLoginModal(false);
-                    setShowSignupModal(true);
+                    setShowLoginModal(false)
+                    setShowSignupModal(true)
                   }}
                 >
-                  First time? Register here
+                  Don't have an account? Register here
                 </button>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Signup Modal */}
-      <div className={`modal fade ${showSignupModal ? "show d-block" : ""}`} tabIndex="-1">
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Register</h5>
-              <button
-                type="button"
-                className="btn-close"
-                onClick={() => setShowSignupModal(false)}
-              />
+      {showSignupModal && (
+        <div className={styles.modal} onClick={() => setShowSignupModal(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>Create Account</h2>
+              <button className={styles.closeButton} onClick={() => setShowSignupModal(false)}>
+                ×
+              </button>
             </div>
-            <div className="modal-body">
-              <form onSubmit={onSignup}>
-                <div className="mb-3">
-                  <label className="form-label">Name</label>
+            <div className={styles.modalBody}>
+              <form onSubmit={onSignup} className={styles.form}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Full Name</label>
                   <input
                     type="text"
-                    className="form-control"
+                    className={styles.input}
                     value={signName}
                     onChange={(e) => setSignName(e.target.value)}
                     required
+                    placeholder="Enter your full name"
                   />
                 </div>
-                <div className="mb-3">
-                  <label className="form-label">Email</label>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Email Address</label>
                   <input
                     type="email"
-                    className="form-control"
+                    className={styles.input}
                     value={signEmail}
                     onChange={(e) => setSignEmail(e.target.value)}
                     required
+                    placeholder="Enter your email"
                   />
                 </div>
-                <div className="mb-3">
-                  <label className="form-label">Phone</label>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Phone Number</label>
                   <input
                     type="tel"
-                    className="form-control"
+                    className={styles.input}
                     value={signPhone}
                     onChange={(e) => setSignPhone(e.target.value)}
                     required
+                    placeholder="Enter your phone number"
                   />
                 </div>
-                <div className="mb-3">
-                  <label className="form-label">Gender</label>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Gender</label>
                   <select
-                    className="form-select"
+                    className={styles.select}
                     value={signGender}
                     onChange={(e) => setSignGender(e.target.value)}
                     required
@@ -313,45 +319,47 @@ export default function ClientPortalPage() {
                     <option value="female">Female</option>
                   </select>
                 </div>
-                <div className="mb-3">
-                  <label className="form-label">Password</label>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Password</label>
                   <input
                     type="password"
-                    className="form-control"
+                    className={styles.input}
                     value={signPassword}
                     onChange={(e) => setSignPassword(e.target.value)}
                     required
+                    placeholder="Create a password"
                   />
                 </div>
-                <div className="mb-3">
-                  <label className="form-label">Confirm Password</label>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Confirm Password</label>
                   <input
                     type="password"
-                    className="form-control"
+                    className={styles.input}
                     value={signConfirm}
                     onChange={(e) => setSignConfirm(e.target.value)}
                     required
+                    placeholder="Confirm your password"
                   />
                 </div>
-                <button type="submit" className="btn btn-primary w-100">
-                  Register
+                <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`}>
+                  Create Account
                 </button>
               </form>
+              <div className={styles.textCenter}>
+                <button
+                  className={styles.linkButton}
+                  onClick={() => {
+                    setShowSignupModal(false)
+                    setShowLoginModal(true)
+                  }}
+                >
+                  Already have an account? Sign in here
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Backdrop */}
-      {(showLoginModal || showSignupModal) && (
-        <div
-          className="modal-backdrop fade show"
-          onClick={() => {
-            setShowLoginModal(false);
-            setShowSignupModal(false);
-          }}
-        />
       )}
-    </>
-  );
+    </div>
+  )
 }

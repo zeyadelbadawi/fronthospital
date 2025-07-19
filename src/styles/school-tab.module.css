@@ -1,0 +1,931 @@
+/* Main Container */
+.schoolTabContainer {
+  padding: 1.5rem;
+  min-height: 100vh;
+}
+
+/* Header Section */
+.header {
+  margin-bottom: 2rem;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.headerText {
+  flex: 1;
+}
+
+.title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.refreshButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.refreshButton:hover {
+  background: #7c3aed;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+}
+
+.refreshButton:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.refreshIcon {
+  transition: transform 0.2s ease;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+/* Assignment Card */
+.assignmentCard {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 2rem;
+  transition: all 0.3s ease;
+}
+
+.activeAssignmentCard {
+  border-left: 4px solid #8b5cf6;
+}
+
+.noAssignmentCard {
+  border-left: 4px solid #f59e0b;
+}
+
+.assignmentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f4ff 0%, #e2e8f0 100%);
+}
+
+.assignmentInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.assignmentIcon {
+  width: 2rem;
+  height: 2rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.activeAssignmentIcon {
+  color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.noAssignmentIcon {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.assignmentDetails {
+  flex: 1;
+}
+
+.assignmentTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.25rem 0;
+}
+
+.assignmentDates {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0 0 0.25rem 0;
+}
+
+.assignmentDescription {
+  color: #4b5563;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.assignmentNotes {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0.5rem 0 0 0;
+  font-style: italic;
+}
+
+.statusActive {
+  color: #059669;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.assignmentStats {
+  display: flex;
+  align-items: center;
+}
+
+.activeAssignmentBadge {
+  background: rgba(139, 92, 246, 0.1);
+  color: #7c3aed;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* Program Cards */
+.programsList {
+  margin-bottom: 2rem;
+}
+
+.programCard {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.programCard:hover {
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.completedCard {
+  border-left: 4px solid #10b981;
+}
+
+.activeCard {
+  border-left: 4px solid #3b82f6;
+}
+
+.missedCard {
+  border-left: 4px solid #ef4444;
+}
+
+.programHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  cursor: pointer;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.programHeader:hover {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+}
+
+.programInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.chevron {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #8b5cf6;
+  transition: transform 0.2s ease;
+}
+
+.programIcon {
+  width: 2rem;
+  height: 2rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.completedIcon {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.activeIcon {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.missedIcon {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.programDetails {
+  flex: 1;
+}
+
+.programTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.25rem 0;
+}
+
+.programDates {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0 0 0.25rem 0;
+}
+
+.programDescription {
+  color: #4b5563;
+  font-size: 0.875rem;
+  margin: 0;
+  font-style: italic;
+}
+
+.programStats {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.statBadge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  min-width: 60px;
+}
+
+.completedBadge {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.activeBadge {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1e40af;
+}
+
+.missedBadge {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.statNumber {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Status Messages */
+.statusMessage {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.statusContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.completedStatus {
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.activeStatus {
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.missedStatus {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.statusIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+.completedStatus .statusIcon {
+  color: #10b981;
+}
+
+.activeStatus .statusIcon {
+  color: #3b82f6;
+}
+
+.missedStatus .statusIcon {
+  color: #ef4444;
+}
+
+.statusText {
+  flex: 1;
+}
+
+.statusText h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+}
+
+.statusText p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Program Content */
+.programContent {
+  padding: 1.5rem;
+  background: #fafbfc;
+}
+
+.appointmentsSection {
+  margin-bottom: 1.5rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.sectionIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #8b5cf6;
+}
+
+.sectionTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.appointmentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.appointmentItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border-radius: 0.5rem;
+  border-left: 4px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.appointmentItem:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.completedAppointment {
+  border-left-color: #10b981;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+}
+
+.upcomingAppointment {
+  border-left-color: #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+}
+
+.missedAppointment {
+  border-left-color: #ef4444;
+  background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+}
+
+.appointmentInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.appointmentStatusIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.completedAppointment .appointmentStatusIcon {
+  color: #10b981;
+}
+
+.upcomingAppointment .appointmentStatusIcon {
+  color: #3b82f6;
+}
+
+.missedAppointment .appointmentStatusIcon {
+  color: #ef4444;
+}
+
+.appointmentDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.appointmentDate {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.875rem;
+}
+
+.appointmentDescription {
+  color: #6b7280;
+  font-size: 0.8125rem;
+}
+
+.appointmentStatus {
+  display: flex;
+  align-items: center;
+}
+
+.statusBadge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.completedBadge {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.upcomingBadge {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.missedBadge {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Plans Section */
+.plansSection {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.plansList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.planItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.planItem:hover {
+  border-color: #8b5cf6;
+  box-shadow: 0 2px 4px rgba(139, 92, 246, 0.1);
+  transform: translateY(-1px);
+}
+
+.planInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.planIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #8b5cf6;
+}
+
+.planDetails {
+  flex: 1;
+}
+
+.planTitle {
+  font-weight: 500;
+  color: #1f2937;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.planMetadata {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.planType {
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.planDate {
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.planActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.viewButton,
+.downloadButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.viewButton {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.viewButton:hover {
+  background: #bfdbfe;
+  transform: scale(1.1);
+}
+
+.downloadButton {
+  background: #e0e7ff;
+  color: #6366f1;
+}
+
+.downloadButton:hover {
+  background: #c7d2fe;
+  transform: scale(1.1);
+}
+
+.emptyPlans {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 3rem;
+  height: 3rem;
+  color: #9ca3af;
+  margin-bottom: 1rem;
+}
+
+.emptyText {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Document Viewer */
+.documentViewerContainer {
+  background: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.documentViewerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #f8f4ff 0%, #e0e7ff 100%);
+  border-bottom: 2px solid #c7d2fe;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
+}
+
+.documentInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  margin: 0 1rem;
+}
+
+.documentIcon {
+  color: #8b5cf6;
+}
+
+.documentDetails {
+  flex: 1;
+}
+
+.documentTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.25rem 0;
+}
+
+.documentType {
+  color: #7c3aed;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.documentViewerContent {
+  flex: 1;
+  padding: 1.5rem;
+  background: #fafbfc;
+  overflow: hidden;
+}
+
+/* Loading and Error States */
+.loadingContainer,
+.errorContainer,
+.emptyContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.loadingSpinner {
+  width: 3rem;
+  height: 3rem;
+  color: #8b5cf6;
+  animation: spin 1s linear infinite;
+}
+
+.loadingText {
+  margin-top: 1rem;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.errorIcon,
+.emptyIcon {
+  width: 4rem;
+  height: 4rem;
+  color: #9ca3af;
+  margin-bottom: 1.5rem;
+}
+
+.errorText,
+.emptyText {
+  color: #6b7280;
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.emptyTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 0.5rem 0;
+}
+
+.retryButton {
+  padding: 0.75rem 1.5rem;
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+  background: #7c3aed;
+  transform: translateY(-1px);
+}
+
+/* Animations */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .headerContent {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .programStats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .statBadge {
+    min-width: auto;
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .schoolTabContainer {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .programHeader {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .programInfo {
+    justify-content: center;
+  }
+
+  .programStats {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .statusMessage {
+    padding: 1rem;
+  }
+
+  .statusContent {
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+  }
+
+  .programContent {
+    padding: 1rem;
+  }
+
+  .appointmentItem {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .appointmentStatus {
+    justify-content: center;
+  }
+
+  .documentViewerHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .documentInfo {
+    margin: 0;
+    justify-content: center;
+  }
+
+  .documentViewerContent {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .assignmentHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .assignmentInfo {
+    justify-content: center;
+  }
+
+  .programTitle {
+    font-size: 1.125rem;
+  }
+
+  .statusText h5 {
+    font-size: 0.875rem;
+  }
+
+  .statusText p {
+    font-size: 0.8125rem;
+  }
+
+  .planItem {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .planActions {
+    justify-content: center;
+  }
+}
