@@ -22,7 +22,6 @@
 /* ===== MAIN CONTAINER ===== */
 .planEditorContainer {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--navy-blue) 0%, var(--light-blue) 50%, var(--magenta) 100%);
   background-attachment: fixed;
   padding: 2rem;
   position: relative;
@@ -76,6 +75,8 @@
   padding: 2.5rem;
   position: relative;
   overflow: hidden;
+  height: auto;
+  min-height: 350px;
 }
 
 .planHeader::before {
@@ -161,6 +162,7 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 32px;
 }
 
 .titleIcon {

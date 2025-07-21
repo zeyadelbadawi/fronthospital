@@ -62,10 +62,10 @@ export const getCurrentUserRole = () => {
   return user ? user.role : null
 }
 
-// Get current user ID
-export const getCurrentUserId = () => {
-  const user = getCurrentUser()
-  return user ? user.id : null
+// Check if current user has access to school (admin or doctor only)
+export const hasSchoolAccess = () => {
+  const role = getCurrentUserRole()
+  return role === "admin" || role === "doctor"
 }
 
 // Check if current user is admin
@@ -80,43 +80,11 @@ export const isDoctor = () => {
   return role === "doctor"
 }
 
-// Check if current user is patient
-export const isPatient = () => {
-  const role = getCurrentUserRole()
-  return role === "patient"
-}
-
-// Check if current user is accountant
-export const isAccountant = () => {
-  const role = getCurrentUserRole()
-  return role === "accountant"
-}
-
-// Check if current user is student
-export const isStudent = () => {
-  const role = getCurrentUserRole()
-  return role === "student"
-}
-
-// Check if current user has access to full program
-export const hasFullProgramAccess = () => {
-  const role = getCurrentUserRole()
-  return ["admin", "doctor", "student", "accountant"].includes(role)
-}
-
 // Logout function
 export const logout = () => {
   // Check if we're in the browser
   if (typeof window === "undefined") return
 
   localStorage.removeItem("token")
-  window.location.href = "/login"
-}
-
-// Get token
-export const getToken = () => {
-  // Check if we're in the browser
-  if (typeof window === "undefined") return null
-
-  return localStorage.getItem("token")
+  window.location.href = "/sign-in"
 }

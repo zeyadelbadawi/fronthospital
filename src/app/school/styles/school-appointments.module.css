@@ -62,16 +62,13 @@
 }
 
 .cardHeader {
-  background: linear-gradient(
-    135deg,
-    var(--primary-navy) 0%,
-    var(--primary-magenta) 50%,
-    var(--primary-light-blue) 100%
-  );
-  padding: 2rem;
-  color: var(--white);
+  background: linear-gradient(135deg,#1e3a8a 0%, #0ea5e9 100%);
+  padding: 2.5rem;
+  position: relative;
+  overflow: hidden;
+  height: auto;
+  min-height: 300px;
 }
-
 .headerContent {
   display: flex;
   justify-content: space-between;
@@ -90,7 +87,8 @@
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
-  color: var(--white);
+color: #ffffff;
+
 }
 
 .titleIcon {
@@ -104,6 +102,9 @@
   opacity: 0.9;
   margin: 0;
   font-weight: 400;
+  color: white;
+  margin-top: 30px
+  
 }
 
 /* Search Form */
@@ -123,7 +124,7 @@
   left: 1rem;
   width: 1.25rem;
   height: 1.25rem;
-  color: var(--gray-400);
+  color: #ffffff;
   z-index: 2;
 }
 
@@ -133,7 +134,7 @@
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 0.75rem;
   background: rgba(255, 255, 255, 0.1);
-  color: var(--white);
+  color: #ffffff;
   font-size: 1rem;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
@@ -236,19 +237,21 @@
   font-size: 0.95rem;
 }
 
+
 .tableHeader {
-  background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
+  color: var(--white);
 }
 
 .tableHeader th {
   padding: 1.25rem 1.5rem;
   text-align: left;
   font-weight: 600;
-  color: var(--gray-800);
+  color: white;
   border-bottom: 2px solid var(--gray-200);
   font-size: 0.9rem;
-  text-transform: uppercase;
   letter-spacing: 0.05em;
+  text-align: 100px;
 }
 
 .textCenter {
@@ -271,7 +274,7 @@
 
 .patientName {
   font-weight: 600;
-  color: var(--gray-800);
+  color: var(--primary-navy);
   font-size: 1.1rem;
   margin-bottom: 0.5rem;
 }
@@ -285,6 +288,24 @@
 .patientInfo div {
   margin-bottom: 0.25rem;
 }
+
+.patientInfobyziad div {
+  margin-bottom: 0.25rem;
+  margin-top: 25px;
+}
+
+.patientInfobyziad {
+    margin-bottom: 0.25rem;
+      font-size: 18px;
+  color:white;
+}
+
+.patientInfobyziad b {
+  font-size: 18px;
+  color: white;
+
+}
+
 
 .programName {
   font-weight: 600;
@@ -342,7 +363,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, var(--primary-navy) 0%, var(--primary-magenta) 100%);
+  background: linear-gradient(135deg, #1e3a8a, #0ea5e9);
   color: var(--white);
   border: none;
   border-radius: 0.5rem;
@@ -355,9 +376,13 @@
 
 .appointmentButton:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-  background: linear-gradient(135deg, #1e40af 0%, #c026d3 100%);
+  box-shadow: 0 8px 25px rgba(30, 58, 138, 0.3);
+  background: linear-gradient(135deg, #214cc4, #61c2f0);
 }
+
+
+
+
 
 .actionIcon {
   width: 1rem;
@@ -417,14 +442,12 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 2rem;
-  background: linear-gradient(
-    135deg,
-    var(--primary-navy) 0%,
-    var(--primary-magenta) 50%,
-    var(--primary-light-blue) 100%
-  );
+    background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
+
   color: var(--white);
   gap: 2rem;
+  min-height: 350px;
+  height: auto;
 }
 
 .headerLeft {
@@ -482,6 +505,12 @@
 .detailIcon {
   width: 1rem;
   height: 1rem;
+}
+
+.detailIconbyziad {
+  width: 1.5rem;
+  height: 1.5rem;
+  color:white
 }
 
 .completedBadge {

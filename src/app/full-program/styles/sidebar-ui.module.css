@@ -7,13 +7,15 @@
 
 /* Sidebar */
 .sidebar {
-  width: 280px;
+  width: 320px; 
   min-height: 100vh;
   background-color: #ffffff;
   border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
+    margin-top: 45px;
+
 }
 
 .sidebar.closed {

@@ -17,18 +17,7 @@ const DashBoardLayerEight = () => {
       <div className="container-fluid">
         {/* Dashboard Header */}
         <div className={`${styles.dashboardCard} mb-4`}>
-          <div className={styles.cardHeader}>
-            <div>
-              <h4 className={styles.cardTitle} style={{ fontSize: "1.5rem", marginBottom: "0.25rem" }}>
-                <BarChart3 size={24} />
-                Dashboard Overview
-              </h4>
-              <p style={{ color: "#64748b", fontSize: "0.875rem", margin: 0 }}>
-                Welcome back! Here's your latest data overview.
-              </p>
-            </div>
-            
-          </div>
+         
         </div>
 
         {/* Statistics Cards Row */}
@@ -43,7 +32,7 @@ const DashBoardLayerEight = () => {
           <div className="col-xl-8 col-lg-7">
             <HomeComFour />
           </div>
-          <div className="col-xl-4 col-lg-5">
+          <div className="col-xl-4 col-lg-7">
             <HomeComThree />
           </div>
         </div>

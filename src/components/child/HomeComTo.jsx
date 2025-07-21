@@ -90,29 +90,29 @@ const HomeComTo = () => {
     legend: { show: false },
   }
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-        const { data } = await axiosInstance.get("/authentication/income-trend", {
-          params: { period },
-        })
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       setLoading(true)
+  //       const { data } = await axiosInstance.get("/authentication/income-trend", {
+  //         params: { period },
+  //       })
 
-        setLabels(data.labels)
-        setSeries([
-          { name: "Paid", data: data.paidSeries },
-          { name: "Pending", data: data.pendingSeries },
-        ])
-        setTotals({ paid: data.totalPaid, pending: data.totalPending })
-      } catch (error) {
-        console.error("Error fetching earning data:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
+  //       setLabels(data.labels)
+  //       setSeries([
+  //         { name: "Paid", data: data.paidSeries },
+  //         { name: "Pending", data: data.pendingSeries },
+  //       ])
+  //       setTotals({ paid: data.totalPaid, pending: data.totalPending })
+  //     } catch (error) {
+  //       console.error("Error fetching earning data:", error)
+  //     } finally {
+  //       setLoading(false)
+  //     }
+  //   }
 
-    fetchData()
-  }, [period])
+  //   fetchData()
+  // }, [period])
 
   if (loading) {
     return (

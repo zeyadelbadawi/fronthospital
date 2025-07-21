@@ -20,19 +20,28 @@ import {
   Mail,
   Phone,
   AlertTriangle,
+  Hash,
+  ClipboardCheck,
 } from "lucide-react"
-import { useRouter } from "next/navigation"
 import axiosInstance from "@/helper/axiosSetup"
 import { useToast } from "./toast"
 import { ConfirmationModal } from "./confirmation-modal"
 import { LoadingOverlay } from "./loading-overlay"
-import styles from "../styles/speech-appointments.module.css"
+import styles from "../styles/school-appointments.module.css"
+import { useContentStore } from "../store/content-store"
 
-export function SpeechAppointments() {
+export function SchoolAppointments() {
   // State management
   const [schoolPrograms, setSchoolPrograms] = useState([])
   const [selectedProgram, setSelectedProgram] = useState(null)
   const [appointments, setAppointments] = useState([])
+  const [appointmentStats, setAppointmentStats] = useState({
+    total: 0,
+    completed: 0,
+    remaining: 0,
+    isCompleted: false,
+    completionPercentage: 0,
+  })
   const [newAppointment, setNewAppointment] = useState({
     date: "",
     time: "",
@@ -44,12 +53,13 @@ export function SpeechAppointments() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [editingAppointment, setEditingAppointment] = useState(null)
+  const setActiveContent = useContentStore((state) => state.setActiveContent)
+
   const [editFormData, setEditFormData] = useState({
     date: "",
     time: "",
     description: "",
   })
-  const [isCompleted, setIsCompleted] = useState(false)
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     title: "",
@@ -62,11 +72,21 @@ export function SpeechAppointments() {
     appointmentId: null,
   })
 
-  const router = useRouter()
   const { showToast, ToastContainer } = useToast()
 
-  // Memoized stats calculation
+  // OPTIMIZED: Memoized stats calculation using server data
   const stats = useMemo(() => {
+    if (appointmentStats.total > 0) {
+      // Use server-calculated stats when available
+      return {
+        total: appointmentStats.total,
+        completed: appointmentStats.completed,
+        scheduled: appointmentStats.remaining,
+        overdue: 0, // Could be calculated server-side if needed
+      }
+    }
+
+    // Fallback to client-side calculation
     const now = new Date()
     return appointments.reduce(
       (acc, appointment) => {
@@ -85,221 +105,89 @@ export function SpeechAppointments() {
       },
       { total: 0, completed: 0, scheduled: 0, overdue: 0 },
     )
-  }, [appointments])
+  }, [appointments, appointmentStats])
 
-  // FIXED: Extract patient ID from different possible structures
+  // OPTIMIZED: Extract patient ID (simplified)
   const extractPatientId = useCallback((program) => {
-    // Try different possible structures
-    if (program.patientId && typeof program.patientId === "object" && program.patientId._id) {
-      return program.patientId._id
-    }
-    if (program.patientid && typeof program.patientid === "object" && program.patientid._id) {
-      return program.patientid._id
-    }
-    if (program.patient && typeof program.patient === "object" && program.patient._id) {
-      return program.patient._id
-    }
-    if (typeof program.patientId === "string") {
-      return program.patientId
-    }
-    if (typeof program.patientid === "string") {
-      return program.patientid
-    }
-    if (typeof program.patient === "string") {
-      return program.patient
-    }
-    return null
+    return program.patientId || program.patientid || program.patient?._id || program.patient || null
   }, [])
 
-  // FIXED: Generate program name based on patient and creation order
-  const generateProgramName = useCallback(
-    (program, allPrograms) => {
-      const patientId = extractPatientId(program)
-      if (!patientId) {
-        console.log("No patient ID found for program:", program)
-        return "School Evaluation Program"
-      }
-
-      console.log("Processing program:", {
-        unicValue: program.unicValue,
-        patientId: patientId,
-        createdAt: program.createdAt,
-      })
-
-      // Get all programs for this specific patient
-      const patientPrograms = allPrograms.filter((p) => {
-        const pId = extractPatientId(p)
-        return pId === patientId
-      })
-
-      console.log(`Found ${patientPrograms.length} programs for patient ${patientId}`)
-
-      // Sort by creation date (earliest first)
-      const sortedPatientPrograms = patientPrograms.sort((a, b) => {
-        const dateA = new Date(a.createdAt)
-        const dateB = new Date(b.createdAt)
-        return dateA - dateB
-      })
-
-      console.log(
-        "Sorted patient programs:",
-        sortedPatientPrograms.map((p) => ({
-          unicValue: p.unicValue,
-          createdAt: p.createdAt,
-          date: new Date(p.createdAt).toISOString(),
-        })),
-      )
-
-      // Find the index of current program in the sorted list
-      const programIndex = sortedPatientPrograms.findIndex((p) => p.unicValue === program.unicValue)
-      const programNumber = programIndex >= 0 ? programIndex + 1 : 1
-
-      // Get the year from creation date
-      const year = new Date(program.createdAt).getFullYear()
-
-      console.log(`Program ${program.unicValue} for patient ${patientId} gets number: ${programNumber}`)
-
-      return `School Evaluation ${programNumber} (${year})`
-    },
-    [extractPatientId],
-  )
-
-  // Check if program is completed by checking all its appointments
-  const checkProgramStatus = useCallback(async (unicValue) => {
-    try {
-      const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs/by-unic/${unicValue}`,
-      )
-      const programAppointments = response.data.appointments || []
-
-      if (programAppointments.length === 0) return false
-
-      // Check if all appointments are completed
-      const allCompleted = programAppointments.every((apt) => apt.status === "completed")
-      return allCompleted
-    } catch (error) {
-      console.error("Error checking program status:", error)
-      return false
-    }
-  }, [])
-
-  // FIXED: Fetch school programs with proper status checking and naming
-  const fetchSchoolPrograms = useCallback(async () => {
+  // OPTIMIZED: Single API call to fetch programs with completion status
+  const fetchSchoolProgramsOptimized = useCallback(async () => {
     setLoading(true)
     try {
-      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs`, {
-        params: {
-          page: currentPage,
-          search: search,
-          limit: 100, // Increased limit to get all programs for proper counting
+      // Use the new optimized endpoint that returns programs with status in single query
+      const response = await axiosInstance.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs-optimized`,
+        {
+          params: {
+            page: currentPage,
+            search: search,
+            limit: 100,
+          },
         },
-      })
-
-      const programs = response.data.programs || []
-      console.log("All programs fetched:", programs.length)
-      console.log("Sample program structure:", programs[0])
-
-      const uniquePrograms = []
-      const seenUnicValues = new Set()
-
-      // Get unique programs and check their status
-      for (const program of programs) {
-        if (!seenUnicValues.has(program.unicValue)) {
-          seenUnicValues.add(program.unicValue)
-
-          // Check if this program is completed
-          const isCompleted = await checkProgramStatus(program.unicValue)
-
-          // Generate program name using all programs data for proper counting
-          const programName = generateProgramName(program, programs)
-
-          uniquePrograms.push({
-            ...program,
-            isCompleted: isCompleted,
-            programName: programName,
-          })
-        }
-      }
-
-      // Sort unique programs by creation date for display (newest first)
-      uniquePrograms.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-
-      console.log(
-        "Final unique programs with names:",
-        uniquePrograms.map((p) => ({
-          unicValue: p.unicValue,
-          programName: p.programName,
-          createdAt: p.createdAt,
-          patientId: extractPatientId(p),
-        })),
       )
 
-      setSchoolPrograms(uniquePrograms)
+      const programs = response.data.programs || []
+
+      // Programs already come with isCompleted status from server
+      // No need for additional API calls!
+      console.log(`✅ OPTIMIZED: Loaded ${programs.length} programs with status in single API call`)
+
+      setSchoolPrograms(programs)
       setTotalPages(response.data.totalPages || 1)
     } catch (error) {
-      console.error("Error fetching school programs:", error)
+      console.error("Error fetching optimized school programs:", error)
       showToast("Failed to load school programs. Please try again.", "error")
       setSchoolPrograms([])
     } finally {
       setLoading(false)
     }
-  }, [currentPage, search, showToast, checkProgramStatus, generateProgramName, extractPatientId])
+  }, [currentPage, search, showToast])
 
-  // FIXED: Fetch program appointments without infinite loop
-  const fetchProgramAppointments = useCallback(async () => {
+  // OPTIMIZED: Single API call to fetch appointments with stats
+  const fetchProgramAppointmentsOptimized = useCallback(async () => {
     if (!selectedProgram?.unicValue) return
 
     try {
+      // Use optimized endpoint that returns appointments with stats
       const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs/by-unic/${selectedProgram.unicValue}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs-with-appointments/${selectedProgram.unicValue}`,
       )
 
       const appointmentsData = response.data.appointments || []
-      setAppointments(appointmentsData)
+      const stats = response.data.stats || {}
 
-      // Check if program is completed
-      const allCompleted = appointmentsData.length > 0 && appointmentsData.every((apt) => apt.status === "completed")
-      setIsCompleted(allCompleted)
+      setAppointments(appointmentsData)
+      setAppointmentStats(stats)
+
+      console.log(`✅ OPTIMIZED: Loaded ${appointmentsData.length} appointments with stats in single API call`)
     } catch (error) {
-      console.error("Error fetching program appointments:", error)
+      console.error("Error fetching optimized appointments:", error)
       showToast("Failed to load appointments. Please try again.", "error")
       setAppointments([])
+      setAppointmentStats({
+        total: 0,
+        completed: 0,
+        remaining: 0,
+        isCompleted: false,
+        completionPercentage: 0,
+      })
     }
   }, [selectedProgram?.unicValue, showToast])
 
-  // FIXED: Check program completion status without infinite loop
-  const checkProgramCompletionStatus = useCallback(async () => {
-    if (!selectedProgram) return
-
-    const patientId = extractPatientId(selectedProgram)
-    if (!patientId) return
-
-    try {
-      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/school/school-assignments`)
-
-      const assignments = response.data.assignments || []
-      const assignment = assignments.find((a) => a.patient?._id === patientId)
-
-      setIsCompleted(assignment?.appointmentsCompleted || false)
-    } catch (error) {
-      console.error("Error checking completion status:", error)
-      setIsCompleted(false)
-    }
-  }, [selectedProgram, extractPatientId])
-
-  // FIXED: Effects with proper dependencies
+  // OPTIMIZED: Effects with proper dependencies
   useEffect(() => {
-    fetchSchoolPrograms()
+    fetchSchoolProgramsOptimized()
   }, [currentPage, search])
 
   useEffect(() => {
     if (selectedProgram) {
-      fetchProgramAppointments()
-      checkProgramCompletionStatus()
+      fetchProgramAppointmentsOptimized()
     }
   }, [selectedProgram])
 
-  // Enhanced validation
+  // Enhanced validation (unchanged)
   const validateAppointmentData = useCallback(
     (appointmentData) => {
       const { date, time, description } = appointmentData
@@ -333,7 +221,11 @@ export function SpeechAppointments() {
     [appointments],
   )
 
-  // Event handlers
+  const handleBackToWelcome = () => {
+    setActiveContent(null)
+  }
+
+  // Event handlers (mostly unchanged, but using optimized data)
   const handleProgramSelect = useCallback((program) => {
     setSelectedProgram(program)
     setNewAppointment({ date: "", time: "", description: "" })
@@ -344,14 +236,20 @@ export function SpeechAppointments() {
   const handleBackToList = useCallback(() => {
     setSelectedProgram(null)
     setAppointments([])
+    setAppointmentStats({
+      total: 0,
+      completed: 0,
+      remaining: 0,
+      isCompleted: false,
+      completionPercentage: 0,
+    })
     setNewAppointment({ date: "", time: "", description: "" })
     setEditingAppointment(null)
     setEditFormData({ date: "", time: "", description: "" })
-    setIsCompleted(false)
   }, [])
 
   const handleAddAppointment = useCallback(async () => {
-    if (isCompleted) {
+    if (appointmentStats.isCompleted) {
       showToast("Cannot add appointments. This program has been completed.", "warning")
       return
     }
@@ -382,7 +280,7 @@ export function SpeechAppointments() {
       )
 
       if (response.status === 201) {
-        await fetchProgramAppointments()
+        await fetchProgramAppointmentsOptimized()
         setNewAppointment({ date: "", time: "", description: "" })
         showToast("Appointment added successfully!", "success")
       }
@@ -394,11 +292,11 @@ export function SpeechAppointments() {
       setSaving(false)
     }
   }, [
-    isCompleted,
+    appointmentStats.isCompleted,
     newAppointment,
     selectedProgram,
     validateAppointmentData,
-    fetchProgramAppointments,
+    fetchProgramAppointmentsOptimized,
     showToast,
     extractPatientId,
   ])
@@ -429,7 +327,7 @@ export function SpeechAppointments() {
         )
 
         if (response.status === 200) {
-          await fetchProgramAppointments()
+          await fetchProgramAppointmentsOptimized()
           setEditingAppointment(null)
           setEditFormData({ date: "", time: "", description: "" })
           showToast("Appointment updated successfully!", "success")
@@ -442,7 +340,7 @@ export function SpeechAppointments() {
         setSaving(false)
       }
     },
-    [editFormData, validateAppointmentData, fetchProgramAppointments, showToast],
+    [editFormData, validateAppointmentData, fetchProgramAppointmentsOptimized, showToast],
   )
 
   const handleEditCancel = useCallback(() => {
@@ -465,7 +363,7 @@ export function SpeechAppointments() {
             )
 
             if (response.status === 200) {
-              await fetchProgramAppointments()
+              await fetchProgramAppointmentsOptimized()
               showToast("Appointment marked as completed!", "success")
             }
           } catch (error) {
@@ -479,15 +377,14 @@ export function SpeechAppointments() {
         },
       })
     },
-    [fetchProgramAppointments, showToast, confirmModal],
+    [fetchProgramAppointmentsOptimized, showToast, confirmModal],
   )
 
-  // FIXED: Handle cancel appointment with last appointment check
+  // OPTIMIZED: Handle cancel appointment with server stats
   const handleCancelAppointment = useCallback(
     (appointmentId) => {
-      // Check if this is the last appointment
-      const activeAppointments = appointments.filter((apt) => apt.status !== "completed")
-      const isLastAppointment = activeAppointments.length === 1
+      // Use server-calculated stats instead of client-side filtering
+      const isLastAppointment = appointmentStats.remaining === 1
 
       if (isLastAppointment) {
         setLastAppointmentWarning({
@@ -508,7 +405,7 @@ export function SpeechAppointments() {
               )
 
               if (response.status === 200) {
-                await fetchProgramAppointments()
+                await fetchProgramAppointmentsOptimized()
                 showToast("Appointment cancelled successfully!", "success")
               }
             } catch (error) {
@@ -523,21 +420,19 @@ export function SpeechAppointments() {
         })
       }
     },
-    [appointments, fetchProgramAppointments, showToast, confirmModal],
+    [appointmentStats.remaining, fetchProgramAppointmentsOptimized, showToast, confirmModal],
   )
 
   // Handle last appointment deletion (delete entire program)
   const handleDeleteLastAppointment = useCallback(async () => {
     setSaving(true)
     try {
-      // Delete the appointment
       const response = await axiosInstance.delete(
         `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs/${lastAppointmentWarning.appointmentId}`,
       )
 
       if (response.status === 200) {
         showToast("Program cancelled successfully! All appointments have been removed.", "success")
-        // Go back to programs list since the entire program is now deleted
         handleBackToList()
       }
     } catch (error) {
@@ -550,15 +445,14 @@ export function SpeechAppointments() {
     }
   }, [lastAppointmentWarning.appointmentId, showToast, handleBackToList])
 
-  // FIXED: Complete all appointments with proper patient ID extraction
+  // OPTIMIZED: Complete all appointments using server stats
   const handleCompleteAllAppointments = useCallback(() => {
-    if (appointments.length === 0) {
+    if (appointmentStats.total === 0) {
       showToast("No appointments to complete", "warning")
       return
     }
 
-    const incompleteAppointments = appointments.filter((app) => app.status !== "completed")
-    if (incompleteAppointments.length === 0) {
+    if (appointmentStats.remaining === 0) {
       showToast("All appointments are already completed", "warning")
       return
     }
@@ -566,32 +460,27 @@ export function SpeechAppointments() {
     setConfirmModal({
       isOpen: true,
       title: "Complete All Appointments",
-      message: `Are you sure you want to mark all ${incompleteAppointments.length} incomplete appointments as complete? This will also prevent adding new appointments.`,
+      message: `Are you sure you want to mark all ${appointmentStats.remaining} incomplete appointments as complete? This will also prevent adding new appointments.`,
       type: "warning",
       onConfirm: async () => {
         setSaving(true)
         try {
-          // FIXED: Extract patient ID properly
           const patientId = extractPatientId(selectedProgram)
-
-          console.log("Selected Program:", selectedProgram)
-          console.log("Extracted Patient ID:", patientId)
 
           if (!patientId) {
             throw new Error("Patient ID not found in program data")
           }
 
-          // First, complete all appointments in the program
+          // Complete all appointments in the program
           const response = await axiosInstance.patch(
             `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs/complete-all/${selectedProgram.unicValue}`,
           )
 
           if (response.status === 200) {
-            // Then, update PatientSchoolAssignment with the correct patient ID
+            // Update PatientSchoolAssignment
             await axiosInstance.patch(`${process.env.NEXT_PUBLIC_API_URL}/school/complete-assignment/${patientId}`)
 
-            await fetchProgramAppointments()
-            setIsCompleted(true)
+            await fetchProgramAppointmentsOptimized()
             showToast("All appointments marked as complete!", "success")
           }
         } catch (error) {
@@ -604,7 +493,7 @@ export function SpeechAppointments() {
         }
       },
     })
-  }, [appointments, selectedProgram, fetchProgramAppointments, showToast, confirmModal, extractPatientId])
+  }, [appointmentStats, selectedProgram, fetchProgramAppointmentsOptimized, showToast, confirmModal, extractPatientId])
 
   const handleSearch = useCallback((e) => {
     e.preventDefault()
@@ -615,29 +504,15 @@ export function SpeechAppointments() {
     setCurrentPage(page)
   }, [])
 
-  // Utility functions
-  const getPatientInfo = useCallback(
-    (program) => {
-      // Try different possible structures for patient data
-      let patient = null
-
-      if (program.patientId && typeof program.patientId === "object") {
-        patient = program.patientId
-      } else if (program.patientid && typeof program.patientid === "object") {
-        patient = program.patientid
-      } else if (program.patient && typeof program.patient === "object") {
-        patient = program.patient
-      }
-
-      return {
-        name: patient?.name || program.patientName || "Unknown Patient",
-        email: patient?.email || program.patientEmail || "",
-        phone: patient?.phone || program.patientPhone || "",
-        id: patient?._id || extractPatientId(program) || "",
-      }
-    },
-    [extractPatientId],
-  )
+  // Utility functions (simplified using server data)
+  const getPatientInfo = useCallback((program) => {
+    return {
+      name: program.patientName || "Unknown Patient",
+      email: program.patientEmail || "",
+      phone: program.patientPhone || "",
+      id: program.patientId || "",
+    }
+  }, [])
 
   const formatDateTime = useCallback((date, time) => {
     try {
@@ -662,7 +537,7 @@ export function SpeechAppointments() {
     return appointmentDateTime <= now
   }, [])
 
-  // Last Appointment Warning Modal
+  // Last Appointment Warning Modal (unchanged)
   const LastAppointmentWarningModal = () => {
     if (!lastAppointmentWarning.isOpen) return null
 
@@ -700,7 +575,7 @@ export function SpeechAppointments() {
     )
   }
 
-  // Appointment Management View
+  // Appointment Management View (using optimized data)
   if (selectedProgram) {
     const patientInfo = getPatientInfo(selectedProgram)
 
@@ -712,33 +587,34 @@ export function SpeechAppointments() {
               <div className={styles.headerLeft}>
                 <button onClick={handleBackToList} className={styles.backButton}>
                   <ArrowLeft className={styles.backIcon} />
-                  Back to Programs
+                  Back to All School Evaluation Appointments
                 </button>
-                <div className={styles.patientInfo}>
+                <div className={styles.patientInfobyziad}>
                   <h2 className={styles.appointmentTitle}>
                     {selectedProgram.programName || "School Program Appointments"}
                   </h2>
                   <div className={styles.patientDetails}>
                     <div className={styles.patientDetail}>
-                      <User className={styles.detailIcon} />
-                      <span>{patientInfo.name}</span>
+                      <User className={styles.detailIconbyziad} />
+                      <span className={styles.patientInfobyziad}> Student Name:<b> {patientInfo.name} </b></span>
                     </div>
                     {patientInfo.email && (
                       <div className={styles.patientDetail}>
-                        <Mail className={styles.detailIcon} />
-                        <span>{patientInfo.email}</span>
+                        <Mail className={styles.detailIconbyziad} />
+                        <span className={styles.patientInfobyziad}> Student Email:<b> {patientInfo.email}</b></span>
                       </div>
                     )}
                     {patientInfo.phone && (
                       <div className={styles.patientDetail}>
-                        <Phone className={styles.detailIcon} />
-                        <span>{patientInfo.phone}</span>
+                        <Phone className={styles.detailIconbyziad} />
+                        <span className={styles.patientInfobyziad}> Student Phone Number: <b> {patientInfo.phone} </b></span>
                       </div>
                     )}
 
-                    {isCompleted && (
+                    {appointmentStats.isCompleted && (
                       <div className={styles.completedBadge}>
                         <CheckCircle className={styles.completedIcon} />
+                         <b>Status:</b>
                         Program Completed
                       </div>
                     )}
@@ -746,7 +622,7 @@ export function SpeechAppointments() {
                 </div>
               </div>
               <div className={styles.headerRight}>
-                {!isCompleted && appointments.length > 0 && (
+                {!appointmentStats.isCompleted && appointmentStats.total > 0 && (
                   <button onClick={handleCompleteAllAppointments} disabled={saving} className={styles.completeButton}>
                     <Check className={styles.buttonIcon} />
                     {saving ? "Processing..." : "Complete All Appointments"}
@@ -755,7 +631,7 @@ export function SpeechAppointments() {
               </div>
             </div>
 
-            {/* Stats Dashboard */}
+            {/* OPTIMIZED: Stats Dashboard using server data */}
             <div className={styles.statsContainer}>
               <div className={styles.statCard}>
                 <div className={styles.statIcon}>
@@ -797,7 +673,7 @@ export function SpeechAppointments() {
 
             <div className={styles.appointmentBody}>
               {/* Add New Appointment Section - Only show if not completed */}
-              {!isCompleted && (
+              {!appointmentStats.isCompleted && (
                 <div className={styles.addAppointmentSection}>
                   <div className={styles.sectionHeader}>
                     <h3 className={styles.sectionTitle}>
@@ -858,7 +734,7 @@ export function SpeechAppointments() {
                 <div className={styles.sectionHeader} style={{ padding: "24px 24px 0" }}>
                   <h3 className={styles.sectionTitle}>
                     <CalendarDays className={styles.sectionIcon} />
-                    Appointments ({appointments.length})
+                   All Evaulation Appointments ({appointments.length})
                   </h3>
                 </div>
 
@@ -867,7 +743,7 @@ export function SpeechAppointments() {
                     <Calendar className={styles.emptyIcon} />
                     <h4>No Appointments Yet</h4>
                     <p className={styles.emptySubtext}>
-                      {isCompleted
+                      {appointmentStats.isCompleted
                         ? "This program has been completed."
                         : "Start by adding your first appointment above."}
                     </p>
@@ -1035,7 +911,7 @@ export function SpeechAppointments() {
     )
   }
 
-  // Programs List View
+  // Programs List View (using optimized data with server-calculated status)
   return (
     <>
       <div className={styles.appointmentsContainer}>
@@ -1043,18 +919,22 @@ export function SpeechAppointments() {
           <div className={styles.cardHeader}>
             <div className={styles.headerContent}>
               <div className={styles.headerLeft}>
-                <h1 className={styles.pageTitle}>
+                <button onClick={handleBackToWelcome} className={styles.backButton}>
+                  <X className={styles.backIcon} />
+                  Back to Dashboard
+                </button>
+                <h2 className={styles.pageTitle}>
                   <Activity className={styles.titleIcon} />
-                  School Programs
-                </h1>
-                <p className={styles.pageSubtitle}>Manage school evaluation programs and appointments</p>
+                  School Evaluation Programs
+                </h2>
+                <p className={styles.pageSubtitle}>Manage All school evaluation programs and it's appointments</p>
               </div>
               <form onSubmit={handleSearch} className={styles.searchForm}>
                 <div className={styles.searchInputContainer}>
                   <Search className={styles.searchIcon} />
                   <input
                     type="text"
-                    placeholder="Search by patient name..."
+                    placeholder="Search by Student name..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className={styles.searchInput}
@@ -1088,9 +968,18 @@ export function SpeechAppointments() {
                   <table className={styles.patientsTable}>
                     <thead className={styles.tableHeader}>
                       <tr>
-                        <th>Patient Information</th>
-                        <th>Program Name</th>
-                        <th>Status</th>
+                        <th>
+                          <User className={styles.headerIcon} />
+                          &nbsp; Student Information
+                        </th>
+                        <th>
+                          <Hash className={styles.headerIcon} />
+                          &nbsp; Evaluation Information
+                        </th>
+                        <th>
+                          <ClipboardCheck className={styles.headerIcon} />
+                          &nbsp; Status
+                        </th>
                         <th className={styles.textCenter}>Actions</th>
                       </tr>
                     </thead>
@@ -1100,18 +989,37 @@ export function SpeechAppointments() {
                         return (
                           <tr key={program.unicValue} className={styles.tableRow}>
                             <td>
-                              <div className={styles.patientName}>{patientInfo.name}</div>
+                              <div className={styles.patientName}>
+                                <b>Student Name: </b>
+                                {patientInfo.name}
+                              </div>
                               <div className={styles.patientInfo}>
-                                {patientInfo.email && <div>📧 {patientInfo.email}</div>}
-                                {patientInfo.phone && <div>📞 {patientInfo.phone}</div>}
-                                <div>🆔 {patientInfo.id}</div>
+                                {patientInfo.email && (
+                                  <div>
+                                    <b>Student Email:</b> {patientInfo.email}
+                                  </div>
+                                )}
+                                {patientInfo.phone && (
+                                  <div>
+                                    <b>Phone Number:</b> {patientInfo.phone}
+                                  </div>
+                                )}
                               </div>
                             </td>
                             <td>
                               <div className={styles.programName}>{program.programName}</div>
                               <div className={styles.programDetails}>
-                                <div>Program ID: {program.unicValue}</div>
-                                <div>Created: {new Date(program.createdAt).toLocaleDateString()}</div>
+                                <div>
+                                  <b>Created at:</b> {new Date(program.createdAt).toLocaleDateString()}
+                                </div>
+                                <div>
+                                  <b>Number of Sessions:</b> {program.sessionInfo}
+                                </div>
+                                {program.completionPercentage > 0 && (
+                                  <div>
+                                    <b>Progress:</b> {program.completionPercentage}%
+                                  </div>
+                                )}
                               </div>
                             </td>
                             <td>
@@ -1128,7 +1036,7 @@ export function SpeechAppointments() {
                                 ) : (
                                   <>
                                     <Activity size={14} />
-                                    Active
+                                    In progress
                                   </>
                                 )}
                               </span>

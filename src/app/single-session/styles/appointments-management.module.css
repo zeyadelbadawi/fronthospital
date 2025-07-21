@@ -19,7 +19,7 @@
 
 /* Header Styles */
 .cardHeader {
-  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
   color: white;
   padding: 2.5rem;
   position: relative;

@@ -1,26 +1,29 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import AppSidebarUpdated from "./components/app-sidebar-updated"
 import MainContentUpdated from "./components/main-content-updated"
 import MasterLayout from "@/masterLayout/MasterLayout"
-import { isAuthenticated } from "./utils/auth-utils"
+import { isAuthenticated, getCurrentUserRole } from "./utils/auth-utils"
+import { FullProgramLoadingProgress } from "./components/full-program-loading-progress"
 import "./globals.css"
-import styles from "./styles/globals.module.css" // Assuming this is for general app layout
+import styles from "./styles/globals.module.css"
 import Breadcrumb from "@/components/Breadcrumb"
 import axiosInstance from "@/helper/axiosSetup"
 
 export default function FullProgramPage() {
   const [activeContent, setActiveContent] = useState("dashboard")
-  const [isAuth, setIsAuth] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true)
+  const [accessGranted, setAccessGranted] = useState(false)
   const [selectedAbaPatientId, setSelectedAbaPatientId] = useState(null)
   const [selectedOccupationalPatientId, setSelectedOccupationalPatientId] = useState(null)
   const [selectedPhysicalPatientId, setSelectedPhysicalPatientId] = useState(null)
   const [selectedSpecialPatientId, setSelectedSpecialPatientId] = useState(null)
   const [selectedSpeechPatientId, setSelectedSpeechPatientId] = useState(null)
+  const router = useRouter()
 
-  // States for the subscription checker (still needed for internal logic/logging)
+  // States for the subscription checker
   const [isCheckingSubscriptions, setIsCheckingSubscriptions] = useState(false)
   const [subscriptionCheckMessage, setSubscriptionCheckMessage] = useState("")
   const [subscriptionCheckError, setSubscriptionCheckError] = useState(false)
@@ -35,7 +38,6 @@ export default function FullProgramPage() {
       setSubscriptionCheckMessage(response.data.message || "Subscription check completed.")
       setSubscriptionCheckError(false)
       console.log("Subscription check results:", response.data.results)
-      // Optionally, you might want to refresh patient lists or dashboard data here
     } catch (error) {
       console.error("Error triggering manual subscription check:", error)
       setSubscriptionCheckMessage(error.response?.data?.message || "Failed to perform subscription check.")
@@ -46,22 +48,32 @@ export default function FullProgramPage() {
   }
 
   useEffect(() => {
-    const checkAuthAndRunChecker = async () => {
+    const checkAccess = () => {
       const authenticated = isAuthenticated()
-      setIsAuth(authenticated)
-      setLoading(false)
+      const userRole = getCurrentUserRole()
 
-      if (!authenticated) {
-        window.location.href = "/sign-in"
-      } else {
-        // Trigger the subscription check automatically if authenticated
-        console.log("Triggering automatic subscription check on page load...")
-        await handleManualSubscriptionCheck()
+      // Allowed roles for full program: admin, doctor, student, accountant
+      const allowedRoles = ["admin", "doctor", "student", "accountant"]
+
+      // If not authenticated or role not allowed, redirect immediately
+      if (!authenticated || !allowedRoles.includes(userRole)) {
+        router.replace("/error")
+        return
       }
+
+      // If access is granted, allow loading to proceed
+      setAccessGranted(true)
     }
 
-    checkAuthAndRunChecker()
-  }, []) // Empty dependency array means this runs once on mount
+    checkAccess()
+  }, [router])
+
+  const handleLoadingComplete = async () => {
+    setIsLoading(false)
+    // Trigger the subscription check after loading is complete
+    console.log("Triggering automatic subscription check after loading...")
+    await handleManualSubscriptionCheck()
+  }
 
   const handleContentChange = (content, patientId = null) => {
     console.log("handleContentChange called with content:", content, "and patientId:", patientId)
@@ -85,35 +97,17 @@ export default function FullProgramPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading Healthcare System...</p>
-        </div>
-      </div>
-    )
+  // Don't render anything until access is verified
+  if (!accessGranted) {
+    return null
   }
 
-  if (!isAuth) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center p-8 bg-white rounded-lg shadow-lg">
-          <div className="text-6xl mb-4">🔒</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Authentication Required</h2>
-          <p className="text-gray-600 mb-6">Please log in to access the Healthcare System.</p>
-          <button
-            onClick={() => (window.location.href = "/sign-in")}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
-          >
-            Go to Login
-          </button>
-        </div>
-      </div>
-    )
+  // Show loading progress if access is granted
+  if (isLoading) {
+    return <FullProgramLoadingProgress onComplete={handleLoadingComplete} />
   }
 
+  // Render the actual page content
   return (
     <MasterLayout>
       <Breadcrumb heading="Full Program" title="Full Program" />
@@ -130,9 +124,6 @@ export default function FullProgramPage() {
           onNavigateContent={handleContentChange}
         />
       </div>
-      {/* The manual subscription checker button and message display are removed */}
-      {/* You can add other full program management components here */}
-      {/* For example: <AccountantAppointments /> or other relevant UI */}
     </MasterLayout>
   )
 }

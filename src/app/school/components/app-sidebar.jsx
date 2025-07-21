@@ -1,61 +1,37 @@
 "use client"
-
-import { useState } from "react"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  SidebarHeader,
-} from "./ui/sidebar"
-import {
-  ChevronDown,
-  Users,
-  UserPlus,
-  Activity,
-  Brain,
-  Hand,
-  GraduationCap,
-  MessageSquare,
-  Calendar,
-} from "lucide-react"
+import { useState, useEffect } from "react"
+import { User, Calendar, ClipboardCheck, ChevronDown, ChevronRight, LogOut } from "lucide-react"
 import { useContentStore } from "../store/content-store"
+import { isAuthenticated, getCurrentUser, logout } from "../utils/auth-utils"
 import styles from "../styles/sidebar.module.css"
 
 const departments = [
- 
   {
     id: "school-up",
-    name: "School Evaulation Appointments",
-    icon: MessageSquare,
-    items: [
-      { id: "Up-appointments", name: "All Appointments", type: "appointments" },
-      ,
-    ],
+    name: "School Evaluation Appointments Management",
+    icon: Calendar,
+    items: [{ id: "Up-appointments", name: "All Appointments", type: "appointments" }],
   },
-
   {
     id: "school-p",
-    name: "School Evaulation Students",
-    icon: MessageSquare,
-    items: [
-      { id: "School-patients", name: "All Students", type: "patients" },
-    ],
+    name: "Evaluations sheets Management",
+    icon: ClipboardCheck,
+    items: [{ id: "School-patients", name: "All Evaluations sheets", type: "patients" }],
   },
-
 ]
-
-
 
 export function AppSidebar() {
   const [openSections, setOpenSections] = useState([])
+  const [user, setUser] = useState(null)
   const setActiveContent = useContentStore((state) => state.setActiveContent)
+  const [activeItem, setActiveItem] = useState(null)
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      const currentUser = getCurrentUser()
+      setUser(currentUser)
+    }
+  }, [])
 
   const toggleSection = (sectionId) => {
     setOpenSections((prev) => {
@@ -67,67 +43,92 @@ export function AppSidebar() {
     })
   }
 
-  const handleItemClick = (departmentId, itemType) => {
+  const handleItemClick = (departmentId, itemType, itemId) => {
     setActiveContent({
       department: departmentId,
       type: itemType,
     })
+    setActiveItem(itemId)
+  }
+
+  const handleLogout = () => {
+    logout()
+  }
+
+  if (!isAuthenticated()) {
+    return (
+      <div className={styles.sidebar}>
+        <div className={styles.sidebarContent}>
+          <div className={styles.loginPrompt}>
+            <User className={styles.loginIcon} />
+            <h3>Access Required</h3>
+            <p>Please log in to access the School Evaluation System.</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <Sidebar className={styles.customSidebar}>
-      <SidebarHeader className={styles.sidebarHeader}>
-        <h5 className={styles.sidebarTitle}></h5>
-      </SidebarHeader>
+    <div className={styles.sidebar}>
+      {/* Header */}
+      <div className={styles.sidebarHeader}>
+        {user && (
+          <div className={styles.userInfo}>
+            <div className={styles.userAvatar}>
+              <User className={styles.userAvatarIcon} />
+            </div>
+            <div className={styles.userDetails}>
+              <p className={styles.userRole}>{user.role} Dashboard</p>
+              <p className={styles.userId}>School Evaluation System</p>
+            </div>
+          </div>
+        )}
+      </div>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {departments.map((department) => {
-                const isOpen = openSections.includes(department.id)
-
-                return (
-                  <SidebarMenuItem key={department.id}>
-                    <SidebarMenuButton
-                      className={styles.sidebarMenuButton}
-                      onClick={() => toggleSection(department.id)}
-                    >
-                      <department.icon className={styles.sidebarIcon} />
-                      <span>{department.name}</span>
-                      <ChevronDown className={`${styles.chevronIcon} ${isOpen ? styles.chevronOpen : ""}`} />
-                    </SidebarMenuButton>
-
-                    {isOpen && (
-                      <div className={styles.subMenuContainer}>
-                        <SidebarMenuSub>
-                          {department.items.map((item) => (
-                            <SidebarMenuSubItem key={item.id}>
-                              <SidebarMenuSubButton
-                                onClick={() => handleItemClick(department.id, item.type)}
-                                className={styles.sidebarSubButton}
-                              >
-                                {item.type === "assign-patient" ? (
-                                  <UserPlus className={styles.sidebarSubIcon} />
-                                ) : item.type === "appointments" ? (
-                                  <Calendar className={styles.sidebarSubIcon} />
-                                ) : (
-                                  <Users className={styles.sidebarSubIcon} />
-                                )}
-                                <span>{item.name}</span>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      </div>
-                    )}
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+      {/* Navigation */}
+      <nav className={styles.sidebarNav}>
+        {departments.map((department) => {
+          const isOpen = openSections.includes(department.id)
+          return (
+            <div key={department.id} className={styles.navSection}>
+              <>
+                <button onClick={() => toggleSection(department.id)} className={styles.sectionHeader}>
+                  <div className={styles.sectionHeaderContent}>
+                    <department.icon className={styles.sectionIcon} />
+                    <span className={styles.sectionTitle}>{department.name}</span>
+                  </div>
+                  {isOpen ? (
+                    <ChevronDown className={styles.expandIcon} />
+                  ) : (
+                    <ChevronRight className={styles.expandIcon} />
+                  )}
+                </button>
+                {isOpen && (
+                  <div className={styles.sectionItems}>
+                    {department.items.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => handleItemClick(department.id, item.type, item.id)}
+                        className={`${styles.navItem} ${styles.subNavItem} ${activeItem === item.id ? styles.active : ""}`}
+                      >
+                        {item.type === "assign-patient" ? (
+                          <User className={styles.navIcon} />
+                        ) : item.type === "appointments" ? (
+                          <Calendar className={styles.navIcon} />
+                        ) : (
+                          <ClipboardCheck className={styles.navIcon} />
+                        )}
+                        <span className={styles.navLabel}>{item.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            </div>
+          )
+        })}
+      </nav>
+    </div>
   )
 }

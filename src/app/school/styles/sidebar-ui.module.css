@@ -54,7 +54,6 @@
 .sidebar {
   width: 280px;
   min-height: 100vh;
-  background: linear-gradient(180deg, var(--white) 0%, var(--gray-50) 100%);
   border-right: 2px solid var(--gray-200);
   display: flex;
   flex-direction: column;
@@ -62,6 +61,7 @@
   box-shadow: var(--shadow-lg);
   position: relative;
   z-index: 20;
+  margin-top: 45px;
 }
 
 .sidebar::before {
@@ -131,7 +131,6 @@
   flex: 1;
   overflow-y: auto;
   padding: 1rem 0;
-  background: linear-gradient(180deg, var(--white) 0%, var(--gray-50) 100%);
 }
 
 .sidebarContent::-webkit-scrollbar {

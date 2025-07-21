@@ -54,23 +54,23 @@ const HomeComFour = () => {
     ],
   }
 
-  useEffect(() => {
-    const fetchIncomeData = async () => {
-      try {
-        const { data } = await axiosInstance.get("/authentication/income-summary")
-        setNetIncome(data.netIncome)
-        setPendingMoney(data.pendingMoney)
-        setTotalIncome(data.totalIncome)
-        setSeries([data.netIncome, data.pendingMoney])
-      } catch (error) {
-        console.error("Error fetching income data:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
+  // useEffect(() => {
+  //   const fetchIncomeData = async () => {
+  //     try {
+  //       const { data } = await axiosInstance.get("/authentication/income-summary")
+  //       setNetIncome(data.netIncome)
+  //       setPendingMoney(data.pendingMoney)
+  //       setTotalIncome(data.totalIncome)
+  //       setSeries([data.netIncome, data.pendingMoney])
+  //     } catch (error) {
+  //       console.error("Error fetching income data:", error)
+  //     } finally {
+  //       setLoading(false)
+  //     }
+  //   }
 
-    fetchIncomeData()
-  }, [])
+  //   fetchIncomeData()
+  // }, [])
 
   if (loading) {
     return (

@@ -2,7 +2,7 @@
 
 import { SidebarInset, SidebarTrigger } from "./ui/sidebar"
 import { useContentStore } from "../store/content-store"
-import { SpeechAppointments } from "./speech-appointments"
+import { SchoolAppointments } from "./school-appointments"
 
 import AllPatientsSchool from "./all-patients-school"
 
@@ -14,7 +14,7 @@ export function MainContent() {
 
   const renderContent = () => {
     if (!activeContent) {
-      return <SpeechAppointments />
+      return <WelcomeView />
     }
 
     const { department, type } = activeContent
@@ -22,7 +22,7 @@ export function MainContent() {
 
  if (department === "school-up") {
       if (type === "appointments") {
-         return <SpeechAppointments />
+         return <SchoolAppointments />
        }
      }
 

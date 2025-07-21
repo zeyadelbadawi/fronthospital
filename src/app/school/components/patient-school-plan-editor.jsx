@@ -128,7 +128,7 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
   // SAVE FUNCTION - Same as before but without navigation
   const handleSave = async () => {
     if (!patientId || !unicValue) {
-      showErrorMessage("Missing required information to save plan")
+      showErrorMessage("Missing required information to save Sheet")
       return
     }
 
@@ -210,7 +210,7 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
           }))
         }
 
-        showSuccessMessage("Plan saved successfully!")
+        showSuccessMessage("Sheet saved successfully!")
         await fetchPlanStats() // Refresh stats after saving
       } else {
         console.error("Error saving document:", response.statusText)
@@ -325,12 +325,12 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
             <div className={styles.headerLeft}>
               <button onClick={handleBackToList} className={styles.backButton}>
                 <ArrowLeft className={styles.backIcon} />
-                Back to School Group Programs
+                Back to All Sheets
               </button>
               <div className={styles.studentInfo}>
                 <h1 className={styles.planTitle}>
                   <Brain className={styles.titleIcon} />
-                  School Evaluation Plan
+                  School Evaluation Sheet
                 </h1>
               </div>
             </div>
@@ -344,7 +344,7 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
                 ) : (
                   <>
                     <Save className={styles.saveIcon} />
-                    Save Plan
+                    Save Sheet
                   </>
                 )}
               </button>

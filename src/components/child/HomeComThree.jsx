@@ -10,21 +10,21 @@ const HomeComThree = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const res = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/doctors`)
-        setDoctors(res.data?.doctors?.slice(0, 6) || [])
-      } catch (err) {
-        console.error(err)
-        setError("Failed to load doctors")
-      } finally {
-        setLoading(false)
-      }
-    }
+  // useEffect(() => {
+  //   const fetchDoctors = async () => {
+  //     try {
+  //       const res = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/doctors`)
+  //       setDoctors(res.data?.doctors?.slice(0, 6) || [])
+  //     } catch (err) {
+  //       console.error(err)
+  //       setError("Failed to load doctors")
+  //     } finally {
+  //       setLoading(false)
+  //     }
+  //   }
 
-    fetchDoctors()
-  }, [])
+  //   fetchDoctors()
+  // }, [])
 
   if (loading) {
     return (

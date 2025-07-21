@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
-import { Search, ClipboardList, ClipboardCheck, Brain, Calendar, User, X, Hash, Clock, FileText } from "lucide-react"
+import { Search, ClipboardList, ClipboardCheck, Brain, Calendar, User, X, Hash, FileText } from "lucide-react"
 import axiosInstance from "@/helper/axiosSetup"
 import { useContentStore } from "../store/content-store"
 import PatientSchoolPlanEditor from "./patient-school-plan-editor"
@@ -140,6 +140,33 @@ const AllPatientsSchool = () => {
     }
   }
 
+  // Helper function to determine if a program is completed
+  const isProgramCompleted = (program) => {
+    return program.status?.toLowerCase() === "completed" || program.isCompleted === true
+  }
+
+  // Helper function to get the year from program data
+  const getProgramYear = (program) => {
+    if (program.createdAt) {
+      return new Date(program.createdAt).getFullYear()
+    }
+    if (program.updatedAt) {
+      return new Date(program.updatedAt).getFullYear()
+    }
+    return new Date().getFullYear()
+  }
+
+  // Helper function to get button class based on action type
+  const getActionButtonClass = (isCompleted, planExists) => {
+    if (isCompleted) {
+      return `${styles.actionButton} ${styles.viewButton}`
+    } else if (planExists) {
+      return `${styles.actionButton} ${styles.editButton}`
+    } else {
+      return `${styles.actionButton} ${styles.createButton}`
+    }
+  }
+
   // If a program is selected, show the plan editor
   if (selectedProgram) {
     return (
@@ -166,8 +193,8 @@ const AllPatientsSchool = () => {
                 Back to Dashboard
               </button>
               <div className={styles.titleSection}>
-                <h2 className={styles.pageTitle}>School Group Programs</h2>
-                <p className={styles.pageSubtitle}>Manage individual plans for each unique school program</p>
+                <h2 className={styles.pageTitle}>All School Evaluation Sheets</h2>
+                <p className={styles.pageSubtitle}>Manage individual School Evaluation Sheets for each Student</p>
               </div>
             </div>
             <div className={styles.headerActions}>
@@ -190,15 +217,15 @@ const AllPatientsSchool = () => {
             <div className={styles.statsContainer}>
               <div className={styles.statItem}>
                 <span className={styles.statNumber}>{totalPrograms}</span>
-                <span className={styles.statLabel}>Total Programs</span>
+                <span className={styles.statLabel}>Total Evaluations</span>
               </div>
               <div className={styles.statItem}>
                 <span className={styles.statNumber}>{programs.filter((p) => p.planExists).length}</span>
-                <span className={styles.statLabel}>With Plans</span>
+                <span className={styles.statLabel}>Evaluations With Sheets</span>
               </div>
               <div className={styles.statItem}>
                 <span className={styles.statNumber}>{programs.filter((p) => !p.planExists).length}</span>
-                <span className={styles.statLabel}>Need Plans</span>
+                <span className={styles.statLabel}>Evaluations Need Sheets</span>
               </div>
               <div className={styles.statItem}>
                 <span className={styles.statNumber}>
@@ -249,7 +276,7 @@ const AllPatientsSchool = () => {
                     <th>
                       <div className={styles.headerCell}>
                         <User className={styles.headerIcon} />
-                        Patient Name
+                        Student Name
                       </div>
                     </th>
                     <th>
@@ -258,22 +285,16 @@ const AllPatientsSchool = () => {
                         Program ID
                       </div>
                     </th>
-                    <th>
+                    <th className={styles.textCenter}>
                       <div className={styles.headerCell}>
                         <Calendar className={styles.headerIcon} />
-                        Sessions
-                      </div>
-                    </th>
-                    <th>
-                      <div className={styles.headerCell}>
-                        <Clock className={styles.headerIcon} />
-                        Time
+                        Number of Sessions
                       </div>
                     </th>
                     <th>
                       <div className={styles.headerCell}>
                         <Brain className={styles.headerIcon} />
-                        Description
+                        Student Description
                       </div>
                     </th>
                     <th>
@@ -285,80 +306,109 @@ const AllPatientsSchool = () => {
                     <th>
                       <div className={styles.headerCell}>
                         <FileText className={styles.headerIcon} />
-                        Plan
+                        Sheet
                       </div>
                     </th>
                     <th className={styles.textCenter}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {programs.map((program, index) => (
-                    <tr key={`${program.patientId}-${program.unicValue}` || index} className={styles.tableRow}>
-                      <td className={styles.indexCell}>{startIndex + index + 1}</td>
-                      <td className={styles.patientCell}>
-                        <div className={styles.patientInfo}>
-                          <span className={styles.patientName}>{program.patientName || "Unknown Patient"}</span>
-                          <span className={styles.patientId}>ID: {program.patientId?.slice(-8) || "N/A"}</span>
-                        </div>
-                      </td>
-                      <td className={styles.uniqueValueCell}>
-                        <div className={styles.uniqueValueInfo}>
-                          <span className={styles.uniqueValue}>{program.unicValue || "N/A"}</span>
-                        </div>
-                      </td>
-                      <td className={styles.sessionsCell}>
-                        <div className={styles.sessionsInfo}>
-                          <span className={styles.sessionsCount}>{program.totalSessions || 1}</span>
-                          <span className={styles.sessionsLabel}>sessions</span>
-                        </div>
-                      </td>
-                      <td className={styles.timeCell}>
-                        <span className={styles.timeValue}>{formatTime(program.time)}</span>
-                      </td>
-                      <td className={styles.descriptionCell}>
-                        <div className={styles.descriptionText} title={program.description}>
-                          {program.description || "No description"}
-                        </div>
-                      </td>
-                      <td className={styles.typeCell}>
-                        <span className={`${styles.typeBadge} ${getStatusBadgeClass(program.status)}`}>
-                          {program.status || "Unknown"}
-                        </span>
-                      </td>
-                      <td className={styles.planStatusCell}>
-                        <span
-                          className={`${styles.planBadge} ${program.planExists ? styles.planExists : styles.planMissing}`}
-                        >
-                          {program.planExists ? (
-                            <>
-                              <ClipboardCheck className={styles.planIcon} />
-                              Ready
-                            </>
-                          ) : (
-                            <>
-                              <ClipboardList className={styles.planIcon} />
-                              Needed
-                            </>
-                          )}
-                        </span>
-                      </td>
-                      <td className={styles.actionsCell}>
-                        <div className={styles.actionButtons}>
-                          <button
-                            onClick={() => handleViewPlan(program)}
-                            className={`${styles.actionButton} ${styles.editButton}`}
-                            title={program.planExists ? "Edit Program Plan" : "Create Program Plan"}
-                            disabled={!program.patientId || !program.unicValue}
-                          >
-                            <ClipboardList className={styles.actionIcon} />
-                            <span className={styles.actionText}>
-                              {program.planExists ? "Edit Plan" : "Create Plan"}
+                  {programs.map((program, index) => {
+                    const isCompleted = isProgramCompleted(program)
+                    const programYear = getProgramYear(program)
+
+                    // Calculate sequential number (reverse order so first created = 1)
+                    const sequentialNumber = totalPrograms - (startIndex + index)
+
+                    // Determine button text and title based on sheet status
+                    let actionButtonText = ""
+                    let actionButtonTitle = ""
+                    if (isCompleted) {
+                      actionButtonText = "View Plan"
+                      actionButtonTitle = "View School Evaluation Sheet"
+                    } else if (program.planExists) {
+                      actionButtonText = "Edit Sheet"
+                      actionButtonTitle = "Edit School Evaluation Sheet"
+                    } else {
+                      actionButtonText = "Create Sheet"
+                      actionButtonTitle = "Create School Evaluation Sheet"
+                    }
+
+                    return (
+                      <tr key={`${program.patientId}-${program.unicValue}` || index} className={styles.tableRow}>
+                        <td className={styles.indexCell}>{startIndex + index + 1}</td>
+                        <td className={styles.patientCell}>
+                          <div className={styles.patientInfo}>
+                            <span className={styles.patientName}>{program.patientName || "Unknown Student"}</span>
+                          </div>
+                        </td>
+                        <td className={styles.uniqueValueCell}>
+                          <div className={styles.uniqueValueInfo}>
+                            <span className={styles.uniqueValue}>
+                              {`School Evaluation ${sequentialNumber} (${programYear})`}
                             </span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                          </div>
+                        </td>
+                        <td className={styles.sessionsCell}>
+                          <div className={styles.sessionsInfo}>
+                            <span className={styles.sessionsCount}>{program.totalSessions || 1}</span>
+                            <span className={styles.sessionsLabel}>sessions</span>
+                          </div>
+                        </td>
+                        <td className={styles.descriptionCell}>
+                          <div className={styles.descriptionText} title={program.description}>
+                            {program.description || "No description"}
+                          </div>
+                        </td>
+                        <td className={styles.typeCell}>
+                          <span className={`${styles.typeBadge} ${getStatusBadgeClass(program.status)}`}>
+                            {program.status || "Unknown"}
+                          </span>
+                        </td>
+                        <td className={styles.planStatusCell}>
+                          <span
+                            className={`${styles.planBadge} ${
+                              isCompleted
+                                ? styles.planCompleted
+                                : program.planExists
+                                  ? styles.planExists
+                                  : styles.planMissing
+                            }`}
+                          >
+                            {isCompleted ? (
+                              <>
+                                <ClipboardCheck className={styles.planIcon} />
+                                Completed
+                              </>
+                            ) : program.planExists ? (
+                              <>
+                                <ClipboardCheck className={styles.planIcon} />
+                                In Progress
+                              </>
+                            ) : (
+                              <>
+                                <ClipboardList className={styles.planIcon} />
+                                Need Sheet
+                              </>
+                            )}
+                          </span>
+                        </td>
+                        <td className={styles.actionsCell}>
+                          <div className={styles.actionButtons}>
+                            <button
+                              onClick={() => handleViewPlan(program)}
+                              className={getActionButtonClass(isCompleted, program.planExists)}
+                              title={actionButtonTitle}
+                              disabled={!program.patientId || !program.unicValue}
+                            >
+                              <ClipboardList className={styles.actionIcon} />
+                              <span className={styles.actionText}>{actionButtonText}</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
