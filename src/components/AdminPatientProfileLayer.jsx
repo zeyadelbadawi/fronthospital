@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import axios from "axios"
+import axiosInstance from "@/helper/axiosSetup"
 import {
   User,
   Mail,
@@ -61,7 +61,7 @@ const AdminPatientProfileLayer = () => {
     if (patientId) {
       const fetchPatient = async () => {
         try {
-          const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/patient/${patientId}`)
+          const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/patient/${patientId}`)
           setPatient(response.data)
           setName(response.data.name)
           setEmail(response.data.email)
@@ -85,7 +85,7 @@ const AdminPatientProfileLayer = () => {
 
     setFullProgramLoading(true)
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/full/patient/${patientId}`)
+      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/full/patient/${patientId}`)
       setFullProgramData(response.data)
     } catch (error) {
       console.error("Error fetching full program data:", error)
@@ -101,7 +101,7 @@ const AdminPatientProfileLayer = () => {
 
     setSchoolLoading(true)
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/school/patient/${patientId}`)
+      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/school/patient/${patientId}`)
       setSchoolData(response.data)
     } catch (error) {
       console.error("Error fetching school data:", error)
@@ -133,7 +133,7 @@ const AdminPatientProfileLayer = () => {
     e.preventDefault()
     const updatedPatient = { name, email, phone, disabilityType, address, dateOfBirth }
     try {
-      const response = await axios.put(
+      const response = await axiosInstance.put(
         `${process.env.NEXT_PUBLIC_API_URL}/authentication/edit-patient/${patientId}`,
         updatedPatient,
       )
@@ -154,7 +154,7 @@ const AdminPatientProfileLayer = () => {
       return
     }
     try {
-      const response = await axios.put(
+      const response = await axiosInstance.put(
         `${process.env.NEXT_PUBLIC_API_URL}/authentication/patient-password/${patientId}`,
         { password: newPassword },
       )

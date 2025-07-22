@@ -16,38 +16,34 @@ import {
   AlertCircle,
 } from "lucide-react"
 import AccessControl from "./access-control"
-import AssignPatientsABADoctor from "./assign-patients-aba-doctor"
-import AssignPatientsOccupationalTherapyDoctor from "./assign-patients-occupational-therapy-doctor"
-import AssignPatientsPhysicalTherapyDoctor from "./assign-patients-physical-therapy-doctor"
-import AssignPatientsSpecialEducationDoctor from "./assign-patients-special-education-doctor"
-import AssignPatientsSpeechDoctor from "./assign-patients-speech-doctor"
-import AllPatientsABA from "./all-patients-aba"
-import AllPatientsSpeech from "./all-patients-speech"
-import AllPatientsPhysicalTherapy from "./all-patients-physical-therapy"
-import AllPatientsOccupationalTherapy from "./all-patients-occupational-therapy"
-import AllPatientsSpecialEducation from "./all-patients-special-education"
-import AdminAssignPhysicalTherapy from "./admin-assign-physical-therapy"
-import AdminAssignOccupationalTherapy from "./admin-assign-occupational-therapy"
-import AdminAssignSpecialEducation from "./admin-assign-special-education"
-import AdminAssignSpeech from "./admin-assign-speech"
-import AdminAssignABA from "./admin-assign-aba"
+import {
+  AssignPatientsABADoctor,
+  AssignPatientsSpeechDoctor,
+  AssignPatientsPhysicalTherapyDoctor,
+  AssignPatientsOccupationalTherapyDoctor,
+  AssignPatientsSpecialEducationDoctor,
+} from "./generic-assign-patients-doctor"
+import AllPatients from "./all-patients"
+import GenericAdminAssign from "./generic-admin-assign" // New import for generic component
 import DoctorPlan from "./DoctorPlan"
 import styles from "../styles/speech-upcoming-appointments.module.css"
 import { DoctorAppointments } from "./doctor-appointments"
 import { AccountantAppointments } from "./accountant-appointments"
 import { usePathname } from "next/navigation"
-import ABAPlanView from "./aba-plan-view"
-import ABAExamView from "./aba-exam-view"
-import OccupationalExamView from "./occupational-exam-view"
-import OccupationalPlanView from "./occupational-plan-view" 
-import PhysicalPlanView from "./physical-plan-view"
-import PhysicalExamView from "./physical-exam-view"
-import SpecialPlanView from "./special-plan-view"
-import SpeechPlanView from "./speech-plan-view"
-import SpeechExamView from "./speech-exam-view"
-import SpecialExamView from "./special-exam-view"
+import GenericPlanView from "./generic-plan-view"
+import GenericExamView from "./generic-exam-view"
+
 // Added onNavigateContent as a new prop
-const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccupationalPatientId, selectedPhysicalPatientId, selectedSpecialPatientId, selectedSpeechPatientId, onBackToDashboard, onNavigateContent }) => {
+const MainContentUpdated = ({
+  activeContent,
+  selectedAbaPatientId,
+  selectedOccupationalPatientId,
+  selectedPhysicalPatientId,
+  selectedSpecialPatientId,
+  selectedSpeechPatientId,
+  onBackToDashboard,
+  onNavigateContent,
+}) => {
   const user = getCurrentUser()
   const pathname = usePathname()
   const [dashboardData, setDashboardData] = useState({
@@ -410,7 +406,7 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
   const renderContent = () => {
     console.log("MainContentUpdated - activeContent:", activeContent)
     console.log("MainContentUpdated - selectedAbaPatientId:", selectedAbaPatientId)
-    
+
     console.log("MainContentUpdated - user role:", user?.role)
     console.log("MainContentUpdated - doctorDepartment:", doctorDepartment)
 
@@ -521,10 +517,10 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
                 {user?.role === "admin" && (
                   <>
                     <div style={{ marginBottom: "2rem" }}>
-                      <h2 className={styles.sectionTitle}>
+                      <h3 className={styles.sectionTitle}>
                         <Heart className={styles.sectionIcon} />
                         Department Overview
-                      </h2>
+                      </h3>
                       <div className={styles.sectionDivider}></div>
                     </div>
                     <div className={styles.departmentGrid}>
@@ -535,7 +531,7 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
                               <dept.icon className={styles.departmentIconSvg} />
                             </div>
                             <div className={styles.departmentInfo}>
-                              <h3 className={styles.departmentTitle}>{dept.title}</h3>
+                              <h4 className={styles.departmentTitle}>{dept.title}</h4>
                               <p className={styles.departmentDescription}>{dept.description}</p>
                             </div>
                           </div>
@@ -547,10 +543,6 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
                             <div className={styles.departmentStat}>
                               <span className={styles.departmentStatValue}>{dept.stats.doctors}</span>
                               <span className={styles.departmentStatLabel}>Doctors</span>
-                            </div>
-                            <div className={styles.departmentStat}>
-                              <span className={styles.departmentStatValue}>{dept.stats.sessions}</span>
-                              <span className={styles.departmentStatLabel}>Assignments</span>
                             </div>
                           </div>
                         </div>
@@ -617,7 +609,7 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
       case "all-patients-aba":
         return (
           <AccessControl allowedRoles={["admin"]}>
-            <AllPatientsABA />
+            <AllPatients contentType="all-patients-aba" />
           </AccessControl>
         )
 
@@ -633,14 +625,14 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
       case "admin-assign-aba":
         return (
           <AccessControl allowedRoles={["admin"]}>
-            <AdminAssignABA />
+            <GenericAdminAssign department="aba" />
           </AccessControl>
         )
 
       case "aba-assignments-table":
         return (
           <AccessControl allowedRoles={["admin"]}>
-            <AllPatientsABA />
+            <AllPatients contentType="all-patients-aba" />
           </AccessControl>
         )
 
@@ -680,7 +672,7 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
         }
 
         if (hasAccessABA && selectedAbaPatientId) {
-          return <ABAPlanView patientId={selectedAbaPatientId} onBack={onBackToDashboard} />
+          return <GenericPlanView department="aba" patientId={selectedAbaPatientId} onBack={onBackToDashboard} />
         } else if (hasAccessABA && !selectedAbaPatientId) {
           return (
             <div className={styles.upcomingContainer}>
@@ -752,7 +744,7 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
         }
 
         if (hasAccessABAExam && selectedAbaPatientId) {
-          return <ABAExamView patientId={selectedAbaPatientId} onBack={onBackToDashboard} />
+          return <GenericExamView department="aba" patientId={selectedAbaPatientId} onBack={onBackToDashboard} />
         } else if (hasAccessABAExam && !selectedAbaPatientId) {
           return (
             <div className={styles.upcomingContainer}>
@@ -841,16 +833,14 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
               } else {
                 return (
                   <div className={styles.upcomingContainer}>
-                    <div className={styles.upcomingCard}>
-                      <div className={styles.cardBody}>
-                        <div className={styles.comingSoon}>
-                          <Shield className={styles.comingSoonIcon} />
-                          <h3>Access Denied</h3>
-                          <p>You don't have access to ABA department plans.</p>
-                          <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
-                            Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
-                          </p>
-                        </div>
+                    <div className={styles.cardBody}>
+                      <div className={styles.comingSoon}>
+                        <Shield className={styles.comingSoonIcon} />
+                        <h3>Access Denied</h3>
+                        <p>You don't have access to ABA department plans.</p>
+                        <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
+                          Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -863,32 +853,33 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
       case "all-patients-speech":
         return (
           <AccessControl allowedRoles={["admin"]}>
-            <AllPatientsSpeech />
+            <AllPatients contentType="all-patients-speech" />
           </AccessControl>
         )
 
       case "assign-patients-speech":
         return (
           <AccessControl allowedRoles={["doctor"]}>
-        <AssignPatientsSpeechDoctor onViewSpeechPlan={onNavigateContent} onViewSpeechExam={onNavigateContent} />{" "}
-
+            <AssignPatientsSpeechDoctor
+              onViewSpeechPlan={onNavigateContent}
+              onViewSpeechExam={onNavigateContent}
+            />{" "}
           </AccessControl>
         )
 
       case "admin-assign-speech":
         return (
           <AccessControl allowedRoles={["admin"]}>
-            <AdminAssignSpeech />
+            <GenericAdminAssign department="speech" />
           </AccessControl>
         )
 
       case "speech-assignments-table":
         return (
           <AccessControl allowedRoles={["admin"]}>
-            <AllPatientsSpeech />
+            <AllPatients contentType="all-patients-speech" />
           </AccessControl>
         )
-
 
       case "speech-plan-editor":
         const hasAccessSpeech = doctorDepartment?.some((dept) => dept.name === "speech")
@@ -926,7 +917,7 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
         }
 
         if (hasAccessSpeech && selectedSpeechPatientId) {
-          return <SpeechPlanView patientId={selectedSpeechPatientId} onBack={onBackToDashboard} />
+          return <GenericPlanView department="speech" patientId={selectedSpeechPatientId} onBack={onBackToDashboard} />
         } else if (hasAccessSpeech && !selectedSpeechPatientId) {
           return (
             <div className={styles.upcomingContainer}>
@@ -963,7 +954,6 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
       case "speech-exam-editor": // NEW CASE FOR speech EXAM EDITOR
         console.log("Inside speech-exam-editor case. selectedSpeechPatientId:", selectedSpeechPatientId)
         const hasAccessSpeechExam = doctorDepartment?.some((dept) => dept.name === "speech")
-        console.log("Inside speech-exam-editor case. hasAccess (speech):", hasAccessABAExam)
 
         if (user?.role !== "doctor") {
           return (
@@ -998,7 +988,7 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
         }
 
         if (hasAccessSpeechExam && selectedSpeechPatientId) {
-          return <SpeechExamView patientId={selectedSpeechPatientId} onBack={onBackToDashboard} />
+          return <GenericExamView department="speech" patientId={selectedSpeechPatientId} onBack={onBackToDashboard} />
         } else if (hasAccessSpeechExam && !selectedSpeechPatientId) {
           return (
             <div className={styles.upcomingContainer}>
@@ -1031,8 +1021,6 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
             </div>
           )
         }
-
-
 
       case "doctor-plan-speech":
         return (
@@ -1109,37 +1097,34 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
       case "all-patients-physical-therapy":
         return (
           <AccessControl allowedRoles={["admin"]}>
-            <AllPatientsPhysicalTherapy />
+            <AllPatients contentType="all-patients-physical-therapy" />
           </AccessControl>
         )
 
       case "assign-patients-physical-therapy":
         return (
           <AccessControl allowedRoles={["doctor"]}>
-     <AssignPatientsPhysicalTherapyDoctor onViewPhysicalPlan={onNavigateContent} onViewPhysicalExam={onNavigateContent} />{" "}
-
+            <AssignPatientsPhysicalTherapyDoctor
+              onViewPhysicalPlan={onNavigateContent}
+              onViewPhysicalExam={onNavigateContent}
+            />{" "}
           </AccessControl>
         )
 
       case "admin-assign-physical-therapy":
         return (
           <AccessControl allowedRoles={["admin"]}>
-            <AdminAssignPhysicalTherapy />
+            <GenericAdminAssign department="physicalTherapy" />
           </AccessControl>
         )
 
       case "physical-therapy-assignments-table":
         return (
           <AccessControl allowedRoles={["admin"]}>
-            <AllPatientsPhysicalTherapy />
+            <AllPatients contentType="all-patients-physical-therapy" />
           </AccessControl>
         )
 
-
-
-
-
-        
       case "physical-plan-editor":
         const hasAccessPhysical = doctorDepartment?.some((dept) => dept.name === "physicalTherapy")
 
@@ -1176,7 +1161,9 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
         }
 
         if (hasAccessPhysical && selectedPhysicalPatientId) {
-          return <PhysicalPlanView patientId={selectedPhysicalPatientId} onBack={onBackToDashboard} />
+          return (
+            <GenericPlanView department="physical" patientId={selectedPhysicalPatientId} onBack={onBackToDashboard} />
+          )
         } else if (hasAccessPhysical && !selectedPhysicalPatientId) {
           return (
             <div className={styles.upcomingContainer}>
@@ -1248,7 +1235,9 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
         }
 
         if (hasAccessPhysicalExam && selectedPhysicalPatientId) {
-          return <PhysicalExamView patientId={selectedPhysicalPatientId} onBack={onBackToDashboard} />
+          return (
+            <GenericExamView department="physical" patientId={selectedPhysicalPatientId} onBack={onBackToDashboard} />
+          )
         } else if (hasAccessPhysicalExam && !selectedPhysicalPatientId) {
           return (
             <div className={styles.upcomingContainer}>
@@ -1281,10 +1270,6 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
             </div>
           )
         }
-
-
-
-
 
       case "doctor-plan-physical-therapy":
         return (
@@ -1361,181 +1346,193 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
       case "all-patients-occupational-therapy":
         return (
           <AccessControl allowedRoles={["admin"]}>
-            <AllPatientsOccupationalTherapy />
+            <AllPatients contentType="all-patients-occupational-therapy" />
           </AccessControl>
         )
 
       case "assign-patients-occupational-therapy":
         return (
           <AccessControl allowedRoles={["doctor"]}>
-            <AssignPatientsOccupationalTherapyDoctor onViewoccupationalPlan={onNavigateContent} onViewoccupationalExam={onNavigateContent} />{" "}
-
+            <AssignPatientsOccupationalTherapyDoctor
+              onViewoccupationalPlan={onNavigateContent}
+              onViewoccupationalExam={onNavigateContent}
+            />{" "}
           </AccessControl>
         )
 
       case "admin-assign-occupational-therapy":
         return (
           <AccessControl allowedRoles={["admin"]}>
-            <AdminAssignOccupationalTherapy />
+            <GenericAdminAssign department="OccupationalTherapy" />
           </AccessControl>
         )
 
       case "occupational-therapy-assignments-table":
         return (
           <AccessControl allowedRoles={["admin"]}>
-            <AllPatientsOccupationalTherapy />
+            <AllPatients contentType="all-patients-occupational-therapy" />
           </AccessControl>
         )
 
+      case "occupational-plan-editor":
+        const hasAccessOccupational = doctorDepartment?.some((dept) => dept.name === "OccupationalTherapy")
 
+        if (user?.role !== "doctor") {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Access Denied</h3>
+                    <p>Only doctors can access department plans.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
 
+        if (!doctorDepartment || doctorDepartment.length === 0) {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Loading...</h3>
+                    <p>Loading your department information...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
 
+        if (hasAccessOccupational && selectedOccupationalPatientId) {
+          return (
+            <GenericPlanView
+              department="occupational"
+              patientId={selectedOccupationalPatientId}
+              onBack={onBackToDashboard}
+            />
+          )
+        } else if (hasAccessOccupational && !selectedOccupationalPatientId) {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Users className={styles.comingSoonIcon} />
+                    <h3>No Patient Selected</h3>
+                    <p>Please select a patient from "My Occupational Therapy Students" to view their plan.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        } else {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Access Denied</h3>
+                    <p>You don't have access to Occupational therapy department plans.</p>
+                    <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
+                      Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
 
-        case "occupational-plan-editor":
-            const hasAccessOccupational = doctorDepartment?.some((dept) => dept.name === "OccupationalTherapy")
+      case "occupational-exam-editor": // NEW CASE FOR Occupational EXAM EDITOR
+        console.log(
+          "Inside Occupational-exam-editor case. selectedOccupationalPatientId:",
+          selectedOccupationalPatientId,
+        )
+        const hasAccessOccupationalExam = doctorDepartment?.some((dept) => dept.name === "OccupationalTherapy")
+        console.log(
+          "Inside OccupationalTherapy-exam-editor case. hasAccess (OccupationalTherapy):",
+          hasAccessOccupationalExam,
+        )
 
-            if (user?.role !== "doctor") {
-            return (
-                <div className={styles.upcomingContainer}>
-                <div className={styles.upcomingCard}>
-                    <div className={styles.cardBody}>
-                    <div className={styles.comingSoon}>
-                        <Shield className={styles.comingSoonIcon} />
-                        <h3>Access Denied</h3>
-                        <p>Only doctors can access department plans.</p>
-                    </div>
-                    </div>
+        if (user?.role !== "doctor") {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Access Denied</h3>
+                    <p>Only doctors can access department exams.</p>
+                  </div>
                 </div>
-                </div>
-            )
-            }
+              </div>
+            </div>
+          )
+        }
 
-            if (!doctorDepartment || doctorDepartment.length === 0) {
-            return (
-                <div className={styles.upcomingContainer}>
-                <div className={styles.upcomingCard}>
-                    <div className={styles.cardBody}>
-                    <div className={styles.comingSoon}>
-                        <Shield className={styles.comingSoonIcon} />
-                        <h3>Loading...</h3>
-                        <p>Loading your department information...</p>
-                    </div>
-                    </div>
+        if (!doctorDepartment || doctorDepartment.length === 0) {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Loading...</h3>
+                    <p>Loading your department information...</p>
+                  </div>
                 </div>
-                </div>
-            )
-            }
+              </div>
+            </div>
+          )
+        }
 
-            if (hasAccessOccupational && selectedOccupationalPatientId) {
-            return <OccupationalPlanView patientId={selectedOccupationalPatientId} onBack={onBackToDashboard} />
-            } else if (hasAccessOccupational && !selectedOccupationalPatientId) {
-            return (
-                <div className={styles.upcomingContainer}>
-                <div className={styles.upcomingCard}>
-                    <div className={styles.cardBody}>
-                    <div className={styles.comingSoon}>
-                        <Users className={styles.comingSoonIcon} />
-                        <h3>No Patient Selected</h3>
-                        <p>Please select a patient from "My Occupational Therapy Students" to view their plan.</p>
-                    </div>
-                    </div>
+        if (hasAccessOccupationalExam && selectedOccupationalPatientId) {
+          return (
+            <GenericExamView
+              department="occupational"
+              patientId={selectedOccupationalPatientId}
+              onBack={onBackToDashboard}
+            />
+          )
+        } else if (hasAccessOccupationalExam && !selectedOccupationalPatientId) {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Users className={styles.comingSoonIcon} />
+                    <h3>No Patient Selected</h3>
+                    <p>Please select a patient from "My Occupational Therapy Students" to view their exam.</p>
+                  </div>
                 </div>
+              </div>
+            </div>
+          )
+        } else {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Access Denied</h3>
+                    <p>You don't have access to Occupational Therapy department exams.</p>
+                    <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
+                      Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
+                    </p>
+                  </div>
                 </div>
-            )
-            } else {
-            return (
-                <div className={styles.upcomingContainer}>
-                <div className={styles.upcomingCard}>
-                    <div className={styles.cardBody}>
-                    <div className={styles.comingSoon}>
-                        <Shield className={styles.comingSoonIcon} />
-                        <h3>Access Denied</h3>
-                        <p>You don't have access to Occupational therapy department plans.</p>
-                        <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
-                        Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
-                        </p>
-                    </div>
-                    </div>
-                </div>
-                </div>
-            )
-            }
-
-        case "occupational-exam-editor": // NEW CASE FOR Occupational EXAM EDITOR
-            console.log("Inside Occupational-exam-editor case. selectedOccupationalPatientId:", selectedOccupationalPatientId)
-            const hasAccessOccupationalExam = doctorDepartment?.some((dept) => dept.name === "OccupationalTherapy")
-            console.log("Inside OccupationalTherapy-exam-editor case. hasAccess (OccupationalTherapy):", hasAccessOccupationalExam)
-
-            if (user?.role !== "doctor") {
-            return (
-                <div className={styles.upcomingContainer}>
-                <div className={styles.upcomingCard}>
-                    <div className={styles.cardBody}>
-                    <div className={styles.comingSoon}>
-                        <Shield className={styles.comingSoonIcon} />
-                        <h3>Access Denied</h3>
-                        <p>Only doctors can access department exams.</p>
-                    </div>
-                    </div>
-                </div>
-                </div>
-            )
-            }
-
-            if (!doctorDepartment || doctorDepartment.length === 0) {
-            return (
-                <div className={styles.upcomingContainer}>
-                <div className={styles.upcomingCard}>
-                    <div className={styles.cardBody}>
-                    <div className={styles.comingSoon}>
-                        <Shield className={styles.comingSoonIcon} />
-                        <h3>Loading...</h3>
-                        <p>Loading your department information...</p>
-                    </div>
-                    </div>
-                </div>
-                </div>
-            )
-            }
-
-            if (hasAccessOccupationalExam && selectedOccupationalPatientId) {
-            return <OccupationalExamView patientId={selectedOccupationalPatientId} onBack={onBackToDashboard} />
-            } else if (hasAccessOccupationalExam && !selectedOccupationalPatientId) {
-            return (
-                <div className={styles.upcomingContainer}>
-                <div className={styles.upcomingCard}>
-                    <div className={styles.cardBody}>
-                    <div className={styles.comingSoon}>
-                        <Users className={styles.comingSoonIcon} />
-                        <h3>No Patient Selected</h3>
-                        <p>Please select a patient from "My Occupational Therapy Students" to view their exam.</p>
-                    </div>
-                    </div>
-                </div>
-                </div>
-            )
-            } else {
-            return (
-                <div className={styles.upcomingContainer}>
-                <div className={styles.upcomingCard}>
-                    <div className={styles.cardBody}>
-                    <div className={styles.comingSoon}>
-                        <Shield className={styles.comingSoonIcon} />
-                        <h3>Access Denied</h3>
-                        <p>You don't have access to Occupational Therapy department exams.</p>
-                        <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
-                        Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
-                        </p>
-                    </div>
-                    </div>
-                </div>
-                </div>
-            )
-            }
-
-
-
-
+              </div>
+            </div>
+          )
+        }
 
       case "doctor-plan-occupational-therapy":
         return (
@@ -1612,35 +1609,34 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
       case "all-patients-special-education":
         return (
           <AccessControl allowedRoles={["admin"]}>
-            <AllPatientsSpecialEducation />
+            <AllPatients contentType="all-patients-special-education" />
           </AccessControl>
         )
 
       case "assign-patients-special-education":
         return (
           <AccessControl allowedRoles={["doctor"]}>
-            <AssignPatientsSpecialEducationDoctor onViewSpecialPlan={onNavigateContent} onViewSpecialExam={onNavigateContent} />{" "}
-
+            <AssignPatientsSpecialEducationDoctor
+              onViewSpecialPlan={onNavigateContent}
+              onViewSpecialExam={onNavigateContent}
+            />{" "}
           </AccessControl>
         )
 
       case "admin-assign-special-education":
         return (
           <AccessControl allowedRoles={["admin"]}>
-            <AdminAssignSpecialEducation />
+            <GenericAdminAssign department="SpecialEducation" />
           </AccessControl>
         )
 
       case "special-education-assignments-table":
         return (
           <AccessControl allowedRoles={["admin"]}>
-            <AllPatientsSpecialEducation />
+            <AllPatients contentType="all-patients-special-education" />
           </AccessControl>
         )
 
-
-
-        
       case "special-plan-editor":
         const hasAccessSpecial = doctorDepartment?.some((dept) => dept.name === "SpecialEducation")
 
@@ -1677,7 +1673,9 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
         }
 
         if (hasAccessSpecial && selectedSpecialPatientId) {
-          return <SpecialPlanView patientId={selectedSpecialPatientId} onBack={onBackToDashboard} />
+          return (
+            <GenericPlanView department="special" patientId={selectedSpecialPatientId} onBack={onBackToDashboard} />
+          )
         } else if (hasAccessSpecial && !selectedSpecialPatientId) {
           return (
             <div className={styles.upcomingContainer}>
@@ -1749,7 +1747,9 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
         }
 
         if (hasAccessSpecialExam && selectedSpecialPatientId) {
-          return <SpecialExamView patientId={selectedSpecialPatientId} onBack={onBackToDashboard} />
+          return (
+            <GenericExamView department="special" patientId={selectedSpecialPatientId} onBack={onBackToDashboard} />
+          )
         } else if (hasAccessSpecialExam && !selectedSpecialPatientId) {
           return (
             <div className={styles.upcomingContainer}>
@@ -1782,7 +1782,6 @@ const MainContentUpdated = ({ activeContent, selectedAbaPatientId, selectedOccup
             </div>
           )
         }
-
 
       case "doctor-plan-special-education":
         return (

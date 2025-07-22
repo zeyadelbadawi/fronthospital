@@ -144,7 +144,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           label: "Dashboard",
           icon: Home,
           content: "dashboard",
-          roles: ["admin", "doctor", "patient", "accountant"],
+          roles: ["admin", "doctor", "accountant"],
         },
         {
           id: "doctor-appointments",
@@ -173,7 +173,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
       items: [
         {
           id: "all-patients-aba",
-          label: "All ABA Patients",
+          label: "All ABA Students",
           icon: Users,
           content: "all-patients-aba",
           roles: ["admin"],
@@ -187,7 +187,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
         },
         {
           id: "doctor-plan-aba", // Added Plans for ABA
-          label: "ABA Plans",
+          label: "Current Plan",
           icon: FileText,
           content: "doctor-plan-aba",
           roles: ["doctor"],
@@ -195,18 +195,12 @@ const AppSidebarUpdated = ({ onContentChange }) => {
        
         {
           id: "admin-assign-aba",
-          label: "Admin Assign ABA",
+          label: "Assign Student to Doctor",
           icon: Settings,
           content: "admin-assign-aba",
           roles: ["admin"],
         },
-        {
-          id: "aba-assignments-table",
-          label: "ABA Assignments",
-          icon: BookOpen,
-          content: "aba-assignments-table",
-          roles: ["admin"],
-        },
+       
       ],
     },
     {
@@ -220,7 +214,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
       items: [
         {
           id: "all-patients-speech",
-          label: "All Speech Patients",
+          label: "All Speech Students",
           icon: Users,
           content: "all-patients-speech",
           roles: ["admin"],
@@ -234,7 +228,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
         },
         {
           id: "doctor-plan-speech", // Added Plans for Speech
-          label: "Speech Plans",
+          label: "Current Plan",
           icon: FileText,
           content: "doctor-plan-speech",
           roles: ["doctor"],
@@ -242,18 +236,12 @@ const AppSidebarUpdated = ({ onContentChange }) => {
 
         {
           id: "admin-assign-speech",
-          label: "Admin Assign Speech",
+          label: "Assign Student to Doctors",
           icon: Settings,
           content: "admin-assign-speech",
           roles: ["admin"],
         },
-        {
-          id: "speech-assignments-table",
-          label: "Speech Assignments",
-          icon: BookOpen,
-          content: "speech-assignments-table",
-          roles: ["admin"],
-        },
+        
       ],
     },
     {
@@ -267,7 +255,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
       items: [
         {
           id: "all-patients-physical-therapy",
-          label: "All PT Patients",
+          label: "All PT Students",
           icon: Users,
           content: "all-patients-physical-therapy",
           roles: ["admin"],
@@ -281,7 +269,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
         },
         {
           id: "doctor-plan-physical-therapy", // Added Plans for Physical Therapy
-          label: "PT Plans",
+          label: "Current Plan",
           icon: FileText,
           content: "doctor-plan-physical-therapy",
           roles: ["doctor"],
@@ -289,18 +277,12 @@ const AppSidebarUpdated = ({ onContentChange }) => {
 
         {
           id: "admin-assign-physical-therapy",
-          label: "Admin Assign PT",
+          label: "Assign Student to Doctors",
           icon: Settings,
           content: "admin-assign-physical-therapy",
           roles: ["admin"],
         },
-        {
-          id: "physical-therapy-assignments-table",
-          label: "PT Assignments",
-          icon: BookOpen,
-          content: "physical-therapy-assignments-table",
-          roles: ["admin"],
-        },
+       
       ],
     },
     {
@@ -314,7 +296,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
       items: [
         {
           id: "all-patients-occupational-therapy",
-          label: "All OT Patients",
+          label: "All OT Students",
           icon: Users,
           content: "all-patients-occupational-therapy",
           roles: ["admin"],
@@ -328,7 +310,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
         },
         {
           id: "doctor-plan-occupational-therapy", // Added Plans for Occupational Therapy
-          label: "OT Plans",
+          label: "Current Plan",
           icon: FileText,
           content: "doctor-plan-occupational-therapy",
           roles: ["doctor"],
@@ -336,18 +318,12 @@ const AppSidebarUpdated = ({ onContentChange }) => {
 
         {
           id: "admin-assign-occupational-therapy",
-          label: "Admin Assign OT",
+          label: "Assign Student to Doctors",
           icon: Settings,
           content: "admin-assign-occupational-therapy",
           roles: ["admin"],
         },
-        {
-          id: "occupational-therapy-assignments-table",
-          label: "OT Assignments",
-          icon: BookOpen,
-          content: "occupational-therapy-assignments-table",
-          roles: ["admin"],
-        },
+       
       ],
     },
     {
@@ -361,7 +337,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
       items: [
         {
           id: "all-patients-special-education",
-          label: "All SE Patients",
+          label: "All SE Students",
           icon: Users,
           content: "all-patients-special-education",
           roles: ["admin"],
@@ -375,7 +351,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
         },
         {
           id: "doctor-plan-special-education", // Added Plans for Special Education
-          label: "SE Plans",
+          label: "Current Plan",
           icon: FileText,
           content: "doctor-plan-special-education",
           roles: ["doctor"],
@@ -383,18 +359,12 @@ const AppSidebarUpdated = ({ onContentChange }) => {
 
         {
           id: "admin-assign-special-education",
-          label: "Admin Assign SE",
+          label: "Assign Student to Doctors",
           icon: Settings,
           content: "admin-assign-special-education",
           roles: ["admin"],
         },
-        {
-          id: "special-education-assignments-table",
-          label: "SE Assignments",
-          icon: BookOpen,
-          content: "special-education-assignments-table",
-          roles: ["admin"],
-        },
+       
       ],
     },
   ]
