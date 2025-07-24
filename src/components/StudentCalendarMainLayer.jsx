@@ -12,6 +12,65 @@ const StudentCalendarMainLayer = () => {
   const [user, setUser] = useState(null)
   const { language } = useLanguage()
 
+  // Add this function at the top of the component
+  const decodeToken = (token) => {
+    try {
+      const base64Url = token.split(".")[1]
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/")
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join(""),
+      )
+      return JSON.parse(jsonPayload)
+    } catch (error) {
+      console.error("Error decoding token:", error)
+      return null
+    }
+  }
+
+  // Alternative getCurrentUser function using token verification
+  const getCurrentUserFromToken = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        console.error("No token found")
+        return null
+      }
+
+      // Decode token to get user info
+      const decodedToken = decodeToken(token)
+      if (!decodedToken) {
+        console.error("Invalid token")
+        return null
+      }
+
+      // Verify role is patient
+      if (decodedToken.role !== "patient") {
+        console.error("Access denied: User is not a Student")
+        window.location.href = "/unauthorized"
+        return null
+      }
+
+      // Still call the profile endpoint for complete user data
+      const response = await axiosInstance.get("/authentication/profile")
+      const userData = response.data
+
+      // Double-check role matches token
+      if (userData.role !== decodedToken.role) {
+        console.error("Token role mismatch")
+        return null
+      }
+
+      setUser(userData)
+      return userData
+    } catch (error) {
+      console.log("Error getting current user:", error.response)
+      return null
+    }
+  }
+
   // Get current user profile
   const getCurrentUser = async () => {
     try {
@@ -20,7 +79,8 @@ const StudentCalendarMainLayer = () => {
 
       // Verify user role is patient
       if (userData.role !== "patient") {
-        console.error("Access denied: User is not a patient")
+        console.error("Access denied: User is not a Student")
+        // Redirect to appropriate page or show error
         window.location.href = "/unauthorized"
         return null
       }
@@ -79,9 +139,12 @@ const StudentCalendarMainLayer = () => {
 
   useEffect(() => {
     const initializeStudentCalendar = async () => {
-      const currentUser = await getCurrentUser()
-      if (currentUser && currentUser.id) {
+      const currentUser = await getCurrentUserFromToken()
+      if (currentUser && currentUser.id && currentUser.role === "patient") {
         await getStudentAppointments(currentUser.id)
+      } else if (currentUser && currentUser.role !== "patient") {
+        // Handle non-patient users
+        console.error("Access denied: Only Students can view this calendar")
       }
     }
 

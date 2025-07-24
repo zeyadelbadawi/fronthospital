@@ -1,94 +1,28 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import axiosInstance from "@/helper/axiosSetup";
-import { convertUTCTo12Hour, generateTimeString } from "@/helper/DateTime";
+import { useState, useEffect } from "react"
+import axiosInstance from "@/helper/axiosSetup"
+import { generateTimeString } from "@/helper/DateTime"
+import styles from "@/styles/add-appointments.module.css"
+import Breadcrumb from "@/components/Breadcrumb";
+import MasterLayout from "@/masterLayout/MasterLayout";
 
-const departments = [
-  "PhysicalTherapy",
-  "ABA",
-  "OccupationalTherapy",
-  "SpecialEducation",
-  "Speech",
-  "ay7aga",
-];
+const departments = ["PhysicalTherapy", "ABA", "OccupationalTherapy", "SpecialEducation", "Speech", "ay7aga"]
+const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
-const daysOfWeek = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
-
-//const doctors = ["alice", "bob", "charlie", "dave", "eve"];
-
-/* ---------------------------------- */
 const isEndTimeAfterStartTime = (startTime, endTime) => {
-  if (!startTime || !endTime) return true;
+  if (!startTime || !endTime) return true
+  const startHour = Number.parseInt(startTime.split(":")[0])
+  const startMinute = Number.parseInt(startTime.split(":")[1])
+  const endHour = Number.parseInt(endTime.split(":")[0])
+  const endMinute = Number.parseInt(endTime.split(":")[1])
 
-  const startHour = Number.parseInt(startTime.split(":")[0]);
-  const startMinute = Number.parseInt(startTime.split(":")[1]);
-  const endHour = Number.parseInt(endTime.split(":")[0]);
-  const endMinute = Number.parseInt(endTime.split(":")[1]);
+  const startTotalMinutes = startHour * 60 + startMinute
+  const endTotalMinutes = endHour * 60 + endMinute
 
-  // Convert to minutes for accurate comparison
-  const startTotalMinutes = startHour * 60 + startMinute;
-  const endTotalMinutes = endHour * 60 + endMinute;
-
-  // Check if end time is after start time AND has at least 30 minutes difference
-  const timeDifference = endTotalMinutes - startTotalMinutes;
-  return timeDifference >= 30;
-};
-
-/* const generateTimeString = (time, day) => {
-  // Get today's date in UTC
-  const today = new Date();
-  const currentDayIndex = today.getUTCDay(); // Use UTC day
-  const targetDayIndex = daysOfWeek.indexOf(day);
-
-  // Calculate days until target day
-  let daysUntilTarget = (targetDayIndex + 1 - currentDayIndex + 7) % 7; // +1 because Sunday=0 in getUTCDay but Sunday is last in our array
-  if (daysUntilTarget === 0) daysUntilTarget = 7;
-
-  // Create target date in UTC
-  const targetDate = new Date(
-    Date.UTC(
-      today.getUTCFullYear(),
-      today.getUTCMonth(),
-      today.getUTCDate() + daysUntilTarget
-    )
-  );
-
-  // Parse the time (e.g., "09:30" or "13:45")
-  const [hours, minutes] = time
-    .split(":")
-    .map((num) => Number.parseInt(num, 10));
-
-  // Set the time in UTC
-  targetDate.setUTCHours(hours, minutes || 0, 0, 0);
-
-  return targetDate.toISOString();
-};
-
-function convertUTCTo12Hour(utcTimestamp) {
-  const date = new Date(utcTimestamp);
-
-  // Get UTC hours and minutes (no timezone conversion)
-  const hours = date.getUTCHours();
-  const minutes = date.getUTCMinutes();
-
-  // Convert to 12-hour format
-  const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-  const ampm = hours >= 12 ? "PM" : "AM";
-
-  const formattedHour = hour12.toString().padStart(2, "0");
-  const formattedMinute = minutes.toString().padStart(2, "0");
-
-  return `${formattedHour}:${formattedMinute} ${ampm}`;
-} */
+  const timeDifference = endTotalMinutes - startTotalMinutes
+  return timeDifference >= 30
+}
 
 export default function AppointmentBooking() {
   const [currentSelection, setCurrentSelection] = useState({
@@ -97,28 +31,40 @@ export default function AppointmentBooking() {
     day: "",
     start_time: "",
     end_time: "",
-  });
-  const [validationErrors, setValidationErrors] = useState([]);
-  const [doctors, setDoctors] = useState([]);
+  })
+  const [validationErrors, setValidationErrors] = useState([])
+  const [doctors, setDoctors] = useState([])
+  const [toastMessage, setToastMessage] = useState({ type: "", message: "", visible: false })
 
-  // Function to get Doctors using API
-  const getDoctors = async () => {
+  const showToast = (type, message) => {
+    setToastMessage({ type, message, visible: true })
+    setTimeout(() => {
+      setToastMessage((prev) => ({ ...prev, visible: false }))
+    }, 3000) // Hide after 3 seconds
+  }
+
+  const getDoctorsByDepartment = async (department) => {
     try {
-      const response = await axiosInstance.get("/authentication/doctors/");
-      //console.log("docc", response.data.doctors);
-      setDoctors(response.data.doctors);
+      const response = await axiosInstance.get(`/appointments/doctors-by-department/${department}`)
+      setDoctors(response.data.doctors)
     } catch (error) {
-      alert("Error fetching Doctors:", error);
+     
+      setDoctors([])
     }
-  };
+  }
+
   useEffect(() => {
-    getDoctors();
-  }, []);
+    if (currentSelection.department) {
+      getDoctorsByDepartment(currentSelection.department)
+    } else {
+      setDoctors([])
+      setCurrentSelection((prev) => ({ ...prev, doctor: "" }))
+    }
+  }, [currentSelection.department])
 
   const addAppointment = async () => {
-    const errors = [];
+    const errors = []
 
-    // Check if all fields are filled
     if (
       !currentSelection.doctor ||
       !currentSelection.department ||
@@ -126,155 +72,106 @@ export default function AppointmentBooking() {
       !currentSelection.start_time ||
       !currentSelection.end_time
     ) {
-      errors.push("Please fill in all fields");
+      errors.push("Please fill in all fields")
     }
 
-    // Check if end time is after start time with minimum 30 minutes
     if (
       currentSelection.start_time &&
       currentSelection.end_time &&
-      !isEndTimeAfterStartTime(
-        currentSelection.start_time,
-        currentSelection.end_time
-      )
+      !isEndTimeAfterStartTime(currentSelection.start_time, currentSelection.end_time)
     ) {
-      errors.push("End time must be at least 30 minutes after start time");
+      errors.push("End time must be at least 30 minutes after start time")
     }
 
-    setValidationErrors(errors);
+    setValidationErrors(errors)
 
     if (errors.length === 0) {
-      /* console.log(
-        "Appointment added:",
-        generateTimeString(currentSelection.start_time, currentSelection.day),
-        "--",
-        generateTimeString(currentSelection.end_time, currentSelection.day)
-      );
-      console.log(
-        "Appointment added:",
-        convertUTCTo12Hour(
-          generateTimeString(currentSelection.start_time, currentSelection.day)
-        ),
-        ":",
-        convertUTCTo12Hour(
-          generateTimeString(currentSelection.end_time, currentSelection.day)
-        )
-      ); */
-
       const addedData = {
         doctor: currentSelection.doctor,
         department: currentSelection.department,
         day: currentSelection.day,
-        start_time: generateTimeString(
-          currentSelection.start_time,
-          currentSelection.day
-        ),
-        end_time: generateTimeString(
-          currentSelection.end_time,
-          currentSelection.day
-        ),
-      };
-      //console.log("addData",addedData);
+        start_time: generateTimeString(currentSelection.start_time, currentSelection.day),
+        end_time: generateTimeString(currentSelection.end_time, currentSelection.day),
+      }
 
-      // addedData to your backend API
       try {
-        let response = await axiosInstance.post("/appointments/", addedData);
-
-        if (response.status != 201) {
-          alert("Failed to save appointments");
+        const response = await axiosInstance.post("/appointments/", addedData)
+        if (response.status !== 201) {
+          showToast("error", "Failed to save appointment: There was an issue saving your appointment.")
         } else {
-          console.log("Appointments saved successfully", response.data);
+          showToast(
+            "success",
+            `Appointment saved successfully! New slot added for ${currentSelection.department}.`,
+          )
+          console.log("Appointments saved successfully", response.data)
           setCurrentSelection({
             department: "",
             day: "",
             doctor: "",
             start_time: "",
             end_time: "",
-          });
-          setValidationErrors([]);
+          })
+          setValidationErrors([])
         }
       } catch (error) {
-        alert(error.response.data.error);
+        showToast("error", `Error saving appointment: ${error.response?.data?.error || error.message}`)
       }
+    } else {
+      // Display validation errors using custom toast
+      errors.forEach((error) => {
+        showToast("error", `Validation Error: ${error}`)
+      })
     }
-  };
+  }
 
   return (
-    <div className="bg-light min-vh-100 py-4">
-      <div className="container">
-        {/* Header */}
-        <div className="text-center mb-5">
-          <h1 className="display-4 fw-bold text-dark mb-3">
-            Appointment Booking System
-          </h1>
-          <p className="lead text-muted">
-            Select appointment slots for different departments and doctors
-          </p>
-        </div>
 
+        <>
+      {/* MasterLayout */}
+      <MasterLayout>
+        {/* Breadcrumb */}
+        <Breadcrumb 
+  heading="Add New Appointment" 
+  title="Add New Appointment" 
+/>
+    <div className={styles.addAppointmentContainer}>
+      {toastMessage.visible && (
+        <div className={`${styles.toast} ${styles[toastMessage.type]}`}>{toastMessage.message}</div>
+      )}
+      <div className={styles.containerWrapper}>
+        {/* Header */}
+       
         {/* Appointment Selection Form */}
-        <div className="card shadow-sm mb-4">
-          <div className={`card-header bg-primary text-white`}>
-            <h5 className="card-title mb-0">
-              <i className={`bi bi-plus-circle me-2`}></i>
-              Add New Appointment Slot
-            </h5>
+        <div className={styles.appointmentCard}>
+          <div className={styles.cardHeader}>
+            <div className={styles.headerContent}>
+              <svg className={styles.headerIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <h5 className={styles.cardTitle}>Add New Appointment Slot</h5>
+            </div>
           </div>
-          <div className="card-body">
-            <div className="row g-3 mb-4">
-              {/* Doctors Selection with validation */}
-              <div className="col-md-6 col-lg-3">
-                <label className="form-label fw-semibold">
-                  <i className="bi bi-people me-1"></i>
-                  Doctor
-                </label>
-                <select
-                  className={`form-select ${
-                    !currentSelection.doctor &&
-                    validationErrors.some((error) =>
-                      error.includes("fill in all fields")
-                    )
-                      ? "is-invalid"
-                      : ""
-                  }`}
-                  value={currentSelection.doctor}
-                  onChange={(e) => {
-                    setCurrentSelection({
-                      ...currentSelection,
-                      doctor: e.target.value,
-                    });
-                    setValidationErrors([]);
-                  }}
-                >
-                  <option value="">Select doctor</option>
-                  {doctors.map((doc) => (
-                    <option key={doc._id} value={doc._id}>
-                      {doc.username}
-                    </option>
-                  ))}
-                </select>
-                {!currentSelection.doctor &&
-                  validationErrors.some((error) =>
-                    error.includes("fill in all fields")
-                  ) && (
-                    <div className="invalid-feedback">
-                      Please select a doctor.
-                    </div>
-                  )}
-              </div>
-              {/* Department Selection with validation */}
-              <div className="col-md-6 col-lg-3">
-                <label className="form-label fw-semibold">
-                  <i className="bi bi-people me-1"></i>
+
+          <div className={styles.cardBody}>
+            <div className={styles.formGrid}>
+              {/* Department Selection */}
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>
+                  <svg className={styles.labelIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    />
+                  </svg>
                   Department
                 </label>
                 <select
-                  className={`form-select ${
+                  className={`${styles.formSelect} ${
                     !currentSelection.department &&
-                    validationErrors.some((error) =>
-                      error.includes("fill in all fields")
-                    )
-                      ? "is-invalid"
+                    validationErrors.some((error) => error.includes("fill in all fields"))
+                      ? styles.formError
                       : ""
                   }`}
                   value={currentSelection.department}
@@ -282,8 +179,8 @@ export default function AppointmentBooking() {
                     setCurrentSelection({
                       ...currentSelection,
                       department: e.target.value,
-                    });
-                    setValidationErrors([]);
+                    })
+                    setValidationErrors([])
                   }}
                 >
                   <option value="">Select department</option>
@@ -294,28 +191,80 @@ export default function AppointmentBooking() {
                   ))}
                 </select>
                 {!currentSelection.department &&
-                  validationErrors.some((error) =>
-                    error.includes("fill in all fields")
-                  ) && (
-                    <div className="invalid-feedback">
-                      Please select a department.
-                    </div>
+                  validationErrors.some((error) => error.includes("fill in all fields")) && (
+                    <div className={styles.errorMessage}>Please select a department.</div>
                   )}
               </div>
 
-              {/* Day Selection with validation */}
-              <div className="col-md-6 col-lg-3">
-                <label className="form-label fw-semibold">
-                  <i className="bi bi-calendar me-1"></i>
+              {/* Doctors Selection */}
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>
+                  <svg className={styles.labelIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  Doctor
+                </label>
+                <div
+                  title={!currentSelection.department ? "You have to select department first" : ""}
+                  className={styles.doctorSelectWrapper}
+                >
+                  <select
+                    className={`${styles.formSelect} ${
+                      !currentSelection.doctor && validationErrors.some((error) => error.includes("fill in all fields"))
+                        ? styles.formError
+                        : ""
+                    }`}
+                    value={currentSelection.doctor}
+                    onChange={(e) => {
+                      setCurrentSelection({
+                        ...currentSelection,
+                        doctor: e.target.value,
+                      })
+                      setValidationErrors([])
+                    }}
+                    disabled={!currentSelection.department}
+                  >
+                    <option value="">Select doctor</option>
+                    {doctors.length > 0 ? (
+                      doctors.map((doc) => (
+                        <option key={doc._id} value={doc._id}>
+                          {doc.username}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>
+                        No doctors available for this department
+                      </option>
+                    )}
+                  </select>
+                </div>
+                {!currentSelection.doctor && validationErrors.some((error) => error.includes("fill in all fields")) && (
+                  <div className={styles.errorMessage}>Please select a doctor.</div>
+                )}
+              </div>
+
+              {/* Day Selection */}
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>
+                  <svg className={styles.labelIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
                   Day
                 </label>
                 <select
-                  className={`form-select ${
-                    !currentSelection.day &&
-                    validationErrors.some((error) =>
-                      error.includes("fill in all fields")
-                    )
-                      ? "is-invalid"
+                  className={`${styles.formSelect} ${
+                    !currentSelection.day && validationErrors.some((error) => error.includes("fill in all fields"))
+                      ? styles.formError
                       : ""
                   }`}
                   value={currentSelection.day}
@@ -323,8 +272,8 @@ export default function AppointmentBooking() {
                     setCurrentSelection({
                       ...currentSelection,
                       day: e.target.value,
-                    });
-                    setValidationErrors([]);
+                    })
+                    setValidationErrors([])
                   }}
                 >
                   <option value="">Select day</option>
@@ -334,139 +283,103 @@ export default function AppointmentBooking() {
                     </option>
                   ))}
                 </select>
-                {!currentSelection.day &&
-                  validationErrors.some((error) =>
-                    error.includes("fill in all fields")
-                  ) && (
-                    <div className="invalid-feedback">Please select a day.</div>
-                  )}
+                {!currentSelection.day && validationErrors.some((error) => error.includes("fill in all fields")) && (
+                  <div className={styles.errorMessage}>Please select a day.</div>
+                )}
               </div>
 
               {/* Start Time Selection */}
-              <div className="col-md-6 col-lg-3">
-                <label className="form-label fw-semibold">
-                  <i className="bi bi-clock me-1"></i>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>
+                  <svg className={styles.labelIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
                   Start Time
                 </label>
-                <div className="input-group">
-                  <input
-                    type="time"
-                    className={`form-control ${
+                <input
+                  type="time"
+                  className={`${styles.formInput} ${
+                    (
                       !currentSelection.start_time &&
-                      validationErrors.some((error) =>
-                        error.includes("fill in all fields")
-                      )
-                        ? "is-invalid"
-                        : ""
-                    } ${
+                        validationErrors.some((error) => error.includes("fill in all fields"))
+                    ) ||
+                    (
                       currentSelection.start_time &&
-                      currentSelection.end_time &&
-                      !isEndTimeAfterStartTime(
-                        currentSelection.start_time,
-                        currentSelection.end_time
-                      )
-                        ? "is-invalid"
-                        : ""
-                    }`}
-                    value={currentSelection.start_time}
-                    onChange={(e) => {
-                      setCurrentSelection({
-                        ...currentSelection,
-                        start_time: e.target.value,
-                      });
-                      setValidationErrors([]);
-                    }}
-                  />
-                </div>
+                        currentSelection.end_time &&
+                        !isEndTimeAfterStartTime(currentSelection.start_time, currentSelection.end_time)
+                    )
+                      ? styles.formError
+                      : ""
+                  }`}
+                  value={currentSelection.start_time}
+                  onChange={(e) => {
+                    setCurrentSelection({
+                      ...currentSelection,
+                      start_time: e.target.value,
+                    })
+                    setValidationErrors([])
+                  }}
+                />
                 {!currentSelection.start_time &&
-                  validationErrors.some((error) =>
-                    error.includes("fill in all fields")
-                  ) && (
-                    <div className="invalid-feedback d-block">
-                      Please select a start time.
-                    </div>
+                  validationErrors.some((error) => error.includes("fill in all fields")) && (
+                    <div className={styles.errorMessage}>Please select a start time.</div>
                   )}
               </div>
 
               {/* End Time Selection */}
-              <div className="col-md-6 col-lg-3">
-                <label className="form-label fw-semibold">
-                  <i className="bi bi-clock me-1"></i>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>
+                  <svg className={styles.labelIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
                   End Time
                 </label>
-                <div className="input-group">
-                  <input
-                    type="time"
-                    className={`form-control  ${
+                <input
+                  type="time"
+                  className={`${styles.formInput} ${
+                    (
                       !currentSelection.end_time &&
-                      validationErrors.some((error) =>
-                        error.includes("fill in all fields")
-                      )
-                        ? "is-invalid"
-                        : ""
-                    } ${
+                        validationErrors.some((error) => error.includes("fill in all fields"))
+                    ) ||
+                    (
                       currentSelection.start_time &&
-                      currentSelection.end_time &&
-                      !isEndTimeAfterStartTime(
-                        currentSelection.start_time,
-                        currentSelection.end_time
-                      )
-                        ? "is-invalid"
-                        : ""
-                    }`}
-                    value={currentSelection.end_time}
-                    onChange={(e) => {
-                      setCurrentSelection({
-                        ...currentSelection,
-                        end_time: e.target.value,
-                      });
-                      setValidationErrors([]);
-                    }}
-                  />
-                </div>
+                        currentSelection.end_time &&
+                        !isEndTimeAfterStartTime(currentSelection.start_time, currentSelection.end_time)
+                    )
+                      ? styles.formError
+                      : ""
+                  }`}
+                  value={currentSelection.end_time}
+                  onChange={(e) => {
+                    setCurrentSelection({
+                      ...currentSelection,
+                      end_time: e.target.value,
+                    })
+                    setValidationErrors([])
+                  }}
+                />
                 {!currentSelection.end_time &&
-                  validationErrors.some((error) =>
-                    error.includes("fill in all fields")
-                  ) && (
-                    <div className="invalid-feedback d-block">
-                      Please select an end time.
-                    </div>
+                  validationErrors.some((error) => error.includes("fill in all fields")) && (
+                    <div className={styles.errorMessage}>Please select an end time.</div>
                   )}
               </div>
             </div>
 
-            {/* Enhanced Validation Errors with Bootstrap Alerts */}
-            {validationErrors.length > 0 && (
-              <div className="mb-4">
-                {validationErrors.map((error, index) => (
-                  <div
-                    key={index}
-                    className="alert alert-danger alert-dismissible fade show"
-                    role="alert"
-                  >
-                    <i className="bi bi-exclamation-triangle-fill me-2"></i>
-                    <strong>Error:</strong> {error}
-                    <button
-                      type="button"
-                      className="btn-close"
-                      onClick={() =>
-                        setValidationErrors(
-                          validationErrors.filter((_, i) => i !== index)
-                        )
-                      }
-                      aria-label="Close"
-                    ></button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="d-flex gap-2">
-              <button
-                className={`btn btn-primary btn-lg `}
-                onClick={addAppointment}
-              >
-                <i className={`bi bi-plus-circle me-2`}></i>
+            <div className={styles.buttonContainer}>
+              <button className={styles.submitButton} onClick={addAppointment}>
+                <svg className={styles.buttonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
                 Add Appointment Slot
               </button>
             </div>
@@ -474,5 +387,8 @@ export default function AppointmentBooking() {
         </div>
       </div>
     </div>
+          </MasterLayout>
+    </>
   );
+  
 }

@@ -7,6 +7,7 @@ import { Icon } from "@iconify/react"
 import useSocket from "@/hooks/useSocket"
 import { formatDistanceToNow } from "date-fns"
 import styles from "./master-layout.module.css"
+import Cookies from "js-cookie" // Import js-cookie
 
 const MasterLayout = ({ children }) => {
   const [user, setUser] = useState(null)
@@ -24,6 +25,7 @@ const MasterLayout = ({ children }) => {
     try {
       await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}/authentication/logout`)
       localStorage.removeItem("token")
+      Cookies.remove("refreshToken") // Clear refresh token cookie
       setUser(null)
       setLoading(true)
       window.location.href = "/sign-in"
@@ -31,6 +33,17 @@ const MasterLayout = ({ children }) => {
       console.error("Logout failed:", error)
     }
   }
+
+  // State for notifications
+  const [notifications, setNotifications] = useState([])
+  const [count, setCount] = useState(0)
+
+  // Call useSocket directly at the top level of the component
+  // This adheres to the Rules of Hooks
+  useSocket(user?.id, ({ count, notifications }) => {
+    setNotifications(notifications)
+    setCount(count)
+  })
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -165,14 +178,6 @@ const MasterLayout = ({ children }) => {
     fetchUserData()
   }, [])
 
-  const [notifications, setNotifications] = useState([])
-  const [count, setCount] = useState(0)
-
-  useSocket(user?.id, ({ count, notifications }) => {
-    setNotifications(notifications)
-    setCount(count)
-  })
-
   const getNotifications = async () => {
     try {
       const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/notification/byId/${user?.id}`)
@@ -299,19 +304,19 @@ const MasterLayout = ({ children }) => {
             </li>
             <li className={styles.sidebarMenuGroupTitle}>All Users</li>
             <li>
-              <Link href="/users-list" className={pathname === "/users-list" ? styles.activePage : ""}>
+              <Link href="/student/list" className={pathname === "/student/list" ? styles.activePage : ""}>
                 <Icon icon="healthicons:group-discussion-meetingx3" className={styles.menuIcon} />
                 <span>All Students</span>
               </Link>
             </li>
             <li>
-              <Link href="/doctor-list" className={pathname === "/doctor-list" ? styles.activePage : ""}>
+              <Link href="/doctor/list" className={pathname === "/doctor/list" ? styles.activePage : ""}>
                 <Icon icon="healthicons:health-worker" className={styles.menuIcon} />
                 <span>All Doctors</span>
               </Link>
             </li>
             <li>
-              <Link href="/accountant-list" className={pathname === "/accountant-list" ? styles.activePage : ""}>
+              <Link href="/accountant/list" className={pathname === "/accountant/list" ? styles.activePage : ""}>
                 <Icon icon="healthicons:money-bag" className={styles.menuIcon} />
                 <span>All Accountants</span>
               </Link>
@@ -357,7 +362,6 @@ const MasterLayout = ({ children }) => {
                 <button onClick={mobileMenuControl} type="button" className={styles.sidebarMobileToggle}>
                   <Icon icon="heroicons:bars-3-solid" className={styles.textXl} />
                 </button>
-            
               </div>
             </div>
             <div className={styles.colAuto}>

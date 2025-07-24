@@ -19,7 +19,7 @@
 
 /* Header Styles */
 .cardHeader {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
   color: white;
   padding: 2.5rem;
   position: relative;
@@ -133,7 +133,8 @@
   width: 2.5rem;
   height: 2.5rem;
   border: 3px solid #e5e7eb;
-  border-top: 3px solid #059669;
+  border-top: 3px solid #1e3a8a;
+
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -263,12 +264,12 @@
 }
 
 .editButton {
-  background: linear-gradient(135deg, #10b981, #059669);
+    background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
   color: white;
 }
 
 .editButton:hover {
-  background: linear-gradient(135deg, #059669, #047857);
+    background: linear-gradient(135deg, #2052d8 0%, #1f7da9 100%);
 }
 
 .deleteButton {
@@ -327,9 +328,9 @@
 }
 
 .paginationButton.active {
-  background: linear-gradient(135deg, #059669, #047857);
+    background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
   color: white;
-  border-color: #059669;
+  border-color: #1e3a8a;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
@@ -396,7 +397,7 @@
 .formSelect:focus,
 .formTextarea:focus {
   outline: none;
-  border-color: #059669;
+  border-color: #1e3a8a;
   box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
 }
 
@@ -435,7 +436,7 @@
 
 .saveButton {
   padding: 0.75rem 2rem;
-  background: linear-gradient(135deg, #059669, #047857);
+    background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -559,11 +560,11 @@
 .actionButton:focus,
 .paginationButton:focus,
 .addButton:focus {
-  outline: 2px solid #059669;
+  outline: 2px solid #1e3a8a;
   outline-offset: 2px;
 }
 
 .searchInput:focus {
-  outline: 2px solid #059669;
+  outline: 2px solid #1e3a8a;
   outline-offset: 2px;
 }

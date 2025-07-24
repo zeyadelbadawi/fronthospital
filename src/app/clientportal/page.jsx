@@ -304,7 +304,7 @@ export default function ClientPortalPage() {
   const services = useMemo(
     () => [
       {
-        href: "/wizard",
+        href: "/Book-Appointment",
         Icon: RiCalendarEventLine,
         label: t.services.bookAppointment.title,
         description: t.services.bookAppointment.description,
@@ -316,7 +316,7 @@ export default function ClientPortalPage() {
         description: t.services.myProfile.description,
       },
       {
-        href: "/calendar-main-patient",
+        href: "/student-calendar",
         Icon: RiCalendarCheckLine,
         label: t.services.myAppointments.title,
         description: t.services.myAppointments.description,

@@ -1,6 +1,6 @@
 "use client"
 import { convertUTCTo12Hour } from "@/helper/DateTime"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import styles from "../styles/student-week-table.module.css"
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
@@ -15,12 +15,12 @@ const daysOfWeekArabic = {
 }
 
 const departmentsArabic = {
-  PhysicalTherapy: "العلاج الطبيعي",
+  PhysicalTherapy: "علاج طبيعي",
   ABA: "تحليل السلوك التطبيقي",
-  OccupationalTherapy: "العلاج الوظيفي",
-  SpecialEducation: "التربية الخاصة",
-  Speech: "علاج النطق",
-  ay7aga: "أي حاجة",
+  OccupationalTherapy: "حسي - وظيفي",
+  SpecialEducation: "تربية خاصة",
+  Speech: "لغة و نطق",
+  ay7aga: "نفسي",
 }
 
 const colorMap = {
@@ -33,12 +33,12 @@ const colorMap = {
 }
 
 const departmentColors = {
-  ABA: { bg: "#e91e63", border: "#ad1457", text: "#ffffff" },
-  ay7aga: { bg: "#4a4a8a", border: "#3c3c6e", text: "#ffffff" },
-  PhysicalTherapy: { bg: "#10b981", border: "#059669", text: "#ffffff" },
-  OccupationalTherapy: { bg: "#f59e0b", border: "#d97706", text: "#ffffff" },
-  SpecialEducation: { bg: "#06b6d4", border: "#0891b2", text: "#ffffff" },
-  Speech: { bg: "#8b5cf6", border: "#7c3aed", text: "#ffffff" },
+  ABA: { bg: "#2E4A87", border: "#1E3A77", text: "#ffffff" },
+  ay7aga: { bg: "#E91E63", border: "#C2185B", text: "#ffffff" },
+  PhysicalTherapy: { bg: "#00BCD4", border: "#0097A7", text: "#ffffff" },
+  OccupationalTherapy: { bg: "#9C27B0", border: "#7B1FA2", text: "#ffffff" },
+  SpecialEducation: { bg: "#FF5722", border: "#E64A19", text: "#ffffff" },
+  Speech: { bg: "#4CAF50", border: "#388E3C", text: "#ffffff" },
 }
 
 export default function StudentWeekTable({ evaluations, studentName, studentId, language = "en" }) {
@@ -46,14 +46,19 @@ export default function StudentWeekTable({ evaluations, studentName, studentId, 
   const [showModal, setShowModal] = useState(false)
   const [selectedCell, setSelectedCell] = useState(null)
 
+  useEffect(() => {
+    // Update RTL/LTR when language changes
+    document.documentElement.dir = language === "ar" ? "rtl" : "ltr"
+  }, [language])
+
   const isRTL = language === "ar"
 
   // Department color mapping
   const getDepartmentColors = (department) => {
     return (
       departmentColors[department] || {
-        bg: "#e91e63",
-        border: "#ad1457",
+        bg: "#2E4A87",
+        border: "#1E3A77",
         text: "#ffffff",
       }
     )
@@ -117,116 +122,123 @@ export default function StudentWeekTable({ evaluations, studentName, studentId, 
 
   return (
     <div className={`${styles.calendarContainer} ${isRTL ? styles.rtl : styles.ltr}`}>
-      <div className={styles.calendarCard}>
-        {/* Header */}
-        <div className={styles.cardHeader}>
-          <div className={styles.headerContent}>
-            <h1 className={styles.pageTitle}>{getText("title", "My Weekly Schedule", "جدولي الأسبوعي")}</h1>
-            <div className={styles.studentInfo}>
-              <div className={styles.studentBadge}>
-                <i className="bi bi-person-circle me-2"></i>
-                {studentName}
-              </div>
+      {/* Professional Header */}
+      <div className={styles.headerBottom}>
+        <h3 className={styles.scheduleTitle}>
+          {getText("scheduleTitle", "Weekly Session Schedule", "مواعيد الجلسات الأسبوعي")}
+        </h3>
+      </div>
+
+      {/* Calendar Body */}
+      <div className={styles.calendarBody}>
+        {evaluations.length === 0 ? (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyStateIcon}>
+              <i className="bi bi-calendar-x"></i>
             </div>
-            <div className={styles.statsContainer}>
-              <div className={styles.statBadge}>
-                {evaluations.length} {getText("appointments", "My Appointments", "مواعيدي")}
-              </div>
-              <div className={styles.statBadge}>
-                {new Set(evaluations.map((a) => a.department)).size} {getText("departments", "Departments", "الأقسام")}
-              </div>
-              <div className={styles.statBadge}>
-                {new Set(evaluations.map((a) => a.doctor?.username)).size} {getText("doctors", "Doctors", "الأطباء")}
-              </div>
-            </div>
+            <h3 className={styles.emptyStateTitle}>
+              {getText("noAppointments", "No Appointments Scheduled", "لا توجد مواعيد مجدولة")}
+            </h3>
+            <p className={styles.emptyStateText}>
+              {getText(
+                "noAppointmentsDesc",
+                "You don't have any appointments scheduled at the moment. Please contact your coordinator if you need to schedule appointments.",
+                "ليس لديك أي مواعيد مجدولة في الوقت الحالي. يرجى الاتصال بالمنسق إذا كنت بحاجة لجدولة مواعيد.",
+              )}
+            </p>
           </div>
-        </div>
-
-        {/* Calendar Body */}
-        <div className={styles.cardBody}>
-          {evaluations.length === 0 ? (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyStateIcon}>
-                <i className="bi bi-calendar-x"></i>
-              </div>
-              <h3 className={styles.emptyStateTitle}>
-                {getText("noAppointments", "No Appointments Scheduled", "لا توجد مواعيد مجدولة")}
-              </h3>
-              <p className={styles.emptyStateText}>
-                {getText(
-                  "noAppointmentsDesc",
-                  "You don't have any appointments scheduled at the moment. Please contact your coordinator if you need to schedule appointments.",
-                  "ليس لديك أي مواعيد مجدولة في الوقت الحالي. يرجى الاتصال بالمنسق إذا كنت بحاجة لجدولة مواعيد.",
-                )}
-              </p>
-            </div>
-          ) : (
-            <div className={styles.tableContainer}>
-              <table className={styles.scheduleTable}>
-                <thead className={styles.tableHeader}>
-                  <tr>
-                    <th>{getText("dayDepartment", "Day / Department", "اليوم / القسم")}</th>
-                    {departments.map((department) => (
-                      <th key={department}>
-                        <div className={styles.departmentHeader}>
-                          <span
-                            className={styles.departmentBadge}
-                            style={{
-                              backgroundColor: getDepartmentColors(department).bg,
-                            }}
-                          >
-                            ●
-                          </span>
-                          <span>{language === "ar" ? departmentsArabic[department] : department}</span>
+        ) : (
+          <div className={styles.tableContainer}>
+            <table className={styles.scheduleTable}>
+              <thead className={styles.tableHeader}>
+                <tr>
+                  <th className={styles.dayHeaderCell}>{getText("day", "Day", "اليوم")}</th>
+                  {departments.map((department) => (
+                    <th key={department} className={styles.departmentHeaderCell}>
+                      <div className={styles.departmentHeader}>
+                        <div
+                          className={styles.departmentBadge}
+                          style={{
+                            backgroundColor: getDepartmentColors(department).bg,
+                          }}
+                        >
+                          <span className={styles.departmentIcon}>●</span>
                         </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {daysOfWeek.map((day) => (
-                    <tr key={day} className={styles.tableRow}>
-                      <td className={styles.dayCell}>{language === "ar" ? daysOfWeekArabic[day] : day}</td>
-                      {departments.map((department) => {
-                        const appointments = groupedAppointments[day][department]
-                        const summary = getAppointmentSummary(appointments)
-                        const colorClass = getDepartmentColorClass(department)
+                        <span className={styles.departmentName}>
+                          {language === "ar" ? departmentsArabic[department] : department}
+                        </span>
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {daysOfWeek.map((day) => (
+                  <tr key={day} className={styles.tableRow}>
+                    <td className={styles.dayCell}>
+                      <div className={styles.dayName}>{language === "ar" ? daysOfWeekArabic[day] : day}</div>
+                    </td>
+                    {departments.map((department) => {
+                      const appointments = groupedAppointments[day][department]
+                      const summary = getAppointmentSummary(appointments)
+                      const colorClass = getDepartmentColorClass(department)
 
-                        return (
-                          <td
-                            key={`${day}-${department}`}
-                            className={`${styles.appointmentCell} ${
-                              appointments.length > 0 ? styles.hasAppointments : ""
-                            }`}
-                            onClick={() => handleCellClick(day, department)}
-                          >
-                            {summary && (
-                              <div className={styles.appointmentCardContainer}>
-                                <div className={`${styles.appointmentCard} ${styles[colorClass]}`}>
-                                  <div className={styles.appointmentCardBody}>
-                                    {summary.map((item, index) => (
-                                      <div key={index} className={styles.appointmentItem}>
-                                        <div className={styles.appointmentTime}>
-                                          {convertUTCTo12Hour(item.start_time)} - {convertUTCTo12Hour(item.end_time)}
-                                        </div>
-                                        <div className={styles.appointmentDoctor}>
-                                          {getText("dr", "Dr.", "د.")} {item.doctor.username}
-                                        </div>
+                      return (
+                        <td
+                          key={`${day}-${department}`}
+                          className={`${styles.appointmentCell} ${
+                            appointments.length > 0 ? styles.hasAppointments : ""
+                          }`}
+                          onClick={() => handleCellClick(day, department)}
+                        >
+                          {summary && (
+                            <div className={styles.appointmentCardContainer}>
+                              <div className={`${styles.appointmentCard} ${styles[colorClass]}`}>
+                                <div className={styles.appointmentCardBody}>
+                                  {summary.map((item, index) => (
+                                    <div key={index} className={styles.appointmentItem}>
+                                      <div className={styles.appointmentTime}>
+                       {getText("from", "From", "من")}: {formatTime(item.start_time)} - {getText("to", "To:", "الي")} :{formatTime(item.end_time)} 
                                       </div>
-                                    ))}
-                                  </div>
+                                      <div className={styles.appointmentDoctor}>
+                                        {getText("dr", "Dr.", "دكتور.")} {item.doctor.username}
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
                               </div>
-                            )}
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                            </div>
+                          )}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Professional Footer */}
+      <div className={styles.professionalFooter}>
+        <div className={styles.footerContent}>
+          <div className={styles.footerLogo}>
+            <img src="/images/rukn-logo.png" alt="Rukn Alwatikon Center" className={styles.footerLogoImg} />
+          </div>
+          <div className={styles.footerInfo}>
+            <div className={styles.footerText}>
+              {getText(
+                "footerNote",
+                "Villa 5, Wasit Street, Ramtha, Wasit District, Sharjah Emirate, United Arab Emirates",
+                "فيلا 5 - شارع واسط - الرمثاء - ضاحية واسط - إمارة الشارقة - الإمارات العربية المتحدة",
+              )}
             </div>
-          )}
+            <div className={styles.footerContact}>
+              <span>📞 0568671616 | 065624947</span>
+              <span>🌐 WWW.RAWC.AE</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -235,19 +247,12 @@ export default function StudentWeekTable({ evaluations, studentName, studentId, 
         <div className={styles.modalOverlay} onClick={closeModal}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
+              <div className={styles.modalLogo}>
+                <img src="/images/rukn-logo.png" alt="Logo" className={styles.modalLogoImg} />
+              </div>
               <h3 className={styles.modalTitle}>
                 {language === "ar" ? daysOfWeekArabic[selectedCell.day] : selectedCell.day} -{" "}
-                {language === "ar" ? departmentsArabic[selectedCell.department] : selectedCell.department}{" "}
-                {getText("department", "Department", "قسم")}
-                <span
-                  className={styles.modalBadge}
-                  style={{
-                    backgroundColor: getDepartmentColors(selectedCell.department).bg,
-                  }}
-                >
-                  {selectedAppointments.length} {getText("appointment", "Appointment", "موعد")}
-                  {selectedAppointments.length > 1 ? (language === "ar" ? "" : "s") : ""}
-                </span>
+                {language === "ar" ? departmentsArabic[selectedCell.department] : selectedCell.department}
               </h3>
               <button onClick={closeModal} className={styles.closeButton} aria-label="Close">
                 <svg className={styles.closeIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,7 +267,7 @@ export default function StudentWeekTable({ evaluations, studentName, studentId, 
                     <div className={styles.modalAppointmentCardBody}>
                       <div className={styles.appointmentCardHeader}>
                         <h4 className={styles.doctorName}>
-                          {getText("dr", "Dr.", "د.")} {appointment.doctor.username}
+                          {getText("dr", "Dr.", "دكتور")} {appointment.doctor.username}
                         </h4>
                         <span
                           className={styles.departmentBadgeModal}
@@ -283,7 +288,7 @@ export default function StudentWeekTable({ evaluations, studentName, studentId, 
                         <div className={styles.detailRow}>
                           <span className={styles.detailLabel}>{getText("time", "Time:", "الوقت:")}</span>
                           <span className={styles.detailValue}>
-                            {formatTime(appointment.start_time)} - {formatTime(appointment.end_time)}
+                       {getText("from", "From", "من")}: {formatTime(appointment.start_time)} - {getText("to", "To:", "الي")}: {formatTime(appointment.end_time)} 
                           </span>
                         </div>
                         <div className={styles.detailRow}>

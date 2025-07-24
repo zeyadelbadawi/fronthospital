@@ -1,24 +1,44 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import axiosInstance from "@/helper/axiosSetup";
-import { convertUTCTo12Hour, convertUTCTo24Hour } from "@/helper/DateTime";
-import { Icon } from "@iconify/react/dist/iconify.js";
-import Loader from "@/components/Loader";
+import React, { useState, useEffect } from "react"
+import axiosInstance from "@/helper/axiosSetup"
+import { convertUTCTo12Hour } from "@/helper/DateTime"
+import Loader from "@/components/Loader"
+import styles from "@/styles/appointment-detail.module.css"
+import { Users, CalendarCheck, Plus, Trash2, Timer, Calendar, FileText } from "lucide-react"
+import Breadcrumb from "@/components/Breadcrumb"
+import MasterLayout from "@/masterLayout/MasterLayout"
+import PatientAssignmentWarningModal from "@/components/PatientAssignmentWarningModal"
+import toastStyles from "@/styles/toast.module.css" // Import toast styles
 
 export default function StudentsAppointmentDepartment({ params }) {
-  const [studentsByDepartment, setStudentsByDepartment] = useState([]);
-  const [studentsAppointment, setStudentsAppointment] = useState([]);
-  const [currentAppointment, setCurrentAppointment] = useState(null);
-  const [search, setSearch] = useState("");
-  const [currentPage1, setCurrentPage1] = useState(1);
-  const [currentPage2, setCurrentPage2] = useState(1);
-  const [totalPages1, setTotalPages1] = useState(1);
-  const [totalPages2, setTotalPages2] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [buttonLoading, setButtonLoading] = useState(false);
+  const [studentsByDepartment, setStudentsByDepartment] = useState({})
+  const [studentsAppointment, setStudentsAppointment] = useState([])
+  const [currentAppointment, setCurrentAppointment] = useState(null)
+  const [search, setSearch] = useState("")
+  const [currentPage1, setCurrentPage1] = useState(1)
+  const [currentPage2, setCurrentPage2] = useState(1)
+  const [totalPages1, setTotalPages1] = useState(1)
+  const [totalPages2, setTotalPages2] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [buttonLoading, setButtonLoading] = useState(false)
+  const [showWarningModal, setShowWarningModal] = useState(false)
+  const [conflictDetails, setConflictDetails] = useState(null)
+  const [pendingAssignment, setPendingAssignment] = useState(null)
 
-  const id = params.id;
+  // Toast state
+  const [toastMessage, setToastMessage] = useState({ type: "", message: "", visible: false })
+
+  // Toast function
+  const showToast = (type, message) => {
+    setToastMessage({ type, message, visible: true })
+    setTimeout(() => {
+      setToastMessage((prev) => ({ ...prev, visible: false }))
+    }, 3000) // Hide after 3 seconds
+  }
+
+  const resolvedParams = React.use(params)
+  const id = resolvedParams.id
 
   const ProgramEndpoints = {
     PhysicalTherapy: "physical-therapy-assignments",
@@ -27,484 +47,303 @@ export default function StudentsAppointmentDepartment({ params }) {
     SpecialEducation: "Special-Education-assignments",
     Speech: "Speech-assignments",
     ay7aga: "Ay7aga-assignments",
-  };
+  }
+
   const finAppointmentById = async () => {
     try {
-      setLoading(true);
-      // Handle fetching a single appointment by ID
-      const response = await axiosInstance.get(`/appointments/findById/${id}`);
-      setCurrentAppointment(response?.data?.appointment);
-      console.log("Appointment by id fetched successfully:", response.data);
+      setLoading(true)
+      const response = await axiosInstance.get(`/appointments/findById/${id}`)
+      setCurrentAppointment(response?.data?.appointment)
+      console.log("Appointment by id fetched successfully:", response.data)
     } catch (error) {
-      setLoading(false);
-      alert("Error fetching appointment by id:", error.response.data.error);
+      setLoading(false)
+      showToast("error", `Error fetching appointment details: ${error.response?.data?.error || error.message}`)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
   useEffect(() => {
-    finAppointmentById();
-  }, [id]);
+    finAppointmentById()
+  }, [id])
 
   const fetchStudentsByDepartment = async () => {
+    if (!currentAppointment?.department || !currentAppointment?._id || !currentAppointment?.doctor?._id) return
     try {
-      setLoading(true);
+      setLoading(true)
+      // NEW: Use doctor-specific endpoint instead of department-specific
       const response = await axiosInstance.get(
-        `/students-appointment/${
-          ProgramEndpoints[currentAppointment?.department]
-        }/${currentAppointment?.department}/${currentAppointment._id}`
-      );
-      setStudentsByDepartment(response.data);
-      setTotalPages1(Math.ceil(response?.data?.assignments?.length / 10));
-      console.log("Students in departments without appointment", response.data);
+        `/students-appointment/doctor-patients/${currentAppointment.doctor._id}/${currentAppointment.department}/${currentAppointment._id}`,
+      )
+      setStudentsByDepartment(response.data)
+      setTotalPages1(Math.ceil((response?.data?.assignments?.length || 0) / 10))
+      console.log("Doctor's available students fetched successfully:", response.data)
     } catch (error) {
-      setLoading(false);
-      alert(
-        "Error fetching students in departments without appointment:",
-        error.response.data.error
-      );
+      setLoading(false)
+      showToast("error", `Error fetching doctor's available students: ${error.response?.data?.error || error.message}`)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const fetchStudentsAppointmentDepartment = async () => {
+    if (!currentAppointment?.department || !currentAppointment?._id) return
     try {
-      setLoading(true);
+      setLoading(true)
       const response = await axiosInstance.get(
-        `/students-appointment/${currentAppointment?.department}/${currentAppointment?._id}`
-      );
-      setStudentsAppointment(response?.data?.studentsAppointment);
-      setTotalPages2(
-        Math.ceil(response?.data?.studentsAppointment?.length / 10)
-      );
-      console.log(
-        "student in appointment successfully:",
-        response.data.studentsAppointment
-      );
+        `/students-appointment/${currentAppointment.department}/${currentAppointment._id}`,
+      )
+      setStudentsAppointment(response?.data?.studentsAppointment || [])
+      setTotalPages2(Math.ceil((response?.data?.studentsAppointment?.length || 0) / 10))
+      console.log("student in appointment successfully:", response.data.studentsAppointment)
     } catch (error) {
-      setLoading(false);
-      alert(
-        "Error fetching student in appointment :",
-        error.response.data.error
-      );
+      setLoading(false)
+      showToast("error", `Error fetching appointed students: ${error.response?.data?.error || error.message}`)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    if (currentAppointment !== null) {
-      fetchStudentsByDepartment();
-      fetchStudentsAppointmentDepartment();
+    if (currentAppointment !== null && currentAppointment?.doctor?._id) {
+      fetchStudentsByDepartment()
+      fetchStudentsAppointmentDepartment()
     }
-  }, [currentAppointment?.department]);
+  }, [currentAppointment]) // The dependency remains the same, but now we check for doctor._id in the condition
 
   const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-    setCurrentPage1(1);
-    setCurrentPage2(1);
-  };
-
-  const handlePageChange1 = (page) => {
-    setCurrentPage1(page);
-  };
-  const handlePageChange2 = (page) => {
-    setCurrentPage2(page);
-  };
+    setSearch(e.target.value)
+    setCurrentPage1(1)
+    setCurrentPage2(1)
+  }
 
   const onAddStudent = async (addedData) => {
     try {
-      setButtonLoading(true);
-      const response = await axiosInstance.post(
-        `/students-appointment/`,
-        addedData
-      );
+      setButtonLoading(true)
+      const response = await axiosInstance.post(`/students-appointment/`, addedData)
+      if (response.status === 201) {
+        showToast("success", "Student added to appointment successfully!")
+      }
+      console.log("Students added to appointment successfully:", response.data.studentsAppointment)
+    } catch (error) {
+      setButtonLoading(false)
+
+      // Check if it's a conflict error (status 409)
+      if (error.response?.status === 409 && error.response?.data?.conflictDetails) {
+        const conflictData = error.response.data.conflictDetails
+        console.log("Conflict details:", conflictData)
+        setConflictDetails(conflictData)
+        setPendingAssignment(addedData)
+        setShowWarningModal(true)
+        return // Don't show alert, show modal instead
+      }
+
+      showToast("error", `Error adding student to appointment: ${error.response?.data?.error || error.message}`)
+    } finally {
+      setButtonLoading(false)
+      fetchStudentsByDepartment()
+      fetchStudentsAppointmentDepartment()
+    }
+  }
+
+  const onDeleteStudent = async (studentAppointmentId) => {
+    try {
+      setButtonLoading(true)
+      const response = await axiosInstance.delete(`/students-appointment/${studentAppointmentId}`)
+      showToast("success", "Student removed from appointment successfully!")
+      console.log("Students deleted from appointment successfully:", response.data.studentsAppointment)
+    } catch (error) {
+      setButtonLoading(false)
+      showToast("error", `Error removing student from appointment: ${error.response?.data?.error || error.message}`)
+    } finally {
+      setButtonLoading(false)
+      fetchStudentsByDepartment()
+      fetchStudentsAppointmentDepartment()
+    }
+  }
+
+  const handleWarningModalClose = () => {
+    setShowWarningModal(false)
+    setConflictDetails(null)
+    setPendingAssignment(null)
+  }
+
+  const handleProceedWithAssignment = async () => {
+    if (!pendingAssignment) return
+
+    try {
+      setButtonLoading(true)
+      // Add forceAssign flag to proceed with the assignment
+      const response = await axiosInstance.post(`/students-appointment/`, {
+        ...pendingAssignment,
+        forceAssign: true,
+      })
 
       if (response.status === 201) {
+        showToast("success", "Student assigned to appointment (forced) successfully!")
+        console.log("Students added to appointment successfully (forced):", response.data.studentsAppointment)
       }
-      //setStudentsAppointment(response.data);
-      console.log(
-        "Students added to appointment successfully:",
-        response.data.studentsAppointment
-      );
     } catch (error) {
-      setButtonLoading(false);
-      alert("Error adding students to appointment:", error.response.data.error);
+      showToast("error", `Error assigning student to appointment: ${error.response?.data?.error || error.message}`)
     } finally {
-      setButtonLoading(false);
-      fetchStudentsByDepartment();
-      fetchStudentsAppointmentDepartment();
+      setButtonLoading(false)
+      setShowWarningModal(false)
+      setConflictDetails(null)
+      setPendingAssignment(null)
+      fetchStudentsByDepartment()
+      fetchStudentsAppointmentDepartment()
     }
-  };
+  }
 
-  const onDeleteStudent = async (id) => {
-    try {
-      setButtonLoading(true);
-      const response = await axiosInstance.delete(
-        `/students-appointment/${id}`
-      );
-      //setStudentsAppointment(response.data);
-      console.log(
-        "Students deleted from appointment successfully:",
-        response.data.studentsAppointment
-      );
-    } catch (error) {
-      setButtonLoading(false);
-      alert(
-        "Error deleting students from appointment:",
-        error.response.data.error
-      );
-    } finally {
-      setButtonLoading(false);
-      fetchStudentsByDepartment();
-      fetchStudentsAppointmentDepartment();
-    }
-  };
+  const filteredStudentsByDepartment =
+    studentsByDepartment.assignments?.filter((student) =>
+      student.patient.name.toLowerCase().includes(search.toLowerCase()),
+    ) || []
+
+  const filteredStudentsAppointment =
+    studentsAppointment.filter((student) => student.patientId.name.toLowerCase().includes(search.toLowerCase())) || []
+
+  const startIndex1 = (currentPage1 - 1) * 10
+  const endIndex1 = startIndex1 + 10
+  const paginatedStudentsByDepartment = filteredStudentsByDepartment.slice(startIndex1, endIndex1)
+
+  const startIndex2 = (currentPage2 - 1) * 10
+  const endIndex2 = startIndex2 + 10
+  const paginatedStudentsAppointment = filteredStudentsAppointment.slice(startIndex2, endIndex2)
 
   return loading ? (
-    <div className="vh-100 d-flex justify-content-center align-content-center">
-      <Loader />
+    <div className={styles.appointmentDetailContainer}>
+      <Loader text="Loading appointment details..." />
     </div>
   ) : (
     <>
-      <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-      />
-      <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
-        rel="stylesheet"
-      />
+      {/* Toast Notification */}
+      {toastMessage.visible && (
+        <div className={`${toastStyles.toast} ${toastStyles[toastMessage.type]}`}>{toastMessage.message}</div>
+      )}
 
-      <div className="min-vh-100 bg-light p-4">
-        {/* Header Section */}
-        <div className="mb-4">
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-            <div>
-              <h1 className="fs-1 fw-bold text-dark mb-3">
-                Students Appointment Management
-              </h1>
-              <div
-                className="card border-primary"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #f8f9ff 0%, #e6f0ff 100%)",
-                }}
-              >
-                <div className="card-body py-3">
-                  <div className="d-flex flex-wrap align-items-center gap-3">
-                    <div className="d-flex align-items-center gap-2">
-                      <div
-                        className="bg-primary rounded-circle"
-                        style={{ width: "8px", height: "8px" }}
-                      ></div>
-                      <span className="fw-semibold text-dark">
-                        Dr. {currentAppointment?.doctor?.username}
+      {/* MasterLayout */}
+      <MasterLayout>
+        {/* Breadcrumb */}
+        <Breadcrumb heading="Students Appointment Management" title="Students Appointment Management" />
+        <div className={styles.appointmentDetailContainer}>
+          {/* Header Section */}
+          <div className={styles.headerSection}>
+            <div className={styles.headerContent}>
+              <div className={styles.titleSection}>
+                <h1 className={styles.pageTitle}>Students Appointment Management</h1>
+                <div className={styles.appointmentInfoCard}>
+                  <div className={styles.appointmentInfoContent}>
+                    <p className={styles.pageSubTitle}>Appointment Details:</p>
+
+                    <div className={styles.infoItem}>
+                      <Users className={`${styles.headerIconSvg} ${styles.ziadIconSvg}`} />
+                      <span className={styles.infoTextMuted}>
+                        <span className={styles.ziad}>Doctor Name:</span> {currentAppointment?.doctor?.username}
                       </span>
                     </div>
-                    <div className="d-flex align-items-center gap-2">
-                      <div
-                        className="bg-success rounded-circle"
-                        style={{ width: "8px", height: "8px" }}
-                      ></div>
-                      <span className="text-muted">
-                        {currentAppointment?.day}
+                    <div className={styles.infoItem}>
+                      <Calendar className={`${styles.headerIconSvg} ${styles.ziadIconSvg}`} />
+                      <span className={styles.infoTextMuted}>
+                        <span className={styles.ziad}>Appointment Day: </span> {currentAppointment?.day}
                       </span>
                     </div>
-                    <div className="d-flex align-items-center gap-2">
-                      <div
-                        className="bg-info rounded-circle"
-                        style={{ width: "8px", height: "8px" }}
-                      ></div>
-                      <span className="text-muted">
-                        {currentAppointment?.department}
+                    <div className={styles.infoItem}>
+                      <FileText className={`${styles.headerIconSvg} ${styles.ziadIconSvg}`} />
+                      <span className={styles.infoTextMuted}>
+                        <span className={styles.ziad}>Department: </span> {currentAppointment?.department}
                       </span>
                     </div>
-                    <div className="d-flex align-items-center gap-2">
-                      <div
-                        className="bg-warning rounded-circle"
-                        style={{ width: "8px", height: "8px" }}
-                      ></div>
-                      <span className="text-muted">{`${convertUTCTo12Hour(
-                        currentAppointment?.start_time
-                      )}: ${convertUTCTo12Hour(
-                        currentAppointment?.end_time
-                      )}`}</span>
+                    <div className={styles.infoItem}>
+                      <Timer className={`${styles.headerIconSvg} ${styles.ziadIconSvg}`} />
+                      <span className={styles.infoTextMuted}>
+                        {" "}
+                        <span className={styles.ziad}>Appointment time: </span>{" "}
+                        {` From ${convertUTCTo12Hour(currentAppointment?.start_time)} To ${convertUTCTo12Hour(
+                          currentAppointment?.end_time,
+                        )}`}
+                      </span>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="d-flex align-items-center gap-3">
-              <div className="position-relative">
-                <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                <input
-                  type="text"
-                  className="form-control ps-5"
-                  placeholder="Search students..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  style={{ width: "250px" }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="row g-4">
-          {/* Available Students Table */}
-          <div className="col-12 col-xl-6">
-            <div className="card shadow-sm border-0">
-              <div className="card-header bg-white border-bottom">
-                <div className="d-flex align-items-center gap-3">
-                  <div className="p-2 bg-primary bg-opacity-10 rounded">
-                    <i className="bi bi-people-fill text-primary fs-5"></i>
-                  </div>
-                  <div>
-                    <h5 className="card-title mb-1 fw-semibold">
-                      Available Students
-                    </h5>
-                    <p className="text-muted small mb-0">
-                      Students in {currentAppointment?.department} Department
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="card-body p-0">
-                <div className="table-responsive">
-                  <table className="table table-hover mb-0">
-                    <thead className="table-light">
-                      <tr>
-                        <th
-                          scope="col"
-                          className="px-4 py-3 text-uppercase small fw-medium text-muted"
-                        >
-                          #
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3 text-uppercase small fw-medium text-muted"
-                        >
-                          Student Name
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-4 py-3 text-center text-uppercase small fw-medium text-muted"
-                        >
-                          Action
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loading ? (
-                        <tr>
-                          <td colSpan="3" className="text-center py-5">
-                            <div className="d-flex justify-content-center align-items-center">
-                              <div
-                                className="spinner-border text-primary me-3"
-                                role="status"
-                              >
-                                <span className="visually-hidden">
-                                  Loading...
-                                </span>
-                              </div>
-                              <span className="text-muted">Loading...</span>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : (
-                        studentsByDepartment.assignments?.map(
-                          (student, index) => (
-                            <tr key={student.patient._id}>
-                              <td className="px-4 py-3">
-                                <span className="fw-medium text-dark">
-                                  {index + 1}
-                                </span>
-                              </td>
-                              <td className="px-3 py-3">
-                                <div className="d-flex align-items-center">
-                                  <div
-                                    className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3"
-                                    style={{ width: "32px", height: "32px" }}
-                                  >
-                                    <span className="small fw-medium text-primary">
-                                      {student.patient.name
-                                        .charAt(0)
-                                        .toUpperCase()}
-                                    </span>
-                                  </div>
-                                  <span className="fw-medium text-dark">
-                                    {student.patient.name}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="text-center">
-                                <div className="d-flex align-items-center gap-10 justify-content-center">
-                                  <button
-                                    type="button"
-                                    className="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-                                    onClick={() =>
-                                      onAddStudent({
-                                        department:
-                                          currentAppointment.department,
-                                        appointmentId: id,
-                                        patientId: student.patient._id,
-                                      })
-                                    }
-                                  >
-                                    <Icon
-                                      icon="fluent:add-24-regular"
-                                      className="menu-icon"
-                                    />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          )
-                        )
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Pagination */}
-                <div className="d-flex justify-content-between align-items-center p-4 bg-light border-top">
-                  <small className="text-muted">
-                    Showing {(currentPage1 - 1) * 10 + 1} to{" "}
-                    {Math.min(
-                      currentPage1 * 10,
-                      studentsByDepartment?.assignments?.length
-                    )}{" "}
-                    of {studentsByDepartment?.assignments?.length} entries
-                  </small>
-                  <nav>
-                    <ul className="pagination pagination-sm mb-0">
-                      {Array.from({ length: totalPages1 }, (_, i) => (
-                        <li
-                          key={i}
-                          className={`page-item ${
-                            currentPage1 === i + 1 ? "active" : ""
-                          }`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() => handlePageChange1(i + 1)}
-                          >
-                            {i + 1}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </nav>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Appointed Students Table */}
-          <div className="col-12 col-xl-6">
-            <div className="card shadow-sm border-0">
-              <div className="card-header bg-white border-bottom">
-                <div className="d-flex align-items-center gap-3">
-                  <div className="p-2 bg-success bg-opacity-10 rounded">
-                    <i className="bi bi-calendar-check-fill text-success fs-5"></i>
-                  </div>
-                  <div>
-                    <h5 className="card-title mb-1 fw-semibold">
-                      Appointed Students
-                    </h5>
-                    <p className="text-muted small mb-0">
-                      Students with appointments in{" "}
-                      {currentAppointment?.department}
-                    </p>
-                  </div>
+          {/* Main Content */}
+          <div className={styles.mainContent}>
+            {/* Available Students Table */}
+            <div className={styles.studentCard}>
+              <div className={styles.cardHeader}>
+                <div className={`${styles.headerIcon} ${styles.primaryIcon}`}>
+                  <Users className={`${styles.headerIconSvg} ${styles.primaryIconSvg}`} />
+                </div>
+                <div className={styles.headerText}>
+                  <h5 className={styles.cardTitle}>Available Students</h5>
+                  <p className={styles.cardSubtitle}>
+                    Dr. {currentAppointment?.doctor?.username}'s Students in {currentAppointment?.department}
+                  </p>
                 </div>
               </div>
-
-              <div className="card-body p-0">
-                <div className="table-responsive">
-                  <table className="table table-hover mb-0">
-                    <thead className="table-light">
+              <div className={styles.cardBody}>
+                <div className={styles.tableContainer}>
+                  <table className={styles.studentsTable}>
+                    <thead className={styles.tableHeader}>
                       <tr>
-                        <th
-                          scope="col"
-                          className="px-4 py-3 text-uppercase small fw-medium text-muted"
-                        >
-                          #
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3 text-uppercase small fw-medium text-muted"
-                        >
-                          Student Name
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-4 py-3 text-center text-uppercase small fw-medium text-muted"
-                        >
-                          Action
-                        </th>
+                        <th className={styles.centerHeader}>#</th>
+                        <th>Student Name</th>
+                        <th className={styles.centerHeader}>Action</th>
                       </tr>
                     </thead>
                     <tbody>
                       {loading ? (
                         <tr>
-                          <td colSpan="3" className="text-center py-5">
-                            <div className="d-flex justify-content-center align-items-center">
-                              <div
-                                className="spinner-border text-success me-3"
-                                role="status"
-                              >
-                                <span className="visually-hidden">
-                                  Loading...
-                                </span>
-                              </div>
-                              <span className="text-muted">Loading...</span>
+                          <td colSpan={3} className={styles.loadingRow}>
+                            <div className={styles.loadingContent}>
+                              <div className={styles.loadingSpinner}></div>
+                              <span className={styles.loadingText}>Loading...</span>
                             </div>
                           </td>
                         </tr>
+                      ) : paginatedStudentsByDepartment.length === 0 ? (
+                        <tr>
+                          <td colSpan={3} className={styles.emptyRow}>
+                            No available students found.
+                          </td>
+                        </tr>
                       ) : (
-                        studentsAppointment?.map((student, index) => (
-                          <tr key={student._id}>
-                            <td className="px-4 py-3">
-                              <span className="fw-medium text-dark">
-                                {index + 1}
-                              </span>
-                            </td>
-                            <td className="px-3 py-3">
-                              <div className="d-flex align-items-center">
-                                <div
-                                  className="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3"
-                                  style={{ width: "32px", height: "32px" }}
-                                >
-                                  <span className="small fw-medium text-success">
-                                    {student.patientId.name
-                                      .charAt(0)
-                                      .toUpperCase()}
+                        paginatedStudentsByDepartment.map((student, index) => (
+                          <tr key={student.patient._id} className={styles.tableRow}>
+                            <td className={styles.indexCell}>{startIndex1 + index + 1}</td>
+                            <td className={styles.studentCell}>
+                              <div className={styles.studentInfo}>
+                                <div className={`${styles.studentAvatar} ${styles.primaryAvatar}`}>
+                                  <span className={`${styles.avatarText} ${styles.primaryAvatarText}`}>
+                                    {student.patient.name.charAt(0).toUpperCase()}
                                   </span>
                                 </div>
-                                <span className="fw-medium text-dark">
-                                  {student.patientId.name}
-                                </span>
+                                <span className={styles.studentName}>{student.patient.name}</span>
                               </div>
                             </td>
-                            <td className="text-center">
-                              <div className="d-flex align-items-center gap-10 justify-content-center">
-                                <button
-                                  type="button"
-                                  className="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-                                  onClick={() => onDeleteStudent(student._id)}
-                                >
-                                  <Icon
-                                    icon="fluent:delete-24-regular"
-                                    className="menu-icon"
-                                  />
-                                </button>
-                              </div>
+                            <td className={styles.actionCell}>
+                              <button
+                                type="button"
+                                className={`${styles.actionButton} ${styles.addButton}`}
+                                onClick={() =>
+                                  onAddStudent({
+                                    department: currentAppointment.department,
+                                    appointmentId: id,
+                                    patientId: student.patient._id,
+                                  })
+                                }
+                                disabled={buttonLoading}
+                              >
+                                {buttonLoading ? (
+                                  <div className={styles.loadingSpinner}></div>
+                                ) : (
+                                  <Plus className={styles.actionIcon} />
+                                )}
+                              </button>
                             </td>
                           </tr>
                         ))
@@ -512,39 +351,135 @@ export default function StudentsAppointmentDepartment({ params }) {
                     </tbody>
                   </table>
                 </div>
-
                 {/* Pagination */}
-                <div className="d-flex justify-content-between align-items-center p-4 bg-light border-top">
-                  <small className="text-muted">
-                    Showing {(currentPage2 - 1) * 10 + 1} to{" "}
-                    {Math.min(currentPage2 * 10, studentsAppointment?.length)}{" "}
-                    of {studentsAppointment?.length} entries
+                <div className={styles.paginationContainer}>
+                  <small className={styles.paginationInfo}>
+                    Showing {startIndex1 + 1} to {Math.min(endIndex1, filteredStudentsByDepartment.length)} of{" "}
+                    {filteredStudentsByDepartment.length} entries
                   </small>
-                  <nav>
-                    <ul className="pagination pagination-sm mb-0">
-                      {Array.from({ length: totalPages2 }, (_, i) => (
-                        <li
-                          key={i}
-                          className={`page-item ${
-                            currentPage2 === i + 1 ? "active" : ""
-                          }`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() => handlePageChange2(i + 1)}
-                          >
-                            {i + 1}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </nav>
+                  <div className={styles.paginationList}>
+                    {Array.from({ length: totalPages1 }, (_, i) => (
+                      <button
+                        key={i}
+                        className={`${styles.paginationButton} ${currentPage1 === i + 1 ? styles.paginationActive : ""}`}
+                        onClick={() => setCurrentPage1(i + 1)}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Appointed Students Table */}
+            <div className={styles.studentCard}>
+              <div className={styles.cardHeader}>
+                <div className={`${styles.headerIcon} ${styles.successIcon}`}>
+                  <CalendarCheck className={`${styles.headerIconSvg} ${styles.successIconSvg}`} />
+                </div>
+                <div className={styles.headerText}>
+                  <h5 className={styles.cardTitle}>Appointed Students</h5>
+                  <p className={styles.cardSubtitle}>Students with appointments in {currentAppointment?.department}</p>
+                </div>
+              </div>
+              <div className={styles.cardBody}>
+                <div className={styles.tableContainer}>
+                  <table className={styles.studentsTable}>
+                    <thead className={styles.tableHeader}>
+                      <tr>
+                        <th className={styles.centerHeader}>#</th>
+                        <th>Student Name</th>
+                        <th className={styles.centerHeader}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loading ? (
+                        <tr>
+                          <td colSpan={3} className={styles.loadingRow}>
+                            <div className={styles.loadingContent}>
+                              <div className={`${styles.loadingSpinner} ${styles.loadingSpinnerSuccess}`}></div>
+                              <span className={styles.loadingText}>Loading...</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : paginatedStudentsAppointment.length === 0 ? (
+                        <tr>
+                          <td colSpan={3} className={styles.emptyRow}>
+                            No appointed students found.
+                          </td>
+                        </tr>
+                      ) : (
+                        paginatedStudentsAppointment.map((student, index) => (
+                          <tr key={student._id} className={styles.tableRow}>
+                            <td className={styles.indexCell}>{startIndex2 + index + 1}</td>
+                            <td className={styles.studentCell}>
+                              <div className={styles.studentInfo}>
+                                <div className={`${styles.studentAvatar} ${styles.successAvatar}`}>
+                                  <span className={`${styles.avatarText} ${styles.successAvatarText}`}>
+                                    {student.patientId.name.charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                                <span className={styles.studentName}>{student.patientId.name}</span>
+                              </div>
+                            </td>
+                            <td className={styles.actionCell}>
+                              <button
+                                type="button"
+                                className={`${styles.actionButton} ${styles.removeButton}`}
+                                onClick={() => onDeleteStudent(student._id)}
+                                disabled={buttonLoading}
+                              >
+                                {buttonLoading ? (
+                                  <div className={styles.loadingSpinner}></div>
+                                ) : (
+                                  <Trash2 className={styles.actionIcon} />
+                                )}
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Pagination */}
+                <div className={styles.paginationContainer}>
+                  <small className={styles.paginationInfo}>
+                    Showing {startIndex2 + 1} to {Math.min(endIndex2, filteredStudentsAppointment.length)} of{" "}
+                    {filteredStudentsAppointment.length} entries
+                  </small>
+                  <div className={styles.paginationList}>
+                    {Array.from({ length: totalPages2 }, (_, i) => (
+                      <button
+                        key={i}
+                        className={`${styles.paginationButton} ${currentPage2 === i + 1 ? styles.paginationActive : ""}`}
+                        onClick={() => setCurrentPage2(i + 1)}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+        {/* Warning Modal - Updated to handle multiple appointments */}
+        <PatientAssignmentWarningModal
+          show={showWarningModal}
+          onClose={handleWarningModalClose}
+          onProceed={handleProceedWithAssignment}
+          patientName={
+            pendingAssignment
+              ? paginatedStudentsByDepartment.find((s) => s.patient._id === pendingAssignment.patientId)?.patient
+                  ?.name || "Unknown Student"
+              : ""
+          }
+          existingAppointments={conflictDetails?.existingAppointments || []}
+          totalConflicts={conflictDetails?.totalConflicts || 0}
+        />
+      </MasterLayout>
     </>
-  );
+  )
 }

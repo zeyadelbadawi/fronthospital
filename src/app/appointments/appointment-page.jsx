@@ -1,44 +1,28 @@
-"use client";
+"use client"
 
-import React, { useState, useEffect, useContext } from "react";
-import axiosInstance from "../../helper/axiosSetup";
-import { useRouter } from "next/navigation";
-import { Icon } from "@iconify/react/dist/iconify.js";
-import Link from "next/link";
-import { ModelContextInst } from "@/contexts/ModelContext";
-import UpdateModel from "@/components/UpdateModel";
-import Loader from "@/components/Loader";
-import { convertUTCTo12Hour, convertUTCTo24Hour } from "@/helper/DateTime";
-import AppointmentUpdate from "./updateAppointment";
-import DeleteModel from "@/components/DeleteModel";
-import DeleteAppointment from "./deleteAppointments";
+import { useState, useEffect, useContext } from "react"
+import axiosInstance from "../../helper/axiosSetup"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { ModelContextInst } from "@/contexts/ModelContext"
+import UpdateModel from "@/components/UpdateModel"
+import Loader from "@/components/Loader"
+import { convertUTCTo12Hour, convertUTCTo24Hour } from "@/helper/DateTime"
+import AppointmentUpdate from "./updateAppointment"
+import DeleteModel from "@/components/DeleteModel"
+import DeleteAppointment from "./deleteAppointments"
+import styles from "@/styles/appointment-page.module.css"
+import toastStyles from "@/styles/toast.module.css" // Import toast styles
 
-/* function convertUTCTo12Hour(utcTimestamp) {
-  const date = new Date(utcTimestamp);
-
-  // Get UTC hours and minutes (no timezone conversion)
-  const hours = date.getUTCHours();
-  const minutes = date.getUTCMinutes();
-
-  // Convert to 12-hour format
-  const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-  const ampm = hours >= 12 ? "PM" : "AM";
-
-  const formattedHour = hour12.toString().padStart(2, "0");
-  const formattedMinute = minutes.toString().padStart(2, "0");
-
-  return `${formattedHour}:${formattedMinute} ${ampm}`;
-}
- */
 export default function AppointmentPage() {
-  const [appointments, setAppointments] = useState([]);
-  const [search, setSearch] = useState(""); // State to store search query
-  const [currentPage, setCurrentPage] = useState(1); // State to store current page
-  const [totalPages, setTotalPages] = useState(1); // State to store total pages
-  const [loading, setLoading] = useState(false); // State to indicate loading
-  const router = useRouter(); // Next.js router
-  const [currentId, setCurrentId] = useState();
-  const [selectedAppointment, setSelectedAppointment] = useState({});
+  const [appointments, setAppointments] = useState([])
+  const [search, setSearch] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  const [currentId, setCurrentId] = useState()
+  const [selectedAppointment, setSelectedAppointment] = useState({})
   const {
     openUpdateModal,
     showUpdateModal,
@@ -48,175 +32,194 @@ export default function AppointmentPage() {
     closeDeleteModal,
     setIsLoading,
     isLoading,
-  } = useContext(ModelContextInst);
+  } = useContext(ModelContextInst)
 
-  // Function to fetch appointments from the API
+  // Toast state
+  const [toastMessage, setToastMessage] = useState({ type: "", message: "", visible: false })
+
+  // Toast function
+  const showToast = (type, message) => {
+    setToastMessage({ type, message, visible: true })
+    setTimeout(() => {
+      setToastMessage((prev) => ({ ...prev, visible: false }))
+    }, 3000) // Hide after 3 seconds
+  }
+
   const fetchAppointments = async () => {
     try {
-      setLoading(true);
-      const response = await axiosInstance.get("/appointments/");
-      setAppointments(response.data);
-      setTotalPages(Math.ceil(response?.data?.appointments?.length / 10));
-      console.log("Appointments fetched successfully:", response.data);
+      setLoading(true)
+      const response = await axiosInstance.get("/appointments/")
+      setAppointments(response.data)
+      setTotalPages(Math.ceil(response?.data?.appointments?.length / 10))
+      console.log("Appointments fetched successfully:", response.data)
     } catch (error) {
-      setLoading(false);
-      alert("Error fetching appointments:", error);
+      setLoading(false)
+      showToast("error", `Error fetching appointments: ${error.response?.data?.error || error.message}`)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
   useEffect(() => {
-    fetchAppointments();
-  }, []);
+    fetchAppointments()
+  }, [])
 
   const onUpdateClose = () => {
-    setIsLoading(false);
-    setSelectedAppointment({});
-    setCurrentId(null);
-    closeUpdateModal();
-  };
+    setIsLoading(false)
+    setSelectedAppointment({})
+    setCurrentId(null)
+    closeUpdateModal()
+  }
 
   const onDeleteClose = () => {
-    setIsLoading(false);
-    setCurrentId(null);
-    closeDeleteModal();
-  };
+    setIsLoading(false)
+    setCurrentId(null)
+    closeDeleteModal()
+  }
 
   const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-    setCurrentPage(1);
-  };
+    setSearch(e.target.value)
+    setCurrentPage(1)
+  }
 
   const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
+    setCurrentPage(page)
+  }
 
   return (
-    <div className="card h-100 p-0 radius-12">
+    <div className={styles.appointmentContainer}>
+      {/* Toast Notification */}
+      {toastMessage.visible && (
+        <div className={`${toastStyles.toast} ${toastStyles[toastMessage.type]}`}>{toastMessage.message}</div>
+      )}
+
       {/* Card Header with Search and Add New Appointment Button */}
-      <div className="card-header border-bottom bg-base py-16 px-24 d-flex row align-items-center flex-wrap gap-3 justify-content-between">
-        <div className="">
-          <h1 className="fs-2">Appointments</h1>
+      <div className={styles.cardHeader}>
+        <div className={styles.headerContent}>
+          <h1 className={styles.pageTitle}>Appointments</h1>
         </div>
-        <div className="d-flex align-items-center flex-wrap gap-3 justify-content-between">
-          <div className="d-flex align-items-center flex-wrap gap-3">
-            <form className="navbar-search">
+        <div className={styles.headerActions}>
+          <div className={styles.searchForm}>
+            <div className={styles.searchInputContainer}>
+              <svg className={styles.searchIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
               <input
                 type="text"
-                className="bg-base h-40-px w-auto"
+                className={styles.searchInput}
                 name="search"
                 value={search}
-                onChange={() => {}} // Update search query
-                placeholder="Search"
+                onChange={handleSearchChange}
+                placeholder="Search appointments..."
               />
-              <Icon icon="ion:search-outline" className="icon" />
-            </form>
+            </div>
           </div>
-          <Link
-            href={"/appointments/add-appointments"}
-            className="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2"
-          >
-            <Icon
-              icon="ic:baseline-plus"
-              className="icon text-xl line-height-1"
-            />
+          <Link href="/appointments/add-appointments" className={styles.addButton}>
+            <svg className={styles.addButtonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
             Add New Appointment
           </Link>
         </div>
       </div>
-      {/* Appointment Table */}
-      <div className="card-body p-24">
-        <div className="table-responsive scroll-sm">
-          <table className="table bordered-table sm-table mb-0">
-            <thead>
-              <tr>
-                <th scope="col">
-                  <div className="d-flex align-items-center gap-10">
-                    <div className="form-check style-check d-flex align-items-center"></div>
-                    #
-                  </div>
-                </th>
-                <th scope="col">Day</th>
-                <th scope="col">Department</th>
-                <th scope="col">Slot</th>
-                <th scope="col">Doctor</th>
 
-                <th scope="col" className="text-center">
-                  Action
-                </th>
+      {/* Appointment Table */}
+      <div className={styles.cardBody}>
+        <div className={styles.tableContainer}>
+          <table className={styles.appointmentsTable}>
+            <thead className={styles.tableHeader}>
+              <tr>
+                <th>#</th>
+                <th>Day</th>
+                <th>Department</th>
+                <th>Slot</th>
+                <th>Doctor</th>
+                <th className={styles.centerHeader}>Action</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="7" className="text-center">
-                    Loading...
+                  <td colSpan="6" className={styles.loadingRow}>
+                    <Loader text="Loading appointments..." />
                   </td>
                 </tr>
               ) : (
                 appointments.appointments?.map((appointment, index) => (
-                  <tr key={appointment._id}>
-                    <td>
-                      <div className="d-flex align-items-center gap-10">
-                        <div className="form-check style-check d-flex align-items-center"></div>
-                        {index + 1}
-                      </div>
+                  <tr key={appointment._id} className={styles.tableRow}>
+                    <td className={styles.indexCell}>{index + 1}</td>
+                    <td className={styles.dayCell}>{appointment.day}</td>
+                    <td className={styles.departmentCell}>{appointment.department}</td>
+                    <td className={styles.slotCell}>
+                      {`${convertUTCTo12Hour(appointment.start_time)} - ${convertUTCTo12Hour(appointment.end_time)}`}
                     </td>
-                    <td>{appointment.day}</td>
-                    <td>{appointment.department}</td>
-                    <td>
-                      {`${convertUTCTo12Hour(
-                        appointment.start_time
-                      )} : ${convertUTCTo12Hour(appointment.end_time)}`}
-                    </td>
-                    <td>{appointment.doctor.username}</td>
-
-                    {/* Action Buttons */}
-                    <td className="text-center">
-                      <div className="d-flex align-items-center gap-10 justify-content-center">
+                    <td className={styles.doctorCell}>{appointment.doctor.username}</td>
+                    <td className={styles.actionsCell}>
+                      <div className={styles.actionButtons}>
                         <Link
                           href={`/appointments/${appointment._id}`}
-                          className="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                          className={`${styles.actionButton} ${styles.viewButton}`}
                         >
-                          <Icon
-                            icon="majesticons:eye-line"
-                            className="icon text-xl"
-                          />
+                          <svg className={styles.actionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
                         </Link>
-
                         <button
                           type="button"
-                          className="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                          className={`${styles.actionButton} ${styles.editButton}`}
                           onClick={() => {
-                            setCurrentId(appointment._id);
+                            setCurrentId(appointment._id)
                             setSelectedAppointment({
                               doctor: appointment.doctor._id,
                               day: appointment.day,
                               department: appointment.department,
-                              start_time: convertUTCTo24Hour(
-                                appointment.start_time
-                              ).split(" ")[0],
-                              end_time: convertUTCTo24Hour(
-                                appointment.end_time
-                              ).split(" ")[0],
-                            });
-                            openUpdateModal();
-                          }} // Edit button handler
+                              start_time: convertUTCTo24Hour(appointment.start_time).split(" ")[0],
+                              end_time: convertUTCTo24Hour(appointment.end_time).split(" ")[0],
+                            })
+                            openUpdateModal()
+                          }}
                         >
-                          <Icon icon="lucide:edit" className="menu-icon" />
+                          <svg className={styles.actionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
                         </button>
                         <button
                           type="button"
-                          className="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                          className={`${styles.actionButton} ${styles.deleteButton}`}
                           onClick={() => {
-                            openDeleteModal();
-                            setCurrentId(appointment._id);
-                          }} // Call the delete handler
+                            openDeleteModal()
+                            setCurrentId(appointment._id)
+                          }}
                         >
-                          <Icon
-                            icon="fluent:delete-24-regular"
-                            className="menu-icon"
-                          />
+                          <svg className={styles.actionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
                         </button>
                       </div>
                     </td>
@@ -228,266 +231,49 @@ export default function AppointmentPage() {
         </div>
 
         {/* Pagination */}
-        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
-          <span>
-            Showing {(currentPage - 1) * 10 + 1} to{" "}
-            {Math.min(currentPage * 10, appointments?.appointments?.length)} of{" "}
+        <div className={styles.paginationContainer}>
+          <span className={styles.paginationInfo}>
+            Showing {(currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, appointments?.appointments?.length)} of{" "}
             {appointments?.appointments?.length} entries
           </span>
-          <ul className="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
+          <ul className={styles.paginationList}>
             {Array.from({ length: totalPages }, (_, i) => (
               <li
                 key={i}
-                className={`page-item ${currentPage === i + 1 ? "active" : ""}`}
+                className={`${styles.paginationItem} ${currentPage === i + 1 ? styles.paginationActive : ""}`}
               >
-                <Link
-                  className="page-link text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px  text-md"
-                  href="#"
-                  onClick={() => handlePageChange(i + 1)} // Handle page change
-                >
+                <button className={styles.paginationLink} onClick={() => handlePageChange(i + 1)}>
                   {i + 1}
-                </Link>
+                </button>
               </li>
             ))}
           </ul>
         </div>
       </div>
 
-      {/* Modal for Appointment Details */}
-      {/* Modal for User Actions */}
-      <UpdateModel
-        title="Update Appointment Slot"
-        closeFun={onUpdateClose}
-        color={"bg-warning"}
-      >
+      {/* Modals */}
+      <UpdateModel title="Update Appointment Slot" closeFun={onUpdateClose} color="bg-warning">
         <AppointmentUpdate
           appointmentId={currentId}
           currentData={selectedAppointment}
           onSuccess={() => {
-            fetchAppointments();
-            onUpdateClose();
+            fetchAppointments()
+            onUpdateClose()
+            showToast("success", "Appointment updated successfully!")
           }}
         />
       </UpdateModel>
 
-      <DeleteModel
-        closeFun={onDeleteClose}
-        color={"bg-danger"}
-        title={"Delete Appointment Slot"}
-      >
+      <DeleteModel closeFun={onDeleteClose} color="bg-danger" title="Delete Appointment Slot">
         <DeleteAppointment
           currentId={currentId}
           onSuccess={() => {
-            fetchAppointments();
-            onDeleteClose();
+            fetchAppointments()
+            onDeleteClose()
+            showToast("success", "Appointment deleted successfully!")
           }}
         />
       </DeleteModel>
     </div>
-  );
+  )
 }
-
-/* 
-
-const UsersListLayer = () => {
-  
- 
-
-  // Fetch patients when component mounts or when page/search changes
-  useEffect(() => {
-    const fetchPatients = async () => {
-      setLoading(true);
-      try {
-        const response = await axiosInstance.get(`/authentication/patients`, {
-
-          params: {
-            page: currentPage,
-            search: search,
-            limit: 10
-          }
-        });
-        setPatients(response.data.patients);
-        setTotalPages(response.data.totalPages);
-      } catch (error) {
-        console.error("Error fetching Students:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPatients(); // Call the fetch function
-  }, [currentPage, search]);
-
-  const handleDelete = async (patientId) => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this Student?');
-  
-    if (confirmDelete) {
-      try {
-        const response = await axiosInstance.delete(`/authentication/delete-patient/${patientId}`);
-
-        if (response.status === 200) {
-          alert('Student deleted successfully');
-          // Remove the patient from the UI (filter out the deleted patient)
-          setPatients(patients.filter(patient => patient._id !== patientId));
-        }
-      } catch (error) {
-        console.error('Error deleting Student:', error);
-        alert('Error deleting Student');
-      }
-    }
-  };
-  
-
-  // Handle search input change
-  const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-    setCurrentPage(1);  // Reset to first page when search query changes
-  };
-
-  // Handle pagination change
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  const handleEdit = (patientId) => {
-    // Redirect to the Edit page with patient ID as a query param
-    router.push(`/edit-user?id=${patientId}`);
-  };
-
-  const handleView = (patientId) => {
-    // Redirect to the View Profile page with patient ID as a query parameter
-    router.push(`/view-profile?id=${patientId}`);
-  };
-
-  return (
-    <div className='card h-100 p-0 radius-12'>
-      <div className='card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between'>
-        <div className='d-flex align-items-center flex-wrap gap-3'>
-          
-          <form className='navbar-search'>
-            <input
-              type='text'
-              className='bg-base h-40-px w-auto'
-              name='search'
-              value={search}
-              onChange={handleSearchChange}  // Update search query
-              placeholder='Search'
-            />
-            <Icon icon='ion:search-outline' className='icon' />
-          </form>
-        </div>
-        <Link
-          href='/add-user'
-          className='btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2'
-        >
-          <Icon
-            icon='ic:baseline-plus'
-            className='icon text-xl line-height-1'
-          />
-          Add New Student
-        </Link>
-      </div>
-      <div className='card-body p-24'>
-        <div className='table-responsive scroll-sm'>
-          <table className='table bordered-table sm-table mb-0'>
-            <thead>
-              <tr>
-                <th scope='col'>
-                  <div className='d-flex align-items-center gap-10'>
-                    <div className='form-check style-check d-flex align-items-center'>
-                
-                    </div>
-                    #
-                  </div>
-                </th>
-                <th scope='col'>Join Date</th>
-                <th scope='col'>Name</th>
-                <th scope='col'>Email</th>
-                <th scope='col'>Phone</th>
-                <th scope='col'>gender</th>
-
-                <th scope='col' className='text-center'>
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="7" className="text-center">Loading...</td>
-                </tr>
-              ) : (
-                patients.map((patient, index) => (
-                  <tr key={patient._id}>
-                    <td>
-                      <div className='d-flex align-items-center gap-10'>
-                        <div className='form-check style-check d-flex align-items-center'>
-                        
-                        </div>
-                        {index + 1}
-                      </div>
-                    </td>
-                    <td>{new Date(patient.createdAt).toLocaleDateString()}</td>
-                    <td>{patient.name}</td>
-                    <td>{patient.email}</td>
-                    <td>{patient.phone}</td>
-                    <td>{patient.gender  || '0'}</td>
-
-                    <td className='text-center'>
-                      <div className='d-flex align-items-center gap-10 justify-content-center'>
-                      <button
-  type='button'
-  className='bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle'
-  onClick={() => handleView(patient._id)}  // Call the View button handler
->
-  <Icon
-    icon='majesticons:eye-line'
-    className='icon text-xl'
-  />
-</button>
-
-                        <button
-                          type='button'
-                          className='bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle'
-                          onClick={() => handleEdit(patient._id)}  // Edit button handler
-                        >
-                          <Icon icon='lucide:edit' className='menu-icon' />
-                        </button>
-                        <button
-  type='button'
-  className='remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle'
-  onClick={() => handleDelete(patient._id)}  // Call the delete handler
->
-  <Icon icon='fluent:delete-24-regular' className='menu-icon' />
-</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        <div className='d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24'>
-          <span>Showing {((currentPage - 1) * 10) + 1} to {Math.min(currentPage * 10, patients.length)} of {patients.length} entries</span>
-          <ul className='pagination d-flex flex-wrap align-items-center gap-2 justify-content-center'>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <li key={i} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
-                <Link
-                  className='page-link text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px  text-md'
-                  href="#"
-                  onClick={() => handlePageChange(i + 1)}  // Handle page change
-                >
-                  {i + 1}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default UsersListLayer;
- */

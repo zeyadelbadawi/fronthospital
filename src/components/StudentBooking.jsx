@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo, useCallback, Suspense } from "react"
 import dynamic from "next/dynamic"
 import { useLanguage } from "@/contexts/LanguageContext"
-import styles from "./NumberingWizardWithLabel.module.css"
+import styles from "../styles/StudentBooking.module.css"
 
 // Dynamic imports للمكونات الثقيلة
 const DatePicker = dynamic(() => import("react-datepicker"), {
@@ -23,7 +23,7 @@ const SyncfusionDocxCase = dynamic(() => import("@/components/SyncfusionDocxCase
 // تحميل CSS للـ DatePicker بشكل منفصل
 import("react-datepicker/dist/react-datepicker.css")
 
-const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, patientName }) => {
+const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName }) => {
   const { language, translations } = useLanguage()
   const t = translations[language]
 
@@ -271,7 +271,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
         )
 
         if (isAlreadyAssigned) {
-          return { success: true, message: "Patient already assigned to school program" }
+          return { success: true, message: "Student already assigned to school program" }
         }
 
         const assignmentData = {
@@ -290,11 +290,11 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
       } catch (error) {
         console.error("Error creating school assignment:", error)
         if (error.response?.status === 400 && error.response?.data?.message?.includes("already assigned")) {
-          return { success: true, message: "Patient already assigned to school program" }
+          return { success: true, message: "Student already assigned to school program" }
         }
         return {
           success: false,
-          error: error.response?.data?.message || "Failed to assign patient to school program",
+          error: error.response?.data?.message || "Failed to assign Student to school program",
         }
       }
     },
@@ -395,7 +395,7 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
           status: "completed",
           invoiceId: `INV-${Math.random().toString(36).substring(2, 15)}`,
           programType,
-          comment: `Initial payment for ${programType} - Patient: ${patientName}`,
+          comment: `Initial payment for ${programType} - Student: ${patientName}`,
           patientName,
         })
 
@@ -1067,4 +1067,4 @@ const NumberingWizardWithLabel = ({ currentStep, setCurrentStep, patientId, pati
   )
 }
 
-export default NumberingWizardWithLabel
+export default StudentBooking

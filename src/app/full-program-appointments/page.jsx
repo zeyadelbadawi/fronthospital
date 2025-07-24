@@ -21,7 +21,6 @@ const Page = () => {
                 />
                 <ModelProvider>
 
-                    {/* EditDoctorLayer  */}
                     <AppointmentPage />
 
                 </ModelProvider>

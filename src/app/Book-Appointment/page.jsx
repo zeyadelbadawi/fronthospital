@@ -4,9 +4,9 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import axiosInstance from "@/helper/axiosSetup"
 import Header from "@/components/Header"
-import NumberingWizardWithLabel from "@/components/child/NumberingWizardWithLabel"
+import StudentBooking from "@/components/StudentBooking"
 import { useLanguage } from "@/contexts/LanguageContext"
-import styles from "./wizard.module.css"
+import styles from "./Book-Appointment.module.css"
 
 export default function Page() {
   const { language, translations } = useLanguage()
@@ -122,7 +122,7 @@ export default function Page() {
     }
   }
 
-  // --- Wizard Step Logic ---
+  // --- Book-Appointment Step Logic ---
   const [currentStep, setCurrentStep] = useState(0)
   const router = useRouter()
 
@@ -138,7 +138,7 @@ export default function Page() {
       <Header user={user} loading={loading} onLoginClick={() => setShowLoginModal(true)} onLogout={handleLogout} />
 
       <div className={styles.wizardContainer}>
-        <NumberingWizardWithLabel
+        <StudentBooking
           currentStep={currentStep}
           setCurrentStep={setCurrentStep}
           patientId={user?.id}
