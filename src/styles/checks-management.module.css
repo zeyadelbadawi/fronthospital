@@ -15,8 +15,13 @@
 
 /* Header Styles */
 .cardHeader {
-  background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
-  color: white;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: white;
   padding: 2rem;
 }
 
@@ -341,8 +346,13 @@
 }
 
 .departmentBadge.speech {
-  background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
-  color: white;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: white;
 }
 
 .dateCell {
@@ -397,8 +407,13 @@
 }
 
 .typeBadge.active {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: white;
   box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
@@ -455,8 +470,13 @@
 }
 
 .viewButton {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: white;
 }
 
 .viewButton:hover {
@@ -528,8 +548,13 @@
 }
 
 .paginationButton.active {
-  background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
-  color: white;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: white;
   border-color: #0ea5e9;
 }
 
@@ -625,8 +650,13 @@
 }
 
 .modalHeader {
-  background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
-  color: white;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: white;
   padding: 1.5rem 2rem;
   display: flex;
   justify-content: space-between;
@@ -744,8 +774,13 @@
 
 .completeActionButton {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
-  color: white;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: white;
   border: none;
   border-radius: 8px;
   font-weight: 600;

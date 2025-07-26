@@ -15,8 +15,13 @@
 
 /* Header Styles */
 .cardHeader {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: white;
   padding: 2rem;
 }
 
@@ -332,8 +337,13 @@
 }
 
 .departmentBadge.speech {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: white;
 }
 
 .dateCell {
@@ -497,8 +507,13 @@
 }
 
 .paginationButton.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: white;
   border-color: #667eea;
 }
 
@@ -594,8 +609,13 @@
 }
 
 .modalHeader {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: white;
   padding: 1.5rem 2rem;
   display: flex;
   justify-content: space-between;
@@ -713,8 +733,13 @@
 
 .completeActionButton {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: white;
   border: none;
   border-radius: 8px;
   font-weight: 600;

@@ -32,7 +32,6 @@ const AdminPatientProfileLayer = () => {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
-  const [disabilityType, setDisabilityType] = useState("")
   const [address, setAddress] = useState("")
   const [dateOfBirth, setDateOfBirth] = useState("")
   const [password, setPassword] = useState("")
@@ -66,7 +65,6 @@ const AdminPatientProfileLayer = () => {
           setName(response.data.name)
           setEmail(response.data.email)
           setPhone(response.data.phone)
-          setDisabilityType(response.data.disabilityType || "")
           setAddress(response.data.address)
           setDateOfBirth(response.data.dateOfBirth || "")
           setLoading(false)
@@ -131,7 +129,7 @@ const AdminPatientProfileLayer = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const updatedPatient = { name, email, phone, disabilityType, address, dateOfBirth }
+    const updatedPatient = { name, email, phone, address, dateOfBirth }
     try {
       const response = await axiosInstance.put(
         `${process.env.NEXT_PUBLIC_API_URL}/authentication/edit-patient/${patientId}`,
@@ -231,15 +229,7 @@ const AdminPatientProfileLayer = () => {
                   </span>
                   <span className={styles.infoValue}>{phone}</span>
                 </li>
-                <li className={styles.infoItem}>
-                  <span className={styles.infoLabel}>
-                    <Activity className={styles.infoLabelIcon} />
-                    Disability Type
-                  </span>
-                  <span className={`${styles.infoValue} ${!disabilityType ? styles.notProvided : ""}`}>
-                    {disabilityType || "Not provided"}
-                  </span>
-                </li>
+            
                 <li className={styles.infoItem}>
                   <span className={styles.infoLabel}>
                     <Calendar className={styles.infoLabelIcon} />
@@ -378,20 +368,7 @@ const AdminPatientProfileLayer = () => {
                       placeholder="Enter phone number"
                     />
                   </div>
-                  <div className={styles.formGroup}>
-                    <label htmlFor="disabilityType" className={styles.formLabel}>
-                      <Activity className={styles.labelIcon} />
-                      Disability Type
-                    </label>
-                    <input
-                      type="text"
-                      className={styles.formInput}
-                      id="disabilityType"
-                      value={disabilityType}
-                      onChange={(e) => setDisabilityType(e.target.value)}
-                      placeholder="Enter disability type"
-                    />
-                  </div>
+                  
                 </div>
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>

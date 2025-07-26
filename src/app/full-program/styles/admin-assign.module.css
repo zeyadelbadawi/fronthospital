@@ -16,7 +16,7 @@
   border-radius: 1rem; /* More rounded corners */
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); /* Deeper shadow */
   width: 100%;
-  max-width: 1300px; /* Increased max-width for a wider page */
+  max-width: 1920px; /* Increased max-width for a wider page */
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -26,8 +26,13 @@
 /* Card Header - Top Section */
 .cardHeader {
   padding: 2rem 3rem; /* Reduced top/bottom padding for shorter header */
-    background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
-  color: #ffffff;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: #ffffff;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   position: relative;
   overflow: hidden;
@@ -315,8 +320,13 @@
 }
 
 .saveButton {
-    background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
-  color: #ffffff;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: #ffffff;
   border: none;
   padding: 1rem 2.5rem; /* More padding */
   border-radius: 0.625rem;

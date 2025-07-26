@@ -60,6 +60,10 @@ export default function FullProgramPage() {
       <>
 
           <MasterLayout>
+      <Breadcrumb 
+        heading="Single Session" 
+
+      title='Single Session' />
 
     <div className={styles.appContainer}>
       <SidebarProvider defaultOpen={true}>

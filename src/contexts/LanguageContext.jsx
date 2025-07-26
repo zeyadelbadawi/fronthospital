@@ -174,7 +174,7 @@ const translations = {
     },
     welcome: {
       title: "مرحباً بك في بوابة الصحة الخاصة بك",
-      subtitle: "الوصول إلى مواعيدك والسجلات الطبية وإدارة رحلتك الصحية بسهولة وثقة",
+      subtitle: "الوصول إلى مواعيدك والسجلات الطبية إدارة رحلتك الصحية بسهولة وثقة",
     },
     disclaimer: {
       title: "معلومات مهمة",
@@ -255,7 +255,7 @@ const translations = {
     wizard: {
       bookAppointment: "احجز موعدك",
       selectEvaluationType: "اختر نوع التقييم",
-      chooseEvaluationType: "اختر نوع التقييم الذي يناسب احتياجاتك",
+      chooseEvaluationType: "اختر نوع التقييم الذي يناسبك",
       evaluationType: "نوع التقييم",
       chooseYourEvaluationType: "اختر نوع التقييم...",
       schoolEvaluation: "تقييم مدرسي",
@@ -322,12 +322,16 @@ const translations = {
 }
 
 export const LanguageProvider = ({ children }) => {
-  const [language, setLanguage] = useState("en")
+  const [language, setLanguage] = useState("ar") // Changed default to Arabic
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem("language")
     if (savedLanguage && (savedLanguage === "en" || savedLanguage === "ar")) {
       setLanguage(savedLanguage)
+    } else {
+      // Set Arabic as default if no saved language
+      setLanguage("ar")
+      localStorage.setItem("language", "ar")
     }
   }, [])
 

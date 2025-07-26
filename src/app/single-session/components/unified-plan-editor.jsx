@@ -485,48 +485,11 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
                   </span>
                 </div>
               </div>
-              {patient.disabilityType && (
-                <div className={styles.studentInfoItem}>
-                  <FileText className={styles.studentInfoIcon} />
-                  <div className={styles.studentInfoContent}>
-                    <span className={styles.studentInfoLabel}>Disability Type</span>
-                    <span className={styles.studentInfoValue}>{patient.disabilityType}</span>
-                  </div>
-                </div>
-              )}
+        
             </div>
           </div>
 
-          {/* Plan Statistics */}
-          <div className={styles.statsContainer}>
-            <div className={styles.statCard}>
-              <div className={styles.statIcon} style={{ backgroundColor: config.color + "20" }}>
-                <ClipboardList className={styles.statIconSvg} style={{ color: config.color }} />
-              </div>
-              <div className={styles.statContent}>
-                <span className={styles.statNumber}>{planStats.totalSessions}</span>
-                <span className={styles.statLabel}>Total Sessions</span>
-              </div>
-            </div>
-            <div className={styles.statCard}>
-              <div className={styles.statIcon} style={{ backgroundColor: "#10B981" + "20" }}>
-                <Clock className={styles.statIconSvg} style={{ color: "#10B981" }} />
-              </div>
-              <div className={styles.statContent}>
-                <span className={styles.statNumber}>{planStats.completedSessions}</span>
-                <span className={styles.statLabel}>Completed</span>
-              </div>
-            </div>
-            <div className={styles.statCard}>
-              <div className={styles.statIcon} style={{ backgroundColor: "#F59E0B" + "20" }}>
-                <Calendar className={styles.statIconSvg} style={{ color: "#F59E0B" }} />
-              </div>
-              <div className={styles.statContent}>
-                <span className={styles.statNumber}>{planStats.upcomingSessions}</span>
-                <span className={styles.statLabel}>Upcoming</span>
-              </div>
-            </div>
-          </div>
+          
         </div>
 
         {/* Main Content */}

@@ -84,8 +84,14 @@
 }
 
 .updateHeader {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
-  border-bottom-color: rgba(245, 158, 11, 0.2);
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+); 
+color: white;
 }
 
 .deleteHeader {
@@ -106,8 +112,13 @@
 }
 
 .updateIcon {
-  color: var(--warning-orange);
-}
+  color: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+); }
 
 .deleteIcon {
   color: var(--danger-red);
@@ -116,7 +127,7 @@
 .modalTitle {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--gray-800);
+color:white;
   margin: 0;
 }
 
@@ -181,7 +192,7 @@
 .labelIcon {
   width: 16px;
   height: 16px;
-  color: var(--primary-blue);
+  color: #3f3f87;
 }
 
 .formSelect,
@@ -343,9 +354,13 @@
 
 .updateButton {
   padding: 0.875rem 1.5rem;
-  border: 2px solid var(--warning-orange);
-  background: var(--warning-orange);
-  color: var(--white);
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: var(--white);
   border-radius: var(--border-radius-lg);
   cursor: pointer;
   font-weight: 600;

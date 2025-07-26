@@ -41,7 +41,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url("/images/logo.png");
+  background-image: url("/images/rukn-logo.png");
   background-repeat: no-repeat;
   background-position: center;
   background-size: 800px;
@@ -92,8 +92,13 @@
 .sidebarHeader {
   padding: 1.5rem;
   border-bottom: 2px solid var(--gray-200);
-  background: linear-gradient(135deg, var(--primary-navy) 0%, var(--primary-magenta) 100%);
-  color: var(--white);
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);  color: var(--white);
   position: relative;
   overflow: hidden;
 }

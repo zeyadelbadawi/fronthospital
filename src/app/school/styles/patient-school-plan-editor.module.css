@@ -1,6 +1,6 @@
 /* ===== LOGO BRAND COLORS ===== */
 .planEditorContainer {
-  --navy-blue: #1e3a8a;
+  --navy-blue: #2977ba;
   --magenta: #d946ef;
   --light-blue: #0ea5e9;
   --success-green: #10b981;
@@ -35,7 +35,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url("/images/logo.png");
+  background-image: url("/images/rukn-logo.png");
   background-size: 300px 300px;
   background-repeat: no-repeat;
   background-position: center;
@@ -71,8 +71,13 @@
 
 /* ===== HEADER SECTION ===== */
 .planHeader {
-  background: linear-gradient(135deg, var(--navy-blue) 0%, var(--light-blue) 100%);
-  padding: 2.5rem;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);  padding: 2.5rem;
   position: relative;
   overflow: hidden;
   height: auto;
@@ -246,8 +251,13 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--navy-blue) 0%, var(--light-blue) 50%, var(--magenta) 100%);
-}
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);}
 
 .groupInfoTitle {
   font-size: 1.5rem;
@@ -381,8 +391,13 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--navy-blue) 0%, var(--light-blue) 50%, var(--magenta) 100%);
-  z-index: 1;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);  z-index: 1;
 }
 
 .documentContainer {

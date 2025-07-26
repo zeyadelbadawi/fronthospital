@@ -6,8 +6,13 @@
   gap: 1rem;
   margin-bottom: 1.5rem;
   padding: 1rem 1.5rem;
-    background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
-  backdrop-filter: blur(10px);
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -22,8 +27,13 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-}
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+); }
 
 
 .heading {
@@ -157,52 +167,6 @@
   }
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .breadcrumbContainer {
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.1) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .heading {
-    color: #f9fafb;
-  }
-  
-  .breadcrumbItem {
-    color: #d1d5db;
-  }
-  
-  .breadcrumbLink {
-    color: #d1d5db;
-  }
-  
-  .breadcrumbLink:hover {
-    color: #818cf8;
-    background: rgba(129, 140, 248, 0.1);
-  }
-  
-  .currentPage {
-    color: #f3f4f6;
-    background: rgba(129, 140, 248, 0.2);
-    border: 1px solid rgba(129, 140, 248, 0.3);
-  }
-}
-
-/* Animation for page transitions */
-.breadcrumbContainer {
-  animation: slideInFromTop 0.5s ease-out;
-}
-
-@keyframes slideInFromTop {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 /* Hover effects for the entire container */
 .breadcrumbContainer:hover {

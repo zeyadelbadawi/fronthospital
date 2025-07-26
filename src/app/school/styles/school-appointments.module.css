@@ -1,10 +1,9 @@
-/* School Appointments Styles with Professional Design */
 
 /* Color Variables */
 .appointmentsContainer {
-  --primary-navy: #1e3a8a;
-  --primary-magenta: #d946ef;
-  --primary-light-blue: #0ea5e9;
+  --primary-navy: #2977ba;
+  --primary-magenta: #cc2889;
+  --primary-light-blue: #3f3f87;
   --success-green: #10b981;
   --warning-orange: #f59e0b;
   --danger-red: #ef4444;
@@ -28,7 +27,6 @@
 /* Main Container */
 .appointmentsContainer {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
   padding: 2rem;
   position: relative;
   overflow-x: hidden;
@@ -41,7 +39,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url("/images/logo.png");
+  background-image: url("/images/rukn-logo.png");
   background-repeat: no-repeat;
   background-position: center;
   background-size: 800px;
@@ -62,8 +60,13 @@
 }
 
 .cardHeader {
-  background: linear-gradient(135deg,#1e3a8a 0%, #0ea5e9 100%);
-  padding: 2.5rem;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);  padding: 2.5rem;
   position: relative;
   overflow: hidden;
   height: auto;
@@ -239,8 +242,13 @@ color: #ffffff;
 
 
 .tableHeader {
-  background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
-  color: var(--white);
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);  color: var(--white);
 }
 
 .tableHeader th {
@@ -363,8 +371,13 @@ color: #ffffff;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #1e3a8a, #0ea5e9);
-  color: var(--white);
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);  color: var(--white);
   border: none;
   border-radius: 0.5rem;
   font-size: 0.9rem;
@@ -442,8 +455,13 @@ color: #ffffff;
   justify-content: space-between;
   align-items: flex-start;
   padding: 2rem;
-    background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
-
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);
   color: var(--white);
   gap: 2rem;
   min-height: 350px;

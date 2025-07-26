@@ -6,7 +6,7 @@ export async function generateMetadata({ params }) {
   const awaitedParams = await params // Await params
   const role = awaitedParams.role.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
   return {
-    title: `WowDash NEXT JS - All ${role}s`,
+    title: `Rukn Alwatikon Center - All ${role}s`,
     description: `List of all ${role}s.`,
   }
 }

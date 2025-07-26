@@ -35,11 +35,17 @@
   border: 1px solid var(--gray-200);
   overflow: hidden;
   margin: 2rem;
+  max-width: 1920px;
 }
 
 .cardHeader {
-  background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
-  color: var(--white);
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: var(--white);
   padding: 2rem;
   position: relative;
   overflow: hidden;

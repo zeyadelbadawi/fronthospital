@@ -1,6 +1,6 @@
   /* ===== LOGO BRAND COLORS ===== */
   .upcomingContainer {
-    --navy-blue: #1e3a8a;
+    --navy-blue: #2977ba;
     --magenta: #d946ef;
     --light-blue: #0ea5e9;
     --success-green: #10b981;
@@ -35,7 +35,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: url("/images/logo.png");
+    background-image: url("/images/rukn-logo.png");
     background-size: 200px 200px;
     background-repeat: no-repeat;
     background-position: center;
@@ -71,8 +71,13 @@
 
   /* ===== HEADER SECTION ===== */
   .cardHeader {
-    background: linear-gradient(135deg, var(--navy-blue) 0%, var(--light-blue) 100%);
-    padding: 2.5rem;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);    padding: 2.5rem;
     position: relative;
     overflow: hidden;
   }
@@ -333,8 +338,13 @@
   }
 
   .clearSearchButton {
-    background: linear-gradient(135deg, var(--navy-blue), var(--light-blue));
-    color: var(--white);
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);    color: var(--white);
     border: none;
     border-radius: 12px;
     padding: 0.75rem 1.5rem;
@@ -365,8 +375,13 @@
   }
 
   .tableHeader {
-    background: linear-gradient(135deg, var(--navy-blue) 0%, var(--light-blue) 100%);
-    color: var(--white);
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);    color: var(--white);
   }
 
   .tableHeader th {
@@ -605,8 +620,13 @@
   }
 
   .editButton {
-    background: linear-gradient(135deg, var(--navy-blue), var(--light-blue));
-    color: var(--white);
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);    color: var(--white);
   }
 
   .editButton:hover {
@@ -669,16 +689,24 @@
   }
 
   .paginationButton:hover:not(.disabled) {
-    background: linear-gradient(135deg, var(--navy-blue), var(--light-blue));
-    color: var(--white);
-    border-color: var(--navy-blue);
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);    color: var(--white);
     transform: translateY(-1px);
   }
 
   .paginationButton.active {
-    background: linear-gradient(135deg, var(--navy-blue), var(--light-blue));
-    color: var(--white);
-    border-color: var(--navy-blue);
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);    color: var(--white);
   }
 
   .paginationButton.disabled {

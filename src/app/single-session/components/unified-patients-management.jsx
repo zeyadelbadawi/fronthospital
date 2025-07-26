@@ -484,10 +484,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
                 <div className={styles.detailSection}>
                   <h4>Medical Information</h4>
                   <div className={styles.detailGrid}>
-                    <div className={styles.detailItem}>
-                      <FileText className={styles.detailIcon} />
-                      <span>Disability Type: {viewModal.patient.disabilityType || "N/A"}</span>
-                    </div>
+                
                     <div className={styles.detailItem}>
                       <ClipboardList className={styles.detailIcon} />
                       <span>Medical History: {viewModal.patient.medicalHistory || "Not provided"}</span>

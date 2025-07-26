@@ -47,12 +47,12 @@
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #3b82f6, #ec4899);
+  background: linear-gradient(180deg, #3f3f87, #cc2889);
   border-radius: 3px;
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #2563eb, #db2777);
+  background: linear-gradient(180deg, #3f3f87, #cc2889);
 }
 
 .sidebar.active,
@@ -70,7 +70,7 @@
   border: none;
   background: linear-gradient(135deg, #dbeafe, #fce7f3);
   border-radius: 12px;
-  color: #3b82f6;
+  color: #3f3f87;
   font-size: 20px;
   cursor: pointer;
   z-index: 1001;
@@ -110,7 +110,13 @@
 .logoIcon {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #3b82f6, #ec4899);
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -149,7 +155,13 @@
 }
 
 .logoTitle {
-  background: linear-gradient(135deg, #3b82f6, #ec4899);
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -182,7 +194,13 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  background: linear-gradient(135deg, #3b82f6, #ec4899);
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -197,17 +215,20 @@
   left: 1.5rem;
   right: 1.5rem;
   height: 2px;
-  background: linear-gradient(90deg, #3b82f6, #ec4899, transparent);
+  background: linear-gradient(90deg, #3f3f87, #cc2889, transparent);
   border-radius: 1px;
+        margin-bottom: -5px;
+
 }
 
 .sidebarMenu li {
   margin-bottom: 0.25rem;
   padding: 0 1rem;
+  text-align: center;
 }
 
 .sidebarMenu a {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 1rem;
   padding: 1rem 1rem;
@@ -228,7 +249,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #3b82f6, #ec4899);
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: -1;
@@ -242,7 +269,13 @@
 }
 
 .sidebarMenu a.activePage {
-  background: linear-gradient(135deg, #3b82f6, #ec4899);
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4), 0 2px 6px rgba(236, 72, 153, 0.2);
   transform: translateX(4px);
@@ -308,7 +341,7 @@
   border: none;
   background: linear-gradient(135deg, #f0f9ff, #fdf2f8);
   border-radius: 12px;
-  color: #3b82f6;
+  color: #3f3f87;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -347,7 +380,7 @@
 
 .navbarSearch input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: #3f3f87 ;
   background: #ffffff;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 0 0 8px rgba(236, 72, 153, 0.05);
   transform: translateY(-1px);
@@ -363,7 +396,7 @@
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #3b82f6;
+  color: #3f3f87;
   width: 20px;
   height: 20px;
   transition: color 0.2s ease;
@@ -502,7 +535,13 @@
 
 .notificationTitle {
   font-size: 1.125rem;
-  background: linear-gradient(135deg, #3b82f6, #ec4899);
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -511,7 +550,13 @@
 }
 
 .notificationCount {
-  background: linear-gradient(135deg, #3b82f6, #ec4899);
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);
   color: white;
   font-weight: 700;
   font-size: 1rem;
@@ -541,7 +586,7 @@
 }
 
 .notificationList::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #3b82f6, #ec4899);
+  background: linear-gradient(180deg, #3f3f87, #cc2889);
   border-radius: 3px;
 }
 
@@ -576,7 +621,7 @@
   width: 48px;
   height: 48px;
   background: linear-gradient(135deg, #dbeafe, #fce7f3);
-  color: #3b82f6;
+  color: #3f3f87;
   border-radius: 12px;
   display: flex;
   justify-content: center;
@@ -670,7 +715,13 @@
 
 .profileInfo h6 {
   font-size: 1.125rem;
-  background: linear-gradient(135deg, #3b82f6, #ec4899);
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -693,7 +744,7 @@
   padding: 0.5rem;
   border-radius: 8px;
   transition: background 0.2s ease;
-  color: #3b82f6;
+  color: #3f3f87;
 }
 
 .profileCloseBtn:hover {
@@ -725,7 +776,7 @@
 
 .profileMenuLink:hover {
   background: linear-gradient(135deg, #f0f9ff, #fdf2f8);
-  color: #3b82f6;
+  color: #3f3f87;
   transform: translateX(4px);
 }
 
@@ -779,7 +830,7 @@
   background-color: #dcfce7;
 }
 .textPrimaryLight {
-  color: #3b82f6;
+  color: #3f3f87;
 }
 .textSuccessMain {
   color: #16a34a;
@@ -791,10 +842,10 @@
   color: #1e293b;
 }
 .textPrimary600 {
-  color: #3b82f6 !important;
+  color: #3f3f87 !important;
 }
 .textPink600 {
-  color: #ec4899 !important;
+  color: #cc2889 !important;
 }
 .bgDanger {
   background-color: #dc2626;
@@ -1023,23 +1074,23 @@
 .sidebarMobileToggle:focus,
 .hasIndicator:focus,
 .profileDropdownBtn:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #3f3f87;
   outline-offset: 2px;
 }
 
 /* High Contrast Mode Support */
 @media (prefers-contrast: high) {
   .sidebar {
-    border-right: 2px solid #3b82f6;
+    border-right: 2px solid #3f3f87;
   }
 
   .sidebarMenu a.activePage {
-    background: #3b82f6;
+    background: #3f3f87;
     color: #ffffff;
   }
 
   .navbarHeader {
-    border-bottom: 2px solid #3b82f6;
+    border-bottom: 2px solid #3f3f87;
   }
 }
 

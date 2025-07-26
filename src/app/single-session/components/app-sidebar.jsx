@@ -6,7 +6,6 @@ import {
   ClipboardCheck,
   ChevronDown,
   ChevronRight,
-  LogOut,
   Activity,
   Brain,
   Hand,
@@ -14,7 +13,7 @@ import {
   MessageSquare,
 } from "lucide-react"
 import { useContentStore } from "../store/content-store"
-import { isAuthenticated, getCurrentUser, logout } from "../utils/auth-utils"
+import { isAuthenticated, getCurrentUser } from "../utils/auth-utils"
 import styles from "../styles/sidebar.module.css"
 
 const departments = [
@@ -99,9 +98,7 @@ export function AppSidebar() {
     setActiveItem(itemId)
   }
 
-  const handleLogout = () => {
-    logout()
-  }
+
 
   if (!isAuthenticated()) {
     return (
@@ -128,7 +125,6 @@ export function AppSidebar() {
             </div>
             <div className={styles.userDetails}>
               <p className={styles.userRole}>{user.role} Dashboard</p>
-              <p className={styles.userId}>Single Sessions System</p>
             </div>
           </div>
         )}
@@ -176,13 +172,7 @@ export function AppSidebar() {
         })}
       </nav>
 
-      {/* Logout Button */}
-      <div className={styles.sidebarFooter}>
-        <button onClick={handleLogout} className={styles.logoutButton}>
-          <LogOut className={styles.logoutIcon} />
-          <span>Logout</span>
-        </button>
-      </div>
+     
     </div>
   )
 }

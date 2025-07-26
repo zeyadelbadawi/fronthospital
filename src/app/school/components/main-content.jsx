@@ -5,8 +5,6 @@ import { useContentStore } from "../store/content-store"
 import { SchoolAppointments } from "./school-appointments"
 
 import AllPatientsSchool from "./all-patients-school"
-
-import { WelcomeView } from "./welcome-view"
 import styles from "../styles/main-content.module.css"
 
 export function MainContent() {
@@ -14,7 +12,7 @@ export function MainContent() {
 
   const renderContent = () => {
     if (!activeContent) {
-      return <WelcomeView />
+      return <SchoolAppointments />
     }
 
     const { department, type } = activeContent
@@ -34,7 +32,7 @@ export function MainContent() {
     }
 
    
-    return <WelcomeView />
+    return <SchoolAppointments />
   }
 
   return (

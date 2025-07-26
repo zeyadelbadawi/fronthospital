@@ -33,7 +33,6 @@ const PublicProfilepatient = ({ patientID }) => {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
-  const [disabilityType, setDisabilityType] = useState("")
   const [address, setAddress] = useState("")
   const [dateOfBirth, setDateOfBirth] = useState("")
   const [newPassword, setNewPassword] = useState("")
@@ -94,7 +93,6 @@ const PublicProfilepatient = ({ patientID }) => {
           setName(data.name)
           setEmail(data.email)
           setPhone(data.phone)
-          setDisabilityType(data.disabilityType || "")
           setAddress(data.address)
           setDateOfBirth(data.dateOfBirth || "")
           setLoading(false)
@@ -221,15 +219,7 @@ const PublicProfilepatient = ({ patientID }) => {
                     </span>
                     <span className={styles.infoValue}>{phone}</span>
                   </li>
-                  <li className={styles.infoItem}>
-                    <span className={styles.infoLabel}>
-                      <Activity className={styles.infoLabelIcon} />
-                      Disability Type
-                    </span>
-                    <span className={`${styles.infoValue} ${!disabilityType ? styles.notProvided : ""}`}>
-                      {disabilityType || "Not provided"}
-                    </span>
-                  </li>
+           
                   <li className={styles.infoItem}>
                     <span className={styles.infoLabel}>
                       <Calendar className={styles.infoLabelIcon} />

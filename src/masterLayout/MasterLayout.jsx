@@ -281,9 +281,9 @@ const MasterLayout = ({ children }) => {
               </Link>
             </li>
             <li>
-              <Link href="/profile-dashboard" className={pathname === "/profile-dashboard" ? styles.activePage : ""}>
+              <Link href="/Admin-Book-Appointment" className={pathname === "/Admin-Book-Appointment" ? styles.activePage : ""}>
                 <Icon icon="healthicons:ui-user-profile" className={styles.menuIcon} />
-                <span>Students Profile</span>
+                <span>Book New Appointment</span>
               </Link>
             </li>
             <li className={styles.sidebarMenuGroupTitle}>Full Program Schedule</li>
@@ -504,12 +504,7 @@ const MasterLayout = ({ children }) => {
             <div className={styles.colAuto}>
               <p className={styles.mb0}>© 2025 Rukn Alwatikon Center for Rehabilitation. All Rights Reserved.</p>
             </div>
-            <div className={styles.colAuto}>
-              <p className={styles.mb0}>
-                Made with <span className={styles.textPink600}>♥</span> by{" "}
-                <span className={styles.textPrimary600}>Eng: Ziad Elbadawi</span>
-              </p>
-            </div>
+            
           </div>
         </footer>
       </main>

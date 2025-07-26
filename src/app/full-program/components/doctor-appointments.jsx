@@ -185,10 +185,12 @@ setAppointments(sortedAppointments.filter(app => app.programType === "full_progr
           </span>
         )
       case "PENDING":
-        return <span className={`${styles.paymentBadge} ${styles.pending}`}>Pending</span>
-      default:
-        return <span className={`${styles.paymentBadge} ${styles.pending}`}>Unknown</span>
-    }
+         return (
+          <span className={`${styles.paymentBadge} ${styles.partiallyPaid}`}>
+            PENDING 0 %
+          </span>
+        )
+          }
   }
 
   const handleMarkAsActive = async (appointmentId) => {

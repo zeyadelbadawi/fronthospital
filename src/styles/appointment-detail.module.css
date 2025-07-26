@@ -84,8 +84,13 @@
 }
 
 .headerSection {
-  background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
-  color: white; /* Ensure all text within header is white by default */
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: white; /* Ensure all text within header is white by default */
   padding: 2.5rem;
   position: relative;
   overflow: hidden;
@@ -295,8 +300,13 @@
 }
 
 .cardHeader {
-  background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
-  color: var(--white);
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: var(--white);
   padding: 2rem;
   position: relative;
   overflow: hidden;
@@ -470,8 +480,13 @@
 }
 
 .primaryAvatar {
-  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
-  border-color: rgba(59, 130, 246, 0.3);
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   border-color: rgba(59, 130, 246, 0.3);
 }
 
 .successAvatar {
@@ -544,8 +559,13 @@
 }
 
 .addButton {
-  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
-  color: var(--white);
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: var(--white);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
@@ -705,9 +725,13 @@
 }
 
 .paginationActive {
-  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
-  color: var(--white);
-  border-color: var(--primary-blue);
+  background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: var(--white);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 

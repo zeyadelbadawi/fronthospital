@@ -11,7 +11,7 @@
 
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1920px;
   margin: 0 auto;
 }
 
@@ -277,8 +277,13 @@
 }
 
 .planHeader {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white; /* Ensure all text within header is white by default */
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: white; /* Ensure all text within header is white by default */
   padding: 2.5rem;
   position: relative;
   overflow: hidden;

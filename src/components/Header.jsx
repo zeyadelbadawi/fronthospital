@@ -10,7 +10,7 @@ export default function Header({
   loading,
   onLoginClick,
   onLogout,
-  logoSrc = "/assets/logo.png",
+  logoSrc = "/images/rukn-logo.png",
   title = "Rukn Elwatikon Center Client Portal",
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)

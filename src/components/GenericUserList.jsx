@@ -116,7 +116,7 @@ const GenericUserList = ({ role }) => {
 
   const getTableHeaders = () => {
     if (isPatient) {
-      return ["#", "Join Date", "Name", "Email", "Phone", "Gender", "Action"]
+      return ["#", "Name", "Email", "Phone", "Gender","member since", "Action"]
     } else if (isDoctor) {
       return ["#", "Username", "Email", "Phone", "Title", "Availability", "Department(s)", "Action"]
     } else if (isAccountant) {
@@ -130,11 +130,12 @@ const GenericUserList = ({ role }) => {
       return (
         <>
           <td className={styles.indexCell}>{index + 1}</td>
-          <td className={styles.dateCell}>{new Date(user.createdAt).toLocaleDateString()}</td>
           <td className={styles.nameCell}>{user.name}</td>
           <td className={styles.emailCell}>{user.email}</td>
           <td className={styles.phoneCell}>{user.phone}</td>
           <td className={styles.genderCell}>{user.gender || "N/A"}</td>
+                    <td className={styles.dateCell}>{new Date(user.createdAt).toLocaleDateString()}</td>
+
         </>
       )
     } else if (isDoctor) {

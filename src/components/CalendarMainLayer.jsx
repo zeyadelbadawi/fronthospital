@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 
 import axiosInstance from "../helper/axiosSetup";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import ImprovedCalendar from "./WeekTable";
 import Loader from "./Loader";

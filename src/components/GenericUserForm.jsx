@@ -50,7 +50,7 @@ const GenericUserForm = ({ role, mode, id }) => {
             "Please provide accurate information for the new student. Fields marked with an asterisk (*) are required for registration.",
         },
         edit: {
-          initial: { name: "", email: "", phone: "", disabilityType: "", address: "", dateOfBirth: "", gender: "" },
+          initial: { name: "", email: "", phone: "", address: "", dateOfBirth: "", gender: "" },
           required: ["name", "email"],
           api: `${process.env.NEXT_PUBLIC_API_URL}/authentication/edit-patient/${id}`,
           fetchApi: `${process.env.NEXT_PUBLIC_API_URL}/authentication/patient/${id}`,
@@ -557,25 +557,7 @@ const GenericUserForm = ({ role, mode, id }) => {
                         </div>
                       )}
                     </div>
-                    {isEditMode && (
-                      <div className={styles.formRow}>
-                        <div className={styles.formGroup}>
-                          <label htmlFor="disabilityType" className={styles.formLabel}>
-                            <User className={styles.labelIcon} />
-                            Disability Type
-                          </label>
-                          <input
-                            type="text"
-                            className={styles.formInput}
-                            id="disabilityType"
-                            name="disabilityType"
-                            value={formData.disabilityType || ""}
-                            onChange={handleInputChange}
-                            placeholder="Enter disability type"
-                          />
-                        </div>
-                      </div>
-                    )}
+               
                     <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                       <label htmlFor="address" className={styles.formLabel}>
                         <MapPin className={styles.labelIcon} />

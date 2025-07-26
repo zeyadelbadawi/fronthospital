@@ -86,7 +86,7 @@
   backdrop-filter: blur(20px);
   z-index: 1;
   border-radius: 20px;
-  margin-top: 40px;
+  margin-top: 32px;
 
 }
 
@@ -112,8 +112,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(1px);
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   backdrop-filter: blur(1px);
   pointer-events: none;
   z-index: 2;
 }
@@ -124,7 +129,7 @@
   border-bottom: 1px solid var(--glass-border);
   position: relative;
   z-index: 10;
-  background: var(--glass-bg);
+
   backdrop-filter: blur(10px);
 }
 
@@ -184,7 +189,12 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  background: conic-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 100%,
+
+);
   animation: rotate 3s linear infinite;
 }
 
@@ -768,8 +778,13 @@
 .departmentIcon {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
-  border-radius: 12px;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -842,8 +857,13 @@
 .welcomeIcon {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
-  border-radius: 12px;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;

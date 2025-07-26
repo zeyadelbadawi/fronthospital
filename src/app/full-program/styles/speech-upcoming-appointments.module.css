@@ -4,11 +4,17 @@
    =================================== */
 
 
-.mainContent {
-  --primary-blue: #3b82f6;
-  --primary-blue-dark: #1d4ed8;
-  --secondary-purple: #667eea;
-  --secondary-purple-dark: #764ba2;
+.mainContent {background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+); 
+  --primary-blue: #2977ba;
+  --primary-blue-dark: #3f3f87;
+  --secondary-purple: #cc2889;
+  --secondary-purple-dark: #cc2889;
   --success-green: #10b981;
   --warning-orange: #f59e0b;
   --danger-red: #ef4444;
@@ -93,8 +99,13 @@
 .departmentIcon {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
-  border-radius: 12px;
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -301,7 +312,6 @@
   --border-radius-xl: 1rem;
 
   padding: 2rem;
-  background: var(--gray-50);
   min-height: 100vh;
   box-sizing: border-box;
 }
@@ -316,8 +326,13 @@
 }
 
 .cardHeader {
-    background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
-  color: white; /* Ensure all text within header is white by default */
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);   color: white; /* Ensure all text within header is white by default */
   padding: 2.5rem;
   position: relative;
   overflow: hidden;
@@ -777,6 +792,7 @@
 .actionIcon {
   width: 16px;
   height: 16px;
+  color:white;
 }
 
 .actionIconRight {

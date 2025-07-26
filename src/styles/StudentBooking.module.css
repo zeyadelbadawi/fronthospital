@@ -82,6 +82,121 @@
   margin: 0;
 }
 
+/* Success Message Styles */
+.ruknSaveSuccessMessage {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 10001;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2);
+  animation: slideInFromRight 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), fadeOut 0.5s ease-in-out 3.5s forwards;
+  max-width: 400px;
+  min-width: 300px;
+}
+
+.rtl .ruknSaveSuccessMessage {
+  right: auto;
+  left: 2rem;
+  animation: slideInFromLeft 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), fadeOut 0.5s ease-in-out 3.5s forwards;
+}
+
+.ruknSaveSuccessContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.ruknSaveSuccessIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: checkmarkPulse 2s infinite;
+}
+
+.ruknSaveSuccessText h4 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: white;
+}
+
+.ruknSaveSuccessText p {
+  font-size: 0.9rem;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
+}
+
+/* Tooltip Styles */
+.ruknTooltipContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.ruknTooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 0.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 1000;
+}
+
+.ruknTooltipContainer:hover .ruknTooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-5px);
+}
+
+.ruknTooltipContent {
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 280px;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.ruknTooltipContent::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #374151;
+}
+
+.rtl .ruknTooltip {
+  left: auto;
+  right: 50%;
+  transform: translateX(50%);
+}
+
+.rtl .ruknTooltipContainer:hover .ruknTooltip {
+  transform: translateX(50%) translateY(-5px);
+}
+
 .ruknProgressCard {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
@@ -265,6 +380,34 @@
   animation: fadeInUp 0.6s ease-out 0.2s both;
 }
 
+.ruknFormGroupdes {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: fadeInUp 0.6s ease-out 0.2s both;
+  z-index: 0;
+}
+
+.ruknFormGroupdes:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.ruknFormGroupdes:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.ruknFormGroupdes:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.ruknFormGroupdes:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.ruknFormGroup:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
 .ruknFormGrid {
   display: grid;
   grid-template-columns: 1fr;
@@ -351,6 +494,10 @@
   z-index: 10;
 }
 
+.ruknSelectWrapper:active {
+  color: #1f2937;
+}
+
 .ruknDatePicker,
 .ruknTimePicker {
   width: 100%;
@@ -365,6 +512,7 @@
   backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
+  z-index: 90000000000000000099999;
 }
 
 .ruknDatePicker:focus,
@@ -539,15 +687,184 @@
 }
 
 .ruknAvailableTime {
-  background: rgba(233, 30, 99, 0.1) !important;
-  color: #e91e63 !important;
-  font-weight: 700 !important;
-  border: 1px solid rgba(233, 30, 99, 0.3) !important;
+  background-color: #ecfdf5 !important;
+  color: #059669 !important;
+  border-left: 3px solid #10b981;
 }
 
 .ruknAvailableTime:hover {
-  background: rgba(233, 30, 99, 0.2) !important;
-  transform: translateX(4px) !important;
+  background-color: #d1fae5 !important;
+  transform: translateX(2px);
+}
+
+/* Enhanced date picker calendar styles */
+.ruknDatePickerCalendar .react-datepicker__day--disabled {
+  cursor: not-allowed !important;
+  opacity: 0.3 !important;
+  background-color: #f3f4f6 !important;
+  color: #9ca3af !important;
+}
+
+.ruknDatePickerCalendar .react-datepicker__day--outside-month {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Time picker dropdown enhancements */
+.ruknTimePickerPopper .react-datepicker__time-list-item--disabled {
+  cursor: not-allowed !important;
+  opacity: 0.3 !important;
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+  text-decoration: line-through;
+  pointer-events: none !important;
+}
+
+.ruknTimePickerPopper .react-datepicker__time-list-item:not(.react-datepicker__time-list-item--disabled):hover {
+  background-color: #e91e63 !important;
+  color: white !important;
+}
+/* Enhanced availability states for date picker */
+.ruknFullyBookedDay {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+  text-decoration: line-through;
+  cursor: not-allowed !important;
+  opacity: 0.5;
+}
+
+.ruknLimitedAvailabilityDay {
+  background-color: #fef3c7 !important;
+  color: #d97706 !important;
+  border: 2px solid #f59e0b;
+}
+
+.ruknDisabledTime {
+  cursor: not-allowed !important;
+  opacity: 0.3 !important;
+  pointer-events: none !important;
+}
+
+/* Time Slots Grid */
+.ruknTimeSlotsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.ruknTimeSlot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 70px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.ruknTimeSlot.available {
+  border-color: #10b981;
+  color: #059669;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+}
+
+.ruknTimeSlot.available:hover {
+  border-color: #059669;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.ruknTimeSlot.booked {
+  border-color: #dc2626;
+  color: #dc2626;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.ruknTimeSlot.selected {
+  border-color: #e91e63;
+  background: linear-gradient(135deg, #e91e63 0%, #4a4a8a 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(233, 30, 99, 0.4);
+}
+
+.ruknTimeSlot.selected:hover {
+  border-color: #e91e63;
+  background: linear-gradient(135deg, #9f2951 0%, #5e5ec6 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(233, 30, 99, 0.4);
+}
+
+.ruknTimeSlotTime {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.ruknTimeSlotStatus {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Enhanced availability information */
+.ruknAvailabilityInfo {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.ruknBookedSlotsInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #dc2626;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.ruknNoSlotsAvailable {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #dc2626;
+  font-weight: 600;
+  padding: 0.5rem;
+  background-color: #fee2e2;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+}
+
+.ruknAvailableSlotsInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #059669;
+  font-weight: 500;
+}
+
+.ruknBookedIcon,
+.ruknWarningIcon,
+.ruknAvailableIcon {
+  font-size: 1.1rem;
 }
 
 .ruknUnavailableTime {
@@ -686,10 +1003,13 @@
   box-shadow: 0 8px 25px rgba(233, 30, 99, 0.4);
 }
 
-.ruknButtonPrimary:disabled {
+.ruknButtonPrimary:disabled,
+.ruknButtonPrimary.disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+  background: #9ca3af;
+  box-shadow: none;
 }
 
 .ruknButtonSecondary {
@@ -1016,6 +1336,35 @@
   .ruknSuccessIcon span {
     font-size: 2rem;
   }
+
+  .ruknSaveSuccessMessage {
+    top: 1rem;
+    right: 1rem;
+    left: 1rem;
+    max-width: none;
+  }
+
+  .rtl .ruknSaveSuccessMessage {
+    left: 1rem;
+    right: 1rem;
+  }
+
+  .ruknSaveSuccessContent {
+    padding: 1rem;
+  }
+
+  .ruknSaveSuccessIcon {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .ruknSaveSuccessText h4 {
+    font-size: 1rem;
+  }
+
+  .ruknSaveSuccessText p {
+    font-size: 0.8rem;
+  }
 }
 
 @keyframes slideInFromTop {
@@ -1160,6 +1509,27 @@
   }
 }
 
+@keyframes checkmarkPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
 .ruknFormGroup:nth-child(1) {
   animation-delay: 0.1s;
 }
@@ -1178,4 +1548,316 @@
 
 .ruknFormGroup:nth-child(5) {
   animation-delay: 0.5s;
+}
+
+/* Availability checking styles */
+.ruknAvailabilityLoading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-style: italic;
+  padding: 1rem;
+  text-align: center;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.ruknAvailabilityError {
+  padding: 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.ruknBookedTime {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+  text-decoration: line-through;
+  cursor: not-allowed !important;
+  opacity: 0.5;
+  pointer-events: none !important;
+}
+
+.ruknBookedTime::after {
+  content: " (Booked)";
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.ruknBookedSlotsInfo {
+  font-size: 0.875rem;
+  color: #f59e0b;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid #f59e0b;
+  font-weight: 500;
+}
+
+.rtl .ruknBookedSlotsInfo {
+  border-left: none;
+  border-right: 3px solid #f59e0b;
+}
+
+/* Enhanced time picker styles for better availability indication */
+.ruknTimePickerPopper .react-datepicker__time-list-item--disabled {
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #dc2626 !important;
+  cursor: not-allowed !important;
+  text-decoration: line-through !important;
+}
+
+.ruknTimePickerPopper .react-datepicker__time-list-item--disabled:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  transform: none !important;
+}
+
+/* Loading state for time picker */
+/* Enhanced time picker styles */
+.ruknTimePicker:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Responsive adjustments for availability features */
+@media (max-width: 768px) {
+  .ruknAvailabilityLoading,
+  .ruknAvailabilityError,
+  .ruknBookedSlotsInfo {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+  }
+
+  .ruknBookedTime::after {
+    content: " (X)";
+    font-size: 0.7rem;
+  }
+}
+
+.iconInline {
+  display: inline-block;
+  vertical-align: middle;
+  margin-inline-end: 0.5rem; /* For LTR */
+  margin-inline-start: 0; /* For RTL */
+}
+
+.rtl .iconInline {
+  margin-inline-en: 0;
+  margin-inline-start: 0.5rem;
+}
+
+/* Dynamic Import Loading Styles for SyncfusionDocxCase */
+.ruknDocumentImportLoader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #e2e8f0;
+}
+
+.ruknDocumentImportLoader::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 30% 70%, rgba(233, 30, 99, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 70% 30%, rgba(74, 74, 138, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.ruknDocumentImportContent {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 400px;
+}
+
+.ruknDocumentImportIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  background: linear-gradient(135deg, #e91e63 0%, #4a4a8a 100%);
+  border-radius: 50%;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 25px rgba(233, 30, 99, 0.3);
+  animation: importIconPulse 2s ease-in-out infinite;
+}
+
+.ruknDocumentImportIcon svg {
+  color: white;
+  animation: importIconFloat 3s ease-in-out infinite;
+}
+
+.ruknDocumentImportTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #4a4a8a;
+  margin-bottom: 0.75rem;
+  margin-top: 0;
+  background: linear-gradient(135deg, #4a4a8a 0%, #e91e63 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ruknDocumentImportSubtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+  margin-top: 0;
+}
+
+.ruknDocumentImportProgress {
+  width: 100%;
+  max-width: 280px;
+  height: 4px;
+  background: rgba(233, 30, 99, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 0 auto 1.5rem;
+  position: relative;
+}
+
+.ruknDocumentImportProgressBar {
+  height: 100%;
+  background: linear-gradient(90deg, #e91e63 0%, #4a4a8a 100%);
+  border-radius: 2px;
+  animation: importProgressFlow 2s ease-in-out infinite;
+  position: relative;
+}
+
+.ruknDocumentImportProgressBar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+  animation: importProgressShimmer 1.5s infinite;
+}
+
+.ruknDocumentImportTip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.08) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: #047857;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.rtl .ruknDocumentImportTip {
+  text-align: right;
+}
+
+.ruknDocumentImportTip svg {
+  color: #10b981;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  animation: importTipGlow 2s ease-in-out infinite;
+}
+
+/* Import Loading Animations */
+@keyframes importIconPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 8px 25px rgba(233, 30, 99, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 12px 35px rgba(233, 30, 99, 0.5);
+  }
+}
+
+@keyframes importIconFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes importProgressFlow {
+  0% {
+    width: 0%;
+  }
+  50% {
+    width: 70%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+@keyframes importProgressShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes importTipGlow {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.2) drop-shadow(0 0 3px rgba(16, 185, 129, 0.4));
+  }
+}
+
+/* Responsive adjustments for import loader */
+@media (max-width: 768px) {
+  .ruknDocumentImportLoader {
+    min-height: 350px;
+    padding: 1.5rem 1rem;
+  }
+
+  .ruknDocumentImportIcon {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .ruknDocumentImportTitle {
+    font-size: 1.1rem;
+  }
+
+  .ruknDocumentImportSubtitle {
+    font-size: 0.9rem;
+  }
+
+  .ruknDocumentImportTip {
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+  }
 }

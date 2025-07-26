@@ -110,8 +110,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(1px);
+background: linear-gradient(
+  135deg,
+  #2977ba 0%,
+  #3f3f87 25%,
+  #cc2889 60%,
+  #2977ba 100%
+);  backdrop-filter: blur(1px);
   pointer-events: none;
   z-index: 2;
 }

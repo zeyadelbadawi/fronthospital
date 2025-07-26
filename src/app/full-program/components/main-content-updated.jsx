@@ -518,7 +518,6 @@ const MainContentUpdated = ({
                   <>
                     <div style={{ marginBottom: "2rem" }}>
                       <h3 className={styles.sectionTitle}>
-                        <Heart className={styles.sectionIcon} />
                         Department Overview
                       </h3>
                       <div className={styles.sectionDivider}></div>

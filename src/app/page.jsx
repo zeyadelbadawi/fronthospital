@@ -4,9 +4,9 @@ import { Breadcrumb } from "react-bootstrap";
 import { ModelProvider } from "@/contexts/ModelContext";
 
 export const metadata = {
-  title: "RUKN ALWATIKON CENTER",
+  title: "Rukn Alwatikon Center",
   description:
-    "Wowdash NEXT JS is a developer-friendly, ready-to-use admin template designed for building attractive, scalable, and high-performing web applications.",
+    "Rukn Alwatikon Center in the UAE offers specialized rehabilitation, sensory therapy, speech and behavior support, and inclusive education services for students of determination. Empowering children to thrive with tailored care.",
 };
 
 const Page = () => {
@@ -15,7 +15,7 @@ const Page = () => {
       {/* MasterLayout */}
       <MasterLayout>
         {/* Breadcrumb */}
-        <Breadcrumb title="RUKN ALWATIKON CENTER" />
+        <Breadcrumb title="Rukn Alwatikon Center" />
         <ModelProvider>
           {/* DashBoardLayerOne */}
           <DashBoardLayerEight />

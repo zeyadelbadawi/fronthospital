@@ -389,7 +389,7 @@ const SignInLayer = () => {
           {/* Brand Section */}
           <div className="brand-section">
             <div className="brand-logo">
-  <img src="/assets/logo.png" alt="Brand Logo" className="logo-image" />
+  <img src="/images/rukn-logo.png" alt="Brand Logo" className="logo-image" />
             </div>
             <h3 className="brand-title">Rukn Alwatekon Center</h3>
             <p className="brand-subtitle">Professional Healthcare Management System</p>
