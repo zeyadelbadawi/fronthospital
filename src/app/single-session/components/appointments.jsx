@@ -27,7 +27,7 @@ import axiosInstance from "@/helper/axiosSetup"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import styles from "../styles/appointments-management.module.css"
-import { sendNotification } from "@/helper/notification-helper"
+import { sendNotification,sendEmail } from "@/helper/notification-helper"
 export function AppointmentsManagement() {
   const [appointments, setAppointments] = useState([])
   const [filteredAppointments, setFilteredAppointments] = useState([])
@@ -150,7 +150,14 @@ export function AppointmentsManagement() {
   }
 
   const handleCancelAppointment = async (appointmentId,appointment, reason = "") => {
-    try {
+   await sendEmail({
+      to: "abodmadi2040@gmail.com", // Ensure patient email is passed
+      filePath: "", // Add file path if needed
+      subject: "Appointment Cancellation",
+      text: `Your appointment scheduled on ${appointment?.date?.split("T")[0]} at ${appointment.time} has been cancelled. Reason: ${reason}`,
+   })
+
+    /*  try {
       const response = await axiosInstance.put(
         `${process.env.NEXT_PUBLIC_API_URL}/appointmentManagement/appointment/${appointmentId}/cancel`,
         { reason },
@@ -161,18 +168,19 @@ export function AppointmentsManagement() {
         await sendNotification({
            isList: false,
            title: `Single session appointment cancelled`,
-           message: `Your session has been cancelled `,
+           message: `Your session has been cancelled on date : ${appointment?.date?.split("T")[0]} and time: ${appointment.time}`,
            receiverId: appointment.patientid._id,  // Ensure patient ID is passed
            rule: "Patient",
            type: "delete",
          })
+         await sendNotification({})
         setDeleteModal({ open: false, appointment: null })
         fetchAppointments()
       }
     } catch (error) {
       console.error("Error cancelling appointment:", error)
       alert("Error cancelling appointment")
-    }
+    } */
   }
 
   const handleRescheduleAppointment = async (appointment) => {
@@ -193,7 +201,7 @@ export function AppointmentsManagement() {
         // Dynamically pass the patient ID from the appointment
          await sendNotification({
            isList: false,
-           title: `Single session appointment update`,
+           title: `Single session appointment rescheduled`,
            message: `Your session has been rescheduled to date:  ${rescheduleForm.newDate} and time:  ${rescheduleForm.newTime}`,
            receiverId: appointment.patientid._id,  // Ensure patient ID is passed
            rule: "Patient",
@@ -219,7 +227,7 @@ export function AppointmentsManagement() {
         await sendNotification({
            isList: false,
            title: `Single session appointment Completed`,
-           message: `Your session has been marked as completed`,
+           message: `Your session has been marked as completed on date: ${appointment?.date?.split("T")[0]} and time: ${appointment?.time}`,
            receiverId: appointment.patientid._id,  // Ensure patient ID is passed
            rule: "Patient",
            type: "successfully",
@@ -539,7 +547,7 @@ export function AppointmentsManagement() {
                                   <CalendarIcon className={styles.actionIcon} />
                                 </button>
                                 <button
-                                  onClick={() => handleCompleteAppointment(appointment._id)}
+                                  onClick={() => handleCompleteAppointment(appointment._id,appointment)}
                                   className={`${styles.actionButton} ${styles.completeButton}`}
                                   title="Mark as Completed"
                                 >
@@ -771,6 +779,7 @@ export function AppointmentsManagement() {
                 </button>
                 <button
                   onClick={() => {
+                    console.log("Cancelling appointment=-=:", deleteModal.appointment)
                     const reason = document.getElementById("cancellationReason").value
                     handleCancelAppointment(deleteModal.appointment._id, deleteModal.appointment,reason)
                   }}
