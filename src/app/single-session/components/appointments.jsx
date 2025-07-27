@@ -149,7 +149,7 @@ export function AppointmentsManagement() {
     }
   }
 
-  const handleCancelAppointment = async (appointmentId, reason = "") => {
+  const handleCancelAppointment = async (appointmentId,appointment, reason = "") => {
     try {
       const response = await axiosInstance.put(
         `${process.env.NEXT_PUBLIC_API_URL}/appointmentManagement/appointment/${appointmentId}/cancel`,
@@ -158,6 +158,14 @@ export function AppointmentsManagement() {
 
       if (response.status === 200) {
         alert("Appointment cancelled successfully!")
+        await sendNotification({
+           isList: false,
+           title: `Single session appointment cancelled`,
+           message: `Your session has been cancelled `,
+           receiverId: appointment.patientid._id,  // Ensure patient ID is passed
+           rule: "Patient",
+           type: "delete",
+         })
         setDeleteModal({ open: false, appointment: null })
         fetchAppointments()
       }
@@ -199,7 +207,7 @@ export function AppointmentsManagement() {
     }
   }
 
-  const handleCompleteAppointment = async (appointmentId, notes = "") => {
+  const handleCompleteAppointment = async (appointmentId,appointment, notes = "") => {
     try {
       const response = await axiosInstance.put(
         `${process.env.NEXT_PUBLIC_API_URL}/appointmentManagement/appointment/${appointmentId}/complete`,
@@ -208,6 +216,14 @@ export function AppointmentsManagement() {
 
       if (response.status === 200) {
         alert("Appointment marked as completed!")
+        await sendNotification({
+           isList: false,
+           title: `Single session appointment Completed`,
+           message: `Your session has been marked as completed`,
+           receiverId: appointment.patientid._id,  // Ensure patient ID is passed
+           rule: "Patient",
+           type: "successfully",
+         })
         // Optimistically update the status in the local state
         setAppointments((prevAppointments) => {
           const updatedApps = prevAppointments.map((app) =>
@@ -756,7 +772,7 @@ export function AppointmentsManagement() {
                 <button
                   onClick={() => {
                     const reason = document.getElementById("cancellationReason").value
-                    handleCancelAppointment(deleteModal.appointment._id, reason)
+                    handleCancelAppointment(deleteModal.appointment._id, deleteModal.appointment,reason)
                   }}
                   className={styles.deleteButton}
                 >

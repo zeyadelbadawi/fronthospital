@@ -28,6 +28,7 @@ import {
   Phone,
   Mail,
 } from "lucide-react"
+import { notificationsIcons } from "@/utils/assignmentUtils"
 
 const MasterLayout = ({ children }) => {
   const [user, setUser] = useState(null)
@@ -427,7 +428,7 @@ const MasterLayout = ({ children }) => {
                           >
                             <div className={styles.notificationContent}>
                               <span className={`${styles.positionRelative} ${styles.notificationIcon}`}>
-                                <Icon icon="healthicons:health-alt" className={styles.textXxl} />
+                                <Icon icon={notificationsIcons[item?.type]} className={styles.textXxl} />
                                 {!item.isRead && <span className={styles.unreadDot} />}
                               </span>
                               <div className={styles.notificationText}>
