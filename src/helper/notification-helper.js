@@ -16,7 +16,7 @@ export const sendEmail = async ({ to, filePath, subject, text }) => {
         console.log("Error while send email", error);
     }
 };
-export const sendNotification = async ({ isList, receiverIds, rule, receiverId, title, message }) => {
+export const sendNotification = async ({ isList, receiverIds, rule, receiverId, title, message, type }) => {
     try {
                 console.log("abu madi is gay", isList);
 
@@ -29,6 +29,7 @@ export const sendNotification = async ({ isList, receiverIds, rule, receiverId, 
                     rule,
                     title,
                     message,
+                    type,
                 }
             );
         } else {
@@ -40,6 +41,7 @@ export const sendNotification = async ({ isList, receiverIds, rule, receiverId, 
                     rule,
                     title,
                     message,
+                    type,
                 }
             );
         }

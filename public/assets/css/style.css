@@ -5069,9 +5069,7 @@ html[data-theme="dark"] .dark-bg-neutral-200 {
   margin-block-end: var(--size-2) !important;
 }
 
-.mb-4 {
-  margin-block-end: var(--size-4) !important;
-}
+
 
 .mb-6 {
   margin-block-end: var(--size-6) !important;

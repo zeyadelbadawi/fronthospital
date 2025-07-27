@@ -1,8 +1,6 @@
 /* Modern Dashboard Design System */
 .dashboardContainer {
-  background: #f8fafc;
   min-height: 100vh;
-  padding: 1.5rem;
 }
 
 /* Unified Card Design */
@@ -45,17 +43,19 @@
 
 /* Statistics Cards - Clean and Modern */
 .statsCard {
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 1.5rem; /* Larger border-radius */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* Stronger shadow */
+  overflow: hidden;
+  backdrop-filter: blur(10px); /* Frosted glass effect */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
   padding: 1.5rem;
   transition: all 0.2s ease-in-out;
   position: relative;
-  overflow: hidden;
 }
 
 .statsCard:hover {
-  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1); /* Keep original hover shadow */
   transform: translateY(-2px);
 }
 
@@ -78,15 +78,15 @@
 }
 
 .statsIcon.students {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, #2977ba, #3f3f87);
 }
 
 .statsIcon.doctors {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, #cc2889, #2977ba);
 }
 
 .statsIcon.accountants {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, #3f3f87, #cc2889);
 }
 
 .statsNumber {
@@ -352,15 +352,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 1rem;
-  gap: 1rem;
+  padding: 4rem; /* Increased padding */
+  gap: 1.5rem; /* Increased gap */
 }
 
 .spinner {
-  width: 32px;
-  height: 32px;
-  border: 2px solid #e2e8f0;
-  border-top: 2px solid #3b82f6;
+  width: 2.5rem; /* Larger spinner */
+  height: 2.5rem; /* Larger spinner */
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #3f3f87; /* Color from user-management.module.css */
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -375,8 +375,8 @@
 }
 
 .loadingText {
-  color: #64748b;
-  font-size: 0.875rem;
+  color: #6b7280; /* Color from user-management.module.css */
+  font-size: 1rem; /* Larger font size */
   font-weight: 500;
 }
 
@@ -405,6 +405,13 @@
   color: #ef4444 !important;
 }
 
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .dashboardContainer {
@@ -429,6 +436,11 @@
   .statsNumber {
     font-size: 1.75rem;
   }
+
+  .statsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+  }
 }
 
 @media (max-width: 576px) {
@@ -442,5 +454,9 @@
 
   .cardHeader {
     padding: 1rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr; /* Stack on small screens */
   }
 }

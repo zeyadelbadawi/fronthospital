@@ -13,7 +13,6 @@ import {
   X,
   CheckCircle,
   AlertCircle,
-  FileText,
   ChevronLeft,
   Filter,
   Clock,
@@ -354,7 +353,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
                       <th>
                         <div className={styles.headerCell}>
                           <Filter className={styles.headerIcon} />
-                          Status
+                          plan Status
                         </div>
                       </th>
                       <th className={styles.textCenter}>Actions</th>
@@ -396,14 +395,16 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
                             >
                               <User className={styles.actionIcon} />
                             </button>
-                            <button
-                              onClick={() => handlePlanClick(assignment.patient?._id)}
-                              className={`${styles.actionButton} ${styles.editButton}`}
-                              title="Student Plan"
-                              disabled={!assignment.patient?._id}
-                            >
-                              <ClipboardList className={styles.actionIcon} />
-                            </button>
+                            {assignment.status !== "completed" && (
+                              <button
+                                onClick={() => handlePlanClick(assignment.patient?._id)}
+                                className={`${styles.actionButton} ${styles.editButton}`}
+                                title="Student Plan"
+                                disabled={!assignment.patient?._id}
+                              >
+                                <ClipboardList className={styles.actionIcon} />
+                              </button>
+                            )}
                             {assignment.status === "active" && (
                               <button
                                 onClick={() => setCompleteModal({ open: true, assignment })}
@@ -484,7 +485,6 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
                 <div className={styles.detailSection}>
                   <h4>Medical Information</h4>
                   <div className={styles.detailGrid}>
-                
                     <div className={styles.detailItem}>
                       <ClipboardList className={styles.detailIcon} />
                       <span>Medical History: {viewModal.patient.medicalHistory || "Not provided"}</span>

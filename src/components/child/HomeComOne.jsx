@@ -34,11 +34,9 @@ const HomeComOne = () => {
 
   if (loading) {
     return (
-      <div className="col-12">
-        <div className={styles.loadingSpinner}>
-          <div className={styles.spinner}></div>
-          <span className={styles.loadingText}>Loading statistics...</span>
-        </div>
+      <div className={styles.loadingSpinner}>
+        <div className={styles.spinner}></div>
+        <span className={styles.loadingText}>Loading statistics...</span>
       </div>
     )
   }
@@ -74,25 +72,23 @@ const HomeComOne = () => {
   ]
 
   return (
-    <>
+    <div className={styles.statsGrid}>
       {statsData.map((stat, index) => (
-        <div key={stat.title} className="col-xl-4 col-lg-6 col-md-6">
-          <div className={styles.statsCard}>
-            <div className={styles.statsHeader}>
-              <div className={`${styles.statsIcon} ${styles[stat.className]}`}>
-                <stat.icon size={24} />
-              </div>
+        <div key={stat.title} className={styles.statsCard}>
+          <div className={styles.statsHeader}>
+            <div className={`${styles.statsIcon} ${styles[stat.className]}`}>
+              <stat.icon size={24} />
             </div>
-            <h2 className={styles.statsNumber}>{stat.total.toLocaleString()}</h2>
-            <p className={styles.statsLabel}>{stat.title}</p>
-            <div className={`${styles.statsGrowth} ${!stat.isPositive ? styles.negative : ""}`}>
-              {stat.isPositive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-              <span>{stat.growth} this week</span>
-            </div>
+          </div>
+          <h2 className={styles.statsNumber}>{stat.total.toLocaleString()}</h2>
+          <p className={styles.statsLabel}>{stat.title}</p>
+          <div className={`${styles.statsGrowth} ${!stat.isPositive ? styles.negative : ""}`}>
+            {stat.isPositive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+            <span>{stat.growth} this week</span>
           </div>
         </div>
       ))}
-    </>
+    </div>
   )
 }
 

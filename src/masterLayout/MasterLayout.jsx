@@ -8,6 +8,26 @@ import useSocket from "@/hooks/useSocket"
 import { formatDistanceToNow } from "date-fns"
 import styles from "./master-layout.module.css"
 import Cookies from "js-cookie" // Import js-cookie
+import {
+  Search,
+  Calendar,
+  Clock,
+  Check,
+  User,
+  CalendarDays,
+  Filter,
+  Users,
+  Eye,
+  Trash2,
+  X,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  CalendarIcon,
+  ClockIcon,
+  Phone,
+  Mail,
+} from "lucide-react"
 
 const MasterLayout = ({ children }) => {
   const [user, setUser] = useState(null)
