@@ -94,7 +94,8 @@ export function SchoolAppointments() {
         if (appointment.status === "completed") {
           acc.completed++
         } else {
-          const appointmentDateTime = new Date(`${appointment.date}T${appointment.time}`)
+          // Use appointment.date (ISO string) for comparison
+          const appointmentDateTime = new Date(appointment.date)
           if (appointmentDateTime <= now) {
             acc.overdue++
           } else {
@@ -200,6 +201,7 @@ export function SchoolAppointments() {
         throw new Error("Description must be at least 5 characters long")
       }
 
+      // For validation, combine date and time from form inputs
       const appointmentDateTime = new Date(`${date}T${time}`)
       const now = new Date()
 
@@ -267,8 +269,8 @@ export function SchoolAppointments() {
 
       const appointmentData = {
         patientid: patientId,
-        date: newAppointment.date,
-        time: newAppointment.time,
+        date: newAppointment.date, // This will be YYYY-MM-DD
+        time: newAppointment.time, // This will be HH:MM
         description: newAppointment.description,
         unicValue: selectedProgram.unicValue,
         status: "not completed",
@@ -304,8 +306,8 @@ export function SchoolAppointments() {
   const handleEditClick = useCallback((appointment) => {
     setEditingAppointment(appointment._id)
     setEditFormData({
-      date: appointment.date,
-      time: appointment.time,
+      date: appointment.date.split("T")[0], // Extract YYYY-MM-DD from ISO string for date input
+      time: appointment.time, // Use the HH:MM time from DB
       description: appointment.description,
     })
   }, [])
@@ -330,12 +332,12 @@ export function SchoolAppointments() {
           await fetchProgramAppointmentsOptimized()
           setEditingAppointment(null)
           setEditFormData({ date: "", time: "", description: "" })
-          showToast("Appointment updated successfully!", "success")
+          showToast("Appointment Reschedule successfully!", "success")
         }
       } catch (error) {
-        console.error("Error updating appointment:", error)
+        console.error("Error Rescheduling appointment:", error)
         const errorMessage = error.response?.data?.message || error.message
-        showToast(`Failed to update appointment: ${errorMessage}`, "error")
+        showToast(`Failed to Rescheduling appointment: ${errorMessage}`, "error")
       } finally {
         setSaving(false)
       }
@@ -514,9 +516,19 @@ export function SchoolAppointments() {
     }
   }, [])
 
-  const formatDateTime = useCallback((date, time) => {
+  // Modified formatDateTime to handle ISO string directly
+  const formatDateTime = useCallback((isoDateString) => {
+    if (!isoDateString) {
+      return { date: "N/A", time: "N/A" }
+    }
     try {
-      const dateObj = new Date(date)
+      const dateObj = new Date(isoDateString)
+
+      if (isNaN(dateObj.getTime())) {
+        // Check if the date object is invalid
+        return { date: "Invalid Date", time: "Invalid Date" }
+      }
+
       return {
         date: dateObj.toLocaleDateString("en-US", {
           weekday: "short",
@@ -524,17 +536,32 @@ export function SchoolAppointments() {
           day: "numeric",
           year: "numeric",
         }),
-        time: time,
+        time: dateObj.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true, // Use 12-hour format with AM/PM
+        }),
       }
     } catch (error) {
-      return { date: date, time: time }
+      console.error("Error formatting date/time:", error)
+      return { date: "Error Date", time: "Error Time" }
     }
   }, [])
 
-  const isAppointmentPast = useCallback((date, time) => {
-    const appointmentDateTime = new Date(`${date}T${time}`)
-    const now = new Date()
-    return appointmentDateTime <= now
+  // Modified isAppointmentPast to handle ISO string directly
+  const isAppointmentPast = useCallback((isoDateString) => {
+    if (!isoDateString) return false
+    try {
+      const appointmentDateTime = new Date(isoDateString)
+      if (isNaN(appointmentDateTime.getTime())) {
+        return false // Treat invalid dates as not past for safety
+      }
+      const now = new Date()
+      return appointmentDateTime <= now
+    } catch (error) {
+      console.error("Error checking if appointment is past:", error)
+      return false
+    }
   }, [])
 
   // Last Appointment Warning Modal (unchanged)
@@ -596,39 +623,41 @@ export function SchoolAppointments() {
                   <div className={styles.patientDetails}>
                     <div className={styles.patientDetail}>
                       <User className={styles.detailIconbyziad} />
-                      <span className={styles.patientInfobyziad}> Student Name:<b> {patientInfo.name} </b></span>
+                      <span className={styles.patientInfobyziad}>
+                        {" "}
+                        Student Name:<b> {patientInfo.name} </b>
+                      </span>
                     </div>
                     {patientInfo.email && (
                       <div className={styles.patientDetail}>
                         <Mail className={styles.detailIconbyziad} />
-                        <span className={styles.patientInfobyziad}> Student Email:<b> {patientInfo.email}</b></span>
+                        <span className={styles.patientInfobyziad}>
+                          {" "}
+                          Student Email:<b> {patientInfo.email}</b>
+                        </span>
                       </div>
                     )}
                     {patientInfo.phone && (
                       <div className={styles.patientDetail}>
                         <Phone className={styles.detailIconbyziad} />
-                        <span className={styles.patientInfobyziad}> Student Phone Number: <b> {patientInfo.phone} </b></span>
+                        <span className={styles.patientInfobyziad}>
+                          {" "}
+                          Student Phone Number: <b> {patientInfo.phone} </b>
+                        </span>
                       </div>
                     )}
 
                     {appointmentStats.isCompleted && (
                       <div className={styles.completedBadge}>
                         <CheckCircle className={styles.completedIcon} />
-                         <b>Status:</b>
+                        <b>Status:</b>
                         Program Completed
                       </div>
                     )}
                   </div>
                 </div>
               </div>
-              <div className={styles.headerRight}>
-                {!appointmentStats.isCompleted && appointmentStats.total > 0 && (
-                  <button onClick={handleCompleteAllAppointments} disabled={saving} className={styles.completeButton}>
-                    <Check className={styles.buttonIcon} />
-                    {saving ? "Processing..." : "Complete All Appointments"}
-                  </button>
-                )}
-              </div>
+              <div className={styles.headerRight}>{/* This space is now empty as the button moved */}</div>
             </div>
 
             {/* OPTIMIZED: Stats Dashboard using server data */}
@@ -683,11 +712,12 @@ export function SchoolAppointments() {
                   </div>
                   <div className={styles.appointmentForm}>
                     <div className={styles.formGroup}>
-                      <label className={styles.formLabel}>
+                      <label htmlFor="new-date" className={styles.formLabel}>
                         <Calendar className={styles.labelIcon} />
                         Date *
                       </label>
                       <input
+                        id="new-date"
                         type="date"
                         value={newAppointment.date}
                         onChange={(e) => setNewAppointment({ ...newAppointment, date: e.target.value })}
@@ -696,20 +726,25 @@ export function SchoolAppointments() {
                       />
                     </div>
                     <div className={styles.formGroup}>
-                      <label className={styles.formLabel}>
+                      <label htmlFor="new-time" className={styles.formLabel}>
                         <Clock className={styles.labelIcon} />
                         Time *
                       </label>
                       <input
+                        id="new-time"
                         type="time"
                         value={newAppointment.time}
                         onChange={(e) => setNewAppointment({ ...newAppointment, time: e.target.value })}
                         className={styles.formInput}
                       />
                     </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.formLabel}>Description *</label>
+                    <div className={`${styles.formGroup} ${styles.formGroupFullWidth}`}>
+                      <label htmlFor="new-description" className={styles.formLabel}>
+                        <Edit3 className={styles.labelIcon} />
+                        Description *
+                      </label>
                       <textarea
+                        id="new-description"
                         value={newAppointment.description}
                         onChange={(e) => setNewAppointment({ ...newAppointment, description: e.target.value })}
                         className={styles.formTextarea}
@@ -728,102 +763,104 @@ export function SchoolAppointments() {
                   </div>
                 </div>
               )}
+            </div>
 
-              {/* Appointments List */}
-              <div className={styles.appointmentsListSection}>
-                <div className={styles.sectionHeader} style={{ padding: "24px 24px 0" }}>
-                  <h3 className={styles.sectionTitle}>
-                    <CalendarDays className={styles.sectionIcon} />
-                   All Evaulation Appointments ({appointments.length})
-                  </h3>
+            {/* Appointments List */}
+            <div className={styles.appointmentsListSection}>
+              <div className={styles.sectionHeader} style={{ padding: "24px 24px 0" }}>
+                <h3 className={styles.sectionTitle}>
+                  <CalendarDays className={styles.sectionIcon} />
+                  All Evaulation Appointments ({appointments.length})
+                </h3>
+                {!appointmentStats.isCompleted && appointmentStats.total > 0 && (
+                  <button onClick={handleCompleteAllAppointments} disabled={saving} className={styles.completeButton}>
+                    <Check className={styles.buttonIcon} />
+                    {saving ? "Processing..." : "Complete All Appointments"}
+                  </button>
+                )}
+              </div>
+
+              {appointments.length === 0 ? (
+                <div className={styles.emptyAppointments}>
+                  <Calendar className={styles.emptyIcon} />
+                  <h4>No Appointments Yet</h4>
+                  <p className={styles.emptySubtext}>
+                    {appointmentStats.isCompleted
+                      ? "This program has been completed."
+                      : "Start by adding your first appointment above."}
+                  </p>
                 </div>
+              ) : (
+                <div className={styles.appointmentsList}>
+                  {appointments.map((appointment, index) => {
+                    // Pass only the ISO date string to formatDateTime and isAppointmentPast
+                    const { date, time } = formatDateTime(appointment.date)
+                    const isPast = isAppointmentPast(appointment.date)
+                    const isEditing = editingAppointment === appointment._id
 
-                {appointments.length === 0 ? (
-                  <div className={styles.emptyAppointments}>
-                    <Calendar className={styles.emptyIcon} />
-                    <h4>No Appointments Yet</h4>
-                    <p className={styles.emptySubtext}>
-                      {appointmentStats.isCompleted
-                        ? "This program has been completed."
-                        : "Start by adding your first appointment above."}
-                    </p>
-                  </div>
-                ) : (
-                  <div className={styles.appointmentsList}>
-                    {appointments.map((appointment) => {
-                      const { date, time } = formatDateTime(appointment.date, appointment.time)
-                      const isPast = isAppointmentPast(appointment.date, appointment.time)
-                      const isEditing = editingAppointment === appointment._id
-
-                      return (
-                        <div
-                          key={appointment._id}
-                          className={`${styles.appointmentItem} ${isEditing ? styles.editing : ""}`}
-                        >
-                          {isEditing ? (
-                            <div className={styles.editForm}>
-                              <div className={styles.editFormHeader}>
-                                <h4>Edit Appointment</h4>
-                              </div>
-                              <div className={styles.editFormGrid}>
-                                <div className={styles.editFormGroup}>
-                                  <label>Date</label>
-                                  <input
-                                    type="date"
-                                    value={editFormData.date}
-                                    onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
-                                    className={styles.editInput}
-                                    min={new Date().toISOString().split("T")[0]}
-                                  />
-                                </div>
-                                <div className={styles.editFormGroup}>
-                                  <label>Time</label>
-                                  <input
-                                    type="time"
-                                    value={editFormData.time}
-                                    onChange={(e) => setEditFormData({ ...editFormData, time: e.target.value })}
-                                    className={styles.editInput}
-                                  />
-                                </div>
-                              </div>
+                    return (
+                      <div
+                        key={appointment._id}
+                        className={`${styles.appointmentItem} ${isEditing ? styles.editing : ""}`}
+                      >
+                        {isEditing ? (
+                          <div className={styles.editForm}>
+                            <div className={styles.editFormHeader}>
+                              <h4>Reschedule Appointment</h4>
+                            </div>
+                            <div className={styles.editFormGrid}>
                               <div className={styles.editFormGroup}>
-                                <label>Description</label>
-                                <textarea
-                                  value={editFormData.description}
-                                  onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
-                                  className={styles.editTextarea}
-                                  rows={3}
+                                <label>Date</label>
+                                <input
+                                  type="date"
+                                  value={editFormData.date}
+                                  onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
+                                  className={styles.editInput}
+                                  min={new Date().toISOString().split("T")[0]}
                                 />
                               </div>
-                              <div className={styles.editActions}>
-                                <button
-                                  onClick={() => handleEditSave(appointment._id)}
-                                  disabled={
-                                    saving || !editFormData.date || !editFormData.time || !editFormData.description
-                                  }
-                                  className={styles.saveButton}
-                                >
-                                  <Save className={styles.buttonIcon} />
-                                  {saving ? "Saving..." : "Save Changes"}
-                                </button>
-                                <button onClick={handleEditCancel} className={styles.cancelEditButton}>
-                                  <X className={styles.buttonIcon} />
-                                  Cancel
-                                </button>
+                              <div className={styles.editFormGroup}>
+                                <label>Time</label>
+                                <input
+                                  type="time"
+                                  value={editFormData.time}
+                                  onChange={(e) => setEditFormData({ ...editFormData, time: e.target.value })}
+                                  className={styles.editInput}
+                                />
                               </div>
                             </div>
-                          ) : (
-                            <>
-                              <div className={styles.appointmentInfo}>
-                                <div className={styles.appointmentDate}>
-                                  <Calendar className={styles.appointmentIcon} />
-                                  {date}
-                                </div>
-                                <div className={styles.appointmentTime}>
-                                  <Clock className={styles.appointmentIcon} />
-                                  {time}
-                                </div>
-                                <div className={styles.appointmentDescription}>{appointment.description}</div>
+                            <div className={styles.editFormGroup}>
+                              <label>Description</label>
+                              <textarea
+                                value={editFormData.description}
+                                onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                                className={styles.editTextarea}
+                                rows={3}
+                              />
+                            </div>
+                            <div className={styles.editActions}>
+                              <button
+                                onClick={() => handleEditSave(appointment._id)}
+                                disabled={
+                                  saving || !editFormData.date || !editFormData.time || !editFormData.description
+                                }
+                                className={styles.saveButton}
+                              >
+                                <Save className={styles.buttonIcon} />
+                                {saving ? "Saving..." : "Save Changes"}
+                              </button>
+                              <button onClick={handleEditCancel} className={styles.cancelEditButton}>
+                                <X className={styles.buttonIcon} />
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className={styles.appointmentInfo}>
+                              <div className={styles.appointmentNumberAndLabel}>
+                                <span className={styles.appointmentNumber}>{index + 1}</span>
+                                <span className={styles.ziad}>No. </span>
                                 <div className={styles.appointmentStatus}>
                                   <span
                                     className={`${styles.statusBadge} ${
@@ -853,41 +890,60 @@ export function SchoolAppointments() {
                                   </span>
                                 </div>
                               </div>
+                              <div className={styles.appointmentDateTimeRow}>
+                                <div className={styles.appointmentDate}>
+                                  <Calendar className={styles.appointmentIcon} />
+                                  <span className={styles.ziad}> Date:</span>
+                                  {date}
+                                </div>
+                                <div className={styles.appointmentTime}>
+                                  <Clock className={styles.appointmentIcon} />
+                                  <span className={styles.ziad}> Time:</span>
+                                  {time}
+                                </div>
+                              </div>
+                              <div className={styles.appointmentDescription}>
+                                <span className={styles.ziad}>Apoointmnet Description:</span> {appointment.description}
+                              </div>
+                            </div>
+                            {!appointment.isCompleted && (
                               <div className={styles.appointmentActions}>
-                                {appointment.status !== "completed" && (
+                                {appointment.status !== "completed" ? (
                                   <>
                                     <button
                                       onClick={() => handleCompleteAppointment(appointment._id)}
                                       className={`${styles.actionButton} ${styles.completeButton}`}
                                       title="Mark as completed"
                                     >
-                                      <Check className={styles.actionIcon} />
+                                      Mark as completed
+                                      <Check className={styles.actionIcon} fill="currentColor" stroke="currentColor" />
                                     </button>
                                     <button
                                       onClick={() => handleEditClick(appointment)}
                                       className={`${styles.actionButton} ${styles.editButton}`}
-                                      title="Edit appointment"
+                                      title="Reschedule appointment"
                                     >
                                       <Edit3 className={styles.actionIcon} />
                                     </button>
+                                    <button
+                                      onClick={() => handleCancelAppointment(appointment._id)}
+                                      className={`${styles.actionButton} ${styles.cancelButton}`}
+                                      title="Cancel appointment"
+                                    >
+                                      <X className={styles.actionIcon} />
+                                    </button>
                                   </>
-                                )}
-                                <button
-                                  onClick={() => handleCancelAppointment(appointment._id)}
-                                  className={`${styles.actionButton} ${styles.cancelButton}`}
-                                  title="Cancel appointment"
-                                >
-                                  <X className={styles.actionIcon} />
-                                </button>
+                                ) : // Render nothing if the appointment is completed
+                                null}
                               </div>
-                            </>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -919,10 +975,6 @@ export function SchoolAppointments() {
           <div className={styles.cardHeader}>
             <div className={styles.headerContent}>
               <div className={styles.headerLeft}>
-                <button onClick={handleBackToWelcome} className={styles.backButton}>
-                  <X className={styles.backIcon} />
-                  Back to Dashboard
-                </button>
                 <h2 className={styles.pageTitle}>
                   <Activity className={styles.titleIcon} />
                   School Evaluation Programs
@@ -1010,10 +1062,18 @@ export function SchoolAppointments() {
                               <div className={styles.programName}>{program.programName}</div>
                               <div className={styles.programDetails}>
                                 <div>
-                                  <b>Created at:</b> {new Date(program.createdAt).toLocaleDateString()}
+                                  <b>
+                                    {program.oldestAppointmentDate &&
+                                    new Date(program.oldestAppointmentDate) > new Date()
+                                      ? "Will start at:"
+                                      : "Started at:"}{" "}
+                                  </b>
+                                  {program.oldestAppointmentDate
+                                    ? new Date(program.oldestAppointmentDate).toLocaleDateString()
+                                    : "N/A"}
                                 </div>
                                 <div>
-                                  <b>Number of Sessions:</b> {program.sessionInfo}
+                                  <b>Number of Sessions:</b> {program.totalSessions}
                                 </div>
                                 {program.completionPercentage > 0 && (
                                   <div>

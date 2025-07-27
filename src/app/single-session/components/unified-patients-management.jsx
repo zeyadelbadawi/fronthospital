@@ -377,7 +377,9 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
                           <span className={styles.timeValue}>{getPatientProperty(assignment, "phone")}</span>
                         </td>
                         <td className={styles.descriptionCell}>
-                          <div className={styles.descriptionText}>{formatDate(assignment.assignedDate)}</div>
+                          <div className={styles.descriptionText}>
+                            {formatDate(assignment.programId?.date || assignment.assignedDate)}
+                          </div>
                         </td>
                         <td className={styles.typeCell}>
                           <span className={`${styles.typeBadge} ${getStatusBadgeClass(assignment.status)}`}>

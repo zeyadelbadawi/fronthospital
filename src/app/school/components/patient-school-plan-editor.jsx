@@ -31,7 +31,7 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
       fetchPatientData()
       fetchExistingPlan()
       fetchPlanStats()
-      fetchProgramInfo()
+      fetchProgramInfo() // This will now fetch the new programName and latest appointment info
     }
   }, [patientId, unicValue])
 
@@ -60,9 +60,11 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
         setProgramInfo({
           unicValue: response.data.program.unicValue,
           description: response.data.program.description,
-          date: response.data.program.date,
-          time: response.data.program.time,
           status: response.data.program.status,
+          // NEW: Use the programName and latest appointment date/time from backend
+          programName: response.data.program.programName,
+          latestAppointmentDate: response.data.program.latestAppointmentDate,
+          latestAppointmentTime: response.data.program.latestAppointmentTime,
         })
       }
     } catch (error) {
@@ -279,17 +281,49 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
     }, 4000)
   }
 
+  // Modified formatDate to handle YYYY-MM-DD strings
   const formatDate = (dateString) => {
     if (!dateString) return "N/A"
     try {
-      return new Date(dateString).toLocaleDateString("en-US", {
+      const dateObj = new Date(dateString) // Directly parse ISO 8601 string
+
+      if (isNaN(dateObj.getTime())) {
+        return "Invalid Date"
+      }
+
+      return dateObj.toLocaleDateString("en-US", {
         weekday: "long",
         year: "numeric",
         month: "long",
         day: "numeric",
       })
     } catch (error) {
+      console.error("Error formatting date:", error)
       return "Invalid Date"
+    }
+  }
+
+  // New formatTime function for HH:MM strings
+  const formatTime = (timeString) => {
+    if (!timeString) return "N/A"
+    try {
+      // Create a dummy date to use toLocaleTimeString
+      const [hours, minutes] = timeString.split(":").map(Number)
+      const dummyDate = new Date()
+      dummyDate.setHours(hours, minutes, 0, 0)
+
+      if (isNaN(dummyDate.getTime())) {
+        return "Invalid Time"
+      }
+
+      return dummyDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+    } catch (error) {
+      console.error("Error formatting time:", error)
+      return "Invalid Time"
     }
   }
 
@@ -368,22 +402,25 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
                 <div className={styles.groupInfoItem}>
                   <Hash className={styles.groupInfoIcon} />
                   <div className={styles.groupInfoContent}>
-                    <span className={styles.groupInfoLabel}>Program ID</span>
-                    <span className={styles.groupInfoValue}>{programInfo.unicValue}</span>
+                    <span className={styles.groupInfoLabel}>Program Name</span>
+                    {/* NEW: Display programName from backend */}
+                    <span className={styles.groupInfoValue}>{programInfo.programName || "N/A"}</span>
                   </div>
                 </div>
                 <div className={styles.groupInfoItem}>
                   <Calendar className={styles.groupInfoIcon} />
                   <div className={styles.groupInfoContent}>
                     <span className={styles.groupInfoLabel}>Last Appointment Date</span>
-                    <span className={styles.groupInfoValue}>{formatDate(programInfo.date)}</span>
+                    {/* NEW: Display latestAppointmentDate from backend */}
+                    <span className={styles.groupInfoValue}>{formatDate(programInfo.latestAppointmentDate)}</span>
                   </div>
                 </div>
                 <div className={styles.groupInfoItem}>
                   <Clock className={styles.groupInfoIcon} />
                   <div className={styles.groupInfoContent}>
                     <span className={styles.groupInfoLabel}>Last Appointment Time</span>
-                    <span className={styles.groupInfoValue}>{formatDate(programInfo.time)}</span>
+                    {/* NEW: Display latestAppointmentTime from backend */}
+                    <span className={styles.groupInfoValue}>{formatTime(programInfo.latestAppointmentTime)}</span>
                   </div>
                 </div>
                 <div className={styles.groupInfoItem}>

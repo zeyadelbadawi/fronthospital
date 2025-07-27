@@ -27,7 +27,7 @@ import axiosInstance from "@/helper/axiosSetup"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import styles from "../styles/appointments-management.module.css"
-import { sendNotification } from "@/helper/notification-helper"
+
 export function AppointmentsManagement() {
   const [appointments, setAppointments] = useState([])
   const [filteredAppointments, setFilteredAppointments] = useState([])
@@ -183,14 +183,13 @@ export function AppointmentsManagement() {
         setRescheduleModal({ open: false, appointment: null })
 
         // Dynamically pass the patient ID from the appointment
-         await sendNotification({
-           isList: false,
-           title: `Single session appointment update`,
-           message: `Your session has been rescheduled to date:  ${rescheduleForm.newDate} and time:  ${rescheduleForm.newTime}`,
-           receiverId: appointment.patientid._id,  // Ensure patient ID is passed
-           rule: "Patient",
-           type: "reschedule",
-         })
+        // await sendNotification({
+        //   isList: false,
+        //   title: `Single session appointment update`,
+        //   message: `Your session has been rescheduled to date:  ${rescheduleForm.newDate} and time:  ${rescheduleForm.newTime}`,
+        //   receiverId: appointment.patientid._id,  // Ensure patient ID is passed
+        //   rule: "Patient",
+        // })
         fetchAppointments()
       }
     } catch (error) {
@@ -440,9 +439,9 @@ export function AppointmentsManagement() {
                     const startIndex = (currentPage - 1) * 10
 
                     // --- DEBUGGING LOGS ---
-                    console.log(
-                      `Appointment ID: ${appointment._id}, Raw Status: ${appointment.status}, Derived Status: ${status.status}`,
-                    )
+              //      console.log(
+                //      `Appointment ID: ${appointment._id}, Raw Status: ${appointment.status}, Derived Status: ${status.status}`,
+                //       )
                     // --- END DEBUGGING LOGS ---
 
                     return (
@@ -462,10 +461,28 @@ export function AppointmentsManagement() {
                             <div className={styles.appointmentTime}>
                               <Clock className={styles.timeIcon} />
                               <span className={styles.timeValue}>
-                                {new Date(appointment.time).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
+                                {(() => {
+                                  const datePart = new Date(appointment.date)
+                                  // استخراج مكونات التاريخ لضمان التوافق مع تنسيق ISO
+                                  const year = datePart.getFullYear()
+                                  const month = (datePart.getMonth() + 1).toString().padStart(2, "0") // الشهر يبدأ من 0
+                                  const day = datePart.getDate().toString().padStart(2, "0")
+
+                                  // دمج التاريخ والوقت في سلسلة نصية صالحة لتنسيق ISO 8601
+                                  const combinedDateTimeString = `${year}-${month}-${day}T${appointment.time}:00`
+                                  const displayTime = new Date(combinedDateTimeString)
+
+                                  // التحقق مما إذا كان التاريخ صالحًا قبل التنسيق
+                                  if (isNaN(displayTime.getTime())) {
+                                    return "Invalid Time" // أو أي رسالة خطأ أخرى
+                                  }
+
+                                  return displayTime.toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true, // لعرض الوقت بصيغة AM/PM
+                                  })
+                                })()}
                               </span>
                             </div>
                           </div>
@@ -504,41 +521,54 @@ export function AppointmentsManagement() {
                           </span>
                         </td>
                         <td className={styles.actionsCell}>
-                          <div className={styles.actionButtons}>
-                            <button
-                              onClick={() => handleViewAppointment(appointment._id)} // View Details button
-                              className={`${styles.actionButton} ${styles.viewButton}`}
-                              title="View Details"
-                            >
-                              <Eye className={styles.actionIcon} />
-                            </button>
-                            {status.status === "upcoming" && (
-                              <>
-                                {/* Reschedule Button - Pass appointment object correctly */}
+                          {status.status === "upcoming" || status.status === "rescheduled" ? (
+                            <div className={styles.actionButtons}>
+                              <button
+                                onClick={() => handleViewAppointment(appointment._id)}
+                                className={`${styles.actionButton} ${styles.viewButton}`}
+                                title="View Details"
+                              >
+                                <Eye className={styles.actionIcon} />
+                              </button>
+                              {status.status === "upcoming" && ( // زر إعادة الجدولة يظهر فقط للمواعيد القادمة
                                 <button
-                                  onClick={() => setRescheduleModal({ open: true, appointment })} // Pass appointment here
+                                  onClick={() => setRescheduleModal({ open: true, appointment })}
                                   className={`${styles.actionButton} ${styles.rescheduleButton}`}
                                   title="Reschedule"
                                 >
                                   <CalendarIcon className={styles.actionIcon} />
                                 </button>
-                                <button
-                                  onClick={() => handleCompleteAppointment(appointment._id)}
-                                  className={`${styles.actionButton} ${styles.completeButton}`}
-                                  title="Mark as Completed"
-                                >
-                                  <Check className={styles.actionIcon} />
-                                </button>
-                                <button
-                                  onClick={() => setDeleteModal({ open: true, appointment })}
-                                  className={`${styles.actionButton} ${styles.deleteButton}`}
-                                  title="Cancel Appointment"
-                                >
-                                  <Trash2 className={styles.actionIcon} />
-                                </button>
-                              </>
-                            )}
-                          </div>
+                              )}
+                              {status.status !== "completed" &&
+                                status.status !== "cancelled" && ( // أزرار الإكمال والإلغاء تظهر إذا لم يكن الموعد مكتملًا أو ملغيًا
+                                  <>
+                                    <button
+                                      onClick={() => handleCompleteAppointment(appointment._id)}
+                                      className={`${styles.actionButton} ${styles.completeButton}`}
+                                      title="Mark as Completed"
+                                    >
+                                      <Check className={styles.actionIcon} />
+                                    </button>
+                                    <button
+                                      onClick={() => setDeleteModal({ open: true, appointment })}
+                                      className={`${styles.actionButton} ${styles.deleteButton}`}
+                                      title="Cancel Appointment">
+                                      <Trash2 className={styles.actionIcon} />
+                                    </button>
+                                  </>
+                                )}
+                            </div>
+                          ) : (
+                            <div className={styles.actionButtons}>
+                              <button
+                                onClick={() => handleViewAppointment(appointment._id)}
+                                className={`${styles.actionButton} ${styles.viewButton}`}
+                                title="View Details"
+                              >
+                                <Eye className={styles.actionIcon} />
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     )
@@ -611,11 +641,24 @@ export function AppointmentsManagement() {
                       <div className={styles.detailItem}>
                         <ClockIcon className={styles.detailIcon} />
                         <span>
-                          Time:{" "}
-                          {new Date(viewModal.appointment.time).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          Time: {(() => {
+                            const datePart = new Date(viewModal.appointment.date)
+                            const year = datePart.getFullYear()
+                            const month = (datePart.getMonth() + 1).toString().padStart(2, "0")
+                            const day = datePart.getDate().toString().padStart(2, "0")
+                            const combinedDateTimeString = `${year}-${month}-${day}T${viewModal.appointment.time}:00`
+                            const displayTime = new Date(combinedDateTimeString)
+
+                            if (isNaN(displayTime.getTime())) {
+                              return "Invalid Time"
+                            }
+
+                            return displayTime.toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })
+                          })()}
                         </span>
                       </div>
                     </div>

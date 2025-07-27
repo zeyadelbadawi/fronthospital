@@ -24,7 +24,7 @@ const AllPatientsSchool = () => {
     setLoading(true)
     try {
       const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/school/school-programs?page=${currentPage}&search=${search}&limit=10`,
+        `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs-optimized?page=${currentPage}&search=${search}&limit=10`,
       )
 
       console.log("API Response:", response.data)
@@ -291,12 +291,7 @@ const AllPatientsSchool = () => {
                         Number of Sessions
                       </div>
                     </th>
-                    <th>
-                      <div className={styles.headerCell}>
-                        <Brain className={styles.headerIcon} />
-                        Student Description
-                      </div>
-                    </th>
+                    
                     <th>
                       <div className={styles.headerCell}>
                         <ClipboardCheck className={styles.headerIcon} />
@@ -344,9 +339,7 @@ const AllPatientsSchool = () => {
                         </td>
                         <td className={styles.uniqueValueCell}>
                           <div className={styles.uniqueValueInfo}>
-                            <span className={styles.uniqueValue}>
-                              {`School Evaluation ${sequentialNumber} (${programYear})`}
-                            </span>
+                            <span className={styles.uniqueValue}>{program.programName}</span>
                           </div>
                         </td>
                         <td className={styles.sessionsCell}>
@@ -355,11 +348,7 @@ const AllPatientsSchool = () => {
                             <span className={styles.sessionsLabel}>sessions</span>
                           </div>
                         </td>
-                        <td className={styles.descriptionCell}>
-                          <div className={styles.descriptionText} title={program.description}>
-                            {program.description || "No description"}
-                          </div>
-                        </td>
+                      
                         <td className={styles.typeCell}>
                           <span className={`${styles.typeBadge} ${getStatusBadgeClass(program.status)}`}>
                             {program.status || "Unknown"}
