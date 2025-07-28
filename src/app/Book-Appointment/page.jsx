@@ -143,6 +143,7 @@ export default function Page() {
           setCurrentStep={setCurrentStep}
           patientId={user?.id}
           patientName={user?.name}
+          patientEmail={user?.email}
         />
       </div>
 

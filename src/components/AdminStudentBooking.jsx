@@ -1,10 +1,11 @@
-"use client"
-import { useState, useEffect, useMemo, useCallback, Suspense } from "react"
-import dynamic from "next/dynamic"
-import styles from "../styles/StudentBooking.module.css"
-import styles2 from "../styles/AdminStudentBooking.module.css"
+"use client";
+import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
+import dynamic from "next/dynamic";
+import styles from "../styles/StudentBooking.module.css";
+import styles2 from "../styles/AdminStudentBooking.module.css";
+import axiosInstance from "@/helper/axiosSetup";
 
-import InteractiveGuide from "./InteractiveGuide"
+import InteractiveGuide from "./InteractiveGuide";
 // Import Lucide React icons
 import {
   School,
@@ -30,52 +31,86 @@ import {
   Users,
   UserPlus,
   ArrowLeft,
-} from "lucide-react"
+} from "lucide-react";
+
+import { sendNotification, sendEmail } from "@/helper/notification-helper";
 
 // Dynamic imports for heavy components
 const DatePicker = dynamic(() => import("react-datepicker"), {
   ssr: false,
   loading: () => <div className={styles.loadingSpinner}></div>,
-})
+});
 const Select = dynamic(() => import("react-select"), {
   ssr: false,
   loading: () => <div className={styles.loadingSpinner}></div>,
-})
-const SyncfusionDocxCase = dynamic(() => import("@/components/SyncfusionDocxCase"), {
-  ssr: false,
-  loading: () => (
-    <div className={styles.ruknDocumentImportLoader}>
-      <div className={styles.ruknDocumentImportContent}>
-        <div className={styles.ruknDocumentImportIcon}>
-          <FileText size={32} />
-        </div>
-        <h4 className={styles.ruknDocumentImportTitle}>Loading Document Editor...</h4>
-        <p className={styles.ruknDocumentImportSubtitle}>
-          Please wait while we prepare the advanced document editor...
-        </p>
-        <div className={styles.ruknDocumentImportProgress}>
-          <div className={styles.ruknDocumentImportProgressBar}></div>
-        </div>
-        <div className={styles.ruknDocumentImportTip}>
-          <Lightbulb size={16} />
-          <span>💡 Tip: You'll be able to edit and save your case study document once loading completes</span>
+});
+const SyncfusionDocxCase = dynamic(
+  () => import("@/components/SyncfusionDocxCase"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className={styles.ruknDocumentImportLoader}>
+        <div className={styles.ruknDocumentImportContent}>
+          <div className={styles.ruknDocumentImportIcon}>
+            <FileText size={32} />
+          </div>
+          <h4 className={styles.ruknDocumentImportTitle}>
+            Loading Document Editor...
+          </h4>
+          <p className={styles.ruknDocumentImportSubtitle}>
+            Please wait while we prepare the advanced document editor...
+          </p>
+          <div className={styles.ruknDocumentImportProgress}>
+            <div className={styles.ruknDocumentImportProgressBar}></div>
+          </div>
+          <div className={styles.ruknDocumentImportTip}>
+            <Lightbulb size={16} />
+            <span>
+              💡 Tip: You'll be able to edit and save your case study document
+              once loading completes
+            </span>
+          </div>
         </div>
       </div>
-    </div>
-  ),
-})
+    ),
+  }
+);
 
 // Load CSS for DatePicker separately
-import("react-datepicker/dist/react-datepicker.css")
+import("react-datepicker/dist/react-datepicker.css");
 
-const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }) => {
+const AdminStudentBooking = ({
+  currentStep,
+  setCurrentStep,
+  adminId,
+  adminName,
+}) => {
   // Patient Selection State (NEW)
-  const [selectedPatient, setSelectedPatient] = useState(null)
-  const [patientSelectionMode, setPatientSelectionMode] = useState("buttons") // "buttons" | "existing" | "new"
-  const [allPatients, setAllPatients] = useState([])
-  const [isLoadingPatients, setIsLoadingPatients] = useState(false)
-  const [showNewPatientModal, setShowNewPatientModal] = useState(false)
-  const [showCaseStudyCreation, setShowCaseStudyCreation] = useState(false)
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [patientSelectionMode, setPatientSelectionMode] = useState("buttons"); // "buttons" | "existing" | "new"
+  const [allPatients, setAllPatients] = useState([]);
+  const [isLoadingPatients, setIsLoadingPatients] = useState(false);
+  const [showNewPatientModal, setShowNewPatientModal] = useState(false);
+  const [showCaseStudyCreation, setShowCaseStudyCreation] = useState(false);
+
+  const [doctorIds, setDoctorIds] = useState([]);
+
+  const getDoctorIds = async () => {
+    try {
+      const response = await axiosInstance.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/notification/doctor-ids`
+      );
+      const doctors = response?.data;
+      console.log("Doctor IDs fetched:", doctors);
+      setDoctorIds(doctors);
+    } catch (error) {
+      console.error("Error fetching doctor IDs:", error);
+      setDoctorIds([]);
+    }
+  };
+  useEffect(() => {
+    getDoctorIds();
+  }, []);
 
   // New Patient Form State
   const [newPatientForm, setNewPatientForm] = useState({
@@ -87,35 +122,37 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
     confirmPassword: "",
     dateOfBirth: "",
     address: "",
-  })
+  });
 
   // Existing booking states (same as StudentBooking)
-  const [selectedDay, setSelectedDay] = useState(null)
-  const [selectedTime, setSelectedTime] = useState(null)
-  const [description, setDescription] = useState("")
-  const [evaluationType, setEvaluationType] = useState(null)
-  const [plan, setPlan] = useState(null)
-  const [selectedServices, setSelectedServices] = useState([])
-  const [totalPrice, setTotalPrice] = useState(0)
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false)
-  const [assignmentError, setAssignmentError] = useState("")
-  const [assignmentResults, setAssignmentResults] = useState(null)
-  const [validationErrors, setValidationErrors] = useState({})
-  const [hasActiveFullProgram, setHasActiveFullProgram] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [bookedSlots, setBookedSlots] = useState([])
-  const [isLoadingAvailability, setIsLoadingAvailability] = useState(false)
-  const [availabilityError, setAvailabilityError] = useState("")
-  const [showInteractiveGuide, setShowInteractiveGuide] = useState(false)
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedTime, setSelectedTime] = useState(null);
+  const [description, setDescription] = useState("");
+  const [evaluationType, setEvaluationType] = useState(null);
+  const [plan, setPlan] = useState(null);
+  const [selectedServices, setSelectedServices] = useState([]);
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [assignmentError, setAssignmentError] = useState("");
+  const [assignmentResults, setAssignmentResults] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
+  const [hasActiveFullProgram, setHasActiveFullProgram] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [bookedSlots, setBookedSlots] = useState([]);
+  const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState("");
+  const [showInteractiveGuide, setShowInteractiveGuide] = useState(false);
 
   // Check localStorage for interactive guide status on mount
   useEffect(() => {
-    const hasSeenInteractiveGuide = localStorage.getItem("hasSeenAdminInteractiveGuide")
+    const hasSeenInteractiveGuide = localStorage.getItem(
+      "hasSeenAdminInteractiveGuide"
+    );
     if (!hasSeenInteractiveGuide) {
-      setShowInteractiveGuide(true)
-      localStorage.setItem("hasSeenAdminInteractiveGuide", "true")
+      setShowInteractiveGuide(true);
+      localStorage.setItem("hasSeenAdminInteractiveGuide", "true");
     }
-  }, [])
+  }, []);
 
   // Options for evaluation type
   const evaluationTypeOptions = useMemo(
@@ -133,7 +170,8 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
         value: "full_package_evaluation",
         label: (
           <>
-            <Package size={18} className={styles.iconInline} /> Full Package Evaluation
+            <Package size={18} className={styles.iconInline} /> Full Package
+            Evaluation
             {hasActiveFullProgram && " (Already Active)"}
           </>
         ),
@@ -150,8 +188,8 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
         textLabel: "Single Session",
       },
     ],
-    [hasActiveFullProgram],
-  )
+    [hasActiveFullProgram]
+  );
 
   // Service options
   const serviceOptions = useMemo(
@@ -160,7 +198,8 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
         value: "physical_therapy",
         label: (
           <>
-            <HeartPulse size={18} className={styles.iconInline} /> Physical Therapy
+            <HeartPulse size={18} className={styles.iconInline} /> Physical
+            Therapy
           </>
         ),
         price: 100,
@@ -178,7 +217,8 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
         value: "occupational_therapy",
         label: (
           <>
-            <Hand size={18} className={styles.iconInline} /> Occupational Therapy
+            <Hand size={18} className={styles.iconInline} /> Occupational
+            Therapy
           </>
         ),
         price: 1200,
@@ -187,7 +227,8 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
         value: "special_education",
         label: (
           <>
-            <BookOpen size={18} className={styles.iconInline} /> Special Education
+            <BookOpen size={18} className={styles.iconInline} /> Special
+            Education
           </>
         ),
         price: 500,
@@ -202,8 +243,8 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
         price: 230,
       },
     ],
-    [],
-  )
+    []
+  );
 
   const [programData, setProgramData] = useState({
     programType: "",
@@ -213,45 +254,48 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
     description: "",
     programKind: "",
     unicValue: "",
-  })
+  });
 
   // Helper function to format time to HH:MM
   const formatTimeToHHMM = useCallback((date) => {
     if (!date) {
-      console.warn("formatTimeToHHMM received null or undefined date.")
-      return null
+      console.warn("formatTimeToHHMM received null or undefined date.");
+      return null;
     }
     if (!(date instanceof Date) || isNaN(date.getTime())) {
-      console.error("formatTimeToHHMM received an invalid Date object:", date)
-      return null
+      console.error("formatTimeToHHMM received an invalid Date object:", date);
+      return null;
     }
-    const hours = date.getHours().toString().padStart(2, "0")
-    const minutes = date.getMinutes().toString().padStart(2, "0")
-    return `${hours}:${minutes}`
-  }, [])
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
+  }, []);
 
   const handleServiceChange = useCallback((selectedOptions = []) => {
-    setSelectedServices(selectedOptions)
-    const newPrice = selectedOptions.reduce((total, option) => total + option.price, 0)
-    setTotalPrice(newPrice)
+    setSelectedServices(selectedOptions);
+    const newPrice = selectedOptions.reduce(
+      (total, option) => total + option.price,
+      0
+    );
+    setTotalPrice(newPrice);
     if (selectedOptions.length > 0) {
-      setValidationErrors((prev) => ({ ...prev, services: null }))
+      setValidationErrors((prev) => ({ ...prev, services: null }));
     }
-  }, [])
+  }, []);
 
   // Lazy loading for axios instance
   const getAxiosInstance = useCallback(async () => {
-    const { default: axiosInstance } = await import("@/helper/axiosSetup")
-    return axiosInstance
-  }, [])
+    const { default: axiosInstance } = await import("@/helper/axiosSetup");
+    return axiosInstance;
+  }, []);
 
   // Reset form fields function
   const resetFormFields = useCallback(() => {
-    setSelectedDay(null)
-    setSelectedTime(null)
-    setDescription("")
-    setSelectedServices([])
-    setTotalPrice(0)
+    setSelectedDay(null);
+    setSelectedTime(null);
+    setDescription("");
+    setSelectedServices([]);
+    setTotalPrice(0);
     setProgramData((prev) => ({
       ...prev,
       programType: "",
@@ -260,246 +304,272 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
       description: "",
       programKind: "",
       unicValue: "",
-    }))
-    setAssignmentError("")
-    setAssignmentResults(null)
-    setValidationErrors({})
-    setBookedSlots([])
-    setAvailabilityError("")
-    setShowCaseStudyCreation(false)
-  }, [])
+    }));
+    setAssignmentError("");
+    setAssignmentResults(null);
+    setValidationErrors({});
+    setBookedSlots([]);
+    setAvailabilityError("");
+    setShowCaseStudyCreation(false);
+  }, []);
 
   // Refresh plan data function
   const refreshPlanData = useCallback(async () => {
-    if (!selectedPatient?.id) return
-    setIsLoading(true)
+    if (!selectedPatient?.id) return;
+    setIsLoading(true);
     try {
-      const axiosInstance = await getAxiosInstance()
+      const axiosInstance = await getAxiosInstance();
       const planResponse = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/authentication/patient-case-study/${selectedPatient.id}`,
-      )
+        `${process.env.NEXT_PUBLIC_API_URL}/authentication/patient-case-study/${selectedPatient.id}`
+      );
       if (planResponse.status === 200) {
-        setPlan(planResponse.data)
+        setPlan(planResponse.data);
       }
     } catch (error) {
-      console.error("Error refreshing plan data:", error)
+      console.error("Error refreshing plan data:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [selectedPatient?.id, getAxiosInstance])
+  }, [selectedPatient?.id, getAxiosInstance]);
 
   // Fetch all patients function
   const fetchAllPatients = useCallback(async () => {
-    setIsLoadingPatients(true)
+    setIsLoadingPatients(true);
     try {
-      const axiosInstance = await getAxiosInstance()
-      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/patients`, {
-        params: { limit: 1000 }, // Get all patients
-      })
+      const axiosInstance = await getAxiosInstance();
+      const response = await axiosInstance.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/authentication/patients`,
+        {
+          params: { limit: 1000 }, // Get all patients
+        }
+      );
       if (response.data.patients) {
-        setAllPatients(response.data.patients)
+        setAllPatients(response.data.patients);
       }
     } catch (error) {
-      console.error("Error fetching patients:", error)
-      alert("Error fetching patients data")
+      console.error("Error fetching patients:", error);
+      alert("Error fetching patients data");
     } finally {
-      setIsLoadingPatients(false)
+      setIsLoadingPatients(false);
     }
-  }, [getAxiosInstance])
+  }, [getAxiosInstance]);
 
   // Create new patient function
   const createNewPatient = useCallback(
     async (patientData) => {
       try {
-        const axiosInstance = await getAxiosInstance()
+        const axiosInstance = await getAxiosInstance();
         const response = await axiosInstance.post(
           `${process.env.NEXT_PUBLIC_API_URL}/authentication/signup/patient`,
-          patientData,
-        )
+          patientData
+        );
         if (response.status === 201) {
           // Fetch the created patient data
           const patientsResponse = await axiosInstance.get(
             `${process.env.NEXT_PUBLIC_API_URL}/authentication/patients`,
             {
               params: { search: patientData.email, limit: 1 },
-            },
-          )
-          if (patientsResponse.data.patients && patientsResponse.data.patients.length > 0) {
-            const newPatient = patientsResponse.data.patients[0]
+            }
+          );
+          if (
+            patientsResponse.data.patients &&
+            patientsResponse.data.patients.length > 0
+          ) {
+            const newPatient = patientsResponse.data.patients[0];
             setSelectedPatient({
               id: newPatient._id,
               name: newPatient.name,
               email: newPatient.email,
               phone: newPatient.phone,
-            })
-            setPatientSelectionMode("buttons")
-            return true
+            });
+            setPatientSelectionMode("buttons");
+            return true;
           }
         }
-        return false
+        return false;
       } catch (error) {
-        console.error("Error creating new patient:", error)
-        throw error
+        console.error("Error creating new patient:", error);
+        throw error;
       }
     },
-    [getAxiosInstance],
-  )
+    [getAxiosInstance]
+  );
 
   // Move fetchBookedSlots here, before the useEffect that uses it
   const fetchBookedSlots = useCallback(
     async (date, programType) => {
-      if (!date || !programType) return
-      setIsLoadingAvailability(true)
-      setAvailabilityError("")
+      if (!date || !programType) return;
+      setIsLoadingAvailability(true);
+      setAvailabilityError("");
       try {
-        const axiosInstance = await getAxiosInstance()
-        const formattedDate = date.toISOString().split("T")[0]
-        console.log("Fetching booked slots for:", { formattedDate, programType })
+        const axiosInstance = await getAxiosInstance();
+        const formattedDate = date.toISOString().split("T")[0];
+        console.log("Fetching booked slots for:", {
+          formattedDate,
+          programType,
+        });
         const response = await axiosInstance.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/availability/booked-slots/${programType}/${formattedDate}`,
-        )
+          `${process.env.NEXT_PUBLIC_API_URL}/availability/booked-slots/${programType}/${formattedDate}`
+        );
         if (response.data.success) {
-          console.log("Booked slots response:", response.data.bookedSlots)
-          setBookedSlots(response.data.bookedSlots)
-          console.log("Frontend bookedSlots state updated to:", response.data.bookedSlots)
+          console.log("Booked slots response:", response.data.bookedSlots);
+          setBookedSlots(response.data.bookedSlots);
+          console.log(
+            "Frontend bookedSlots state updated to:",
+            response.data.bookedSlots
+          );
         } else {
-          setAvailabilityError("Failed to fetch availability")
+          setAvailabilityError("Failed to fetch availability");
         }
       } catch (error) {
-        console.error("Error fetching booked slots:", error)
-        setAvailabilityError("Error checking availability")
-        setBookedSlots([])
+        console.error("Error fetching booked slots:", error);
+        setAvailabilityError("Error checking availability");
+        setBookedSlots([]);
       } finally {
-        setIsLoadingAvailability(false)
+        setIsLoadingAvailability(false);
       }
     },
-    [getAxiosInstance],
-  )
+    [getAxiosInstance]
+  );
 
   // Update booked slots when date or evaluation type changes
   useEffect(() => {
-    const programTypeValue = evaluationType?.value
+    const programTypeValue = evaluationType?.value;
     if (selectedDay && programTypeValue) {
-      let programType = programTypeValue
+      let programType = programTypeValue;
       if (programTypeValue === "full_package_evaluation") {
-        programType = "full_program"
+        programType = "full_program";
       }
-      fetchBookedSlots(selectedDay, programType)
+      fetchBookedSlots(selectedDay, programType);
     } else {
-      setBookedSlots([])
+      setBookedSlots([]);
     }
-  }, [selectedDay, evaluationType, fetchBookedSlots])
+  }, [selectedDay, evaluationType, fetchBookedSlots]);
 
   // Fetch data when selected patient changes
   useEffect(() => {
-    let isMounted = true
+    let isMounted = true;
     const fetchData = async () => {
-      if (!selectedPatient?.id) return
-      setIsLoading(true)
+      if (!selectedPatient?.id) return;
+      setIsLoading(true);
       try {
-        const axiosInstance = await getAxiosInstance()
+        const axiosInstance = await getAxiosInstance();
         const [planResponse, programResponse] = await Promise.allSettled([
           axiosInstance.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/authentication/patient-case-study/${selectedPatient.id}`,
+            `${process.env.NEXT_PUBLIC_API_URL}/authentication/patient-case-study/${selectedPatient.id}`
           ),
           axiosInstance.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/authentication/check-active-full-program/${selectedPatient.id}`,
+            `${process.env.NEXT_PUBLIC_API_URL}/authentication/check-active-full-program/${selectedPatient.id}`
           ),
-        ])
+        ]);
         if (isMounted) {
           if (planResponse.status === "fulfilled") {
-            setPlan(planResponse.value.data)
+            setPlan(planResponse.value.data);
           }
           if (programResponse.status === "fulfilled") {
-            setHasActiveFullProgram(programResponse.value.data.hasActiveFullProgram)
+            setHasActiveFullProgram(
+              programResponse.value.data.hasActiveFullProgram
+            );
           }
         }
       } catch (error) {
-        console.error("Error fetching data:", error)
+        console.error("Error fetching data:", error);
       } finally {
         if (isMounted) {
-          setIsLoading(false)
+          setIsLoading(false);
         }
       }
-    }
+    };
 
     // Reset states when no patient is selected
     if (!selectedPatient?.id) {
-      setPlan(null)
-      setHasActiveFullProgram(false)
-      setShowCaseStudyCreation(false)
-      setIsLoading(false)
-      return
+      setPlan(null);
+      setHasActiveFullProgram(false);
+      setShowCaseStudyCreation(false);
+      setIsLoading(false);
+      return;
     }
 
-    fetchData()
+    fetchData();
     return () => {
-      isMounted = false
-    }
-  }, [selectedPatient?.id, getAxiosInstance, selectedPatient])
+      isMounted = false;
+    };
+  }, [selectedPatient?.id, getAxiosInstance, selectedPatient]);
 
   const getProgramPrice = useCallback((programType) => {
     switch (programType) {
       case "full_program":
-        return 5000
+        return 5000;
       case "single_session":
-        return 100
+        return 100;
       case "school_evaluation":
-        return 400
+        return 400;
       default:
-        return 0
+        return 0;
     }
-  }, [])
+  }, []);
 
   // Enhanced date filtering - only allow Fridays and Sundays
   const filterWeekdays = useCallback((date) => {
-    const day = date.getDay()
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    return (day === 0 || day === 5) && date >= today
-  }, [])
+    const day = date.getDay();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return (day === 0 || day === 5) && date >= today;
+  }, []);
 
   // Generate all possible time slots
   const getAllPossibleTimeSlots = useCallback(() => {
-    const slots = []
+    const slots = [];
     for (let hour = 12; hour <= 20; hour++) {
       for (const minute of [0, 30]) {
-        if (hour === 20 && minute === 30) break
-        const timeString = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
-        slots.push({ hour, minute, timeString })
+        if (hour === 20 && minute === 30) break;
+        const timeString = `${hour.toString().padStart(2, "0")}:${minute
+          .toString()
+          .padStart(2, "0")}`;
+        slots.push({ hour, minute, timeString });
       }
     }
-    return slots
-  }, [])
+    return slots;
+  }, []);
 
   // Get available time slots for the selected date
   const getAvailableTimeSlots = useCallback(() => {
-    const allSlots = getAllPossibleTimeSlots()
+    const allSlots = getAllPossibleTimeSlots();
     return allSlots.filter((slot) => {
-      const isBooked = bookedSlots.some((bookedSlot) => bookedSlot.time === slot.timeString)
-      return !isBooked
-    })
-  }, [bookedSlots, getAllPossibleTimeSlots])
+      const isBooked = bookedSlots.some(
+        (bookedSlot) => bookedSlot.time === slot.timeString
+      );
+      return !isBooked;
+    });
+  }, [bookedSlots, getAllPossibleTimeSlots]);
 
   // Verify availability before payment
   const verifyAvailabilityBeforePayment = useCallback(
     async (programTypeToVerify) => {
       try {
-        const axiosInstance = await getAxiosInstance()
-        console.log("verifyAvailabilityBeforePayment: selectedTime before formatting:", selectedTime)
-        const formattedTime = formatTimeToHHMM(selectedTime)
-        console.log("verifyAvailabilityBeforePayment: formattedTime after formatting:", formattedTime)
+        const axiosInstance = await getAxiosInstance();
+        console.log(
+          "verifyAvailabilityBeforePayment: selectedTime before formatting:",
+          selectedTime
+        );
+        const formattedTime = formatTimeToHHMM(selectedTime);
+        console.log(
+          "verifyAvailabilityBeforePayment: formattedTime after formatting:",
+          formattedTime
+        );
 
-        const formattedDate = selectedDay.toISOString()
+        const formattedDate = selectedDay.toISOString();
         console.log("Verifying availability payload:", {
           programType: programTypeToVerify,
           date: formattedDate,
           time: formattedTime,
-        })
+        });
 
         if (!formattedTime) {
-          console.error("verifyAvailabilityBeforePayment: formattedTime is null or invalid. Aborting API call.")
-          return false
+          console.error(
+            "verifyAvailabilityBeforePayment: formattedTime is null or invalid. Aborting API call."
+          );
+          return false;
         }
 
         const response = await axiosInstance.post(
@@ -508,114 +578,139 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
             programType: programTypeToVerify,
             date: selectedDay.toISOString(),
             time: formattedTime,
-          },
-        )
-        console.log("Availability verification response:", response.data)
-        return response.data.available
+          }
+        );
+        console.log("Availability verification response:", response.data);
+        return response.data.available;
       } catch (error) {
-        console.error("Error verifying availability:", error)
-        return false
+        console.error("Error verifying availability:", error);
+        return false;
       }
     },
-    [getAxiosInstance, formatTimeToHHMM, selectedTime, selectedDay],
-  )
+    [getAxiosInstance, formatTimeToHHMM, selectedTime, selectedDay]
+  );
 
   // Validation function
   const validateStep = useCallback(
     (step) => {
-      const errors = {}
+      const errors = {};
       switch (step) {
         case 0: // Patient Selection
           if (!selectedPatient) {
-            errors.selectedPatient = "Please select a patient"
+            errors.selectedPatient = "Please select a patient";
           }
-          break
+          break;
         case 1: // Evaluation Type
           if (!evaluationType?.value) {
-            errors.evaluationType = "Please select an evaluation type"
+            errors.evaluationType = "Please select an evaluation type";
           }
-          break
+          break;
         case 2: // Request Evaluation
           if (!selectedDay) {
-            errors.selectedDay = "Please select a date"
+            errors.selectedDay = "Please select a date";
           }
           if (!selectedTime) {
-            errors.selectedTime = "Please select a time"
+            errors.selectedTime = "Please select a time";
           }
           if (!description.trim()) {
-            errors.description = "Please provide a description"
+            errors.description = "Please provide a description";
           }
-          if (evaluationType?.value === "single_session" && selectedServices.length === 0) {
-            errors.services = "Please select at least one service"
+          if (
+            evaluationType?.value === "single_session" &&
+            selectedServices.length === 0
+          ) {
+            errors.services = "Please select at least one service";
           }
-          break
+          break;
         case 3: // Case Study
           if (!plan?.hasCaseStudy) {
-            errors.document = "You must finish your word document first"
+            errors.document = "You must finish your word document first";
           }
-          break
+          break;
         default:
-          break
+          break;
       }
-      setValidationErrors(errors)
-      return Object.keys(errors).length === 0
+      setValidationErrors(errors);
+      return Object.keys(errors).length === 0;
     },
-    [selectedPatient, evaluationType, selectedDay, selectedTime, description, selectedServices, plan],
-  )
+    [
+      selectedPatient,
+      evaluationType,
+      selectedDay,
+      selectedTime,
+      description,
+      selectedServices,
+      plan,
+    ]
+  );
 
   // Enhanced assignment creation function
   const createPatientSchoolAssignment = useCallback(
     async (patientId, description) => {
       try {
-        const axiosInstance = await getAxiosInstance()
+        const axiosInstance = await getAxiosInstance();
         const checkResponse = await axiosInstance.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/school/school-assignments?search=${patientId}`,
-        )
-        const existingAssignments = checkResponse.data.assignments || []
+          `${process.env.NEXT_PUBLIC_API_URL}/school/school-assignments?search=${patientId}`
+        );
+        const existingAssignments = checkResponse.data.assignments || [];
         const isAlreadyAssigned = existingAssignments.some(
-          (assignment) => assignment.patient && assignment.patient._id === patientId,
-        )
+          (assignment) =>
+            assignment.patient && assignment.patient._id === patientId
+        );
         if (isAlreadyAssigned) {
-          return { success: true, message: "Student already assigned to school program" }
+          return {
+            success: true,
+            message: "Student already assigned to school program",
+          };
         }
         const assignmentData = {
           patientId: patientId,
-          notes: description || `School evaluation assignment for ${selectedPatient?.name}`,
-        }
+          notes:
+            description ||
+            `School evaluation assignment for ${selectedPatient?.name}`,
+        };
         const response = await axiosInstance.post(
           `${process.env.NEXT_PUBLIC_API_URL}/school/assign-to-school`,
-          assignmentData,
-        )
+          assignmentData
+        );
         if (response.status === 201) {
-          return { success: true, data: response.data }
+          return { success: true, data: response.data };
         }
       } catch (error) {
-        console.error("Error creating school assignment:", error)
-        if (error.response?.status === 400 && error.response?.data?.message?.includes("already assigned")) {
-          return { success: true, message: "Student already assigned to school program" }
+        console.error("Error creating school assignment:", error);
+        if (
+          error.response?.status === 400 &&
+          error.response?.data?.message?.includes("already assigned")
+        ) {
+          return {
+            success: true,
+            message: "Student already assigned to school program",
+          };
         }
         return {
           success: false,
-          error: error.response?.data?.message || "Failed to assign Student to school program",
-        }
+          error:
+            error.response?.data?.message ||
+            "Failed to assign Student to school program",
+        };
       }
     },
-    [getAxiosInstance, selectedPatient?.name],
-  )
+    [getAxiosInstance, selectedPatient?.name]
+  );
 
   // Next step function
   const nextStep = useCallback(async () => {
     if (!validateStep(currentStep)) {
-      return
+      return;
     }
     if (currentStep < 5) {
       // Updated to 5 steps (0-4)
       try {
-        let programType = evaluationType?.value
+        let programType = evaluationType?.value;
         if (evaluationType?.value === "full_package_evaluation") {
-          programType = "full_program"
+          programType = "full_program";
         }
-        const formattedTime = formatTimeToHHMM(selectedTime)
+        const formattedTime = formatTimeToHHMM(selectedTime);
         const updatedProgramData = {
           ...programData,
           programType,
@@ -623,13 +718,18 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
           date: selectedDay,
           time: formattedTime,
           description,
-          programKind: evaluationType?.value === "single_session" ? selectedServices.map((s) => s.value) : "",
-        }
-        setProgramData(updatedProgramData)
-        setCurrentStep(currentStep + 1)
+          programKind:
+            evaluationType?.value === "single_session"
+              ? selectedServices.map((s) => s.value)
+              : "",
+        };
+        setProgramData(updatedProgramData);
+        setCurrentStep(currentStep + 1);
       } catch (error) {
-        console.error("Error saving program:", error)
-        alert("An error occurred while processing your request. Please try again.")
+        console.error("Error saving program:", error);
+        alert(
+          "An error occurred while processing your request. Please try again."
+        );
       }
     }
   }, [
@@ -644,43 +744,50 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
     selectedServices,
     setCurrentStep,
     selectedPatient?.id,
-  ])
+  ]);
 
   // Handle payment function (MODIFIED for admin - pending status)
   const handlePayment = useCallback(async () => {
-    if (isProcessingPayment) return
-    setIsProcessingPayment(true)
-    setAssignmentError("")
-    setAssignmentResults(null)
+    if (isProcessingPayment) return;
+    setIsProcessingPayment(true);
+    setAssignmentError("");
+    setAssignmentResults(null);
     try {
-      let programTypeForPayment = programData.programType
+      let programTypeForPayment = programData.programType;
       if (programTypeForPayment === "full_package_evaluation") {
-        programTypeForPayment = "full_program"
+        programTypeForPayment = "full_program";
       }
-      console.log("Program type for payment and verification:", programTypeForPayment)
+      console.log(
+        "Program type for payment and verification:",
+        programTypeForPayment
+      );
 
       // Verify availability before proceeding with payment
-      const isAvailable = await verifyAvailabilityBeforePayment(programTypeForPayment)
+      const isAvailable = await verifyAvailabilityBeforePayment(
+        programTypeForPayment
+      );
       if (!isAvailable) {
-        alert("Sorry, this time slot is no longer available. Please choose a different time.")
-        setCurrentStep(1) // Go back to the scheduling step (now step 2)
-        return
+        alert(
+          "Sorry, this time slot is no longer available. Please choose a different time."
+        );
+        setCurrentStep(1); // Go back to the scheduling step (now step 2)
+        return;
       }
 
-      const axiosInstance = await getAxiosInstance()
-      let totalAmount = 0
-      let initialPayment = 0
+      const axiosInstance = await getAxiosInstance();
+      let totalAmount = 0;
+      let initialPayment = 0;
 
       // MODIFIED: For admin booking, all payments are pending
       if (programTypeForPayment === "full_program") {
-        totalAmount = 5000
-        initialPayment = 1000 // Changed from 1000 to 0
+        totalAmount = 5000;
+        initialPayment = 1000; // Changed from 1000 to 0
       } else {
-        totalAmount = getProgramPrice(programTypeForPayment) + totalPrice // Use programTypeForPayment here
-        initialPayment = totalAmount
+        totalAmount = getProgramPrice(programTypeForPayment) + totalPrice; // Use programTypeForPayment here
+        initialPayment = totalAmount;
       }
 
-      const formattedTime = formatTimeToHHMM(selectedTime)
+      const formattedTime = formatTimeToHHMM(selectedTime);
       const programPayload = {
         ...programData,
         patientId: selectedPatient?.id,
@@ -690,68 +797,137 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
         totalAmount,
         paidAmount: initialPayment, // 0 for admin bookings
         remainingAmount: totalAmount - initialPayment,
-        paymentStatus: initialPayment >= totalAmount ? "FULLY_PAID" : "PARTIALLY_PAID",
-        paymentMethod: programTypeForPayment === "full_program" ? "MIXED" : "CASH", // Use programTypeForPayment here
-      }
+        paymentStatus:
+          initialPayment >= totalAmount ? "FULLY_PAID" : "PARTIALLY_PAID",
+        paymentMethod:
+          programTypeForPayment === "full_program" ? "MIXED" : "CASH", // Use programTypeForPayment here
+      };
 
-      console.log("Attempting to save program with payload:", programPayload)
-      const response = await axiosInstance.post("/authentication/saveProgram", programPayload)
+      console.log("Attempting to save program with payload:", programPayload);
+      const response = await axiosInstance.post(
+        "/authentication/saveProgram",
+        programPayload
+      );
 
       if (response.status === 200) {
-        const programId = response.data.program._id
+        const programId = response.data.program._id;
 
         // MODIFIED: Create money record with pending status
-        const moneyResponse = await axiosInstance.post("/authentication/saveMoneyRecord", {
-          patientId: selectedPatient?.id,
-          programId,
-          price: totalAmount, // Full amount but pending
-          status: "pending", // Changed from "completed" to "pending"
-          invoiceId: `INV-${Math.random().toString(36).substring(2, 15)}`,
-          programType: programTypeForPayment,
-          comment: `Admin booking - ${programTypeForPayment} - Patient: ${selectedPatient?.name}`,
-          patientName: selectedPatient?.name,
-        })
+        const moneyResponse = await axiosInstance.post(
+          "/authentication/saveMoneyRecord",
+          {
+            patientId: selectedPatient?.id,
+            programId,
+            price: totalAmount, // Full amount but pending
+            status: "pending", // Changed from "completed" to "pending"
+            invoiceId: `INV-${Math.random().toString(36).substring(2, 15)}`,
+            programType: programTypeForPayment,
+            comment: `Admin booking - ${programTypeForPayment} - Patient: ${selectedPatient?.name}`,
+            patientName: selectedPatient?.name,
+          }
+        );
 
         if (moneyResponse.status === 200) {
           if (programTypeForPayment === "school_evaluation") {
-            const assignmentResult = await createPatientSchoolAssignment(selectedPatient?.id, description)
+            const assignmentResult = await createPatientSchoolAssignment(
+              selectedPatient?.id,
+              description
+            );
             if (!assignmentResult.success) {
-              setAssignmentError(assignmentResult.error)
+              setAssignmentError(assignmentResult.error);
             } else {
               setAssignmentResults({
                 totalAssigned: 1,
                 totalFailed: 0,
-                details: [{ assignment: { notes: assignmentResult.message || "School evaluation assigned" } }],
-              })
+                details: [
+                  {
+                    assignment: {
+                      notes:
+                        assignmentResult.message ||
+                        "School evaluation assigned",
+                    },
+                  },
+                ],
+              });
             }
           }
-          resetFormFields()
-          setCurrentStep(5) // Move to complete step (now step 5)
+          resetFormFields();
+
+          await sendNotification({
+            isList: false,
+            title: `Booking New Appointment`,
+            message: `We have created a new appointment in ${programPayload.programType
+              .replace(/_/g, " ")
+              .split(" ")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")} for you, on date: ${
+              new Date(programPayload.date).toISOString().split("T")[0]
+            } and time: ${programPayload.time}`,
+            receiverId: selectedPatient?.id,
+            rule: "Patient",
+            type: "create",
+          });
+
+          if (doctorIds.length > 0) {
+            await sendNotification({
+              isList: true,
+              title: `New ${programPayload.programType
+                .replace(/_/g, " ")
+                .split(" ")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")} Created`,
+              message: `Create a new program to student: ${selectedPatient?.name}`,
+              receiverIds: doctorIds,
+              rule: "Doctor",
+              type: "create",
+            });
+          }
+
+          await sendEmail({
+            to: `${selectedPatient?.email}`,
+            filePath: "",
+            subject: "Booking New Appointment",
+            text: `We have booked a new appointment in ${programPayload.programType
+              .replace(/_/g, " ")
+              .split(" ")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")} for you at date: ${
+              new Date(programPayload.date).toISOString().split("T")[0]
+            } and time: ${programPayload.time}`,
+          });
+          setCurrentStep(5); // Move to complete step (now step 5)
         }
       }
     } catch (error) {
-      console.error("Error saving program:", error)
+      console.error("Error saving program:", error);
       if (error.response?.status === 409) {
-        const errorData = error.response.data
-        if (errorData.error === "APPOINTMENT_CONFLICT" || errorData.error === "DUPLICATE_APPOINTMENT") {
+        const errorData = error.response.data;
+        if (
+          errorData.error === "APPOINTMENT_CONFLICT" ||
+          errorData.error === "DUPLICATE_APPOINTMENT"
+        ) {
           alert(
-            `Sorry, this time slot is already booked. Please choose a different time.\n\nConflicting appointment: ${errorData.conflictingAppointment?.time || "Unknown time"}`,
-          )
-          setCurrentStep(1) // Go back to the scheduling step
+            `Sorry, this time slot is already booked. Please choose a different time.\n\nConflicting appointment: ${
+              errorData.conflictingAppointment?.time || "Unknown time"
+            }`
+          );
+          setCurrentStep(1); // Go back to the scheduling step
           if (selectedDay && evaluationType) {
-            let programTypeForAvailability = evaluationType.value
+            let programTypeForAvailability = evaluationType.value;
             if (evaluationType.value === "full_package_evaluation") {
-              programTypeForAvailability = "full_program"
+              programTypeForAvailability = "full_program";
             }
-            fetchBookedSlots(selectedDay, programTypeForAvailability)
+            fetchBookedSlots(selectedDay, programTypeForAvailability);
           }
-          return
+          return;
         }
       }
-      const errorMessage = error.response?.data?.message || "Payment processing failed. Please try again."
-      alert(errorMessage)
+      const errorMessage =
+        error.response?.data?.message ||
+        "Payment processing failed. Please try again.";
+      alert(errorMessage);
     } finally {
-      setIsProcessingPayment(false)
+      setIsProcessingPayment(false);
     }
   }, [
     isProcessingPayment,
@@ -772,7 +948,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
     fetchBookedSlots,
     verifyAvailabilityBeforePayment,
     resetFormFields,
-  ])
+  ]);
 
   // Steps configuration (UPDATED with 6 steps)
   const steps = useMemo(
@@ -808,19 +984,27 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
         icon: <CheckCircle size={24} />,
       },
     ],
-    [],
-  )
+    []
+  );
 
   // Custom styles for react-select (Services dropdown)
   const customSelectStyles = {
     control: (provided, state) => ({
       ...provided,
-      border: `2px solid ${validationErrors.services ? "#ef4444" : state.isFocused ? "#e91e63" : "#e2e8f0"}`,
+      border: `2px solid ${
+        validationErrors.services
+          ? "#ef4444"
+          : state.isFocused
+          ? "#e91e63"
+          : "#e2e8f0"
+      }`,
       borderRadius: "12px",
       padding: "0.5rem 0.75rem",
       backgroundColor: "rgba(255, 255, 255, 0.8)",
       backdropFilter: "blur(10px)",
-      boxShadow: state.isFocused ? "0 0 0 4px rgba(233, 30, 99, 0.1), 0 4px 12px rgba(233, 30, 99, 0.15)" : "none",
+      boxShadow: state.isFocused
+        ? "0 0 0 4px rgba(233, 30, 99, 0.1), 0 4px 12px rgba(233, 30, 99, 0.15)"
+        : "none",
       transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
       transform: state.isFocused ? "translateY(-1px)" : "translateY(0)",
       "&:hover": {
@@ -831,7 +1015,8 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
       ...provided,
       borderRadius: "12px",
       border: "1px solid rgba(233, 30, 99, 0.2)",
-      boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5)",
+      boxShadow:
+        "0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5)",
       backgroundColor: "rgba(255, 255, 255, 0.95)",
       backdropFilter: "blur(10px)",
       zIndex: 9999,
@@ -850,8 +1035,8 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
       backgroundColor: state.isSelected
         ? "linear-gradient(135deg, #e91e63 0%, #4a4a8a 100%)"
         : state.isFocused
-          ? "rgba(233, 30, 99, 0.1)"
-          : "transparent",
+        ? "rgba(233, 30, 99, 0.1)"
+        : "transparent",
       color: state.isSelected ? "white" : "#374151",
       cursor: "pointer",
       transition: "all 0.2s ease",
@@ -886,19 +1071,27 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
       color: "#9ca3af",
       fontStyle: "italic",
     }),
-  }
+  };
 
   // Custom styles for evaluation type select
   const evaluationTypeSelectStyles = useMemo(
     () => ({
       control: (provided, state) => ({
         ...provided,
-        border: `2px solid ${validationErrors.evaluationType ? "#ef4444" : state.isFocused ? "#00bcd4" : "#e2e8f0"}`,
+        border: `2px solid ${
+          validationErrors.evaluationType
+            ? "#ef4444"
+            : state.isFocused
+            ? "#00bcd4"
+            : "#e2e8f0"
+        }`,
         borderRadius: "12px",
         padding: "0.5rem 0.75rem",
         backgroundColor: "rgba(255, 255, 255, 0.8)",
         backdropFilter: "blur(10px)",
-        boxShadow: state.isFocused ? "0 0 0 4px rgba(0, 188, 212, 0.1), 0 4px 12px rgba(0, 188, 212, 0.15)" : "none",
+        boxShadow: state.isFocused
+          ? "0 0 0 4px rgba(0, 188, 212, 0.1), 0 4px 12px rgba(0, 188, 212, 0.15)"
+          : "none",
         transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         transform: state.isFocused ? "translateY(-1px)" : "translateY(0)",
         "&:hover": {
@@ -909,7 +1102,8 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
         ...provided,
         borderRadius: "12px",
         border: "1px solid rgba(0, 188, 212, 0.2)",
-        boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5)",
+        boxShadow:
+          "0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5)",
         backgroundColor: "rgba(255, 255, 255, 0.95)",
         backdropFilter: "blur(10px)",
         zIndex: 9999,
@@ -928,13 +1122,15 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
         backgroundColor: state.isSelected
           ? "rgba(0, 0, 0, 0.1)"
           : state.isFocused
-            ? "rgba(0, 188, 212, 0.1)"
-            : "transparent",
+          ? "rgba(0, 188, 212, 0.1)"
+          : "transparent",
         color: state.isSelected ? "white" : "#374151",
         cursor: "pointer",
         transition: "all 0.2s ease",
         "&:hover": {
-          backgroundColor: state.isSelected ? "rgba(0, 0, 0, 0.15)" : "rgba(0, 188, 212, 0.15)",
+          backgroundColor: state.isSelected
+            ? "rgba(0, 0, 0, 0.15)"
+            : "rgba(0, 188, 212, 0.15)",
           transform: "translateX(4px)",
         },
         opacity: state.isDisabled ? 0.5 : 1,
@@ -951,20 +1147,28 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
         fontStyle: "italic",
       }),
     }),
-    [validationErrors.evaluationType],
-  )
+    [validationErrors.evaluationType]
+  );
 
   // Patient selection dropdown styles
   const patientSelectStyles = useMemo(
     () => ({
       control: (provided, state) => ({
         ...provided,
-        border: `2px solid ${validationErrors.selectedPatient ? "#ef4444" : state.isFocused ? "#10b981" : "#e2e8f0"}`,
+        border: `2px solid ${
+          validationErrors.selectedPatient
+            ? "#ef4444"
+            : state.isFocused
+            ? "#10b981"
+            : "#e2e8f0"
+        }`,
         borderRadius: "12px",
         padding: "0.5rem 0.75rem",
         backgroundColor: "rgba(255, 255, 255, 0.8)",
         backdropFilter: "blur(10px)",
-        boxShadow: state.isFocused ? "0 0 0 4px rgba(16, 185, 129, 0.1), 0 4px 12px rgba(16, 185, 129, 0.15)" : "none",
+        boxShadow: state.isFocused
+          ? "0 0 0 4px rgba(16, 185, 129, 0.1), 0 4px 12px rgba(16, 185, 129, 0.15)"
+          : "none",
         transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         transform: state.isFocused ? "translateY(-1px)" : "translateY(0)",
         "&:hover": {
@@ -975,7 +1179,8 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
         ...provided,
         borderRadius: "12px",
         border: "1px solid rgba(16, 185, 129, 0.2)",
-        boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5)",
+        boxShadow:
+          "0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5)",
         backgroundColor: "rgba(255, 255, 255, 0.95)",
         backdropFilter: "blur(10px)",
         zIndex: 9999,
@@ -994,8 +1199,8 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
         backgroundColor: state.isSelected
           ? "linear-gradient(135deg, #10b981 0%, #059669 100%)"
           : state.isFocused
-            ? "rgba(16, 185, 129, 0.1)"
-            : "transparent",
+          ? "rgba(16, 185, 129, 0.1)"
+          : "transparent",
         color: state.isSelected ? "white" : "#374151",
         cursor: "pointer",
         transition: "all 0.2s ease",
@@ -1017,15 +1222,15 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
         fontStyle: "italic",
       }),
     }),
-    [validationErrors.selectedPatient],
-  )
+    [validationErrors.selectedPatient]
+  );
 
   // Handle new patient form submission
   const handleNewPatientSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (newPatientForm.password !== newPatientForm.confirmPassword) {
-      alert("Passwords don't match")
-      return
+      alert("Passwords don't match");
+      return;
     }
     try {
       const success = await createNewPatient({
@@ -1036,9 +1241,9 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
         password: newPatientForm.password,
         dateOfBirth: newPatientForm.dateOfBirth,
         address: newPatientForm.address,
-      })
+      });
       if (success) {
-        setShowNewPatientModal(false)
+        setShowNewPatientModal(false);
         setNewPatientForm({
           name: "",
           email: "",
@@ -1048,13 +1253,13 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
           confirmPassword: "",
           dateOfBirth: "",
           address: "",
-        })
-        alert("Patient created successfully")
+        });
+        alert("Patient created successfully");
       }
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to create patient")
+      alert(error.response?.data?.message || "Failed to create patient");
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -1070,7 +1275,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -1078,7 +1283,9 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
       <div className={styles.ruknWizardContainer}>
         {/* Header */}
         <div className={styles.ruknHeader}>
-          <h4 className={styles.ruknSubTitle}>Book Patient Appointment - Admin Panel</h4>
+          <h4 className={styles.ruknSubTitle}>
+            Book Patient Appointment - Admin Panel
+          </h4>
         </div>
 
         {/* Progress Steps */}
@@ -1086,14 +1293,26 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
           <div className={styles.ruknStepsContainer}>
             {steps.map((step, index) => (
               <div key={step.number} className={styles.ruknStep}>
-                <div className={`${styles.ruknStepCircle} ${currentStep >= index ? styles.active : styles.inactive}`}>
+                <div
+                  className={`${styles.ruknStepCircle} ${
+                    currentStep >= index ? styles.active : styles.inactive
+                  }`}
+                >
                   {currentStep > index ? <Check size={24} /> : step.icon}
                 </div>
-                <span className={`${styles.ruknStepTitle} ${currentStep >= index ? styles.active : styles.inactive}`}>
+                <span
+                  className={`${styles.ruknStepTitle} ${
+                    currentStep >= index ? styles.active : styles.inactive
+                  }`}
+                >
                   {step.title}
                 </span>
                 {index < steps.length - 1 && (
-                  <div className={`${styles.ruknStepLine} ${currentStep > index ? styles.active : styles.inactive}`} />
+                  <div
+                    className={`${styles.ruknStepLine} ${
+                      currentStep > index ? styles.active : styles.inactive
+                    }`}
+                  />
                 )}
               </div>
             ))}
@@ -1108,7 +1327,10 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
               <div className={styles.ruknStepContent}>
                 <div className={styles.ruknStepHeader}>
                   <h3>Select Patient</h3>
-                  <p>Choose an existing patient or create a new patient to book an appointment</p>
+                  <p>
+                    Choose an existing patient or create a new patient to book
+                    an appointment
+                  </p>
                 </div>
 
                 {/* Selected Patient Display */}
@@ -1120,16 +1342,20 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                         <div>
                           <h4>Selected Patient:</h4>
                           <p>
-                            <strong>{selectedPatient.name}</strong> - {selectedPatient.email}
+                            <strong>{selectedPatient.name}</strong> -{" "}
+                            {selectedPatient.email}
                           </p>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={() => {
-                          setSelectedPatient(null)
-                          setPatientSelectionMode("buttons")
-                          setValidationErrors((prev) => ({ ...prev, selectedPatient: null }))
+                          setSelectedPatient(null);
+                          setPatientSelectionMode("buttons");
+                          setValidationErrors((prev) => ({
+                            ...prev,
+                            selectedPatient: null,
+                          }));
                         }}
                         className={styles2.ruknChangePatientButton}
                       >
@@ -1146,8 +1372,8 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                       <button
                         type="button"
                         onClick={() => {
-                          setPatientSelectionMode("existing")
-                          fetchAllPatients()
+                          setPatientSelectionMode("existing");
+                          fetchAllPatients();
                         }}
                         className={`${styles.ruknButton} ${styles.ruknButtonSecondary} ${styles2.ruknPatientButton}`}
                       >
@@ -1169,9 +1395,13 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                 {/* Patient Selection Mode: Existing Patient */}
                 {patientSelectionMode === "existing" && (
                   <div className={styles.ruknFormGroup}>
-                    <label className={styles.ruknLabel}>Select Existing Patient *</label>
+                    <label className={styles.ruknLabel}>
+                      Select Existing Patient *
+                    </label>
                     <div className={styles.ruknSelectWrapper}>
-                      <Suspense fallback={<div className={styles.loadingSpinner}></div>}>
+                      <Suspense
+                        fallback={<div className={styles.loadingSpinner}></div>}
+                      >
                         <Select
                           name="selectedPatient"
                           options={allPatients.map((patient) => ({
@@ -1188,39 +1418,59 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                           }
                           onChange={(selectedOption) => {
                             if (selectedOption) {
-                              const patient = allPatients.find((p) => p._id === selectedOption.value)
+                              const patient = allPatients.find(
+                                (p) => p._id === selectedOption.value
+                              );
                               if (patient) {
                                 setSelectedPatient({
                                   id: patient._id,
                                   name: patient.name,
                                   email: patient.email,
                                   phone: patient.phone,
-                                })
+                                });
                               } else {
-                                setSelectedPatient(null)
+                                setSelectedPatient(null);
                               }
-                              setValidationErrors((prev) => ({ ...prev, selectedPatient: null }))
+                              setValidationErrors((prev) => ({
+                                ...prev,
+                                selectedPatient: null,
+                              }));
                             }
                           }}
-                          placeholder={isLoadingPatients ? "Loading patients..." : "Search and select patient..."}
+                          placeholder={
+                            isLoadingPatients
+                              ? "Loading patients..."
+                              : "Search and select patient..."
+                          }
                           styles={patientSelectStyles}
-                          menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                          menuPortalTarget={
+                            typeof document !== "undefined"
+                              ? document.body
+                              : null
+                          }
                           menuPosition="fixed"
                           isLoading={isLoadingPatients}
                           isDisabled={isLoadingPatients}
                           isSearchable={true}
                           filterOption={(option, inputValue) => {
-                            if (!option.data) return false
-                            const searchValue = inputValue.toLowerCase()
-                            return option.data.label.toLowerCase().includes(searchValue)
+                            if (!option.data) return false;
+                            const searchValue = inputValue.toLowerCase();
+                            return option.data.label
+                              .toLowerCase()
+                              .includes(searchValue);
                           }}
                         />
                       </Suspense>
                     </div>
                     {validationErrors.selectedPatient && (
-                      <span className={styles.ruknErrorText}>{validationErrors.selectedPatient}</span>
+                      <span className={styles.ruknErrorText}>
+                        {validationErrors.selectedPatient}
+                      </span>
                     )}
-                    <div className={styles.ruknButtonGroup} style={{ marginTop: "1rem" }}>
+                    <div
+                      className={styles.ruknButtonGroup}
+                      style={{ marginTop: "1rem" }}
+                    >
                       <button
                         type="button"
                         onClick={() => setPatientSelectionMode("buttons")}
@@ -1234,7 +1484,9 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                 )}
 
                 {validationErrors.selectedPatient && (
-                  <div className={styles.ruknErrorMessage}>{validationErrors.selectedPatient}</div>
+                  <div className={styles.ruknErrorMessage}>
+                    {validationErrors.selectedPatient}
+                  </div>
                 )}
 
                 <div className={`${styles.ruknButtonGroup} ${styles.end}`}>
@@ -1254,26 +1506,40 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
               <div className={styles.ruknStepContent}>
                 <div className={styles.ruknStepHeader}>
                   <h3>Select Evaluation Type</h3>
-                  <p>Choose the type of evaluation that best suits the patient's needs</p>
+                  <p>
+                    Choose the type of evaluation that best suits the patient's
+                    needs
+                  </p>
                 </div>
-                {assignmentError && <div className={styles.ruknErrorMessage}>{assignmentError}</div>}
+                {assignmentError && (
+                  <div className={styles.ruknErrorMessage}>
+                    {assignmentError}
+                  </div>
+                )}
                 <div className={styles.ruknFormGroup}>
                   <label className={styles.ruknLabel}>Evaluation Type *</label>
                   <div className={styles.ruknSelectWrapper}>
-                    <Suspense fallback={<div className={styles.loadingSpinner}></div>}>
+                    <Suspense
+                      fallback={<div className={styles.loadingSpinner}></div>}
+                    >
                       <Select
                         name="evaluationType"
                         options={evaluationTypeOptions}
                         value={evaluationType}
                         onChange={(selectedOption) => {
-                          setEvaluationType(selectedOption)
-                          setAssignmentError("")
-                          setValidationErrors((prev) => ({ ...prev, evaluationType: null }))
-                          resetFormFields()
+                          setEvaluationType(selectedOption);
+                          setAssignmentError("");
+                          setValidationErrors((prev) => ({
+                            ...prev,
+                            evaluationType: null,
+                          }));
+                          resetFormFields();
                         }}
                         placeholder="Choose your evaluation type..."
                         styles={evaluationTypeSelectStyles}
-                        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                        menuPortalTarget={
+                          typeof document !== "undefined" ? document.body : null
+                        }
                         menuPosition="fixed"
                         getOptionLabel={(option) => option.label}
                         getOptionValue={(option) => option.value}
@@ -1281,7 +1547,9 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                     </Suspense>
                   </div>
                   {validationErrors.evaluationType && (
-                    <span className={styles.ruknErrorText}>{validationErrors.evaluationType}</span>
+                    <span className={styles.ruknErrorText}>
+                      {validationErrors.evaluationType}
+                    </span>
                   )}
                 </div>
                 <div className={styles.ruknButtonGroup}>
@@ -1314,40 +1582,52 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                   <div className={styles.ruknFormGroup}>
                     <label className={styles.ruknLabel}>Select Day *</label>
                     <div className={styles.ruknDatePickerWrapper}>
-                      <Suspense fallback={<div className={styles.loadingSpinner}></div>}>
+                      <Suspense
+                        fallback={<div className={styles.loadingSpinner}></div>}
+                      >
                         <DatePicker
                           selected={selectedDay}
                           onChange={(date) => {
-                            setSelectedDay(date)
-                            setSelectedTime(null)
-                            setValidationErrors((prev) => ({ ...prev, selectedDay: null, selectedTime: null }))
+                            setSelectedDay(date);
+                            setSelectedTime(null);
+                            setValidationErrors((prev) => ({
+                              ...prev,
+                              selectedDay: null,
+                              selectedTime: null,
+                            }));
                           }}
                           filterDate={filterWeekdays}
                           placeholderText="Choose a date (Fridays & Sundays only)"
-                          className={`${styles.ruknDatePicker} ${validationErrors.selectedDay ? styles.error : ""}`}
+                          className={`${styles.ruknDatePicker} ${
+                            validationErrors.selectedDay ? styles.error : ""
+                          }`}
                           dateFormat="EEEE, MMMM dd, yyyy"
                           minDate={new Date()}
-                          maxDate={new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)}
+                          maxDate={
+                            new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
+                          }
                           showPopperArrow={false}
                           popperClassName={styles.ruknDatePickerPopper}
                           calendarClassName={styles.ruknDatePickerCalendar}
                           dayClassName={(date) => {
-                            const day = date.getDay()
+                            const day = date.getDay();
                             if (day === 0 || day === 5) {
-                              return styles.ruknAvailableDay
+                              return styles.ruknAvailableDay;
                             }
-                            return styles.ruknUnavailableDay
+                            return styles.ruknUnavailableDay;
                           }}
                           disabled={isLoadingAvailability}
                         />
                       </Suspense>
                     </div>
                     {validationErrors.selectedDay && (
-                      <span className={styles.ruknErrorText}>{validationErrors.selectedDay}</span>
+                      <span className={styles.ruknErrorText}>
+                        {validationErrors.selectedDay}
+                      </span>
                     )}
                     <div className={styles.ruknDateNote}>
-                      <Calendar size={16} className={styles.iconInline} /> Appointments available on Fridays and Sundays
-                      only
+                      <Calendar size={16} className={styles.iconInline} />{" "}
+                      Appointments available on Fridays and Sundays only
                     </div>
                   </div>
 
@@ -1360,12 +1640,20 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                         <span>Checking availability...</span>
                       </div>
                     )}
-                    {availabilityError && <div className={styles.ruknAvailabilityError}>{availabilityError}</div>}
+                    {availabilityError && (
+                      <div className={styles.ruknAvailabilityError}>
+                        {availabilityError}
+                      </div>
+                    )}
                     {selectedDay && !isLoadingAvailability && (
                       <div className={styles.ruknTimeSlotsGrid}>
                         {getAllPossibleTimeSlots().map((slot) => {
-                          const isBooked = bookedSlots.some((bookedSlot) => bookedSlot.time === slot.timeString)
-                          const isSelected = selectedTime && formatTimeToHHMM(selectedTime) === slot.timeString
+                          const isBooked = bookedSlots.some(
+                            (bookedSlot) => bookedSlot.time === slot.timeString
+                          );
+                          const isSelected =
+                            selectedTime &&
+                            formatTimeToHHMM(selectedTime) === slot.timeString;
                           return (
                             <button
                               key={slot.timeString}
@@ -1375,54 +1663,81 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                               } ${isBooked ? styles.booked : styles.available}`}
                               onClick={() => {
                                 if (!isBooked) {
-                                  const timeDate = new Date()
-                                  timeDate.setHours(slot.hour, slot.minute, 0, 0)
-                                  setSelectedTime(timeDate)
-                                  setValidationErrors((prev) => ({ ...prev, selectedTime: null }))
+                                  const timeDate = new Date();
+                                  timeDate.setHours(
+                                    slot.hour,
+                                    slot.minute,
+                                    0,
+                                    0
+                                  );
+                                  setSelectedTime(timeDate);
+                                  setValidationErrors((prev) => ({
+                                    ...prev,
+                                    selectedTime: null,
+                                  }));
                                 }
                               }}
                               disabled={isBooked}
                             >
                               <span className={styles.ruknTimeSlotTime}>
-                                {slot.hour > 12 ? slot.hour - 12 : slot.hour}:{slot.minute.toString().padStart(2, "0")}{" "}
+                                {slot.hour > 12 ? slot.hour - 12 : slot.hour}:
+                                {slot.minute.toString().padStart(2, "0")}{" "}
                                 {slot.hour >= 12 ? "PM" : "AM"}
                               </span>
                               <span className={styles.ruknTimeSlotStatus}>
-                                {isSelected ? "Selected" : isBooked ? "Booked" : "Available"}
+                                {isSelected
+                                  ? "Selected"
+                                  : isBooked
+                                  ? "Booked"
+                                  : "Available"}
                               </span>
                             </button>
-                          )
+                          );
                         })}
                       </div>
                     )}
                     {validationErrors.selectedTime && (
-                      <span className={styles.ruknErrorText}>{validationErrors.selectedTime}</span>
+                      <span className={styles.ruknErrorText}>
+                        {validationErrors.selectedTime}
+                      </span>
                     )}
                     <div className={styles.ruknTimeNote}>
-                      <Clock size={16} className={styles.iconInline} /> Appointments available from 12:00 PM to 8:00 PM
+                      <Clock size={16} className={styles.iconInline} />{" "}
+                      Appointments available from 12:00 PM to 8:00 PM
                     </div>
                   </div>
                 </div>
                 <div className={styles.ruknFormGroupdes}>
                   <label className={styles.ruknLabel}>Description *</label>
                   <textarea
-                    className={`${styles.ruknTextarea} ${validationErrors.description ? styles.error : ""}`}
+                    className={`${styles.ruknTextarea} ${
+                      validationErrors.description ? styles.error : ""
+                    }`}
                     placeholder="Please describe patient's needs or any specific requirements..."
                     value={description}
                     onChange={(e) => {
-                      setDescription(e.target.value)
-                      setValidationErrors((prev) => ({ ...prev, description: null }))
+                      setDescription(e.target.value);
+                      setValidationErrors((prev) => ({
+                        ...prev,
+                        description: null,
+                      }));
                     }}
                   />
                   {validationErrors.description && (
-                    <span className={styles.ruknErrorText}>{validationErrors.description}</span>
+                    <span className={styles.ruknErrorText}>
+                      {validationErrors.description}
+                    </span>
                   )}
                 </div>
                 {evaluationType?.value === "single_session" && (
                   <div className={styles.ruknFormGroup}>
-                    <label className={styles.ruknLabel}>Select Services *</label>
+                    <label className={styles.ruknLabel}>
+                      Select Services *
+                    </label>
                     <div className={styles.ruknSelectWrapper}>
-                      <Suspense fallback={<div className={styles.loadingSpinner}></div>}>
+                      <Suspense
+                        fallback={<div className={styles.loadingSpinner}></div>}
+                      >
                         <Select
                           isMulti
                           name="services"
@@ -1435,13 +1750,19 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                           onChange={handleServiceChange}
                           placeholder="Choose your services..."
                           styles={customSelectStyles}
-                          menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                          menuPortalTarget={
+                            typeof document !== "undefined"
+                              ? document.body
+                              : null
+                          }
                           menuPosition="fixed"
                         />
                       </Suspense>
                     </div>
                     {validationErrors.services && (
-                      <span className={styles.ruknErrorText}>{validationErrors.services}</span>
+                      <span className={styles.ruknErrorText}>
+                        {validationErrors.services}
+                      </span>
                     )}
                     {totalPrice > 0 && (
                       <div className={styles.ruknServiceTotal}>
@@ -1474,11 +1795,14 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
               <div className={styles.ruknStepContent}>
                 <div className={styles.ruknStepHeader}>
                   <h3>Review & Edit Document</h3>
-                  <p>Review and customize the patient's treatment plan document</p>
+                  <p>
+                    Review and customize the patient's treatment plan document
+                  </p>
                 </div>
                 {validationErrors.document && (
                   <div className={styles.ruknErrorMessage}>
-                    <XCircle size={18} className={styles.iconInline} /> {validationErrors.document}
+                    <XCircle size={18} className={styles.iconInline} />{" "}
+                    {validationErrors.document}
                   </div>
                 )}
 
@@ -1488,10 +1812,13 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                     <div className={styles2.ruknNoCaseStudyIcon}>
                       <FileText size={48} />
                     </div>
-                    <h4 className={styles2.ruknNoCaseStudyTitle}>No Case Study Found for This Patient</h4>
+                    <h4 className={styles2.ruknNoCaseStudyTitle}>
+                      No Case Study Found for This Patient
+                    </h4>
                     <p className={styles2.ruknNoCaseStudyDescription}>
-                      Patient {selectedPatient?.name} doesn't have a case study yet. You can create a new case study
-                      using the default template.
+                      Patient {selectedPatient?.name} doesn't have a case study
+                      yet. You can create a new case study using the default
+                      template.
                     </p>
                     <button
                       type="button"
@@ -1514,7 +1841,8 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                             docxId: plan.caseStudyFile.title,
                             patientId: selectedPatient?.id,
                             filePath: plan.caseStudyFile.url,
-                            fileName: plan.caseStudyFile.filename || "case-study.docx",
+                            fileName:
+                              plan.caseStudyFile.filename || "case-study.docx",
                             docxName: `Case study of student: ${selectedPatient?.name}.docx`,
                           }}
                           planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/DrastHala/upload-plan`}
@@ -1531,10 +1859,10 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                           }}
                           planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/DrastHala/upload-plan`}
                           onDocumentSaved={(updatedPlan) => {
-                            refreshPlanData()
+                            refreshPlanData();
                             // Keep the creation mode active until the document is actually saved
                             if (updatedPlan?.hasCaseStudy) {
-                              setShowCaseStudyCreation(false)
+                              setShowCaseStudyCreation(false);
                             }
                           }}
                         />
@@ -1554,9 +1882,13 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                   <div className={styles.ruknTooltipContainer}>
                     <button
                       type="button"
-                      onClick={() => setCurrentStep(4)}
+                      onClick={() => {
+                        setCurrentStep(4);
+                      }}
                       disabled={!plan?.hasCaseStudy}
-                      className={`${styles.ruknButton} ${styles.ruknButtonPrimary} ${!plan?.hasCaseStudy ? styles.disabled : ""}`}
+                      className={`${styles.ruknButton} ${
+                        styles.ruknButtonPrimary
+                      } ${!plan?.hasCaseStudy ? styles.disabled : ""}`}
                     >
                       Proceed to Payment →
                     </button>
@@ -1564,7 +1896,10 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                       <div className={styles.ruknTooltip}>
                         <div className={styles.ruknTooltipContent}>
                           <AlertCircle size={16} />
-                          <span>You must save the case study document first to enable this button</span>
+                          <span>
+                            You must save the case study document first to
+                            enable this button
+                          </span>
                         </div>
                       </div>
                     )}
@@ -1578,11 +1913,14 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
               <div className={styles.ruknStepContent}>
                 <div className={styles.ruknStepHeader}>
                   <h3>Create Booking</h3>
-                  <p>Review booking details and create appointment for patient</p>
+                  <p>
+                    Review booking details and create appointment for patient
+                  </p>
                 </div>
                 {assignmentError && (
                   <div className={styles.ruknWarningMessage}>
-                    <Info size={18} className={styles.iconInline} /> Warning: {assignmentError}
+                    <Info size={18} className={styles.iconInline} /> Warning:{" "}
+                    {assignmentError}
                   </div>
                 )}
                 {assignmentResults && (
@@ -1590,13 +1928,13 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                     <h4>Service Assignment Results</h4>
                     <div className={styles.ruknAssignmentSummary}>
                       <p>
-                        <Check size={18} className={styles.iconInline} /> Successfully assigned:{" "}
-                        {assignmentResults.totalAssigned}
+                        <Check size={18} className={styles.iconInline} />{" "}
+                        Successfully assigned: {assignmentResults.totalAssigned}
                       </p>
                       {assignmentResults.totalFailed > 0 && (
                         <p>
-                          <XCircle size={18} className={styles.iconInline} /> Failed assignments:{" "}
-                          {assignmentResults.totalFailed}
+                          <XCircle size={18} className={styles.iconInline} />{" "}
+                          Failed assignments: {assignmentResults.totalFailed}
                         </p>
                       )}
                     </div>
@@ -1628,13 +1966,17 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                       </div>
                       <div className={styles.ruknPaymentRow}>
                         <span>Payment Status:</span>
-                        <span style={{ color: "#f59e0b", fontWeight: "600" }}>PENDING</span>
+                        <span style={{ color: "#f59e0b", fontWeight: "600" }}>
+                          PENDING
+                        </span>
                       </div>
                       <div className={styles.ruknPaymentTotal}>
                         <span>Amount Due:</span>
                         <span>5,000 EGP</span>
                       </div>
-                      <p className={styles.ruknPaymentNote}>Payment status will be updated later by the accountant.</p>
+                      <p className={styles.ruknPaymentNote}>
+                        Payment status will be updated later by the accountant.
+                      </p>
                     </>
                   ) : (
                     <>
@@ -1650,11 +1992,17 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                       )}
                       <div className={styles.ruknPaymentRow}>
                         <span>Payment Status:</span>
-                        <span style={{ color: "#f59e0b", fontWeight: "600" }}>PENDING</span>
+                        <span style={{ color: "#f59e0b", fontWeight: "600" }}>
+                          PENDING
+                        </span>
                       </div>
                       <div className={styles.ruknPaymentTotal}>
                         <span>Total Amount:</span>
-                        <span>${getProgramPrice(programData.programType) + totalPrice}</span>
+                        <span>
+                          $
+                          {getProgramPrice(programData.programType) +
+                            totalPrice}
+                        </span>
                       </div>
                     </>
                   )}
@@ -1663,24 +2011,36 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                   <button
                     type="button"
                     onClick={async () => {
-                      let programTypeForVerification = programData.programType
-                      if (programTypeForVerification === "full_package_evaluation") {
-                        programTypeForVerification = "full_program"
+                      let programTypeForVerification = programData.programType;
+                      if (
+                        programTypeForVerification === "full_package_evaluation"
+                      ) {
+                        programTypeForVerification = "full_program";
                       }
-                      const isStillAvailable = await verifyAvailabilityBeforePayment(programTypeForVerification)
+                      const isStillAvailable =
+                        await verifyAvailabilityBeforePayment(
+                          programTypeForVerification
+                        );
                       if (!isStillAvailable) {
-                        alert("Sorry, this time slot has been booked by another user. Please choose a different time.")
-                        setCurrentStep(2)
-                        return
+                        alert(
+                          "Sorry, this time slot has been booked by another user. Please choose a different time."
+                        );
+                        setCurrentStep(2);
+                        return;
                       }
-                      handlePayment()
+                      handlePayment();
                     }}
                     disabled={isProcessingPayment}
                     className={`${styles.ruknButton} ${styles.ruknButtonSuccess}`}
                   >
-                    <Calendar size={20} /> {isProcessingPayment ? "Creating Booking..." : "Create Booking"}
+                    <Calendar size={20} />{" "}
+                    {isProcessingPayment
+                      ? "Creating Booking..."
+                      : "Create Booking"}
                   </button>
-                  <p className={styles.ruknPaymentNote}>Booking will be created with pending payment status</p>
+                  <p className={styles.ruknPaymentNote}>
+                    Booking will be created with pending payment status
+                  </p>
                 </div>
                 <div className={styles.ruknButtonGroup}>
                   <button
@@ -1702,18 +2062,23 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                 </div>
                 <h3 className={styles.ruknSuccessTitle}>Booking Created!</h3>
                 <p className={styles.ruknSuccessMessage}>
-                  Appointment booking has been successfully created for patient {selectedPatient?.name} at Rukn
-                  Elwatikon Rehabilitation Center.
+                  Appointment booking has been successfully created for patient{" "}
+                  {selectedPatient?.name} at Rukn Elwatikon Rehabilitation
+                  Center.
                   {programData.programType === "school_evaluation" &&
                     " Patient has been assigned to the school evaluation program."}
                 </p>
                 {assignmentResults && (
                   <div className={styles.ruknAssignmentFinalResults}>
                     <h4>Service Assignments</h4>
-                    <p>Patient has been automatically assigned to {assignmentResults.totalAssigned} service(s).</p>
+                    <p>
+                      Patient has been automatically assigned to{" "}
+                      {assignmentResults.totalAssigned} service(s).
+                    </p>
                     {assignmentResults.details.map((result, index) => (
                       <div key={index} className={styles.ruknServiceAssignment}>
-                        <Check size={16} className={styles.iconInline} /> {result.assignment.notes}
+                        <Check size={16} className={styles.iconInline} />{" "}
+                        {result.assignment.notes}
                       </div>
                     ))}
                   </div>
@@ -1722,37 +2087,42 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                   <h4>What's Next?</h4>
                   <ul>
                     <li>
-                      <Check size={16} className={styles.iconInline} /> Booking created with pending payment status
+                      <Check size={16} className={styles.iconInline} /> Booking
+                      created with pending payment status
                     </li>
                     <li>
-                      <Check size={16} className={styles.iconInline} /> Accountant can update payment status later
+                      <Check size={16} className={styles.iconInline} />{" "}
+                      Accountant can update payment status later
                     </li>
                     <li>
-                      <Check size={16} className={styles.iconInline} /> Patient will receive email confirmation
+                      <Check size={16} className={styles.iconInline} /> Patient
+                      will receive email confirmation
                     </li>
                     {programData.programType === "school_evaluation" && (
                       <li>
-                        <Check size={16} className={styles.iconInline} /> Patient can access the school evaluation
-                        portal
+                        <Check size={16} className={styles.iconInline} />{" "}
+                        Patient can access the school evaluation portal
                       </li>
                     )}
-                    {assignmentResults && assignmentResults.totalAssigned > 0 && (
-                      <li>
-                        <Check size={16} className={styles.iconInline} /> Service assignments can be viewed in
-                        respective department portals
-                      </li>
-                    )}
+                    {assignmentResults &&
+                      assignmentResults.totalAssigned > 0 && (
+                        <li>
+                          <Check size={16} className={styles.iconInline} />{" "}
+                          Service assignments can be viewed in respective
+                          department portals
+                        </li>
+                      )}
                   </ul>
                 </div>
                 <div className={styles.ruknButtonGroup}>
                   <button
                     type="button"
                     onClick={() => {
-                      setCurrentStep(0)
-                      setSelectedPatient(null)
-                      setPatientSelectionMode("buttons")
-                      setEvaluationType(null)
-                      resetFormFields()
+                      setCurrentStep(0);
+                      setSelectedPatient(null);
+                      setPatientSelectionMode("buttons");
+                      setEvaluationType(null);
+                      resetFormFields();
                     }}
                     className={`${styles.ruknButton} ${styles.ruknButtonPrimary}`}
                   >
@@ -1767,11 +2137,20 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
 
       {/* New Patient Modal */}
       {showNewPatientModal && (
-        <div className={styles2.modal} onClick={() => setShowNewPatientModal(false)}>
-          <div className={styles2.modalContent} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={styles2.modal}
+          onClick={() => setShowNewPatientModal(false)}
+        >
+          <div
+            className={styles2.modalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles2.modalHeader}>
               <h2 className={styles2.modalTitle}>Create New Patient</h2>
-              <button className={styles2.closeButton} onClick={() => setShowNewPatientModal(false)}>
+              <button
+                className={styles2.closeButton}
+                onClick={() => setShowNewPatientModal(false)}
+              >
                 ×
               </button>
             </div>
@@ -1783,7 +2162,12 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                     type="text"
                     className={styles2.input}
                     value={newPatientForm.name}
-                    onChange={(e) => setNewPatientForm({ ...newPatientForm, name: e.target.value })}
+                    onChange={(e) =>
+                      setNewPatientForm({
+                        ...newPatientForm,
+                        name: e.target.value,
+                      })
+                    }
                     placeholder="Enter full name"
                     required
                   />
@@ -1794,7 +2178,12 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                     type="email"
                     className={styles2.input}
                     value={newPatientForm.email}
-                    onChange={(e) => setNewPatientForm({ ...newPatientForm, email: e.target.value })}
+                    onChange={(e) =>
+                      setNewPatientForm({
+                        ...newPatientForm,
+                        email: e.target.value,
+                      })
+                    }
                     placeholder="Enter email"
                     required
                   />
@@ -1805,7 +2194,12 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                     type="tel"
                     className={styles2.input}
                     value={newPatientForm.phone}
-                    onChange={(e) => setNewPatientForm({ ...newPatientForm, phone: e.target.value })}
+                    onChange={(e) =>
+                      setNewPatientForm({
+                        ...newPatientForm,
+                        phone: e.target.value,
+                      })
+                    }
                     placeholder="Enter phone number"
                     required
                   />
@@ -1815,7 +2209,12 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                   <select
                     className={styles2.select}
                     value={newPatientForm.gender}
-                    onChange={(e) => setNewPatientForm({ ...newPatientForm, gender: e.target.value })}
+                    onChange={(e) =>
+                      setNewPatientForm({
+                        ...newPatientForm,
+                        gender: e.target.value,
+                      })
+                    }
                     required
                   >
                     <option value="">Select gender</option>
@@ -1829,7 +2228,12 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                     type="date"
                     className={styles2.input}
                     value={newPatientForm.dateOfBirth}
-                    onChange={(e) => setNewPatientForm({ ...newPatientForm, dateOfBirth: e.target.value })}
+                    onChange={(e) =>
+                      setNewPatientForm({
+                        ...newPatientForm,
+                        dateOfBirth: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div className={styles2.formGroup}>
@@ -1838,7 +2242,12 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                     type="text"
                     className={styles2.input}
                     value={newPatientForm.address}
-                    onChange={(e) => setNewPatientForm({ ...newPatientForm, address: e.target.value })}
+                    onChange={(e) =>
+                      setNewPatientForm({
+                        ...newPatientForm,
+                        address: e.target.value,
+                      })
+                    }
                     placeholder="Enter address"
                   />
                 </div>
@@ -1848,7 +2257,12 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                     type="password"
                     className={styles2.input}
                     value={newPatientForm.password}
-                    onChange={(e) => setNewPatientForm({ ...newPatientForm, password: e.target.value })}
+                    onChange={(e) =>
+                      setNewPatientForm({
+                        ...newPatientForm,
+                        password: e.target.value,
+                      })
+                    }
                     placeholder="Create a strong password"
                     required
                   />
@@ -1859,12 +2273,20 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
                     type="password"
                     className={styles2.input}
                     value={newPatientForm.confirmPassword}
-                    onChange={(e) => setNewPatientForm({ ...newPatientForm, confirmPassword: e.target.value })}
+                    onChange={(e) =>
+                      setNewPatientForm({
+                        ...newPatientForm,
+                        confirmPassword: e.target.value,
+                      })
+                    }
                     placeholder="Confirm your password"
                     required
                   />
                 </div>
-                <button type="submit" className={`${styles2.button} ${styles2.buttonPrimary}`}>
+                <button
+                  type="submit"
+                  className={`${styles2.button} ${styles2.buttonPrimary}`}
+                >
                   Create Patient
                 </button>
               </form>
@@ -1882,9 +2304,14 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
       />
 
       {/* Modal Backdrop */}
-      {showNewPatientModal && <div className={styles2.modalBackdrop} onClick={() => setShowNewPatientModal(false)} />}
+      {showNewPatientModal && (
+        <div
+          className={styles2.modalBackdrop}
+          onClick={() => setShowNewPatientModal(false)}
+        />
+      )}
     </div>
-  )
-}
+  );
+};
 
-export default AdminStudentBooking
+export default AdminStudentBooking;
