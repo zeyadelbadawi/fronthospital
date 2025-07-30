@@ -3,13 +3,13 @@
 import { useEffect, useRef, useState } from "react"
 import { DocumentEditorContainerComponent, Toolbar, Inject } from "@syncfusion/ej2-react-documenteditor"
 import axiosInstance from "@/helper/axiosSetup"
-import { Download, Save, Printer, FileText, CheckCircle, AlertCircle, RefreshCw, Lightbulb } from "lucide-react" // Add Lucide icons
-import docxStyles from "../styles/SyncfusionDocxCase.module.css" // Import new CSS module
+import { Download, Save, Printer, AlertCircle, RefreshCw, Lightbulb } from "lucide-react" // Add Lucide icons
+import docxStyles from "../styles/SyncfusionDocxCase2.module.css" // Import new CSS module
 import { toast } from "react-toastify"
 import { useLanguage } from "@/contexts/LanguageContext" // Import language context
 
 // 1. استقبل الـ prop الجديدة في تعريف المكون
-export default function SyncfusionDocx({ userData, planEndpoint, email, onDocumentSaved }) {
+export default function SyncfusionDocx({ userData, planEndpoint, email, onDocumentSaved, readOnly = false }) {
   // أضف onDocumentSaved هنا
   console.log("SyncfusionDocx", userData)
   const documentEditorContainerRef = useRef(null)
@@ -75,11 +75,66 @@ export default function SyncfusionDocx({ userData, planEndpoint, email, onDocume
 
     head.appendChild(link1)
 
+    // Add custom CSS for read-only mode and hide properties panel
+    const customStyle = document.createElement("style")
+    customStyle.id = "syncfusion-custom-style"
+    customStyle.textContent = `
+      .e-documenteditor-container .e-toolbar {
+        display: none !important;
+      }
+      .e-de-ctn-properties,
+      .e-de-ctn-properties-pane,
+      .e-properties-panel,
+      .e-de-properties-pane,
+      .e-de-prop-pane,
+      .e-de-ctn-prop-pane {
+        display: none !important;
+        width: 0 !important;
+        visibility: hidden !important;
+      }
+      .e-de-cxt-menu {
+        display: none !important;
+      }
+      .e-de-resize-handle {
+        display: none !important;
+      }
+      .e-de-cursor-line {
+        display: none !important;
+      }
+  
+      .e-de-container-main {
+        width: 100% !important;
+      }
+      .e-de-main-container {
+        width: 100% !important;
+      }
+      .e-de-editor-container {
+        width: 100% !important;
+      }
+      /* Hide any right-side panels or properties */
+      .e-de-ctn .e-de-ctn-properties,
+      .e-de-ctn .e-de-properties-pane,
+      .e-de-ctn .e-properties-panel {
+        display: none !important;
+      }
+      /* Ensure document takes full width */
+      .e-de-ctn .e-de-main-container .e-de-editor-container {
+        width: 100% !important;
+        margin-right: 0 !important;
+      }
+    `
+    // Only append custom style if readOnly is true
+    if (readOnly) {
+      head.appendChild(customStyle)
+    }
+
     return () => {
       const existing = document.getElementById("syncfusion-style")
       if (existing) head.removeChild(existing)
+      const customExisting = document.getElementById("syncfusion-custom-style")
+      if (customExisting) head.removeChild(customExisting)
     }
-  }, [])
+  }, [readOnly]) // Re-run effect if readOnly changes
 
   // Simulate loading steps
   useEffect(() => {
@@ -103,17 +158,21 @@ export default function SyncfusionDocx({ userData, planEndpoint, email, onDocume
     return () => clearInterval(stepInterval)
   }, [language])
 
-  // Load the document when the component mounts
+  // Load the document when the component mounts or filePath/documentReady changes
   useEffect(() => {
     if (documentEditorContainerRef.current && userData.filePath && documentReady) {
       try {
         documentEditorContainerRef.current.documentEditor.open(userData.filePath)
+        // Set read-only mode if prop is true
+        documentEditorContainerRef.current.documentEditor.isReadOnly = readOnly
+        setIsDocumentLoading(false) // Document is loaded and ready
       } catch (error) {
         console.error("Error loading document:", error)
         setLoadingError(error.message)
+        setIsDocumentLoading(false)
       }
     }
-  }, [userData.filePath, documentReady])
+  }, [userData.filePath, documentReady, readOnly])
 
   // Function to download the document
   const onDownload = () => {
@@ -179,7 +238,7 @@ export default function SyncfusionDocx({ userData, planEndpoint, email, onDocume
           console.log("Document saved successfully:", response.data)
           if (onDocumentSaved) {
             // تحقق مما إذا كانت الدالة موجودة قبل استدعائها
-            onDocumentSaved() // استدعاء الدالة لتحديث حالة الأب
+            onDocumentSaved(response.data) // استدعاء الدالة لتحديث حالة الأب
           }
         } else {
           // Dismiss loading toast
@@ -288,42 +347,87 @@ export default function SyncfusionDocx({ userData, planEndpoint, email, onDocume
     return (
       <div className={docxStyles.docxHeader}>
         <span className={docxStyles.docxTitle}>{userData.docxName}</span>
-        <div className={docxStyles.docxButtonContainer}>
-          <button onClick={onDownload} className={docxStyles.docxButton} disabled={isDocumentLoading}>
-            <Download size={20} />
-            <span>{language === "ar" ? "تحميل" : "Download"}</span>
-          </button>
-          <button onClick={onSave} className={docxStyles.docxButton} disabled={isDocumentLoading}>
-            <Save size={20} />
-            <span>{language === "ar" ? "حفظ" : "Save"}</span>
-          </button>
-          <button onClick={onPrint} className={docxStyles.docxButton} disabled={isDocumentLoading}>
-            <Printer size={20} />
-            <span>{language === "ar" ? "طباعة" : "Print"}</span>
-          </button>
-        </div>
+        {!readOnly && ( // Only show buttons if not in read-only mode
+          <div className={docxStyles.docxButtonContainer}>
+            <button onClick={onDownload} className={docxStyles.docxButton} disabled={isDocumentLoading}>
+              <Download size={20} />
+              <span>{language === "ar" ? "تحميل" : "Download"}</span>
+            </button>
+            <button onClick={onSave} className={docxStyles.docxButton} disabled={isDocumentLoading}>
+              <Save size={20} />
+              <span>{language === "ar" ? "حفظ" : "Save"}</span>
+            </button>
+            <button onClick={onPrint} className={docxStyles.docxButton} disabled={isDocumentLoading}>
+              <Printer size={20} />
+              <span>{language === "ar" ? "طباعة" : "Print"}</span>
+            </button>
+          </div>
+        )}
+        {readOnly && ( // Show only download button in read-only mode
+          <div className={docxStyles.docxButtonContainer}>
+            <button onClick={onDownload} className={docxStyles.docxButton} disabled={isDocumentLoading}>
+              <Download size={20} />
+              <span>{language === "ar" ? "تحميل" : "Download"}</span>
+            </button>
+          </div>
+        )}
       </div>
     )
   }
 
   // Loading Component
-  
+  if (isDocumentLoading) {
+    const steps = getLoadingSteps()
+    return (
+      <div className={docxStyles.loadingOverlay}>
+        <div className={docxStyles.loadingContent}>
+          <div className={docxStyles.loadingSpinner}></div>
+          <h4 className={docxStyles.loadingTitle}>
+            {language === "ar" ? "جاري تحميل محرر المستندات" : "Loading Document Editor"}
+          </h4>
+          <p className={docxStyles.loadingStepText}>{steps[loadingStep]}</p>
+          {loadingError && (
+            <div className={docxStyles.loadingError}>
+              <AlertCircle size={20} />
+              <span>
+                {language === "ar" ? "خطأ في التحميل: " : "Loading Error: "} {loadingError}
+              </span>
+              <button onClick={retryLoading} className={docxStyles.retryButton}>
+                <RefreshCw size={16} /> {language === "ar" ? "إعادة المحاولة" : "Retry"}
+              </button>
+            </div>
+          )}
+          <div className={docxStyles.loadingTip}>
+            <Lightbulb size={16} />
+            <span>
+              {language === "ar"
+                ? "💡 نصيحة: قد يستغرق التحميل بضع لحظات حسب سرعة اتصالك بالإنترنت."
+                : "💡 Tip: Loading may take a few moments depending on your internet speed."}
+            </span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div>
+    <div className={`${docxStyles.docxContainer} ${readOnly ? docxStyles.readOnlyMode : ""}`}>
       <DocxHeader />
       <div className={docxStyles.documentEditorContainer}>
-     
-          <DocumentEditorContainerComponent
-            id="container"
-            height="100%" // Set height to 100% to fill parent div
-            enableToolbar={true}
-            ref={documentEditorContainerRef}
-            autoResizeOnVisibilityChange={true}
-            locale="en-US"
-            serviceUrl={process.env.NEXT_PUBLIC_SYNCFUSION_SERVICE_URL}
-          >
-            <Inject services={[Toolbar]} />
-          </DocumentEditorContainerComponent>
+        <DocumentEditorContainerComponent
+          id="container"
+          height="100%" // Set height to 100% to fill parent div
+          enableToolbar={!readOnly} // Disable toolbar if readOnly
+          ref={documentEditorContainerRef}
+          autoResizeOnVisibilityChange={true}
+          restrictEditing={readOnly} // Restrict editing if readOnly
+          locale="en-US"
+          serviceUrl={process.env.NEXT_PUBLIC_SYNCFUSION_SERVICE_URL}
+          // documentChange={handleDocumentChange} // Not needed for read-only
+          // created={handleCreated} // Not needed for read-only
+        >
+          <Inject services={[Toolbar]} />
+        </DocumentEditorContainerComponent>
       </div>
     </div>
   )

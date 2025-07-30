@@ -32,7 +32,7 @@ const InteractiveGuide = ({ isActive, currentStep, onStepChange, onClose }) => {
         title: language === "ar" ? "اختيار نوع التقييم" : "Select Evaluation Type",
         description:
           language === "ar"
-            ? "مرحباً بك في مركز ركن الواتيكون! هذه هي الخطوة الأولى والأهم في رحلة حجز موعدك. اختر نوع التقييم المناسب لاحتياجاتك من القائمة المنسدلة. كل نوع له مميزات وأسعار مختلفة، لذا اقرأ الخيارات بعناية."
+            ? "مرحباً بك في مركز ركن الواثقون! هذه هي الخطوة الأولى والأهم في رحلة حجز موعدك. اختر نوع التقييم المناسب لاحتياجاتك من القائمة المنسدلة. كل نوع له مميزات وأسعار مختلفة، لذا اقرأ الخيارات بعناية."
             : "Welcome to Rukn Elwatikon Center! This is the first and most important step in your appointment booking journey. Choose the evaluation type that suits your needs from the dropdown menu. Each type has different features and pricing, so read the options carefully.",
         highlights: [
           language === "ar"
@@ -130,7 +130,7 @@ const InteractiveGuide = ({ isActive, currentStep, onStepChange, onClose }) => {
         title: language === "ar" ? "تم الحجز بنجاح!" : "Booking Completed Successfully!",
         description:
           language === "ar"
-            ? "ألف مبروك! 🎉 تم حجز موعدك بنجاح في مركز ركن الواتيكون للتأهيل. ستجد هنا جميع التفاصيل المهمة والخطوات التالية التي يجب اتباعها. كما ستتلقى رسالة تأكيد مفصلة عبر البريد الإلكتروني خلال دقائق قليلة."
+            ? "ألف مبروك! 🎉 تم حجز موعدك بنجاح في مركز ركن الواثقون للتأهيل. ستجد هنا جميع التفاصيل المهمة والخطوات التالية التي يجب اتباعها. كما ستتلقى رسالة تأكيد مفصلة عبر البريد الإلكتروني خلال دقائق قليلة."
             : "Congratulations! 🎉 Your appointment has been successfully booked at Rukn Elwatikon Rehabilitation Center. Here you'll find all important details and next steps to follow. You'll also receive a detailed confirmation email within a few minutes.",
         highlights: [
           language === "ar" ? "اقرأ رسالة التأكيد والتفاصيل بعناية" : "Read confirmation message and details carefully",

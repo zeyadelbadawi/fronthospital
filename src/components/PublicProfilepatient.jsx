@@ -25,6 +25,7 @@ import FullProgramTab from "./FullProgramTab"
 import SchoolTab from "./SchoolTab"
 import SingleProgramTab from "./SingleProgramTab"
 import CaseStudyTab from "./CaseStudyTab"
+import { useLanguage } from "../contexts/LanguageContext"
 
 const PublicProfilepatient = ({ patientID }) => {
   const router = useRouter()
@@ -47,6 +48,9 @@ const PublicProfilepatient = ({ patientID }) => {
   const [schoolData, setSchoolData] = useState([])
   const [schoolLoading, setSchoolLoading] = useState(false)
   const [schoolError, setSchoolError] = useState(null)
+
+  const { language, translations } = useLanguage()
+  const t = translations?.[language] || translations?.en || {}
 
   useEffect(() => {
     const fetchPatientData = async () => {
@@ -160,7 +164,7 @@ const PublicProfilepatient = ({ patientID }) => {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.loadingSpinner}></div>
-        <div className={styles.loadingText}>Loading your profile...</div>
+        <div className={styles.loadingText}>{t?.profile?.loading || "Loading profile..."}</div>
       </div>
     )
   }
@@ -168,7 +172,7 @@ const PublicProfilepatient = ({ patientID }) => {
   if (!patient) {
     return (
       <div className={styles.loadingContainer}>
-        <div className={styles.loadingText}>Profile not found</div>
+        <div className={styles.loadingText}>{t?.profile?.noData || "Profile not found"}</div>
       </div>
     )
   }
@@ -176,7 +180,7 @@ const PublicProfilepatient = ({ patientID }) => {
   return (
     <>
       <ToastContainer className={styles.toastContainer} />
-      <div className={styles.container}>
+      <div className={` ${language === "ar" ? "rtl" : "ltr"}`}>
         <div className={styles.profileWrapper}>
           {/* Profile Card */}
           <div className={styles.profileCard}>
@@ -188,54 +192,54 @@ const PublicProfilepatient = ({ patientID }) => {
                 <p className={styles.profileEmail}>{email}</p>
                 <div className={styles.profileBadge}>
                   <User className={styles.profileBadgeIcon} />
-                  Student
+                  {t?.profile?.student || "Student"}
                 </div>
               </div>
 
               <div className={styles.infoSection}>
                 <h3 className={styles.infoTitle}>
                   <User className={styles.infoTitleIcon} />
-                  Personal Information
+                  {t?.profile?.personalInfo || "Personal Information"}
                 </h3>
                 <ul className={styles.infoList}>
                   <li className={styles.infoItem}>
                     <span className={styles.infoLabel}>
                       <User className={styles.infoLabelIcon} />
-                      Full Name
+                      {t?.profile?.fullName || "Full Name"}
                     </span>
                     <span className={styles.infoValue}>{name}</span>
                   </li>
                   <li className={styles.infoItem}>
                     <span className={styles.infoLabel}>
                       <Mail className={styles.infoLabelIcon} />
-                      Email
+                      {t?.profile?.emailAddress || "Email"}
                     </span>
                     <span className={styles.infoValue}>{email}</span>
                   </li>
                   <li className={styles.infoItem}>
                     <span className={styles.infoLabel}>
                       <Phone className={styles.infoLabelIcon} />
-                      Phone
+                      {t?.profile?.phoneNumber || "Phone Number"}
                     </span>
                     <span className={styles.infoValue}>{phone}</span>
                   </li>
-           
+
                   <li className={styles.infoItem}>
                     <span className={styles.infoLabel}>
                       <Calendar className={styles.infoLabelIcon} />
-                      Date of Birth
+                      {t?.profile?.dateOfBirth || "Date of Birth"}
                     </span>
                     <span className={`${styles.infoValue} ${!dateOfBirth ? styles.notProvided : ""}`}>
-                      {dateOfBirth || "Not provided"}
+                      {dateOfBirth || t?.profile?.notProvided || "Not provided"}
                     </span>
                   </li>
                   <li className={styles.infoItem}>
                     <span className={styles.infoLabel}>
                       <MapPin className={styles.infoLabelIcon} />
-                      Address
+                      {t?.profile?.address || "Address"}
                     </span>
                     <span className={`${styles.infoValue} ${!address ? styles.notProvided : ""}`}>
-                      {address || "Not provided"}
+                      {address || t?.profile?.notProvided || "Not provided"}
                     </span>
                   </li>
                 </ul>
@@ -246,8 +250,10 @@ const PublicProfilepatient = ({ patientID }) => {
           {/* Main Content */}
           <div className={styles.mainContent}>
             <div className={styles.contentHeader}>
-              <h1 className={styles.contentTitle}>Student Profile</h1>
-              <p className={styles.contentSubtitle}>Manage your profile, view evaluations, and track sessions</p>
+              <h1 className={styles.contentTitle}>{t?.profile?.title || "Patient Profile"}</h1>
+              <p className={styles.contentSubtitle}>
+                {t?.profile?.manageProfile || "Manage your profile, view evaluations, and track sessions"}
+              </p>
             </div>
 
             <div className={styles.tabsContainer}>
@@ -258,7 +264,7 @@ const PublicProfilepatient = ({ patientID }) => {
                     onClick={() => setActiveTab("edit-profile")}
                   >
                     <Edit3 className={styles.tabIcon} />
-                    Edit Profile
+                    {t?.profile?.editProfile || "Edit Profile"}
                   </button>
                 </li>
                 <li className={styles.tabItem}>
@@ -267,7 +273,7 @@ const PublicProfilepatient = ({ patientID }) => {
                     onClick={() => setActiveTab("change-password")}
                   >
                     <Lock className={styles.tabIcon} />
-                    Change Password
+                    {t?.profile?.changePassword || "Change Password"}
                   </button>
                 </li>
 
@@ -277,7 +283,7 @@ const PublicProfilepatient = ({ patientID }) => {
                     onClick={() => setActiveTab("full-program")}
                   >
                     <Activity className={styles.tabIcon} />
-                    Full Program
+                    {t?.profile?.fullProgram || "Full Program"}
                   </button>
                 </li>
 
@@ -287,7 +293,7 @@ const PublicProfilepatient = ({ patientID }) => {
                     onClick={() => setActiveTab("school")}
                   >
                     <GraduationCap className={styles.tabIcon} />
-                    School
+                    {t?.profile?.school || "School"}
                   </button>
                 </li>
 
@@ -297,20 +303,19 @@ const PublicProfilepatient = ({ patientID }) => {
                     onClick={() => setActiveTab("single")}
                   >
                     <GraduationCap className={styles.tabIcon} />
-                    Single
+                    {t?.profile?.single || "Single"}
                   </button>
                 </li>
 
-          <li className={styles.tabItem}>
+                <li className={styles.tabItem}>
                   <button
                     className={`${styles.tabButton} ${activeTab === "case" ? styles.active : ""}`}
                     onClick={() => setActiveTab("case")}
                   >
                     <GraduationCap className={styles.tabIcon} />
-                    case stydy
+                    {t?.profile?.caseStudy || "Case Study"}
                   </button>
                 </li>
-
               </ul>
             </div>
 
@@ -322,7 +327,8 @@ const PublicProfilepatient = ({ patientID }) => {
                     <div className={styles.formGroup}>
                       <label htmlFor="name" className={styles.formLabel}>
                         <User className={styles.labelIcon} />
-                        Full Name <span className={styles.required}>*</span>
+                        {t?.profile?.fullName || "Full Name"}{" "}
+                        <span className={styles.required}>{t?.profile?.required || "*"}</span>
                       </label>
                       <input
                         type="text"
@@ -330,13 +336,14 @@ const PublicProfilepatient = ({ patientID }) => {
                         id="name"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="Enter Full Name"
+                        placeholder={t?.profile?.enterFullName || "Enter Full Name"}
                       />
                     </div>
                     <div className={styles.formGroup}>
                       <label htmlFor="email" className={styles.formLabel}>
                         <Mail className={styles.labelIcon} />
-                        Email <span className={styles.required}>*</span>
+                        {t?.profile?.emailAddress || "Email"}{" "}
+                        <span className={styles.required}>{t?.profile?.required || "*"}</span>
                       </label>
                       <input
                         type="email"
@@ -344,7 +351,7 @@ const PublicProfilepatient = ({ patientID }) => {
                         id="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter email address"
+                        placeholder={t?.profile?.enterEmail || "Enter email address"}
                       />
                     </div>
                   </div>
@@ -352,7 +359,8 @@ const PublicProfilepatient = ({ patientID }) => {
                     <div className={styles.formGroup}>
                       <label htmlFor="phone" className={styles.formLabel}>
                         <Phone className={styles.labelIcon} />
-                        Phone Number <span className={styles.required}>*</span>
+                        {t?.profile?.phoneNumber || "Phone Number"}{" "}
+                        <span className={styles.required}>{t?.profile?.required || "*"}</span>
                       </label>
                       <input
                         type="tel"
@@ -360,13 +368,13 @@ const PublicProfilepatient = ({ patientID }) => {
                         id="phone"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        placeholder="Enter phone number"
+                        placeholder={t?.profile?.enterPhone || "Enter phone number"}
                       />
                     </div>
                     <div className={styles.formGroup}>
                       <label htmlFor="dateOfBirth" className={styles.formLabel}>
                         <Calendar className={styles.labelIcon} />
-                        Date of Birth
+                        {t?.profile?.dateOfBirth || "Date of Birth"}
                       </label>
                       <input
                         type="date"
@@ -380,24 +388,24 @@ const PublicProfilepatient = ({ patientID }) => {
                   <div className={styles.formGroup + " " + styles.fullWidth}>
                     <label htmlFor="address" className={styles.formLabel}>
                       <MapPin className={styles.labelIcon} />
-                      Address
+                      {t?.profile?.address || "Address"}
                     </label>
                     <textarea
                       className={styles.formTextarea}
                       id="address"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      placeholder="Enter address"
+                      placeholder={t?.profile?.enterAddress || "Enter address"}
                     />
                   </div>
                   <div className={styles.formActions}>
                     <button type="button" className={styles.cancelButton} onClick={() => router.push("/dashboard")}>
                       <X className={styles.buttonIcon} />
-                      Cancel
+                      {t?.profile?.cancel || "Cancel"}
                     </button>
                     <button type="submit" className={styles.saveButton}>
                       <Save className={styles.buttonIcon} />
-                      Save Changes
+                      {t?.profile?.saveChanges || "Save Changes"}
                     </button>
                   </div>
                 </form>
@@ -409,7 +417,8 @@ const PublicProfilepatient = ({ patientID }) => {
                   <div className={styles.formGroup}>
                     <label htmlFor="your-password" className={styles.formLabel}>
                       <Lock className={styles.labelIcon} />
-                      New Password <span className={styles.required}>*</span>
+                      {t?.profile?.newPassword || "New Password"}{" "}
+                      <span className={styles.required}>{t?.profile?.required || "*"}</span>
                     </label>
                     <div className={styles.passwordContainer}>
                       <input
@@ -418,7 +427,7 @@ const PublicProfilepatient = ({ patientID }) => {
                         id="your-password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Enter New Password"
+                        placeholder={t?.profile?.enterNewPassword || "Enter New Password"}
                       />
                       <button type="button" className={styles.passwordToggle} onClick={togglePasswordVisibility}>
                         {passwordVisible ? (
@@ -432,7 +441,8 @@ const PublicProfilepatient = ({ patientID }) => {
                   <div className={styles.formGroup}>
                     <label htmlFor="confirm-password" className={styles.formLabel}>
                       <Lock className={styles.labelIcon} />
-                      Confirm Password <span className={styles.required}>*</span>
+                      {t?.profile?.confirmPassword || "Confirm Password"}{" "}
+                      <span className={styles.required}>{t?.profile?.required || "*"}</span>
                     </label>
                     <div className={styles.passwordContainer}>
                       <input
@@ -441,7 +451,7 @@ const PublicProfilepatient = ({ patientID }) => {
                         id="confirm-password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Confirm Password"
+                        placeholder={t?.profile?.confirmPasswordPlaceholder || "Confirm Password"}
                       />
                       <button type="button" className={styles.passwordToggle} onClick={toggleConfirmPasswordVisibility}>
                         {confirmPasswordVisible ? (
@@ -455,11 +465,11 @@ const PublicProfilepatient = ({ patientID }) => {
                   <div className={styles.formActions}>
                     <button type="button" className={styles.cancelButton}>
                       <X className={styles.buttonIcon} />
-                      Cancel
+                      {t?.profile?.cancel || "Cancel"}
                     </button>
                     <button type="submit" className={styles.saveButton}>
                       <Save className={styles.buttonIcon} />
-                      Save Password
+                      {t?.profile?.savePassword || "Save Password"}
                     </button>
                   </div>
                 </form>
@@ -475,6 +485,8 @@ const PublicProfilepatient = ({ patientID }) => {
                   setLoading={setFullProgramLoading}
                   error={fullProgramError}
                   setError={setFullProgramError}
+                  language={language}
+                  translations={t}
                 />
               </div>
 
@@ -488,23 +500,18 @@ const PublicProfilepatient = ({ patientID }) => {
                   setLoading={setSchoolLoading}
                   error={schoolError}
                   setError={setSchoolError}
+                  language={language}
+                  translations={t}
                 />
               </div>
 
               <div className={`${styles.tabPane} ${activeTab === "single" ? styles.active : ""}`}>
-                <SingleProgramTab
-                  patientId={patientId}
-
-                />
+                <SingleProgramTab patientId={patientId} language={language} translations={t} />
               </div>
 
               <div className={`${styles.tabPane} ${activeTab === "case" ? styles.active : ""}`}>
-                <CaseStudyTab
-                  patientId={patientId}
-
-                />
+                <CaseStudyTab patientId={patientId} />
               </div>
-
             </div>
           </div>
         </div>

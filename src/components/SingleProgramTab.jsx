@@ -23,7 +23,7 @@ import {
 import styles from "../styles/single-program-tab.module.css"
 import PatientDocumentViewer from "./PatientDocumentViewer"
 
-const SingleProgramTab = ({ patientId }) => {
+export default function SingleProgramTab({ patientId, language, translations: t }) {
   const [singlePrograms, setSinglePrograms] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -250,17 +250,17 @@ const SingleProgramTab = ({ patientId }) => {
   const getStatusText = (status) => {
     switch (status) {
       case "completed":
-        return "Completed"
+        return t.profile.completed
       case "in-progress":
-        return "In Progress"
+        return t.profile.inProgress
       case "upcoming":
-        return "Upcoming"
+        return t.profile.upcoming
       case "missed":
-        return "Missed"
+        return t.profile.missed
       case "active":
-        return "Active"
+        return t.profile.active
       default:
-        return "Unknown"
+        return t.profile.unknown
     }
   }
 
@@ -308,7 +308,7 @@ const SingleProgramTab = ({ patientId }) => {
     return (
       <div className={styles.loadingContainer}>
         <Loader2 className={styles.loadingSpinner} />
-        <p className={styles.loadingText}>Loading your single programs...</p>
+        <p className={styles.loadingText}>{t?.profile?.loading}</p>
       </div>
     )
   }
@@ -353,14 +353,14 @@ const SingleProgramTab = ({ patientId }) => {
     return (
       <div className={styles.emptyContainer}>
         <Calendar className={styles.emptyIcon} />
-        <h3 className={styles.emptyTitle}>No Single Programs</h3>
+        <h3 className={styles.emptyTitle}>{t?.profile?.noPrograms}</h3>
         <p className={styles.emptyText}>You don't have any single program appointments yet.</p>
       </div>
     )
   }
 
   return (
-    <div className={styles.singleProgramContainer}>
+    <div className={`${styles.singleProgramContainer} ${language === "ar" ? "rtl" : "ltr"}`}>
       <div className={styles.programsList}>
         {singlePrograms.map((program) => (
           <div key={program._id} className={`${styles.programCard} ${styles[program.status + "Card"]}`}>
@@ -373,7 +373,7 @@ const SingleProgramTab = ({ patientId }) => {
                 )}
                 <User className={`${styles.programIcon} ${styles[program.status + "Icon"]}`} />
                 <div className={styles.programDetails}>
-                  <h4 className={styles.programTitle}>Single Session</h4>
+                  <h4 className={styles.programTitle}>{t.profile.singleProgram}</h4>
                   <p className={styles.programDate}>
                     {formatDate(program.date)} at {formatTime(program.time)}
                   </p>
@@ -445,7 +445,7 @@ const SingleProgramTab = ({ patientId }) => {
                               <h6 className={styles.subsectionTitle}>Assignment Details</h6>
                               <div className={styles.assignmentDetails}>
                                 <div className={styles.detailRow}>
-                                  <span className={styles.detailLabel}>Status:</span>
+                                  <span className={styles.detailLabel}>{t.profile.status}:</span>
                                   <span className={styles.detailValue}>{department.assignment.status}</span>
                                 </div>
                                 {department.assignment.sessionNumber && (
@@ -499,7 +499,7 @@ const SingleProgramTab = ({ patientId }) => {
                                   <button
                                     className={styles.viewButton}
                                     onClick={() => handleViewFile(department.plan, department.name)}
-                                    title="View Document"
+                                    title={t.profile.viewDetails}
                                   >
                                     <Eye size={16} />
                                   </button>
@@ -547,5 +547,3 @@ const SingleProgramTab = ({ patientId }) => {
     </div>
   )
 }
-
-export default SingleProgramTab

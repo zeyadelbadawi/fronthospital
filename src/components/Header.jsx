@@ -25,7 +25,7 @@ export default function Header({
       </Link>
 
       <div className={styles.titleContainer}>
-        <h3 className={styles.title}>{language === "ar" ? "بوابة مركز ركن الواتيكون للمرضى" : title}</h3>
+        <h3 className={styles.title}>{language === "ar" ? "بوابة مركز ركن الواثقون للطلاب" : title}</h3>
       </div>
 
       <div className={styles.userSection}>
@@ -45,11 +45,18 @@ export default function Header({
             {dropdownOpen && (
               <div className={styles.dropdownMenu}>
                 <Link
-                  href="/calendar-main-patient"
+                  href="/student-calendar"
                   className={styles.dropdownItem}
                   onClick={() => setDropdownOpen(false)}
                 >
                   {language === "ar" ? "مواعيدي" : "My Appointments"}
+                </Link>
+                <Link
+                  href="/profile"
+                  className={styles.dropdownItem}
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  {language === "ar" ? "الملف الشخصي" : "My Profile"}
                 </Link>
                 <hr className={styles.dropdownDivider} />
                 <button

@@ -22,7 +22,17 @@ import {
 import styles from "../styles/full-program-tab.module.css"
 import PatientDocumentViewer from "./PatientDocumentViewer"
 
-const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loading, setLoading, error, setError }) => {
+const FullProgramTab = ({
+  patientId,
+  fullProgramData,
+  setFullProgramData,
+  loading,
+  setLoading,
+  error,
+  setError,
+  language,
+  translations: t,
+}) => {
   const [expandedAppointments, setExpandedAppointments] = useState(new Set())
   const [expandedDepartments, setExpandedDepartments] = useState(new Set())
   const [expandedYears, setExpandedYears] = useState(new Set())
@@ -437,7 +447,9 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
           <div className={styles.appointmentInfo}>
             <Clock className={`${styles.appointmentIcon} ${styles.upcomingIcon}`} />
             <div className={styles.appointmentDetails}>
-              <h4 className={styles.appointmentTitle}>Upcoming Evaluation Session</h4>
+              <h4 className={styles.appointmentTitle}>
+                {t?.profile?.upcomingEvaluation || "Upcoming Evaluation Session"}
+              </h4>
               <p className={styles.appointmentDates}>
                 {formatDate(appointment.date)} at {formatTime(appointment.time)}
               </p>
@@ -454,10 +466,10 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
           <div className={`${styles.statusContent} ${styles.upcomingStatus}`}>
             <CheckCircle className={styles.statusIcon} />
             <div className={styles.statusText}>
-              <h5>Your evaluation session is scheduled</h5>
+              <h5>{t?.profile?.evaluationScheduled || "Your evaluation session is scheduled"}</h5>
               <p>
-                Please arrive 15 minutes early for your appointment. This session will help us assess your needs and
-                create a personalized program for you.
+                {t?.profile?.arriveEarly ||
+                  "Please arrive 15 minutes early for your appointment. This session will help us assess your needs and create a personalized program for you."}
               </p>
             </div>
           </div>
@@ -473,7 +485,7 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
           <div className={styles.appointmentInfo}>
             <XCircle className={`${styles.appointmentIcon} ${styles.missedIcon}`} />
             <div className={styles.appointmentDetails}>
-              <h4 className={styles.appointmentTitle}>Missed Evaluation Session</h4>
+              <h4 className={styles.appointmentTitle}>{t?.profile?.missedEvaluation || "Missed Evaluation Session"}</h4>
               <p className={styles.appointmentDates}>
                 {formatDate(appointment.date)} at {formatTime(appointment.time)}
               </p>
@@ -490,10 +502,10 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
           <div className={`${styles.statusContent} ${styles.missedStatus}`}>
             <AlertTriangle className={styles.statusIcon} />
             <div className={styles.statusText}>
-              <h5>You missed your evaluation session</h5>
+              <h5>{t?.profile?.missedEvaluationMessage || "You missed your evaluation session"}</h5>
               <p>
-                Please contact us to reschedule your evaluation session. This is important to start your personalized
-                program.
+                {t?.profile?.rescheduleEvaluation ||
+                  "Please contact us to reschedule your evaluation session. This is important to start your personalized program."}
               </p>
             </div>
           </div>
@@ -516,7 +528,9 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
             )}
             <PlayCircle className={`${styles.appointmentIcon} ${styles.activeIcon}`} />
             <div className={styles.appointmentDetails}>
-              <h4 className={styles.appointmentTitle}>Program {programNumber}</h4>
+              <h4 className={styles.appointmentTitle}>
+                {t?.profile?.programName} {programNumber}
+              </h4>
               <p className={styles.appointmentDates}>
                 {formatDate(appointment.assignmentDate)} - {formatDate(appointment.subscriptionEndDate)}
               </p>
@@ -525,11 +539,11 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
           <div className={styles.appointmentStats}>
             <div className={`${styles.statBadge} ${styles.activeBadge}`}>
               <span className={styles.statNumber}>{appointment.totalFiles}</span>
-              <span className={styles.statLabel}>files</span>
+              <span className={styles.statLabel}>{t?.profile?.files || "files"}</span>
             </div>
             <div className={`${styles.statBadge} ${styles.activeBadge}`}>
               <span className={styles.statNumber}>{appointment.departments.length}</span>
-              <span className={styles.statLabel}>departments</span>
+              <span className={styles.statLabel}>{t?.profile?.departments || "departments"}</span>
             </div>
           </div>
         </div>
@@ -538,13 +552,14 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
           <div className={`${styles.statusContent} ${styles.activeStatus}`}>
             <CheckCircle className={styles.statusIcon} />
             <div className={styles.statusText}>
-              <h5>Your program is now active!</h5>
+              <h5>{t?.profile?.programActive || "Your program is now active!"}</h5>
               <p>
-                You can now access all your files and track your progress. Your evaluation session was completed on{" "}
-                {formatDate(appointment.date)} at {formatTime(appointment.time)}.
+                {t?.profile?.accessFiles ||
+                  "You can now access all your files and track your progress. Your evaluation session was completed on"}{" "}
+                {formatDate(appointment.date)} {t?.profile?.at} {formatTime(appointment.time)}.
               </p>
               <div className={styles.evaluationDetails}>
-                <strong>Initial Evaluation:</strong> {appointment.description}
+                <strong>{t?.profile?.initialEvaluation || "Initial Evaluation"}:</strong> {appointment.description}
               </div>
             </div>
           </div>
@@ -646,14 +661,14 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
                                                   <button
                                                     className={styles.viewButton}
                                                     onClick={() => handleViewFile(file)}
-                                                    title="View Document"
+                                                    title={t?.profile?.viewDocument || "View Document"}
                                                   >
                                                     <Eye size={16} />
                                                   </button>
                                                   <button
                                                     className={styles.downloadButton}
                                                     onClick={() => handleFileDownload(file)}
-                                                    title="Download Document"
+                                                    title={t?.profile?.downloadDocument || "Download Document"}
                                                   >
                                                     <Download size={16} />
                                                   </button>
@@ -749,14 +764,14 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
                                                   <button
                                                     className={styles.viewButton}
                                                     onClick={() => handleViewFile(file)}
-                                                    title="View Document"
+                                                    title={t?.profile?.viewDocument || "View Document"}
                                                   >
                                                     <Eye size={16} />
                                                   </button>
                                                   <button
                                                     className={styles.downloadButton}
                                                     onClick={() => handleFileDownload(file)}
-                                                    title="Download Document"
+                                                    title={t?.profile?.downloadDocument || "Download Document"}
                                                   >
                                                     <Download size={16} />
                                                   </button>
@@ -799,7 +814,9 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
             )}
             <StopCircle className={`${styles.appointmentIcon} ${styles.expiredIcon}`} />
             <div className={styles.appointmentDetails}>
-              <h4 className={styles.appointmentTitle}>Program {programNumber} (Completed)</h4>
+              <h4 className={styles.appointmentTitle}>
+                {t?.profile?.programName} {programNumber} (Completed)
+              </h4>
               <p className={styles.appointmentDates}>
                 {formatDate(appointment.assignmentDate)} - {formatDate(appointment.subscriptionEndDate)}
               </p>
@@ -808,11 +825,11 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
           <div className={styles.appointmentStats}>
             <div className={`${styles.statBadge} ${styles.expiredBadge}`}>
               <span className={styles.statNumber}>{appointment.totalFiles}</span>
-              <span className={styles.statLabel}>files</span>
+              <span className={styles.statLabel}>{t?.profile?.files || "files"}</span>
             </div>
             <div className={`${styles.statBadge} ${styles.expiredBadge}`}>
               <span className={styles.statNumber}>{appointment.departments.length}</span>
-              <span className={styles.statLabel}>departments</span>
+              <span className={styles.statLabel}>{t?.profile?.departments || "departments"}</span>
             </div>
           </div>
         </div>
@@ -821,14 +838,16 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
           <div className={`${styles.statusContent} ${styles.expiredStatus}`}>
             <AlertCircle className={styles.statusIcon} />
             <div className={styles.statusText}>
-              <h5>This program has ended</h5>
+              <h5>{t?.profile?.programEnded || "This program has ended"}</h5>
               <p>
-                Your program subscription ended on {formatDate(appointment.subscriptionEndDate)}. You can still access
-                your files and progress history. Your initial evaluation was completed on {formatDate(appointment.date)}{" "}
-                at {formatTime(appointment.time)}.
+                {t?.profile?.programEndedMessage || "Your program subscription ended on"}{" "}
+                {formatDate(appointment.subscriptionEndDate)}.{" "}
+                {t?.profile?.accessFilesStill ||
+                  "You can still access your files and progress history. Your initial evaluation was completed on"}{" "}
+                {formatDate(appointment.date)} {t?.profile?.at} {formatTime(appointment.time)}.
               </p>
               <div className={styles.evaluationDetails}>
-                <strong>Initial Evaluation:</strong> {appointment.description}
+                <strong>{t?.profile?.initialEvaluation || "Initial Evaluation"}:</strong> {appointment.description}
               </div>
             </div>
           </div>
@@ -930,14 +949,14 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
                                                   <button
                                                     className={styles.viewButton}
                                                     onClick={() => handleViewFile(file)}
-                                                    title="View Document"
+                                                    title={t?.profile?.viewDocument || "View Document"}
                                                   >
                                                     <Eye size={16} />
                                                   </button>
                                                   <button
                                                     className={styles.downloadButton}
                                                     onClick={() => handleFileDownload(file)}
-                                                    title="Download Document"
+                                                    title={t?.profile?.downloadDocument || "Download Document"}
                                                   >
                                                     <Download size={16} />
                                                   </button>
@@ -1033,14 +1052,14 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
                                                   <button
                                                     className={styles.viewButton}
                                                     onClick={() => handleViewFile(file)}
-                                                    title="View Document"
+                                                    title={t?.profile?.viewDocument || "View Document"}
                                                   >
                                                     <Eye size={16} />
                                                   </button>
                                                   <button
                                                     className={styles.downloadButton}
                                                     onClick={() => handleFileDownload(file)}
-                                                    title="Download Document"
+                                                    title={t?.profile?.downloadDocument || "Download Document"}
                                                   >
                                                     <Download size={16} />
                                                   </button>
@@ -1073,7 +1092,7 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
     return (
       <div className={styles.loadingContainer}>
         <Loader2 className={styles.loadingSpinner} />
-        <p className={styles.loadingText}>Loading your full program data...</p>
+        <p className={styles.loadingText}>{t?.profile?.loading || "Loading"}...</p>
       </div>
     )
   }
@@ -1084,7 +1103,7 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
         <AlertCircle className={styles.errorIcon} />
         <p className={styles.errorText}>{error}</p>
         <button onClick={fetchFullProgramData} className={styles.retryButton}>
-          Try Again
+          {t?.profile?.tryAgain || "Try Again"}
         </button>
       </div>
     )
@@ -1097,7 +1116,7 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
         <div className={styles.documentViewerHeader}>
           <button onClick={handleBackToFiles} className={styles.backButton}>
             <ArrowLeft size={20} />
-            Back to Files
+            {t?.profile?.backToFiles || "Back to Files"}
           </button>
           <div className={styles.documentInfo}>
             <FileText size={20} className={styles.documentIcon} />
@@ -1121,14 +1140,14 @@ const FullProgramTab = ({ patientId, fullProgramData, setFullProgramData, loadin
     return (
       <div className={styles.emptyContainer}>
         <Calendar className={styles.emptyIcon} />
-        <h3 className={styles.emptyTitle}>No Full Program Appointments</h3>
+        <h3 className={styles.emptyTitle}>{t?.profile?.noPrograms || "No Programs"}</h3>
         <p className={styles.emptyText}>You don't have any full program appointments yet.</p>
       </div>
     )
   }
 
   return (
-    <div className={styles.fullProgramContainer}>
+    <div className={`${styles.fullProgramContainer} ${language === "ar" ? styles.rtl : styles.ltr}`}>
       <div className={styles.appointmentsList}>
         {fullProgramData.map((appointment, index) => renderAppointmentCard(appointment, index))}
       </div>

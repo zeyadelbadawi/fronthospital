@@ -308,6 +308,10 @@
   padding-right: 16px;
 }
 
+.errorList li:last-child {
+  border-bottom: none;
+}
+
 .errorList li::before {
   content: "✓";
   color: #48bb78;
@@ -396,4 +400,220 @@
     padding: 10px 16px;
     font-size: 13px;
   }
+}
+
+/* Dynamic Import Loading Styles for SyncfusionDocxCase (moved from StudentBooking.module.css) */
+.ruknDocumentImportLoader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #e2e8f0;
+}
+
+.ruknDocumentImportLoader::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 30% 70%, rgba(233, 30, 99, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 70% 30%, rgba(74, 74, 138, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.ruknDocumentImportContent {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 400px;
+}
+
+.ruknDocumentImportIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  background: linear-gradient(135deg, #e91e63 0%, #4a4a8a 100%);
+  border-radius: 50%;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 25px rgba(233, 30, 99, 0.3);
+  animation: importIconPulse 2s ease-in-out infinite;
+}
+
+.ruknDocumentImportIcon svg {
+  color: white;
+  animation: importIconFloat 3s ease-in-out infinite;
+}
+
+.ruknDocumentImportTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #4a4a8a;
+  margin-bottom: 0.75rem;
+  margin-top: 0;
+  background: linear-gradient(135deg, #4a4a8a 0%, #e91e63 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ruknDocumentImportSubtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+  margin-top: 0;
+}
+
+.ruknDocumentImportProgress {
+  width: 100%;
+  max-width: 280px;
+  height: 4px;
+  background: rgba(233, 30, 99, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 0 auto 1.5rem;
+  position: relative;
+}
+
+.ruknDocumentImportProgressBar {
+  height: 100%;
+  background: linear-gradient(90deg, #e91e63 0%, #4a4a8a 100%);
+  border-radius: 2px;
+  animation: importProgressFlow 2s ease-in-out infinite;
+  position: relative;
+}
+
+.ruknDocumentImportProgressBar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+  animation: importProgressShimmer 1.5s infinite;
+}
+
+.ruknDocumentImportTip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.08) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: #047857;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.rtl .ruknDocumentImportTip {
+  text-align: right;
+}
+
+.ruknDocumentImportTip svg {
+  color: #10b981;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  animation: importTipGlow 2s ease-in-out infinite;
+}
+
+/* Import Loading Animations */
+@keyframes importIconPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 8px 25px rgba(233, 30, 99, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 12px 35px rgba(233, 30, 99, 0.5);
+  }
+}
+
+@keyframes importIconFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes importProgressFlow {
+  0% {
+    width: 0%;
+  }
+  50% {
+    width: 70%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+@keyframes importProgressShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes importTipGlow {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.2) drop-shadow(0 0 3px rgba(16, 185, 129, 0.4));
+  }
+}
+
+/* Responsive adjustments for import loader */
+@media (max-width: 768px) {
+  .ruknDocumentImportLoader {
+    min-height: 350px;
+    padding: 1.5rem 1rem;
+  }
+
+  .ruknDocumentImportIcon {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .ruknDocumentImportTitle {
+    font-size: 1.1rem;
+  }
+
+  .ruknDocumentImportSubtitle {
+    font-size: 0.9rem;
+  }
+
+  .ruknDocumentImportTip {
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Reusing style from StudentBooking for the document container */
+.ruknDocumentContainer {
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }

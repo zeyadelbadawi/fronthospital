@@ -7,7 +7,6 @@ import StudentCalendarMainLayer from "@/components/StudentCalendarMainLayer"
 import { LanguageProvider } from "@/contexts/LanguageContext"
 
 export default function Page() {
-  // — Auth State & Handlers (same as ClientPortalPage) —
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showLoginModal, setShowLoginModal] = useState(false)

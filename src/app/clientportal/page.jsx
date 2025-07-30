@@ -322,7 +322,7 @@ export default function ClientPortalPage() {
         description: t.services.myAppointments.description,
       },
       {
-        href: "/my-invoices",
+        href: "/financial-records",
         Icon: RiFileListLine,
         label: t.services.myInvoices.title,
         description: t.services.myInvoices.description,

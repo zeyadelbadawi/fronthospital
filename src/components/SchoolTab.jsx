@@ -24,7 +24,17 @@ import {
 import styles from "../styles/school-tab.module.css"
 import PatientDocumentViewer from "./PatientDocumentViewer"
 
-const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, error, setError }) => {
+const SchoolTab = ({
+  patientId,
+  schoolData,
+  setSchoolData,
+  loading,
+  setLoading,
+  error,
+  setError,
+  language,
+  translations: t,
+}) => {
   const [expandedPrograms, setExpandedPrograms] = useState(new Set())
   const [expandedAppointments, setExpandedAppointments] = useState(new Set())
   const [viewingDocument, setViewingDocument] = useState(null)
@@ -35,7 +45,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
     if (patientId) {
       fetchSchoolData()
     }
-  }, [patientId])
+  }, [patientId, language]) // Added 'language' to the dependency array
 
   const fetchSchoolData = async () => {
     setLoading(true)
@@ -125,7 +135,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
       setSchoolData(sortedPrograms)
     } catch (error) {
       console.error("Error fetching school data:", error)
-      setError("Failed to load school data. Please try again.")
+      setError(t?.profile?.failedToLoadSchoolData || "Failed to load school data. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -217,7 +227,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
     if (!program.appointments || program.appointments.length === 0) {
       return {
         type: "unknown",
-        message: "No appointments found",
+        message: t?.profile?.noAppointmentsFound || "No appointments found",
         showPlans: false,
         color: "gray",
         icon: "help",
@@ -233,7 +243,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
     if (isNaN(firstAppointmentTime.getTime())) {
       return {
         type: "unknown",
-        message: "Invalid appointment date/time",
+        message: t?.profile?.invalidAppointmentDateTime || "Invalid appointment date/time",
         showPlans: false,
         color: "gray",
         icon: "help",
@@ -254,7 +264,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
     if (firstAppointmentTime > now && firstAppointment.status !== "completed") {
       return {
         type: "upcoming",
-        message: "Program scheduled - First appointment is upcoming",
+        message: t?.profile?.programScheduledUpcoming || "Program scheduled - First appointment is upcoming",
         showPlans: false,
         color: "blue",
         icon: "clock",
@@ -265,7 +275,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
     if (firstAppointmentTime <= now && firstAppointment.status !== "completed") {
       return {
         type: "cancelled",
-        message: "Program cancelled - First appointment was missed",
+        message: t?.profile?.programCancelledMissed || "Program cancelled - First appointment was missed",
         showPlans: false,
         color: "red",
         icon: "x",
@@ -278,7 +288,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
       if (program.completedAppointments === program.totalAppointments) {
         return {
           type: "completed",
-          message: "Program completed - All appointments finished",
+          message: t?.profile?.programCompletedAllFinished || "Program completed - All appointments finished",
           showPlans: true, // Only show plans when program is fully completed
           color: "green",
           icon: "check",
@@ -287,21 +297,21 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
         // الحالة 3 و 4: البرنامج نشط مع بعض المواعيد المكتملة - DON'T show plans yet
         const nextIncompleteAppointment = program.appointments.find((apt) => apt.status !== "completed")
 
-        let message = "Program active - "
+        let message = t?.profile?.programActive || "Program active - "
         if (nextIncompleteAppointment) {
           const nextAppointmentTime = parseAppointmentDateTime(nextIncompleteAppointment)
 
           if (!isNaN(nextAppointmentTime.getTime())) {
             if (nextAppointmentTime > now) {
-              message += "Next appointment is upcoming"
+              message = t?.profile?.programActiveNextUpcoming || "Program active - Next appointment is upcoming"
             } else {
-              message += "Next appointment is ready"
+              message = t?.profile?.programActiveNextReady || "Program active - Next appointment is ready"
             }
           } else {
-            message += "In progress"
+            message = t?.profile?.programActiveInProgress || "Program active - In progress"
           }
         } else {
-          message += "In progress"
+          message = t?.profile?.programActiveInProgress || "Program active - In progress"
         }
 
         return {
@@ -318,7 +328,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
     console.warn("Unexpected program state:", program)
     return {
       type: "unknown",
-      message: "Program status unknown",
+      message: t?.profile?.programStatusUnknown || "Program status unknown",
       showPlans: false,
       color: "gray",
       icon: "help",
@@ -328,13 +338,13 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
   const formatDate = (dateString) => {
     try {
       const date = new Date(dateString)
-      return date.toLocaleDateString("en-US", {
+      return date.toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
       })
     } catch (error) {
-      return "Invalid Date"
+      return t?.profile?.invalidDate || "Invalid Date"
     }
   }
 
@@ -344,15 +354,15 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
         const [hours, minutes] = timeString.split(":")
         const date = new Date()
         date.setHours(Number.parseInt(hours, 10), Number.parseInt(minutes, 10), 0, 0)
-        return date.toLocaleTimeString("en-US", {
+        return date.toLocaleTimeString(language === "ar" ? "ar-EG" : "en-US", {
           hour: "numeric",
           minute: "2-digit",
           hour12: true,
         })
       }
-      return timeString || "No time"
+      return timeString || t?.profile?.noTime || "No time"
     } catch (error) {
-      return "Invalid Time"
+      return t?.profile?.invalidTime || "Invalid Time"
     }
   }
 
@@ -406,7 +416,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
       window.URL.revokeObjectURL(url)
     } catch (error) {
       console.error("Error downloading file:", error)
-      alert("Failed to download file. Please try again.")
+      alert(t?.profile?.failedToDownload || "Failed to download file. Please try again.")
     }
   }
 
@@ -417,7 +427,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
     setViewingDocument({
       filePath: fileUrl,
       fileName: file.fileName || file.title,
-      fileType: "School Plan",
+      fileType: t?.profile?.schoolPlan || "School Plan",
       file: file,
     })
   }
@@ -459,13 +469,13 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
   const getStatusText = (status) => {
     switch (status) {
       case "completed":
-        return "Completed"
+        return t?.profile?.completed || "Completed"
       case "in_progress":
-        return "In Progress"
+        return t?.profile?.inProgress || "In Progress"
       case "not_started":
-        return "Not Started"
+        return t?.profile?.notStarted || "Not Started"
       default:
-        return "Unknown"
+        return t?.profile?.unknown || "Unknown"
     }
   }
 
@@ -487,11 +497,11 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
     const appointmentDateTime = parseAppointmentDateTime(appointment)
 
     if (appointment.status === "completed") {
-      return "Completed"
+      return t?.profile?.completed || "Completed"
     } else if (appointmentDateTime < now) {
-      return "Missed"
+      return t?.profile?.missed || "Missed"
     } else {
-      return "Upcoming"
+      return t?.profile?.upcoming || "Upcoming"
     }
   }
 
@@ -513,7 +523,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
     return (
       <div className={styles.loadingContainer}>
         <Loader2 className={styles.loadingSpinner} />
-        <p className={styles.loadingText}>Loading your school data...</p>
+        <p className={styles.loadingText}>{t?.profile?.loading || "Loading profile..."}</p>
       </div>
     )
   }
@@ -524,7 +534,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
         <AlertCircle className={styles.errorIcon} />
         <p className={styles.errorText}>{error}</p>
         <button onClick={fetchSchoolData} className={styles.retryButton}>
-          Try Again
+          {t?.profile?.tryAgain || "Try Again"}
         </button>
       </div>
     )
@@ -537,7 +547,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
         <div className={styles.documentViewerHeader}>
           <button onClick={handleBackToFiles} className={styles.backButton}>
             <ArrowLeft size={20} />
-            Back to Files
+            {t?.profile?.backToFiles || "Back to Files"}
           </button>
           <div className={styles.documentInfo}>
             <FileText size={20} className={styles.documentIcon} />
@@ -562,14 +572,16 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
     return (
       <div className={styles.emptyContainer}>
         <GraduationCap className={styles.emptyIcon} />
-        <h3 className={styles.emptyTitle}>No School Programs</h3>
-        <p className={styles.emptyText}>You don't have any school programs yet.</p>
+        <h3 className={styles.emptyTitle}>{t?.profile?.noSchools || "No schools found"}</h3>
+        <p className={styles.emptyText}>
+          {t?.profile?.noSchoolProgramsYet || "You don't have any school programs yet."}
+        </p>
       </div>
     )
   }
 
   return (
-    <div className={styles.schoolContainer}>
+    <div className={`${styles.schoolContainer} ${language === "ar" ? "rtl" : "ltr"}`}>
       <div className={styles.programsList}>
         {schoolData.map((program) => {
           const programNumber = getProgramNumber(program, schoolData)
@@ -588,11 +600,14 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
                   )}
                   <GraduationCap className={`${styles.programIcon} ${styles[program.smartStatus.type + "Icon"]}`} />
                   <div className={styles.programDetails}>
-                    <h4 className={styles.programTitle}>School Program {programNumber}</h4>
-                    <p className={styles.programId}>Program ID: {program.unicValue}</p>
+                    <h4 className={styles.programTitle}>
+                      {t?.profile?.schoolProgram || "School Program"} {programNumber}
+                    </h4>
+                
                     <div className={styles.programProgress}>
                       <span className={styles.progressText}>
-                        {program.completedAppointments} of {program.totalAppointments} sessions completed
+                        {program.completedAppointments} {t?.profile?.of || "of"} {program.totalAppointments}{" "}
+                        {t?.profile?.sessionsCompleted || "sessions completed"}
                       </span>
                       <div className={styles.progressBar}>
                         <div
@@ -613,7 +628,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
                   {program.smartStatus.showPlans && (
                     <div className={`${styles.statBadge} ${styles.filesBadge}`}>
                       <span className={styles.statNumber}>{program.totalFiles}</span>
-                      <span className={styles.statLabel}>files</span>
+                      <span className={styles.statLabel}>{t?.profile?.files || "files"}</span>
                     </div>
                   )}
                 </div>
@@ -631,7 +646,9 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
                   <div className={styles.appointmentsSection}>
                     <div className={styles.sectionHeader}>
                       <Calendar className={styles.sectionIcon} />
-                      <h5 className={styles.sectionTitle}>Appointments ({program.totalAppointments})</h5>
+                      <h5 className={styles.sectionTitle}>
+                        {t?.profile?.appointments || "Appointments"} ({program.totalAppointments})
+                      </h5>
                     </div>
                     <div className={styles.appointmentsList}>
                       {program.appointments.map((appointment) => (
@@ -640,7 +657,7 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
                             {getAppointmentStatusIcon(appointment)}
                             <div className={styles.appointmentDetails}>
                               <span className={styles.appointmentDate}>
-                                {formatDate(appointment.date)} at {formatTime(appointment.time)}
+                                {formatDate(appointment.date)} {t?.profile?.at || "at"} {formatTime(appointment.time)}
                               </span>
                               <span className={styles.appointmentDescription}>{appointment.description}</span>
                             </div>
@@ -662,7 +679,9 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
                     <div className={styles.filesSection}>
                       <div className={styles.sectionHeader}>
                         <BookOpen className={styles.sectionIcon} />
-                        <h5 className={styles.sectionTitle}>School Plans ({program.plans.length})</h5>
+                        <h5 className={styles.sectionTitle}>
+                          {t?.profile?.schoolPlans || "School Plans"} ({program.plans.length})
+                        </h5>
                       </div>
 
                       {program.plans.length > 0 ? (
@@ -674,9 +693,10 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
                                 <div className={styles.fileDetails}>
                                   <span className={styles.fileName}>{plan.title || plan.fileName}</span>
                                   <div className={styles.fileMetadata}>
-                                    <span className={styles.fileType}>School Plan</span>
+                                    <span className={styles.fileType}>{t?.profile?.schoolPlan || "School Plan"}</span>
                                     <span className={styles.fileDate}>
-                                      Modified: {formatDate(plan.lastModified || plan.createdAt)}
+                                      {t?.profile?.modified || "Modified"}:{" "}
+                                      {formatDate(plan.lastModified || plan.createdAt)}
                                     </span>
                                   </div>
                                 </div>
@@ -685,14 +705,14 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
                                 <button
                                   className={styles.viewButton}
                                   onClick={() => handleViewFile(plan)}
-                                  title="View Document"
+                                  title={t?.profile?.viewDocument || "View Document"}
                                 >
                                   <Eye size={16} />
                                 </button>
                                 <button
                                   className={styles.downloadButton}
                                   onClick={() => handleFileDownload(plan)}
-                                  title="Download Document"
+                                  title={t?.profile?.downloadDocument || "Download Document"}
                                 >
                                   <Download size={16} />
                                 </button>
@@ -703,8 +723,10 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
                       ) : (
                         <div className={styles.noPlanContainer}>
                           <FileX className={styles.noPlanIcon} />
-                          <h4 className={styles.noPlanTitle}>No Plans Available</h4>
-                          <p className={styles.noPlanText}>Your plan didn't created yet</p>
+                          <h4 className={styles.noPlanTitle}>{t?.profile?.noPlansAvailable || "No Plans Available"}</h4>
+                          <p className={styles.noPlanText}>
+                            {t?.profile?.yourPlanNotCreated || "Your plan didn't created yet"}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -718,10 +740,13 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
                       <FileX className={styles.hiddenPlansIcon} />
                       <span className={styles.hiddenPlansText}>
                         {program.smartStatus.type === "upcoming"
-                          ? "Plans will be available after your program is completed"
+                          ? t?.profile?.plansWillBeAvailableAfterCompletion ||
+                            "Plans will be available after your program is completed"
                           : program.smartStatus.type === "active"
-                            ? "Plans will be available after all appointments are completed"
-                            : "Plans are not available for cancelled programs"}
+                            ? t?.profile?.plansWillBeAvailableAfterAllAppointments ||
+                              "Plans will be available after all appointments are completed"
+                            : t?.profile?.plansNotAvailableForCancelled ||
+                              "Plans are not available for cancelled programs"}
                       </span>
                     </div>
                   )}
@@ -736,4 +761,3 @@ const SchoolTab = ({ patientId, schoolData, setSchoolData, loading, setLoading, 
 }
 
 export default SchoolTab
-    
