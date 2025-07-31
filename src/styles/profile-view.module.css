@@ -1,7 +1,7 @@
-/* Enhanced Profile View Styles */
+/* Enhanced Profile View Styles - 70% Scale */
 .container {
   min-height: 100vh;
-  padding: 2rem 1rem;
+  padding: 1.4rem 0.7rem;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
 }
 
@@ -9,27 +9,27 @@
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 2fr;
-  gap: 2rem;
+  gap: 1.4rem;
   animation: slideInUp 0.4s ease-out;
-      padding: 30px;
+  padding: 21px;
 }
 
 /* Profile Card Styles */
 .profileCard {
   background: white;
-  border-radius: 1.5rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border-radius: 1.05rem;
+  box-shadow: 0 17.5px 35px -8.4px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   height: fit-content;
   position: sticky;
-  top: 2rem;
+  top: 1.4rem;
 }
 
 .profileHeader {
   background: linear-gradient(135deg, #3f3f87, #cc2889);
-  height: 200px;
+  height: 140px;
   position: relative;
   overflow: hidden;
 }
@@ -47,82 +47,82 @@
 }
 
 .profileContent {
-  padding: 2rem;
-  margin-top: -80px;
+  padding: 1.4rem;
+  margin-top: -56px;
   position: relative;
   z-index: 2;
 }
 
 .avatarContainer {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.4rem;
 }
 
 .avatar {
-  width: 120px;
-  height: 120px;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
-  border: 4px solid white;
-  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.15);
+  border: 2.8px solid white;
+  box-shadow: 0 5.6px 11.2px -2.8px rgba(0, 0, 0, 0.15);
   background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1rem;
-  font-size: 2.5rem;
+  margin: 0 auto 0.7rem;
+  font-size: 1.75rem;
   color: #3f3f87;
   font-weight: 700;
 }
 
 .profileName {
-  font-size: 1.5rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #1f2937;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.35rem 0;
 }
 
 .profileEmail {
   color: #6b7280;
-  font-size: 0.875rem;
-  margin: 0 0 1rem 0;
+  font-size: 0.6125rem;
+  margin: 0 0 0.7rem 0;
 }
 
 .profileBadge {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
   background: linear-gradient(135deg, #dbeafe, #bfdbfe);
   color: #1e40af;
   border-radius: 9999px;
-  font-size: 0.75rem;
+  font-size: 0.525rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .profileBadgeIcon {
-  width: 1rem;
-  height: 1rem;
+  width: 0.7rem;
+  height: 0.7rem;
 }
 
 .infoSection {
-  margin-top: 2rem;
+  margin-top: 1.4rem;
 }
 
 .infoTitle {
-  font-size: 1.125rem;
+  font-size: 0.7875rem;
   font-weight: 700;
   color: #374151;
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 1.05rem 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .infoTitleIcon {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 0.875rem;
+  height: 0.875rem;
   color: #3f3f87;
 }
 
@@ -135,8 +135,8 @@
 .infoItem {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
-  padding: 1rem 0;
+  gap: 0.7rem;
+  padding: 0.7rem 0;
   border-bottom: 1px solid #f3f4f6;
 }
 
@@ -147,22 +147,22 @@
 .infoLabel {
   font-weight: 600;
   color: #374151;
-  font-size: 0.875rem;
-  min-width: 100px;
+  font-size: 0.6125rem;
+  min-width: 70px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .infoLabelIcon {
-  width: 1rem;
-  height: 1rem;
+  width: 0.7rem;
+  height: 0.7rem;
   color: #6b7280;
 }
 
 .infoValue {
   color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 0.6125rem;
   flex: 1;
   word-break: break-word;
 }
@@ -175,8 +175,8 @@
 /* Main Content Styles */
 .mainContent {
   background: white;
-  border-radius: 1.5rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border-radius: 1.05rem;
+  box-shadow: 0 17.5px 35px -8.4px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -184,25 +184,25 @@
 
 .contentHeader {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  padding: 2rem;
+  padding: 1.4rem;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .contentTitle {
-  font-size: 1.5rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #374151;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.35rem 0;
 }
 
 .contentSubtitle {
   color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 0.6125rem;
   margin: 0;
 }
 
 .tabsContainer {
-  padding: 0 2rem;
+  padding: 0 1.4rem;
   background: white;
   border-bottom: 1px solid #e5e7eb;
 }
@@ -222,16 +222,16 @@
 .tabButton {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem 2rem;
+  gap: 0.525rem;
+  padding: 0.875rem 1.4rem;
   border: none;
   background: transparent;
   color: #6b7280;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.6125rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  border-bottom: 3px solid transparent;
+  border-bottom: 2.1px solid transparent;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -248,12 +248,12 @@
 }
 
 .tabIcon {
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 0.7875rem;
+  height: 0.7875rem;
 }
 
 .tabContent {
-  padding: 2.5rem;
+  padding: 1.75rem;
 }
 
 .tabPane {
@@ -268,19 +268,19 @@
 /* Form Styles */
 .form {
   display: grid;
-  gap: 2rem;
+  gap: 1.4rem;
 }
 
 .formRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  gap: 1.4rem;
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.525rem;
 }
 
 .formGroup.fullWidth {
@@ -290,17 +290,17 @@
 .formLabel {
   font-weight: 700;
   color: #374151;
-  font-size: 0.875rem;
+  font-size: 0.6125rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .labelIcon {
-  width: 1rem;
-  height: 1rem;
+  width: 0.7rem;
+  height: 0.7rem;
   color: #3f3f87;
 }
 
@@ -312,33 +312,33 @@
 .formInput,
 .formTextarea {
   width: 100%;
-  padding: 1rem 1.25rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 0.75rem;
-  font-size: 1rem;
+  padding: 0.7rem 0.875rem;
+  border: 1.4px solid #e2e8f0;
+  border-radius: 0.525rem;
+  font-size: 0.7rem;
   transition: all 0.3s ease;
   background: white;
   font-weight: 500;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0.7px 2.1px rgba(0, 0, 0, 0.1);
 }
 
 .formInput:focus,
 .formTextarea:focus {
   outline: none;
   border-color: #3f3f87;
-  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
-  transform: translateY(-1px);
+  box-shadow: 0 0 0 2.8px rgba(5, 150, 105, 0.1);
+  transform: translateY(-0.7px);
 }
 
 .formInput:hover,
 .formTextarea:hover {
   border-color: #d1d5db;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2.8px 4.2px -0.7px rgba(0, 0, 0, 0.1);
 }
 
 .formTextarea {
   resize: vertical;
-  min-height: 120px;
+  min-height: 84px;
   font-family: inherit;
 }
 
@@ -348,15 +348,15 @@
 
 .passwordToggle {
   position: absolute;
-  right: 1rem;
+  right: 0.7rem;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   color: #6b7280;
   cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 0.25rem;
+  padding: 0.175rem;
+  border-radius: 0.175rem;
   transition: all 0.2s;
 }
 
@@ -366,26 +366,26 @@
 }
 
 .passwordToggleIcon {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 /* Form Actions */
 .formActions {
   display: flex;
   justify-content: center;
-  gap: 1.5rem;
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 2px solid #e5e7eb;
+  gap: 1.05rem;
+  margin-top: 1.4rem;
+  padding-top: 1.4rem;
+  border-top: 1.4px solid #e5e7eb;
 }
 
 .cancelButton {
-  padding: 1rem 2.5rem;
-  border: 2px solid #dc2626;
+  padding: 0.7rem 1.75rem;
+  border: 1.4px solid #dc2626;
   background: white;
   color: #dc2626;
-  border-radius: 0.75rem;
+  border-radius: 0.525rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -393,8 +393,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
+  gap: 0.35rem;
+  font-size: 0.6125rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -402,38 +402,38 @@
 .cancelButton:hover {
   background: #fef2f2;
   color: #dc2626;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+  transform: translateY(-1.4px);
+  box-shadow: 0 2.8px 8.4px rgba(220, 38, 38, 0.15);
 }
 
 .saveButton {
-  padding: 1rem 2.5rem;
+  padding: 0.7rem 1.75rem;
   background: linear-gradient(135deg, #3f3f87, #cc2889);
   color: white;
   border: none;
-  border-radius: 0.75rem;
+  border-radius: 0.525rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
+  gap: 0.35rem;
+  font-size: 0.6125rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2.8px 4.2px -0.7px rgba(0, 0, 0, 0.1);
 }
 
 .saveButton:hover {
   background: linear-gradient(135deg, #047857, #065f46);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px -4px rgba(5, 150, 105, 0.25);
+  transform: translateY(-1.4px);
+  box-shadow: 0 5.6px 11.2px -2.8px rgba(5, 150, 105, 0.25);
 }
 
 .buttonIcon {
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 0.7875rem;
+  height: 0.7875rem;
 }
 
 /* Loading States */
@@ -442,16 +442,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem;
-  gap: 1.5rem;
-  min-height: 400px;
+  padding: 2.8rem;
+  gap: 1.05rem;
+  min-height: 280px;
 }
 
 .loadingSpinner {
-  width: 3rem;
-  height: 3rem;
-  border: 4px solid #e5e7eb;
-  border-top: 4px solid #3f3f87;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: 2.8px solid #e5e7eb;
+  border-top: 2.8px solid #3f3f87;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -467,7 +467,7 @@
 
 .loadingText {
   color: #6b7280;
-  font-size: 1.125rem;
+  font-size: 0.7875rem;
   font-weight: 600;
 }
 
@@ -475,7 +475,7 @@
 @media (max-width: 1024px) {
   .profileWrapper {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1.05rem;
   }
 
   .profileCard {
@@ -484,32 +484,32 @@
 
   .formRow {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1.05rem;
   }
 }
 
 @media (max-width: 768px) {
   .container {
-    padding: 1rem 0.5rem;
+    padding: 0.7rem 0.35rem;
   }
 
   .contentHeader,
   .tabContent {
-    padding: 1.5rem;
+    padding: 1.05rem;
   }
 
   .tabsContainer {
-    padding: 0 1.5rem;
+    padding: 0 1.05rem;
   }
 
   .tabButton {
-    padding: 1rem 1.5rem;
-    font-size: 0.8rem;
+    padding: 0.7rem 1.05rem;
+    font-size: 0.56rem;
   }
 
   .formActions {
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.7rem;
   }
 
   .cancelButton,
@@ -522,11 +522,11 @@
 @media (max-width: 480px) {
   .contentHeader,
   .tabContent {
-    padding: 1rem;
+    padding: 0.7rem;
   }
 
   .tabsContainer {
-    padding: 0 1rem;
+    padding: 0 0.7rem;
   }
 
   .tabsList {
@@ -534,9 +534,9 @@
   }
 
   .tabButton {
-    padding: 0.75rem 1rem;
+    padding: 0.525rem 0.7rem;
     border-bottom: none;
-    border-left: 3px solid transparent;
+    border-left: 2.1px solid transparent;
   }
 
   .tabButton.active {
@@ -549,7 +549,7 @@
 @keyframes slideInUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(21px);
   }
   to {
     opacity: 1;
@@ -571,12 +571,12 @@
 .cancelButton:focus,
 .saveButton:focus,
 .passwordToggle:focus {
-  outline: 2px solid #3f3f87;
-  outline-offset: 2px;
+  outline: 1.4px solid #3f3f87;
+  outline-offset: 1.4px;
 }
 
 .formInput:focus,
 .formTextarea:focus {
-  outline: 2px solid #3f3f87;
-  outline-offset: 2px;
+  outline: 1.4px solid #3f3f87;
+  outline-offset: 1.4px;
 }

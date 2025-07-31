@@ -40,8 +40,6 @@ const PublicProfileDoctor = () => {
     phone: "",
     address: "",
     dateOfBirth: "",
-    specialization: "",
-    experience: "",
   })
 
   const [passwordData, setPasswordData] = useState({
@@ -67,9 +65,6 @@ const PublicProfileDoctor = () => {
         email: profileData.email || "",
         phone: profileData.phone || "",
         address: profileData.address || "",
-        dateOfBirth: profileData.dateOfBirth ? profileData.dateOfBirth.split("T")[0] : "",
-        specialization: profileData.specialization || "",
-        experience: profileData.experience || "",
       })
     } catch (error) {
       console.error("Error fetching profile:", error)
@@ -189,7 +184,7 @@ const PublicProfileDoctor = () => {
           <div className={styles.profileContent}>
             <div className={styles.avatarContainer}>
               <div className={styles.avatar}>{getInitials(profile?.name || "Doctor")}</div>
-              <h2 className={styles.profileName}>{profile?.name || "Loading..."}</h2>
+              <h4 className={styles.profileName}>{profile?.username || "Loading..."}</h4>
               <p className={styles.profileEmail}>{profile?.email || "Loading..."}</p>
               <div className={styles.profileBadge}>
                 <Shield className={styles.profileBadgeIcon} />
@@ -198,10 +193,10 @@ const PublicProfileDoctor = () => {
             </div>
 
             <div className={styles.infoSection}>
-              <h3 className={styles.infoTitle}>
+              <h5 className={styles.infoTitle}>
                 <User className={styles.infoTitleIcon} />
                 Quick Info
-              </h3>
+              </h5>
               <ul className={styles.infoList}>
                 <li className={styles.infoItem}>
                   <span className={styles.infoLabel}>
@@ -230,15 +225,7 @@ const PublicProfileDoctor = () => {
                     {profile.departments?.map((dept) => dept.name).join(", ") || "Not assigned"}
                   </span>
                 </li>
-                <li className={styles.infoItem}>
-                  <span className={styles.infoLabel}>
-                    <Calendar className={styles.infoLabelIcon} />
-                    Experience
-                  </span>
-                  <span className={`${styles.infoValue} ${!profile.experience ? styles.notProvided : ""}`}>
-                    {profile.experience || "Not provided"}
-                  </span>
-                </li>
+                
               </ul>
             </div>
           </div>
@@ -334,49 +321,12 @@ const PublicProfileDoctor = () => {
                       disabled={!editing}
                     />
                   </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>
-                      <Calendar className={styles.labelIcon} />
-                      Date of Birth
-                    </label>
-                    <input
-                      type="date"
-                      className={styles.formInput}
-                      value={formData.dateOfBirth}
-                      onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
-                      disabled={!editing}
-                    />
-                  </div>
+                 
                 </div>
 
                 <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>
-                      <Shield className={styles.labelIcon} />
-                      Specialization
-                    </label>
-                    <input
-                      type="text"
-                      className={styles.formInput}
-                      value={formData.specialization}
-                      onChange={(e) => handleInputChange("specialization", e.target.value)}
-                      disabled={!editing}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>
-                      <Clock className={styles.labelIcon} />
-                      Experience
-                    </label>
-                    <input
-                      type="text"
-                      className={styles.formInput}
-                      value={formData.experience}
-                      onChange={(e) => handleInputChange("experience", e.target.value)}
-                      disabled={!editing}
-                      placeholder="e.g., 5 years"
-                    />
-                  </div>
+                  
+                  
                 </div>
 
                 <div className={styles.formGroup + " " + styles.fullWidth}>

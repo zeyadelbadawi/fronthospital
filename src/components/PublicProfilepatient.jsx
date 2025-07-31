@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation"
 import axios from "axios"
 import jwt_decode from "jwt-decode"
 import { toast, ToastContainer } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
 import {
   User,
   Mail,

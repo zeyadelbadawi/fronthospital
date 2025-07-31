@@ -2,7 +2,24 @@
 
 import { useEffect, useState } from "react"
 import axiosInstance from "@/helper/axiosSetup"
-import { Search, Plus, Eye, Edit, Trash2, Download, Calendar, User, X, Save, CreditCard, Clock, AlertTriangle, CheckCircle, XCircle, Building } from 'lucide-react'
+import {
+  Search,
+  Plus,
+  Eye,
+  Edit,
+  Trash2,
+  Download,
+  Calendar,
+  User,
+  X,
+  Save,
+  CreditCard,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Building,
+} from "lucide-react"
 import styles from "@/styles/checks-management.module.css"
 
 const PaymentEdit = ({ language = "en" }) => {
@@ -491,7 +508,7 @@ const PaymentEdit = ({ language = "en" }) => {
           <div className={styles.statsContainer}>
             <div className={styles.statCard}>
               <div className={styles.statIcon}>
-                          <span  className={styles.headerIcon3}> AED</span>
+                <span className={styles.headerIcon3}> AED</span>
               </div>
               <div className={styles.statContent}>
                 <div className={styles.statNumber}>{totalAmount.toLocaleString()}</div>
@@ -550,7 +567,7 @@ const PaymentEdit = ({ language = "en" }) => {
                       </th>
                       <th>
                         <div className={styles.headerCell}>
-                          <span  className={styles.headerIcon2}> AED</span>
+                          <span className={styles.headerIcon2}> AED</span>
                           {t.amount}
                         </div>
                       </th>

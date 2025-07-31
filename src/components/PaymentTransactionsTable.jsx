@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import axiosInstance from "@/helper/axiosSetup"
-import { Search, Plus, Eye, Edit, Trash2, Download, Calendar, User, FileText, X, Save } from 'lucide-react'
+import { Search, Plus, Eye, Edit, Trash2, Download, Calendar, User, FileText, X, Save } from "lucide-react"
 import styles from "@/styles/payment-management.module.css"
 
 const PaymentTransactionsTable = ({ language = "en" }) => {
@@ -336,9 +336,7 @@ const PaymentTransactionsTable = ({ language = "en" }) => {
         <div className={styles.cardHeader}>
           <div className={styles.headerContent}>
             <div className={styles.headerLeft}>
-              <div className={styles.pageTitle}>
-                {t.title}
-              </div>
+              <div className={styles.pageTitle}>{t.title}</div>
               <p className={styles.pageSubtitle}>{t.subtitle}</p>
             </div>
             <div className={styles.headerActions}>
@@ -416,7 +414,7 @@ const PaymentTransactionsTable = ({ language = "en" }) => {
           <div className={styles.statsContainer}>
             <div className={styles.statCard}>
               <div className={styles.statIcon}>
-                          <span  className={styles.headerIcon3}> AED</span>
+                <span className={styles.headerIcon3}> AED</span>
               </div>
               <div className={styles.statContent}>
                 <div className={styles.statNumber}>{totalAmount.toLocaleString()}</div>
@@ -480,9 +478,7 @@ const PaymentTransactionsTable = ({ language = "en" }) => {
                         </div>
                       </th>
                       <th>
-                        <div className={styles.headerCell}>
-                          {t.amount}
-                        </div>
+                        <div className={styles.headerCell}>{t.amount}</div>
                       </th>
                       <th>{t.status}</th>
                       <th>{t.date}</th>

@@ -43,9 +43,9 @@ const SignInLayer = () => {
       } else if (role === "patient") {
         router.push("/")
       } else if (role === "doctor") {
-        router.push("/profile-doctor")
+        router.push("/doctorportal")
       } else if (role === "accountant") {
-        router.push("/profile-accountant")
+        router.push("/accountantportal")
       }
     } catch (error) {
       console.error(error)

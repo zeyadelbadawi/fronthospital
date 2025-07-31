@@ -4,7 +4,6 @@ import "./globals.css"
 import { LanguageProvider } from "../contexts/LanguageContext"
 import { registerLicense } from "@syncfusion/ej2-base"
 import { ToastContainer } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
 
 registerLicense(process.env.NEXT_PUBLIC_SYNCFUSION_LICENSE_KEY)
 
