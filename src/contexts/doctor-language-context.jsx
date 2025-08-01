@@ -20,29 +20,29 @@ const translations = {
   welcome: {
     title: "Welcome to Doctor Portal",
     subtitle:
-      "Manage your patients, create treatment plans, and provide comprehensive healthcare services with our advanced medical platform",
+      "Manage your Students, create treatment plans, and provide comprehensive healthcare services with our advanced medical platform",
   },
   guidelines: {
     title: "Medical Practice Guidelines",
     lines: [
-      "MAINTAIN PATIENT CONFIDENTIALITY at all times in accordance with HIPAA regulations.",
-      "DOCUMENT ALL PATIENT INTERACTIONS thoroughly and accurately in the system.",
-      "FOLLOW EVIDENCE-BASED TREATMENT PROTOCOLS for optimal patient outcomes.",
+      "MAINTAIN Student CONFIDENTIALITY at all times in accordance with HIPAA regulations.",
+      "DOCUMENT ALL Student INTERACTIONS thoroughly and accurately in the system.",
+      "FOLLOW EVIDENCE-BASED TREATMENT PROTOCOLS for optimal Student outcomes.",
       "ENSURE INFORMED CONSENT is obtained before any treatment or procedure.",
       "REPORT ANY ADVERSE EVENTS or complications immediately to the medical director.",
-      "MAINTAIN PROFESSIONAL BOUNDARIES and ethical standards in all patient interactions.",
+      "MAINTAIN PROFESSIONAL BOUNDARIES and ethical standards in all Student interactions.",
       "KEEP YOUR MEDICAL LICENSE and certifications current and up-to-date.",
-      "USE SECURE COMMUNICATION CHANNELS for all patient-related discussions.",
+      "USE SECURE COMMUNICATION CHANNELS for all Student-related discussions.",
     ],
   },
   services: {
     fullProgram: {
       title: "Full Program",
-      description: "Manage comprehensive patient treatment programs and create detailed long-term care plans",
+      description: "Manage comprehensive Student treatment programs and create detailed long-term care plans",
     },
     singleSession: {
       title: "Single Session",
-      description: "Handle individual patient consultations and single session appointments efficiently",
+      description: "Handle individual Student consultations and single session appointments efficiently",
     },
     schoolProgram: {
       title: "School Program",

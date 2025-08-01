@@ -19,6 +19,8 @@
   transition: transform 0.2s ease;
   padding: 0.2rem;
   border-radius: 6px;
+margin-left: 10px;
+
 }
 
 .logoContainer:hover {
@@ -26,7 +28,7 @@
 }
 
 .logo {
-  height: 35px;
+  height: 100px;
   width: auto;
   filter: drop-shadow(0 1px 4px rgba(63, 63, 134, 0.15));
 }
@@ -59,13 +61,15 @@
   background: linear-gradient(135deg, #2977ba 0%, #3f3f86 100%);
   color: #fefefe;
   border: none;
-  padding: 0.3rem 0.6rem;
+  padding: 0.7rem 1.1rem;
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(41, 119, 186, 0.25);
   font-size: 0.75rem;
+    margin-left: 10px;
+
 }
 
 .loginButton:hover {
@@ -83,9 +87,8 @@
   background: linear-gradient(135deg, #3f3f86 0%, #cc288a 100%);
   color: #fefefe;
   border: none;
-  padding: 0.3rem 0.6rem;
+  padding: 1.7rem 1.1rem;
   border-radius: 10px;
-  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -207,11 +210,14 @@
   border: none;
   cursor: pointer;
   position: relative;
-  padding: 0.3rem;
+  padding: 0.9rem;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease;
+  border: revert;
+  border-radius: 40%;
+  border-color: #3f3f86;
 }
 
 .notificationButton:hover {

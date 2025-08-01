@@ -44,7 +44,7 @@ const translations = {
         "MAINTAIN ACCURATE FINANCIAL RECORDS and ensure all transactions are properly documented.",
         "VERIFY ALL PAYMENT INFORMATION before processing any financial transactions.",
         "FOLLOW COMPLIANCE REGULATIONS including healthcare billing standards and tax requirements.",
-        "SECURE PATIENT FINANCIAL DATA in accordance with HIPAA and privacy regulations.",
+        "SECURE Student FINANCIAL DATA in accordance with HIPAA and privacy regulations.",
         "RECONCILE ACCOUNTS DAILY and report any discrepancies immediately to management.",
         "BACKUP FINANCIAL DATA regularly and maintain proper audit trails for all transactions.",
         "COORDINATE WITH MEDICAL STAFF for billing accuracy and treatment verification.",
@@ -55,7 +55,7 @@ const translations = {
       paymentManagement: {
         title: "Payment Management",
         description:
-          "Process and track all patient payments, invoices, and financial transactions with detailed reporting",
+          "Process and track all Student payments, invoices, and financial transactions with detailed reporting",
       },
       checksManagement: {
         title: "Checks Management",

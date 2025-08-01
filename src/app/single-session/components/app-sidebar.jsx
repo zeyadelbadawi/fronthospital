@@ -13,7 +13,8 @@ import {
   MessageSquare,
 } from "lucide-react"
 import { useContentStore } from "../store/content-store"
-import { isAuthenticated, getCurrentUser } from "../utils/auth-utils"
+import { isAuthenticated, getCurrentUser, isDoctor } from "../utils/auth-utils"
+import axiosInstance from "@/helper/axiosSetup"
 import styles from "../styles/sidebar.module.css"
 
 const departments = [
@@ -22,11 +23,13 @@ const departments = [
     name: "Single Sessions Appointments",
     icon: Calendar,
     items: [{ id: "speech-appointments", name: "All Appointments", type: "appointments" }],
+    alwaysShow: true, // Always show appointments regardless of department
   },
   {
     id: "physical-therapy",
     name: "Physical Therapy Students",
     icon: Activity,
+    departmentName: "PT",
     items: [
       { id: "physical-therapy-patients", name: "All Students", type: "patients", therapyType: "physical-therapy" },
     ],
@@ -35,12 +38,14 @@ const departments = [
     id: "aba",
     name: "ABA Students",
     icon: Brain,
+    departmentName: "ABA",
     items: [{ id: "aba-patients", name: "All Students", type: "patients", therapyType: "aba" }],
   },
   {
     id: "occupational-therapy",
     name: "Occupational Therapy Students",
     icon: Hand,
+    departmentName: "OT",
     items: [
       {
         id: "occupational-therapy-patients",
@@ -54,6 +59,7 @@ const departments = [
     id: "special-education",
     name: "Special Education Students",
     icon: GraduationCap,
+    departmentName: "Special Education",
     items: [
       { id: "special-education-patients", name: "All Students", type: "patients", therapyType: "special-education" },
     ],
@@ -62,6 +68,7 @@ const departments = [
     id: "speech",
     name: "Speech Students",
     icon: MessageSquare,
+    departmentName: "Speech",
     items: [{ id: "speech-patients", name: "All Students", type: "patients", therapyType: "speech" }],
   },
 ]
@@ -69,6 +76,8 @@ const departments = [
 export function AppSidebar() {
   const [openSections, setOpenSections] = useState([])
   const [user, setUser] = useState(null)
+  const [doctorDepartments, setDoctorDepartments] = useState([])
+  const [loadingDepartments, setLoadingDepartments] = useState(false)
   const setActiveContent = useContentStore((state) => state.setActiveContent)
   const [activeItem, setActiveItem] = useState(null)
 
@@ -76,8 +85,76 @@ export function AppSidebar() {
     if (isAuthenticated()) {
       const currentUser = getCurrentUser()
       setUser(currentUser)
+      // If user is a doctor, fetch their assigned departments
+      if (currentUser?.role === "doctor") {
+        fetchDoctorDepartments(currentUser.id)
+      }
     }
   }, [])
+
+  const fetchDoctorDepartments = async (doctorId) => {
+    setLoadingDepartments(true)
+    try {
+      console.log("Fetching departments for doctor:", doctorId)
+      // First, get the doctor's information including their departments
+      const doctorResponse = await axiosInstance.get(`/authentication/doctor/${doctorId}`)
+      const doctorData = doctorResponse.data
+      console.log("Doctor data:", doctorData)
+
+      if (doctorData && doctorData.departments && doctorData.departments.length > 0) {
+        // Extract department names from the populated departments
+        const departmentNames = doctorData.departments.map((dept) => dept.name)
+        console.log("Doctor's assigned departments:", departmentNames)
+        setDoctorDepartments(departmentNames)
+      } else {
+        console.log("No departments found for doctor")
+        setDoctorDepartments([])
+      }
+    } catch (error) {
+      console.error("Error fetching doctor departments:", error)
+      // Fallback: try to get assignments from doctor-student-assignment
+      try {
+        console.log("Trying fallback method...")
+        const assignmentsResponse = await axiosInstance.get(`/doctor-student-assignment/doctor-assignments/${doctorId}`)
+        const assignments = assignmentsResponse.data?.assignments || []
+        // Extract unique departments from assignments
+        const departments = [...new Set(assignments.map((assignment) => assignment.department))]
+        console.log("Departments from assignments:", departments)
+        setDoctorDepartments(departments)
+      } catch (fallbackError) {
+        console.error("Fallback error:", fallbackError)
+        // If all fails, set empty array (show no departments)
+        setDoctorDepartments([])
+      }
+    } finally {
+      setLoadingDepartments(false)
+    }
+  }
+
+  // Helper function to check if doctor is assigned to a department
+  const isDoctorAssignedToDepartment = (departmentName) => {
+    if (!isDoctor()) return true // Non-doctors see all
+    if (loadingDepartments) return true // Show all while loading
+
+    // Map department names to match database values
+    const departmentMap = {
+      ABA: ["ABA", "Applied Behavior Analysis", "Behavioral Analysis"],
+      Speech: ["Speech", "speech", "Speech Therapy", "Speech-Language Pathology"],
+      PT: ["PT", "Physical Therapy", "physicalTherapy", "Physiotherapy"],
+      OT: ["OT", "Occupational Therapy", "OccupationalTherapy"],
+      "Special Education": ["Special Education", "SpecialEducation", "Special Ed", "SPED"],
+    }
+
+    // Check if any of the mapped names match the doctor's departments
+    return (
+      departmentMap[departmentName]?.some((name) =>
+        doctorDepartments.some(
+          (deptName) =>
+            deptName.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(deptName.toLowerCase()),
+        ),
+      ) || false
+    )
+  }
 
   const toggleSection = (sectionId) => {
     setOpenSections((prev) => {
@@ -98,8 +175,6 @@ export function AppSidebar() {
     setActiveItem(itemId)
   }
 
-
-
   if (!isAuthenticated()) {
     return (
       <div className={styles.sidebar}>
@@ -114,6 +189,22 @@ export function AppSidebar() {
     )
   }
 
+  // Filter departments based on user role and doctor department assignments
+  const filteredDepartments = departments.filter((department) => {
+    // Always show appointments section
+    if (department.alwaysShow) {
+      return true
+    }
+
+    // For doctors, check department assignments
+    if (isDoctor() && department.departmentName) {
+      return isDoctorAssignedToDepartment(department.departmentName)
+    }
+
+    // For non-doctors, show all departments
+    return true
+  })
+
   return (
     <div className={styles.sidebar}>
       {/* Header */}
@@ -125,6 +216,11 @@ export function AppSidebar() {
             </div>
             <div className={styles.userDetails}>
               <p className={styles.userRole}>{user.role} Dashboard</p>
+              {isDoctor() && (
+                <p className={styles.userDepartments}>
+                  {loadingDepartments ? "Loading..." : `Assigned to ${doctorDepartments.length} Departments`}
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -132,7 +228,14 @@ export function AppSidebar() {
 
       {/* Navigation */}
       <nav className={styles.sidebarNav}>
-        {departments.map((department) => {
+        {loadingDepartments && isDoctor() && (
+          <div className={styles.loadingMessage}>
+            <div className={styles.loadingSpinner}></div>
+            <span>Loading your departments...</span>
+          </div>
+        )}
+
+        {filteredDepartments.map((department) => {
           const isOpen = openSections.includes(department.id)
           return (
             <div key={department.id} className={styles.navSection}>
@@ -171,8 +274,6 @@ export function AppSidebar() {
           )
         })}
       </nav>
-
-     
     </div>
   )
 }

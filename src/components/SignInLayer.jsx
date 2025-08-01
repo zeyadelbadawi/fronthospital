@@ -40,9 +40,7 @@ const SignInLayer = () => {
       // Redirect based on the role
       if (role === "admin") {
         router.push("/")
-      } else if (role === "patient") {
-        router.push("/")
-      } else if (role === "doctor") {
+      }  else if (role === "doctor") {
         router.push("/doctorportal")
       } else if (role === "accountant") {
         router.push("/accountantportal")
@@ -416,13 +414,7 @@ const SignInLayer = () => {
                     <Icon icon="eos-icons:admin" style={{ fontSize: "20px", marginBottom: "4px" }} />
                     <div>Admin</div>
                   </div>
-                  <div
-                    className={`role-option ${role === "patient" ? "active" : ""}`}
-                    onClick={() => setRole("patient")}
-                  >
-                    <Icon icon="hugeicons:student" style={{ fontSize: "20px", marginBottom: "4px" }} />
-                    <div>Patient</div>
-                  </div>
+                
                   <div className={`role-option ${role === "doctor" ? "active" : ""}`} onClick={() => setRole("doctor")}>
                     <Icon icon="healthicons:doctor" style={{ fontSize: "20px", marginBottom: "4px" }} />
                     <div>Doctor</div>

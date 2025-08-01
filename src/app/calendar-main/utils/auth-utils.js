@@ -68,12 +68,6 @@ export const getCurrentUserId = () => {
   return user ? user.id : null
 }
 
-// Check if current user has access to school (admin or doctor only)
-export const hasSchoolAccess = () => {
-  const role = getCurrentUserRole()
-  return role === "admin" || role === "doctor"
-}
-
 // Check if current user is admin
 export const isAdmin = () => {
   const role = getCurrentUserRole()
@@ -104,19 +98,13 @@ export const isStudent = () => {
   return role === "student"
 }
 
-// Check if current user has access to single session
-export const hasSingleSessionAccess = () => {
-  const role = getCurrentUserRole()
-  return ["admin", "doctor", "student", "accountant"].includes(role)
-}
-
 // Logout function
 export const logout = () => {
   // Check if we're in the browser
   if (typeof window === "undefined") return
 
   localStorage.removeItem("token")
-  window.location.href = "/sign-in"
+  window.location.href = "/login"
 }
 
 // Get token

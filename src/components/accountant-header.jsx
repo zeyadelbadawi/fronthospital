@@ -39,7 +39,7 @@ export default function AccountantHeader({
           <div className={styles.dropdown}>
             <button className={styles.dropdownButton} onClick={() => setDropdownOpen(!dropdownOpen)}>
               <span className={styles.accountantInfo}>
-                <span className={styles.accountantName}>{user.name}</span>
+                <span className={styles.accountantName}> {language === "ar" ? "مرحبا :" : "Welcome :"} {user.name}</span>
                 <span className={styles.accountantRole}>
                   {language === "ar" ? "محاسب مالي" : "Financial Accountant"}
                 </span>

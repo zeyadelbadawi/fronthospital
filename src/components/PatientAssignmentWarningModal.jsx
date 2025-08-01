@@ -100,7 +100,7 @@ export default function PatientAssignmentWarningModal({
             </div>
 
             <p className={styles.warningMessage}>
-              Do you want to proceed and assign this patient to the current appointment? This will create{" "}
+              Do you want to proceed and assign this Student to the current appointment? This will create{" "}
               {totalConflicts > 1 ? "additional duplicate assignments" : "a duplicate assignment"} in the same
               department.
             </p>

@@ -24,6 +24,13 @@ export default function DoctorHeader({
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0) // Renamed from 'count' for clarity
 
+  // Debug: Log user object to see what's available
+  useEffect(() => {
+    console.log("DoctorHeader - User object:", user)
+    console.log("DoctorHeader - Username:", user?.username)
+    console.log("DoctorHeader - User role:", user?.role)
+  }, [user])
+
   // Use useSocket hook for real-time updates
   useSocket(user?.id, ({ count, notifications: newNotifications }) => {
     setNotifications(newNotifications || [])
@@ -118,6 +125,23 @@ export default function DoctorHeader({
     }
   }
 
+  // Get doctor name - try different possible fields
+  const getDoctorName = () => {
+    if (user?.username) {
+      return user.username
+    }
+    if (user?.name) {
+      return user.name
+    }
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName} ${user.lastName}`
+    }
+    if (user?.firstName) {
+      return user.firstName
+    }
+    return "Doctor" // Fallback
+  }
+
   return (
     <header className={styles.header}>
       <Link href="/doctorportal" className={styles.logoContainer}>
@@ -183,20 +207,15 @@ export default function DoctorHeader({
                 aria-label="User menu"
               >
                 <span className={styles.doctorInfo}>
-                  <span className={styles.doctorName}>Dr. {user.name}</span>
-                  <span className={styles.doctorRole}>Medical Professional</span>
+                  <span className={styles.doctorName}>Dr. {getDoctorName()}</span>
                 </span>
                 <ChevronDown className={styles.chevronIcon} />
               </button>
 
               {dropdownOpen && (
                 <div className={styles.dropdownMenu}>
-                  <Link
-                    href="/doctorportal/doctor-schedule"
-                    className={styles.dropdownItem}
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    My Schedule
+                  <Link href="/calendar-main" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                    weekly schedule
                   </Link>
                   <Link
                     href="/doctorportal/profile-doctor"
@@ -205,13 +224,7 @@ export default function DoctorHeader({
                   >
                     Profile Settings
                   </Link>
-                  <Link
-                    href="/doctorportal/help-support"
-                    className={styles.dropdownItem}
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    Help & Support
-                  </Link>
+
                   <hr className={styles.dropdownDivider} />
                   <button
                     className={`${styles.dropdownItem} ${styles.logoutItem}`}
@@ -228,7 +241,7 @@ export default function DoctorHeader({
           </>
         ) : (
           <button className={styles.loginButton} onClick={onLoginClick}>
-            Doctor Login
+            Login
           </button>
         )}
       </div>

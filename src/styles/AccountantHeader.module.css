@@ -22,6 +22,8 @@
 
 .logoContainer {
     margin-right: 10px;
+        margin-left: 10px;
+
   display: flex;
   align-items: center;
   text-decoration: none;
@@ -125,7 +127,7 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.rem;
+  gap: 0.5rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(63, 63, 134, 0.25);
 }
@@ -153,6 +155,7 @@
   font-weight: 700;
   line-height: 1.2;
   color: #fefefe;
+  margin-bottom: 4px;
 }
 
 .accountantRole {

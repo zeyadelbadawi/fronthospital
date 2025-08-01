@@ -151,7 +151,7 @@ export default function Page() {
         <div className={styles.modal} onClick={() => setShowLoginModal(false)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>{t.auth.welcomeBack}</h2>
+              <h4 className={styles.modalTitle}>{t.auth.welcomeBack}</h4>
               <button className={styles.closeButton} onClick={() => setShowLoginModal(false)}>
                 ×
               </button>
@@ -205,7 +205,7 @@ export default function Page() {
         <div className={styles.modal} onClick={() => setShowSignupModal(false)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>{t.auth.createAccount}</h2>
+              <h4 className={styles.modalTitle}>{t.auth.createAccount}</h4>
               <button className={styles.closeButton} onClick={() => setShowSignupModal(false)}>
                 ×
               </button>
