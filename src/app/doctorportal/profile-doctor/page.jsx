@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react"
 import dynamic from "next/dynamic"
 import axiosInstance from "@/helper/axiosSetup"
-import Link from "next/link"
 import PublicProfileDoctor from "@/components/PublicProfileDoctor";
 
 import {

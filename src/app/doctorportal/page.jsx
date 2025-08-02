@@ -314,7 +314,7 @@ export default function DoctorPortalPage() {
         description: t.services.fullProgram.description,
       },
       {
-        href: "/doctor-single-session",
+        href: "/single-session",
         Icon: Calendar,
         label: t.services.singleSession.title,
         description: t.services.singleSession.description,
@@ -332,7 +332,7 @@ export default function DoctorPortalPage() {
         description: "t.services.calendar.description",
       },
       {
-        href: "/profile-doctor",
+        href: "/doctorportal/profile-doctor",
         Icon: User,
         label: t.services.myProfile.title,
         description: t.services.myProfile.description,

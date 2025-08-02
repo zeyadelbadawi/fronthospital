@@ -1,6 +1,5 @@
 import DashBoardLayerEight from "@/components/DashBoardLayerEight";
 import MasterLayout from "@/masterLayout/MasterLayout";
-import { Breadcrumb } from "react-bootstrap";
 import { ModelProvider } from "@/contexts/ModelContext";
 
 export const metadata = {
@@ -14,8 +13,6 @@ const Page = () => {
     <>
       {/* MasterLayout */}
       <MasterLayout>
-        {/* Breadcrumb */}
-        <Breadcrumb title="Rukn Alwatikon Center" />
         <ModelProvider>
           {/* DashBoardLayerOne */}
           <DashBoardLayerEight />

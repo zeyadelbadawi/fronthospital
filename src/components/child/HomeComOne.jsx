@@ -1,94 +1,147 @@
 "use client"
 import { useEffect, useState } from "react"
-import { Users, UserCheck, Calculator, TrendingUp, TrendingDown } from "lucide-react"
+import { Users, Stethoscope, Briefcase } from "lucide-react"
 import axiosInstance from "@/helper/axiosSetup"
 import styles from "@/styles/home-components.module.css"
 
-const HomeComOne = () => {
-  const [doctorData, setDoctorData] = useState({ totalDoctors: 0, joinedThisWeek: 0 })
-  const [patientData, setPatientData] = useState({ totalPatients: 0, joinedThisWeek: 0 })
-  const [accountantData, setAccountantData] = useState({ totalAccountants: 0, joinedThisWeek: 0 })
+const HomeComOne = ({ isHeadDoctor }) => {
+  const [statistics, setStatistics] = useState({
+    totalStudents: 0,
+    totalDoctors: 0,
+    totalAccountants: 0,
+  })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchStatistics = async () => {
       try {
-        const [doctorsRes, accountantsRes, patientsRes] = await Promise.all([
-          axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/doctors/count`),
-          axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/accountants/count`),
-          axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/patients/count`),
-        ])
-
-        setDoctorData(doctorsRes.data)
-        setAccountantData(accountantsRes.data)
-        setPatientData(patientsRes.data)
-      } catch (error) {
-        console.error("Error fetching data:", error)
+        setLoading(true)
+        const { data } = await axiosInstance.get("/authentication/dashboard-statistics")
+        setStatistics(data.statistics)
+        setError("")
+      } catch (err) {
+        console.error("Error fetching dashboard statistics:", err)
+        setError("Failed to load statistics")
+        setStatistics({ totalStudents: 0, totalDoctors: 0, totalAccountants: 0 })
       } finally {
         setLoading(false)
       }
     }
 
-    fetchData()
+    fetchStatistics()
   }, [])
 
   if (loading) {
     return (
-      <div className={styles.loadingSpinner}>
-        <div className={styles.spinner}></div>
-        <span className={styles.loadingText}>Loading statistics...</span>
-      </div>
+      <>
+        <div className={`${styles.gridCol} ${styles.col4}`}>
+          <div className={styles.dashboardCard}>
+            <div className={styles.loadingSpinner}>
+              <div className={styles.spinner}></div>
+              <span className={styles.loadingText}>Loading students...</span>
+            </div>
+          </div>
+        </div>
+        <div className={`${styles.gridCol} ${styles.col4}`}>
+          <div className={styles.dashboardCard}>
+            <div className={styles.loadingSpinner}>
+              <div className={styles.spinner}></div>
+              <span className={styles.loadingText}>Loading doctors...</span>
+            </div>
+          </div>
+        </div>
+        <div className={`${styles.gridCol} ${styles.col4}`}>
+          <div className={styles.dashboardCard}>
+            <div className={styles.loadingSpinner}>
+              <div className={styles.spinner}></div>
+              <span className={styles.loadingText}>Loading accountants...</span>
+            </div>
+          </div>
+        </div>
+      </>
     )
   }
 
-  const statsData = [
-    {
-      title: "Total Students",
-      total: patientData.totalPatients,
-      thisWeek: patientData.joinedThisWeek,
-      icon: Users,
-      className: "students",
-      growth: patientData.joinedThisWeek > 0 ? `+${patientData.joinedThisWeek}` : "0",
-      isPositive: patientData.joinedThisWeek > 0,
-    },
-    {
-      title: "Total Doctors",
-      total: doctorData.totalDoctors,
-      thisWeek: doctorData.joinedThisWeek,
-      icon: UserCheck,
-      className: "doctors",
-      growth: doctorData.joinedThisWeek > 0 ? `+${doctorData.joinedThisWeek}` : "0",
-      isPositive: doctorData.joinedThisWeek > 0,
-    },
-    {
-      title: "Total Accountants",
-      total: accountantData.totalAccountants,
-      thisWeek: accountantData.joinedThisWeek,
-      icon: Calculator,
-      className: "accountants",
-      growth: accountantData.joinedThisWeek > 0 ? `+${accountantData.joinedThisWeek}` : "0",
-      isPositive: accountantData.joinedThisWeek > 0,
-    },
-  ]
-
-  return (
-    <div className={styles.statsGrid}>
-      {statsData.map((stat, index) => (
-        <div key={stat.title} className={styles.statsCard}>
-          <div className={styles.statsHeader}>
-            <div className={`${styles.statsIcon} ${styles[stat.className]}`}>
-              <stat.icon size={24} />
-            </div>
-          </div>
-          <h2 className={styles.statsNumber}>{stat.total.toLocaleString()}</h2>
-          <p className={styles.statsLabel}>{stat.title}</p>
-          <div className={`${styles.statsGrowth} ${!stat.isPositive ? styles.negative : ""}`}>
-            {stat.isPositive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-            <span>{stat.growth} this week</span>
+  if (error) {
+    return (
+      <>
+        <div className={`${styles.gridCol} ${styles.col4}`}>
+          <div className={styles.dashboardCard}>
+            <div className={styles.errorMessage}>{error}</div>
           </div>
         </div>
-      ))}
-    </div>
+        <div className={`${styles.gridCol} ${styles.col4}`}>
+          <div className={styles.dashboardCard}>
+            <div className={styles.errorMessage}>{error}</div>
+          </div>
+        </div>
+        <div className={`${styles.gridCol} ${styles.col4}`}>
+          <div className={styles.dashboardCard}>
+            <div className={styles.errorMessage}>{error}</div>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <div className={`${styles.gridCol} ${styles.col4}`}>
+        <div className={styles.statsCard}>
+          <div
+            className={`${styles.statsHeader} ${styles.flexContainer} ${styles.alignItemsCenter} ${styles.justifyContentBetween}`}
+          >
+            <h6 className={styles.statsNumber}>{statistics.totalStudents}</h6>
+            <div className={`${styles.statsIcon} ${styles.students}`}>
+              <Users size={24} />
+            </div>
+          </div>
+          <p className={styles.statsLabel}>Total Students</p>
+          <div className={`${styles.statsGrowth} ${styles.flexContainer} ${styles.alignItemsCenter} ${styles.gap1}`}>
+            <span>+1.2%</span>
+            <span>vs last month</span>
+          </div>
+        </div>
+      </div>
+
+      <div className={`${styles.gridCol} ${styles.col4}`}>
+        <div className={styles.statsCard}>
+          <div
+            className={`${styles.statsHeader} ${styles.flexContainer} ${styles.alignItemsCenter} ${styles.justifyContentBetween}`}
+          >
+            <h6 className={styles.statsNumber}>{statistics.totalDoctors}</h6>
+            <div className={`${styles.statsIcon} ${styles.doctors}`}>
+              <Stethoscope size={24} />
+            </div>
+          </div>
+          <p className={styles.statsLabel}>Total Doctors</p>
+          <div className={`${styles.statsGrowth} ${styles.flexContainer} ${styles.alignItemsCenter} ${styles.gap1}`}>
+            <span>+0.8%</span>
+            <span>vs last month</span>
+          </div>
+        </div>
+      </div>
+
+      {/* This card is now always rendered, regardless of isHeadDoctor */}
+      <div className={`${styles.gridCol} ${styles.col4}`}>
+        <div className={styles.statsCard}>
+          <div
+            className={`${styles.statsHeader} ${styles.flexContainer} ${styles.alignItemsCenter} ${styles.justifyContentBetween}`}
+          >
+            <h6 className={styles.statsNumber}>{statistics.totalAccountants}</h6>
+            <div className={`${styles.statsIcon} ${styles.accountants}`}>
+              <Briefcase size={24} />
+            </div>
+          </div>
+          <p className={styles.statsLabel}>Total Accountants</p>
+          <div className={`${styles.statsGrowth} ${styles.flexContainer} ${styles.alignItemsCenter} ${styles.gap1}`}>
+            <span>+0.5%</span>
+            <span>vs last month</span>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
 

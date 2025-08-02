@@ -12,15 +12,15 @@ const HomeComFour = () => {
   const [pendingMoney, setPendingMoney] = useState(0)
   const [totalIncome, setTotalIncome] = useState(0)
   const [series, setSeries] = useState([0, 0])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   const chartOptions = {
-    colors: ["#10b981", "#f59e0b"],
+    colors: ["#2977ba", "#cc2889"], // Updated colors
     labels: ["Net Income", "Pending Money"],
     legend: { show: false },
     chart: {
       type: "donut",
-      height: 250,
+      height: 280,
       fontFamily: "Inter, sans-serif",
     },
     stroke: { width: 0 },
@@ -28,7 +28,7 @@ const HomeComFour = () => {
     plotOptions: {
       pie: {
         donut: {
-          size: "70%",
+          size: "65%", // Adjusted size for visual match
           labels: {
             show: false,
           },
@@ -46,96 +46,125 @@ const HomeComFour = () => {
     },
     responsive: [
       {
-        breakpoint: 480,
+        breakpoint: 1200,
         options: {
-          chart: { width: 200 },
+          chart: { height: 250 },
+          plotOptions: {
+            pie: {
+              donut: { size: "60%" },
+            },
+          },
+        },
+      },
+      {
+        breakpoint: 768,
+        options: {
+          chart: { height: 220 },
         },
       },
     ],
   }
 
-  // useEffect(() => {
-  //   const fetchIncomeData = async () => {
-  //     try {
-  //       const { data } = await axiosInstance.get("/authentication/income-summary")
-  //       setNetIncome(data.netIncome)
-  //       setPendingMoney(data.pendingMoney)
-  //       setTotalIncome(data.totalIncome)
-  //       setSeries([data.netIncome, data.pendingMoney])
-  //     } catch (error) {
-  //       console.error("Error fetching income data:", error)
-  //     } finally {
-  //       setLoading(false)
-  //     }
-  //   }
+  useEffect(() => {
+    const fetchIncomeData = async () => {
+      try {
+        setLoading(true)
+        const { data } = await axiosInstance.get("/authentication/income-summary")
 
-  //   fetchIncomeData()
-  // }, [])
+        setNetIncome(data.netIncome)
+        setPendingMoney(data.pendingMoney)
+        setTotalIncome(data.totalIncome)
+        setSeries([data.netIncome, data.pendingMoney])
+
+        console.log("Income summary loaded:", data)
+      } catch (error) {
+        console.error("Error fetching income data:", error)
+        // Set default values in case of error
+        setNetIncome(0)
+        setPendingMoney(0)
+        setTotalIncome(0)
+        setSeries([0, 0])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchIncomeData()
+  }, [])
 
   if (loading) {
     return (
-      <div className="col-xl-8 col-lg-6">
-        <div className={styles.dashboardCard}>
-          <div className={styles.loadingSpinner}>
-            <div className={styles.spinner}></div>
-            <span className={styles.loadingText}>Loading income data...</span>
-          </div>
+      <div className={styles.dashboardCard}>
+        <div className={styles.loadingSpinner}>
+          <div className={styles.spinner}></div>
+          <span className={styles.loadingText}>Loading income data...</span>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="col-xl-8 col-lg-6">
-      <div className={styles.dashboardCard}>
-        <div className={styles.cardHeader}>
-          <h6 className={styles.cardTitle}>
-            <PieChart size={20} />
-            Total Income
-          </h6>
-          <select
-            className="form-select form-select-sm"
-            style={{
-              width: "auto",
-              border: "1px solid #e2e8f0",
-              borderRadius: "8px",
-              fontSize: "0.875rem",
-              padding: "0.375rem 0.75rem",
-            }}
-          >
-            <option>This Month</option>
-          </select>
-        </div>
-        <div className={styles.cardBody}>
-          <div className="row align-items-center">
-            <div className="col-lg-6">
-              <div className={styles.chartContainer} style={{ position: "relative", height: "250px" }}>
-                <ReactApexChart options={chartOptions} series={series} type="donut" height={250} />
-                <div className={styles.incomeCenter}>
-                  <div className={styles.incomeCenterLabel}>Total Income</div>
-                  <h6 className={styles.incomeCenterValue}>{totalIncome.toLocaleString()} AED</h6>
-                </div>
+    <div className={styles.dashboardCard}>
+      <div className={styles.cardHeader}>
+        <h6 className={styles.cardTitle}>
+          <PieChart size={20} />
+          Total Income
+        </h6>
+        <select className={styles.customSelect}>
+          <option>This Month</option>
+        </select>
+      </div>
+      <div className={styles.cardBody}>
+        <div className={`${styles.gridRow} ${styles.alignItemsCenter} ${styles.gap3}`}>
+          {/* Chart Column */}
+          <div className={`${styles.gridCol} ${styles.colLg6} ${styles.colMd5} ${styles.col12}`}>
+            <div className={styles.chartContainer} style={{ position: "relative", height: "280px" }}>
+              <ReactApexChart options={chartOptions} series={series} type="donut" height={280} />
+              <div className={styles.incomeCenter}>
+                <div className={styles.incomeCenterLabel}>Total Income</div>
+                <h6 className={styles.incomeCenterValue}>{totalIncome.toLocaleString()} AED</h6>
               </div>
             </div>
-            <div className="col-lg-6">
-              <div className={styles.chartLegend} style={{ flexDirection: "column", alignItems: "flex-start" }}>
-                <div className={styles.legendItem} style={{ marginBottom: "1rem" }}>
-                  <span className={styles.legendDot} style={{ backgroundColor: "#10b981" }}></span>
-                  <div>
-                    <div style={{ fontSize: "0.75rem", color: "#64748b" }}>Net Income</div>
-                    <div className={`${styles.legendValue} ${styles.textSuccess}`} style={{ fontSize: "1.125rem" }}>
-                      {netIncome.toLocaleString()} AED
-                    </div>
-                  </div>
+          </div>
+
+          {/* Legend Column */}
+          <div className={`${styles.gridCol} ${styles.colLg6} ${styles.colMd7} ${styles.col12}`}>
+            <div className={`${styles.flexContainer} ${styles.flexColumn} ${styles.gap3}`}>
+              <div className={`${styles.homeComFourLegendItem} ${styles.homeComFourLegendItem.blue}`}>
+                <div
+                  className={`${styles.flexContainer} ${styles.alignItemsCenter} ${styles.gap2} ${styles.marginBottom4}`}
+                >
+                  <span className={styles.legendDot} style={{ backgroundColor: "#2977ba" }}></span>
+                  <span className={styles.homeComFourLegendItemTextBlue}>Net Income</span>
                 </div>
-                <div className={styles.legendItem}>
-                  <span className={styles.legendDot} style={{ backgroundColor: "#f59e0b" }}></span>
-                  <div>
-                    <div style={{ fontSize: "0.75rem", color: "#64748b" }}>Pending Money</div>
-                    <div className={`${styles.legendValue} ${styles.textWarning}`} style={{ fontSize: "1.125rem" }}>
-                      {pendingMoney.toLocaleString()} AED
-                    </div>
-                  </div>
+                <div
+                  className={`${styles.legendValue} ${styles.textPrimary}`}
+                  style={{
+                    fontSize: "1.5rem",
+                    fontWeight: "700",
+                    color: "#2977ba",
+                  }}
+                >
+                  {netIncome.toLocaleString()} AED
+                </div>
+              </div>
+
+              <div className={`${styles.homeComFourLegendItem} ${styles.homeComFourLegendItem.pink}`}>
+                <div
+                  className={`${styles.flexContainer} ${styles.alignItemsCenter} ${styles.gap2} ${styles.marginBottom4}`}
+                >
+                  <span className={styles.legendDot} style={{ backgroundColor: "#cc2889" }}></span>
+                  <span className={styles.homeComFourLegendItemTextPink}>Pending Money</span>
+                </div>
+                <div
+                  className={`${styles.legendValue} ${styles.textWarning}`}
+                  style={{
+                    fontSize: "1.5rem",
+                    fontWeight: "700",
+                    color: "#cc2889",
+                  }}
+                >
+                  {pendingMoney.toLocaleString()} AED
                 </div>
               </div>
             </div>

@@ -1,16 +1,42 @@
 /* Modern Dashboard Design System */
 .dashboardContainer {
   min-height: 100vh;
+  padding: 1.5rem; /* Equivalent to Bootstrap's default container padding */
+  position: relative; /* Needed for background logo positioning */
+  overflow: hidden; /* Ensure background logo doesn't cause scroll */
+}
+
+/* Background Logo */
+.backgroundLogo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10rem; /* Large font size for the logo */
+  font-weight: 900; /* Extra bold */
+  color: rgba(204, 40, 137, 0.05); /* Faded pink/purple color */
+  white-space: nowrap;
+  pointer-events: none; /* Allow clicks to pass through */
+  z-index: 0; /* Ensure it's in the background */
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.1; /* More subtle opacity */
+  text-align: center;
+  line-height: 1;
 }
 
 /* Unified Card Design */
 .dashboardCard {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
   border-radius: 16px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out; /* Added transition for smooth effects */
   overflow: hidden;
+  height: 100%;
+  backdrop-filter: blur(10px); /* Frosted glass effect */
+  position: relative; /* Ensure z-index works for content */
+  z-index: 1; /* Ensure cards are above background logo */
 }
 
 .dashboardCard:hover {
@@ -43,14 +69,14 @@
 
 /* Statistics Cards - Clean and Modern */
 .statsCard {
-  background: white;
+  background: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
   border-radius: 1.5rem; /* Larger border-radius */
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* Stronger shadow */
   overflow: hidden;
   backdrop-filter: blur(10px); /* Frosted glass effect */
   border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
   padding: 1.5rem;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out; /* Added transition for smooth effects */
   position: relative;
 }
 
@@ -78,15 +104,15 @@
 }
 
 .statsIcon.students {
-  background: linear-gradient(135deg, #2977ba, #3f3f87);
+  background: linear-gradient(135deg, #cc2889, #2977ba); /* Updated colors */
 }
 
 .statsIcon.doctors {
-  background: linear-gradient(135deg, #cc2889, #2977ba);
+  background: linear-gradient(135deg, #cc2889, #2977ba); /* Updated colors */
 }
 
 .statsIcon.accountants {
-  background: linear-gradient(135deg, #3f3f87, #cc2889);
+  background: linear-gradient(135deg, #3f3f87, #cc2889); /* Updated colors */
 }
 
 .statsNumber {
@@ -109,7 +135,7 @@
   align-items: center;
   gap: 0.375rem;
   font-size: 0.75rem;
-  color: #10b981;
+  color: #2977ba; /* Updated color */
   font-weight: 500;
   margin-top: 0.75rem;
 }
@@ -140,7 +166,7 @@
   gap: 1.5rem;
   margin-bottom: 1rem;
   padding: 1rem;
-  background: #f8fafc;
+  background: #e0f2f7; /* Light blue background */
   border-radius: 12px;
 }
 
@@ -150,6 +176,12 @@
   gap: 0.5rem;
   font-size: 0.875rem;
   color: #475569;
+  transition: all 0.2s ease-in-out; /* Added transition for smooth effects */
+}
+
+.legendItem:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .legendDot {
@@ -163,11 +195,6 @@
   font-weight: 600;
   color: #1e293b;
   margin-left: 0.25rem;
-}
-
-/* Earning Card */
-.earningCard {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
 }
 
 /* Income Chart Center Text */
@@ -193,7 +220,7 @@
   margin: 0;
 }
 
-/* Doctors List */
+/* Doctors List - Enhanced */
 .doctorsList {
   display: flex;
   flex-direction: column;
@@ -208,30 +235,38 @@
   background: #f8fafc;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out; /* Added transition for smooth effects */
 }
 
 .doctorItem:hover {
   background: #f1f5f9;
   transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .doctorInfo {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex: 1;
 }
 
 .doctorAvatar {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 10px; /* Adjusted for more rounded rectangle */
+  background: linear-gradient(135deg, #2977ba, #1a4b6e); /* Updated colors */
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 18px;
+  flex-shrink: 0;
+}
+
+.doctorDetails {
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
 }
 
 .doctorDetails h6 {
@@ -239,31 +274,29 @@
   font-weight: 600;
   color: #1e293b;
   margin: 0 0 0.125rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .doctorDetails span {
   font-size: 0.75rem;
   color: #64748b;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Status Badges - Consistent design */
-.statusBadge {
-  padding: 0.375rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: capitalize;
-  border: none;
-}
-
-.statusBadge.available {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.statusBadge.unavailable {
-  background: #fee2e2;
-  color: #991b1b;
+/* Department Tags */
+.departmentTag {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  background-color: #f1f5f9;
+  color: #64748b;
+  border-radius: 8px;
+  margin-top: 4px;
+  white-space: nowrap;
 }
 
 /* Appointments Table */
@@ -305,13 +338,13 @@
 }
 
 .appointmentStatus.completed {
-  background: #dcfce7;
-  color: #166534;
+  background: #fce4f0; /* Light pink */
+  color: #8a1c5f; /* Darker pink */
 }
 
 .appointmentStatus.pending {
-  background: #fef3c7;
-  color: #92400e;
+  background: #e6e6f2; /* Light purple */
+  color: #2a2a5c; /* Darker purple */
 }
 
 /* Gender Chart */
@@ -329,7 +362,7 @@
   flex-direction: column;
   gap: 0.75rem;
   padding: 1rem;
-  background: #f8fafc;
+  background: #e0f2f7; /* Light blue background */
   border-radius: 12px;
   margin-left: 1rem;
 }
@@ -362,7 +395,7 @@
   border: 3px solid #e5e7eb;
   border-top: 3px solid #3f3f87; /* Color from user-management.module.css */
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 1s linear infinite; /* Ensure animation is smooth */
 }
 
 @keyframes spin {
@@ -393,29 +426,373 @@
 
 /* Utility Classes */
 .textPrimary {
-  color: #3b82f6 !important;
+  color: #2977ba !important; /* Updated color */
 }
+
 .textSuccess {
-  color: #10b981 !important;
+  color: #2977ba !important; /* Updated color */
 }
+
 .textWarning {
-  color: #f59e0b !important;
+  color: #cc2889 !important; /* Updated color */
 }
+
 .textDanger {
   color: #ef4444 !important;
 }
 
-.statsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+/* --- NEW CSS MODULE CLASSES FOR LAYOUT AND UTILITIES --- */
+
+/* Grid/Row/Column System - Replicating Bootstrap's .row and .col- classes */
+.gridRow {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -0.75rem; /* Half of gap-4 (1.5rem) */
+  margin-right: -0.75rem; /* Half of gap-4 (1.5rem) */
 }
 
-/* Responsive Design */
+/* New utility to prevent wrapping */
+.flexNoWrap {
+  flex-wrap: nowrap;
+}
+
+.gridCol {
+  padding-left: 0.75rem; /* Half of gap-4 */
+  padding-right: 0.75rem; /* Half of gap-4 */
+  flex-grow: 1;
+  flex-shrink: 0;
+  max-width: 100%;
+  position: relative; /* Ensure proper positioning for children */
+}
+
+/* Column Widths (based on Bootstrap's 12-column grid) */
+.col12 {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+.col4 {
+  flex: 0 0 33.333333%;
+  max-width: 28.9333333%;
+}
+
+/* Responsive Column Widths - Removed specific overrides for HomeComOne and HomeComSix summary boxes */
+/* These media queries are kept for other components that might need them,
+   but HomeComOne and HomeComSix will now explicitly use .col4 */
+@media (min-width: 576px) {
+  /* sm */
+  .colSm6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+@media (min-width: 768px) {
+  /* md */
+  .colMd12 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .colMd7 {
+    flex: 0 0 58.333333%;
+    max-width: 58.333333%;
+  }
+  .colMd5 {
+    flex: 0 0 41.666667%;
+    max-width: 41.666667%;
+  }
+}
+
+@media (min-width: 992px) {
+  /* lg */
+  .colLg6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+@media (min-width: 1200px) {
+  /* xl */
+  .colXl4 {
+    flex: 0 0 33.333333%;
+    max-width: 29.333333%;
+  }
+  .colXl5 {
+    flex: 0 0 41.666667%;
+    max-width: 41.666667%;
+  }
+  .colXl6 {
+    /* For HeadDoctor case */
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+  .colXl7 {
+    flex: 0 0 58.333333%;
+    max-width: 58.333333%;
+  }
+}
+
+@media (min-width: 1400px) {
+  /* xxl */
+  .colXxl12 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+/* Flexbox Utilities - Replicating Bootstrap's d-flex, flex-*, align-items-*, justify-content-* */
+.flexContainer {
+  display: flex;
+}
+
+.flexColumn {
+  flex-direction: column;
+}
+
+.flexWrap {
+  flex-wrap: wrap;
+}
+
+.alignItemsCenter {
+  align-items: center;
+}
+
+.alignItemsEnd {
+  align-items: flex-end;
+}
+
+.justifyContentBetween {
+  justify-content: space-between;
+}
+
+.justifyContentCenter {
+  justify-content: center;
+}
+
+/* Gap Utilities - Replicating Bootstrap's g-* */
+.gap1 {
+  gap: 0.25rem; /* 4px */
+}
+.gap2 {
+  gap: 0.5rem; /* 8px */
+}
+.gap3 {
+  gap: 1rem; /* 16px */
+}
+.gap4 {
+  gap: 1.5rem; /* 24px */
+}
+
+/* Spacing Utilities - Replicating Bootstrap's m*, p* */
+.marginBottom4 {
+  margin-bottom: 1.5rem; /* Equivalent to Bootstrap mb-4 */
+}
+
+.padding2 {
+  padding: 0.5rem; /* Equivalent to Bootstrap p-2 */
+}
+.padding4 {
+  padding: 1rem; /* Equivalent to Bootstrap p-4 */
+}
+.paddingY4 {
+  padding-top: 1rem;
+  padding-bottom: 1rem; /* Equivalent to Bootstrap py-4 */
+}
+.paddingX3 {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem; /* Equivalent to Bootstrap px-3 */
+}
+.paddingBottom1 {
+  padding-bottom: 0.25rem; /* Equivalent to Bootstrap pb-1 */
+}
+
+/* Text Alignment */
+.textAlignC {
+  text-align: center;
+}
+
+/* Custom Form Select - Replicating Bootstrap's form-select */
+.customSelect {
+  width: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
+  background-color: #ffffff; /* Ensure it has a background */
+  color: #374151;
+  appearance: none; /* Remove default arrow */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23333' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e"); /* Custom arrow */
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.65em auto;
+}
+
+/* Table Responsiveness - Replicating Bootstrap's table-responsive */
+.tableResponsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* For smoother scrolling on iOS */
+}
+
+/* Specific styles for HomeComFour legend items */
+.homeComFourLegendItem {
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid; /* Will be overridden by specific colors */
+  transition: all 0.2s ease-in-out; /* Added transition for smooth effects */
+}
+
+.homeComFourLegendItem.blue {
+  background-color: #e0f2f7; /* Light blue */
+  border-color: #b3d9e6; /* Light blue border */
+}
+
+.homeComFourLegendItem.pink {
+  background-color: #fce4f0; /* Light pink */
+  border-color: #f7b3d1; /* Light pink border */
+}
+
+.homeComFourLegendItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.homeComFourLegendItemTextBlue {
+  font-size: 0.875rem;
+  color: #1a4b6e; /* Darker blue text */
+  font-weight: 500;
+}
+
+.homeComFourLegendItemTextPink {
+  font-size: 0.875rem;
+  color: #8a1c5f; /* Darker pink text */
+  font-weight: 500;
+}
+
+/* Specific styles for HomeComSix summary boxes */
+.homeComSixSummaryBox {
+  padding: 0.5rem;
+  border-radius: 8px;
+  text-align: center;
+  transition: all 0.2s ease-in-out; /* Added transition for smooth effects */
+}
+
+.homeComSixSummaryBox.blue {
+  background-color: #e0f2f7; /* Light blue */
+}
+
+.homeComSixSummaryBox.pink {
+  background-color: #fce4f0; /* Light pink */
+}
+
+.homeComSixSummaryBox.purple {
+  background-color: #e6e6f2; /* Light purple */
+}
+
+.homeComSixSummaryBox:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.homeComSixSummaryValueBlue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a4b6e; /* Darker blue */
+}
+
+.homeComSixSummaryValuePink {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #8a1c5f; /* Darker pink */
+}
+
+.homeComSixSummaryValuePurple {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2a2a5c; /* Darker purple */
+}
+
+.homeComSixSummaryLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.homeComSixSummaryLabelBlue {
+  color: #1a4b6e; /* Darker blue */
+}
+
+.homeComSixSummaryLabelPink {
+  color: #8a1c5f; /* Darker pink */
+}
+
+.homeComSixSummaryLabelPurple {
+  color: #2a2a5c; /* Darker purple */
+}
+
+/* Responsive Design - Replicating Bootstrap's breakpoints and adjustments */
+@media (max-width: 1200px) {
+  .chartContainer {
+    height: 250px !important;
+  }
+
+  .incomeCenter .incomeCenterValue {
+    font-size: 1.25rem;
+  }
+
+  .doctorItem {
+    padding: 0.875rem;
+  }
+
+  .legendValue {
+    font-size: 1.25rem !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .chartContainer {
+    height: 220px !important;
+  }
+
+  .doctorsList {
+    gap: 0.5rem;
+  }
+
+  .doctorItem {
+    padding: 0.75rem;
+  }
+
+  .cardBody {
+    padding: 1.25rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .chartContainer {
+    height: 200px !important;
+    margin-bottom: 1rem;
+  }
+
+  .incomeCenter .incomeCenterValue {
+    font-size: 1.125rem;
+  }
+
+  .incomeCenter .incomeCenterLabel {
+    font-size: 0.75rem;
+  }
+
+  .legendValue {
+    font-size: 1.125rem !important;
+  }
+
+  .doctorDetails h6 {
+    font-size: 0.875rem; /* Reverted to original size for md breakpoint */
+  }
+
+  .doctorDetails span {
+    font-size: 0.75rem; /* Reverted to original size for md breakpoint */
+  }
+
   .dashboardContainer {
-    padding: 1rem;
+    padding: 1rem; /* Adjusted padding for smaller screens */
   }
 
   .cardHeader {
@@ -438,8 +815,15 @@
   }
 
   .statsGrid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
+    grid-template-columns: 1fr; /* Stack on small screens */
+  }
+
+  .doctorItem {
+    padding: 0.75rem;
+  }
+
+  .backgroundLogo {
+    font-size: 6rem; /* Adjust for smaller screens */
   }
 }
 
@@ -458,5 +842,19 @@
 
   .statsGrid {
     grid-template-columns: 1fr; /* Stack on small screens */
+  }
+
+  .doctorItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .doctorInfo {
+    width: 100%;
+  }
+
+  .backgroundLogo {
+    font-size: 4rem; /* Further adjust for very small screens */
   }
 }

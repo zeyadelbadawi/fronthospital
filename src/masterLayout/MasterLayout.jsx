@@ -3,31 +3,34 @@ import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import axiosInstance from "../helper/axiosSetup"
-import { Icon } from "@iconify/react"
+import {
+  X,
+  ArrowRight,
+  Menu,
+  Bell,
+  User,
+  Home,
+  Activity,
+  FileText,
+  GraduationCap,
+  UserPlus,
+  Calendar,
+  CalendarDays,
+  Users,
+  Stethoscope,
+  Calculator,
+  Building,
+  CreditCard,
+  Receipt,
+  AlertTriangle,
+  Heart,
+  DoorOpen,
+} from "lucide-react"
 import useSocket from "@/hooks/useSocket"
 import { formatDistanceToNow } from "date-fns"
 import styles from "./master-layout.module.css"
-import Cookies from "js-cookie" // Import js-cookie
-import {
-  Search,
-  Calendar,
-  Clock,
-  Check,
-  User,
-  CalendarDays,
-  Filter,
-  Users,
-  Eye,
-  Trash2,
-  X,
-  AlertCircle,
-  CheckCircle,
-  XCircle,
-  CalendarIcon,
-  ClockIcon,
-  Phone,
-  Mail,
-} from "lucide-react"
+import Cookies from "js-cookie"
+import Image from "next/image"
 
 const MasterLayout = ({ children }) => {
   const [user, setUser] = useState(null)
@@ -41,11 +44,15 @@ const MasterLayout = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const location = usePathname()
 
+  // Header scroll state
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
+
   const handleLogout = async () => {
     try {
       await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}/authentication/logout`)
       localStorage.removeItem("token")
-      Cookies.remove("refreshToken") // Clear refresh token cookie
+      Cookies.remove("refreshToken")
       setUser(null)
       setLoading(true)
       window.location.href = "/sign-in"
@@ -59,11 +66,38 @@ const MasterLayout = ({ children }) => {
   const [count, setCount] = useState(0)
 
   // Call useSocket directly at the top level of the component
-  // This adheres to the Rules of Hooks
   useSocket(user?.id, ({ count, notifications }) => {
     setNotifications(notifications)
     setCount(count)
   })
+
+  // Header scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+
+      // Show header when at top of page
+      if (currentScrollY === 0) {
+        setIsHeaderVisible(true)
+      }
+      // Hide header when scrolling down, show when scrolling up
+      else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsHeaderVisible(false)
+      } else if (currentScrollY < lastScrollY) {
+        setIsHeaderVisible(true)
+      }
+
+      setLastScrollY(currentScrollY)
+    }
+
+    // Add scroll event listener
+    window.addEventListener("scroll", handleScroll, { passive: true })
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
+    }
+  }, [lastScrollY])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -160,7 +194,7 @@ const MasterLayout = ({ children }) => {
         const userData = response.data
         setUser(userData)
         setUserRole(userData.role)
-        setUserName(userData.name)
+        setUserName(userData.username)
         setLoading(false)
       } catch (error) {
         console.error("Error fetching user data:", error)
@@ -186,7 +220,7 @@ const MasterLayout = ({ children }) => {
             const userData = retryResponse.data
             setUser(userData)
             setUserRole(userData.role)
-            setUserName(userData.name)
+            setUserName(userData.username)
           } catch (refreshError) {
             console.error("Refresh token failed:", refreshError)
             window.location.href = "/sign-in"
@@ -246,6 +280,9 @@ const MasterLayout = ({ children }) => {
     setIsNotificationOpen(false)
   }
 
+  // Helper function to check if user is HeadDoctor
+  const isHeadDoctor = userRole === "HeadDoctor"
+
   return (
     <section className={mobileMenu ? `${styles.overlay} ${styles.active}` : styles.overlay}>
       {/* Sidebar */}
@@ -259,12 +296,19 @@ const MasterLayout = ({ children }) => {
         }
       >
         <button onClick={mobileMenuControl} type="button" className={styles.sidebarCloseBtn}>
-          <Icon icon="radix-icons:cross-2" />
+          <X />
         </button>
         <div>
           <Link href="/" className={styles.sidebarLogo}>
-            <div className={styles.logoIcon}>
-              <Icon icon="medical-icon:i-rehabilitation" />
+            <div className={styles.logoImageContainer}>
+              <Image
+                src="/images/rukn-logo.png"
+                alt="Rukn Alwatikon Rehabilitation Center"
+                width={60}
+                height={60}
+                className={styles.logoImage}
+                priority
+              />
             </div>
             <div className={styles.logoText}>
               <div className={styles.logoTitle}>Rukn Alwatikon</div>
@@ -277,39 +321,42 @@ const MasterLayout = ({ children }) => {
             <li className={styles.sidebarMenuGroupTitle}>Home</li>
             <li>
               <Link href="/" className={pathname === "/" ? styles.activePage : ""}>
-                <Icon icon="solar:home-smile-angle-outline" className={styles.menuIcon} />
+                <Home className={styles.menuIcon} />
                 <span>Statistics</span>
               </Link>
             </li>
             <li className={styles.sidebarMenuGroupTitle}>All Programs</li>
             <li>
               <Link href="/full-program" className={pathname === "/full-program" ? styles.activePage : ""}>
-                <Icon icon="healthicons:rehabilitation" className={styles.menuIcon} />
+                <Activity className={styles.menuIcon} />
                 <span>Full Programs</span>
               </Link>
             </li>
             <li>
               <Link href="/single-session" className={pathname === "/single-session" ? styles.activePage : ""}>
-                <Icon icon="healthicons:health-worker-form" className={styles.menuIcon} />
+                <FileText className={styles.menuIcon} />
                 <span>Single Programs</span>
               </Link>
             </li>
             <li>
               <Link href="/school" className={pathname === "/school" ? styles.activePage : ""}>
-                <Icon icon="healthicons:school" className={styles.menuIcon} />
+                <GraduationCap className={styles.menuIcon} />
                 <span>School Evaluations</span>
               </Link>
             </li>
             <li>
-              <Link href="/Admin-Book-Appointment" className={pathname === "/Admin-Book-Appointment" ? styles.activePage : ""}>
-                <Icon icon="healthicons:ui-user-profile" className={styles.menuIcon} />
+              <Link
+                href="/Admin-Book-Appointment"
+                className={pathname === "/Admin-Book-Appointment" ? styles.activePage : ""}
+              >
+                <UserPlus className={styles.menuIcon} />
                 <span>Book New Appointment</span>
               </Link>
             </li>
             <li className={styles.sidebarMenuGroupTitle}>Full Program Schedule</li>
             <li>
               <Link href="/calendar-main" className={pathname === "/calendar-main" ? styles.activePage : ""}>
-                <Icon icon="solar:calendar-outline" className={styles.menuIcon} />
+                <Calendar className={styles.menuIcon} />
                 <span>Show Schedule</span>
               </Link>
             </li>
@@ -318,72 +365,105 @@ const MasterLayout = ({ children }) => {
                 href="/full-program-appointments"
                 className={pathname === "/full-program-appointments" ? styles.activePage : ""}
               >
-                <Icon icon="healthicons:appointments" className={styles.menuIcon} />
+                <CalendarDays className={styles.menuIcon} />
                 <span>Update Schedule</span>
               </Link>
             </li>
             <li className={styles.sidebarMenuGroupTitle}>All Users</li>
             <li>
               <Link href="/student/list" className={pathname === "/student/list" ? styles.activePage : ""}>
-                <Icon icon="healthicons:group-discussion-meetingx3" className={styles.menuIcon} />
+                <Users className={styles.menuIcon} />
                 <span>All Students</span>
               </Link>
             </li>
             <li>
               <Link href="/doctor/list" className={pathname === "/doctor/list" ? styles.activePage : ""}>
-                <Icon icon="healthicons:health-worker" className={styles.menuIcon} />
+                <Stethoscope className={styles.menuIcon} />
                 <span>All Doctors</span>
               </Link>
             </li>
-            <li>
-              <Link href="/accountant/list" className={pathname === "/accountant/list" ? styles.activePage : ""}>
-                <Icon icon="healthicons:money-bag" className={styles.menuIcon} />
-                <span>All Accountants</span>
-              </Link>
-            </li>
-            <li>
-              <Link href="/department-list" className={pathname === "/department-list" ? styles.activePage : ""}>
-                <Icon icon="healthicons:hospital" className={styles.menuIcon} />
-                <span>All Departments</span>
-              </Link>
-            </li>
-            <li className={styles.sidebarMenuGroupTitle}>Payment Reports</li>
-            <li>
-              <Link
-                href="/Payment-Transactions"
-                className={pathname === "/Payment-Transactions" ? styles.activePage : ""}
-              >
-                <Icon icon="healthicons:money-bag" className={styles.menuIcon} />
-                <span>Payment Management System</span>
-              </Link>
-            </li>
-            <li>
-              <Link href="/table-data" className={pathname === "/table-data" ? styles.activePage : ""}>
-                <Icon icon="healthicons:credit-card" className={styles.menuIcon} />
-                <span>Checks Management System</span>
-              </Link>
-            </li>
+            {/* Hide "All Accountants" for HeadDoctor */}
+            {!isHeadDoctor && (
+              <li>
+                <Link href="/accountant/list" className={pathname === "/accountant/list" ? styles.activePage : ""}>
+                  <Calculator className={styles.menuIcon} />
+                  <span>All Accountants</span>
+                </Link>
+              </li>
+            )}
+            {/* Hide "All Departments" for HeadDoctor */}
+            {!isHeadDoctor && (
+              <li>
+                <Link href="/department-list" className={pathname === "/department-list" ? styles.activePage : ""}>
+                  <Building className={styles.menuIcon} />
+                  <span>All Departments</span>
+                </Link>
+              </li>
+            )}
+            {/* Hide Payment Reports section for HeadDoctor */}
+            {!isHeadDoctor && (
+              <>
+                <li className={styles.sidebarMenuGroupTitle}>Payment Reports</li>
+                <li>
+                  <Link
+                    href="/Payment-Transactions"
+                    className={pathname === "/Payment-Transactions" ? styles.activePage : ""}
+                  >
+                    <CreditCard className={styles.menuIcon} />
+                    <span>Payment Management System</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/table-data" className={pathname === "/table-data" ? styles.activePage : ""}>
+                    <Receipt className={styles.menuIcon} />
+                    <span>Checks Management System</span>
+                  </Link>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       </aside>
 
       <main className={sidebarActive ? `${styles.dashboardMain} ${styles.active}` : styles.dashboardMain}>
-        <div className={styles.navbarHeader}>
+        <div
+          className={`${styles.navbarHeader} ${isHeaderVisible ? styles.headerVisible : styles.headerHidden} ${sidebarActive ? styles.navbarHeaderActive : ""}`}
+        >
           <div className={`${styles.row} ${styles.alignItemsCenter} ${styles.justifyContentBetween}`}>
             <div className={styles.colAuto}>
               <div className={`${styles.dFlex} ${styles.flexWrap} ${styles.alignItemsCenter} ${styles.gap4}`}>
                 <button type="button" className={styles.sidebarToggle} onClick={sidebarControl}>
                   {sidebarActive ? (
-                    <Icon icon="iconoir:arrow-right" className={`${styles.text2xl}`} />
+                    <ArrowRight className={`${styles.text2xl}`} />
                   ) : (
-                    <Icon icon="heroicons:bars-3-solid" className={`${styles.text2xl}`} />
+                    <Menu className={`${styles.text2xl}`} />
                   )}
                 </button>
                 <button onClick={mobileMenuControl} type="button" className={styles.sidebarMobileToggle}>
-                  <Icon icon="heroicons:bars-3-solid" className={styles.textXl} />
+                  <Menu className={styles.textXl} />
                 </button>
+
+                {/* Add Header Logo */}
+                
               </div>
             </div>
+
+            {/* Centered Header Logo */}
+            <div className={styles.headerLogoCenter}>
+              <Link href="/" className={styles.headerLogo}>
+                <div className={styles.headerLogoImageContainer}>
+                  <Image
+                    src="/images/rukn-logo.png"
+                    alt="Rukn Alwatikon Rehabilitation Center"
+                    width={50}
+                    height={50}
+                    className={styles.headerLogoImage}
+                    priority
+                  />
+                </div>
+              </Link>
+            </div>
+
             <div className={styles.colAuto}>
               <div className={`${styles.dFlex} ${styles.flexWrap} ${styles.alignItemsCenter} ${styles.gap3}`}>
                 {/* Notification Dropdown */}
@@ -394,7 +474,7 @@ const MasterLayout = ({ children }) => {
                     onClick={toggleNotifications}
                     title="Notifications"
                   >
-                    <Icon icon="healthicons:alert" className={`${styles.textPrimaryLight} ${styles.textXl}`} />
+                    <Bell className={`${styles.textPrimaryLight} ${styles.textXl}`} />
                     {count > 0 && (
                       <span className={styles.notificationBadge}>
                         {count > 10 ? "10+" : count}
@@ -427,7 +507,7 @@ const MasterLayout = ({ children }) => {
                           >
                             <div className={styles.notificationContent}>
                               <span className={`${styles.positionRelative} ${styles.notificationIcon}`}>
-                                <Icon icon="healthicons:health-alt" className={styles.textXxl} />
+                                <Heart className={styles.textXxl} />
                                 {!item.isRead && <span className={styles.unreadDot} />}
                               </span>
                               <div className={styles.notificationText}>
@@ -447,7 +527,7 @@ const MasterLayout = ({ children }) => {
                       ) : (
                         <div className={`${styles.notificationItem} ${styles.textSecondaryLight}`}>
                           <div className={styles.notificationContent}>
-                            <Icon icon="healthicons:alert-triangle" className={styles.textXl} />
+                            <AlertTriangle className={styles.textXl} />
                             <span>No notifications available</span>
                           </div>
                         </div>
@@ -464,10 +544,7 @@ const MasterLayout = ({ children }) => {
                     onClick={toggleProfile}
                     title="Profile"
                   >
-                    <Icon
-                      icon="healthicons:ui-user-profile"
-                      className={`${styles.w40px} ${styles.h40px} ${styles.textPrimaryLight}`}
-                    />
+                    <User className={`${styles.w40px} ${styles.h40px} ${styles.textPrimaryLight}`} />
                   </button>
                   <div
                     className={`${styles.dropdownMenu} ${styles.dropdownMenuSm} ${isProfileOpen ? styles.show : ""}`}
@@ -477,19 +554,19 @@ const MasterLayout = ({ children }) => {
                         <h6 className={`${styles.textLg} ${styles.fwSemibold} ${styles.mb2}`}>
                           {userName || "Loading..."}
                         </h6>
-                        <span className={`${styles.textSecondaryLight} ${styles.fwMedium} ${styles.textSm}`}>
-                          {userRole || "Loading..."}
+                        <span className={` ${styles.fwLarg} ${styles.textMd}`}>
+                          <b className={` ${styles.fwLarg} ${styles.textSm}`}>Role:</b> {userRole || "Loading..."}
                         </span>
                       </div>
                       <button type="button" className={styles.profileCloseBtn} onClick={() => setIsProfileOpen(false)}>
-                        <Icon icon="radix-icons:cross-1" className={styles.textXl} />
+                        <X className={styles.textXl} />
                       </button>
                     </div>
                     <ul className={styles.profileMenuList}>
                       {user && userRole !== "admin" && (
                         <li className={styles.profileMenuItem}>
                           <Link href={profileLink} className={styles.profileMenuLink}>
-                            <Icon icon="healthicons:ui-user-profile" className={styles.textXl} />
+                            <User className={styles.textXl} />
                             My Profile
                           </Link>
                         </li>
@@ -497,12 +574,12 @@ const MasterLayout = ({ children }) => {
                       <li className={styles.profileMenuItem}>
                         {!user ? (
                           <Link href="/sign-in" className={styles.profileMenuLink}>
-                            <Icon icon="healthicons:door-open" className={styles.textXl} />
+                            <DoorOpen className={styles.textXl} />
                             Login
                           </Link>
                         ) : (
                           <Link href="#" className={styles.profileMenuLink} onClick={handleLogout}>
-                            <Icon icon="healthicons:door-open" className={styles.textXl} />
+                            <DoorOpen className={styles.textXl} />
                             Log Out
                           </Link>
                         )}
@@ -522,9 +599,8 @@ const MasterLayout = ({ children }) => {
         <footer className={styles.dFooter}>
           <div className={`${styles.row} ${styles.alignItemsCenter} ${styles.justifyContentBetween}`}>
             <div className={styles.colAuto}>
-              <p className={styles.mb0}>© 2025 Rukn Alwatikon Center for Rehabilitation. All Rights Reserved.</p>
+              <p className={styles.mb0}>© 2025 Rukn Alwatikon Center for Rehabilitation people of determination. All Rights Reserved.</p>
             </div>
-            
           </div>
         </footer>
       </main>

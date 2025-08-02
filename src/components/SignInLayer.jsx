@@ -1,9 +1,10 @@
 "use client"
-import { Icon } from "@iconify/react/dist/iconify.js"
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import axios from "axios"
+import { AlertTriangle, ShieldCheck, Stethoscope, Wallet, Mail, Lock, EyeOff, Eye, LogIn } from "lucide-react"
+import styles from "@/styles/sign-in.module.css" // Import the new CSS Module
 
 const SignInLayer = () => {
   const [email, setEmail] = useState("")
@@ -40,10 +41,12 @@ const SignInLayer = () => {
       // Redirect based on the role
       if (role === "admin") {
         router.push("/")
-      }  else if (role === "doctor") {
+      } else if (role === "doctor") {
         router.push("/doctorportal")
       } else if (role === "accountant") {
         router.push("/accountantportal")
+      } else if (role === "HeadDoctor") {
+        router.push("/")
       }
     } catch (error) {
       console.error(error)
@@ -54,448 +57,132 @@ const SignInLayer = () => {
   }
 
   return (
-    <>
-      <style jsx>{`
-        .auth-container {
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-        }
+    <div className={styles.authContainer}>
+      <div className={styles.authCard}>
+        {/* Brand Section */}
+        <div className={styles.brandSection}>
+          <div className={styles.brandLogo}>
+            <img src="/images/rukn-logo.png" alt="Brand Logo" className={styles.logoImage} />
+          </div>
+          <h3 className={styles.brandTitle}>Rukn Alwatekon Center</h3>
+          <p className={styles.brandSubtitle}>Professional Healthcare Management System</p>
+        </div>
 
-        .auth-card {
-          background: #ffffff;
-          border-radius: 40px;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-          width: 80%;
-          padding: 48px 40px;
-        }
+        {/* Form Section */}
+        <div>
+          <h4 className={styles.formTitle}>Welcome Back</h4>
+          <p className={styles.formSubtitle}>Please sign in to your account</p>
 
-        .brand-section {
-          text-align: center;
-          margin-bottom: 40px;
-        }
-
-        .brand-logo {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 160px;
-          height: 160px;
-          border-radius: 20px;
-          margin-bottom: 24px;
-          box-shadow: 0 8px 20px rgba(30, 64, 175, 0.3);
-        }
-
-        .brand-logo .icon {
-          font-size: 40px;
-          color: white;
-        }
-
-        .brand-title {
-          font-size: 28px;
-          font-weight: 700;
-          color: #454492;
-          margin-bottom: 8px;
-          line-height: 1.2;
-        }
-
-        .brand-subtitle {
-          font-size: 16px;
-          color: #6b7280;
-          margin-bottom: 32px;
-        }
-
-        .form-title {
-          font-size: 24px;
-          font-weight: 600;
-          color: #111827;
-          margin-bottom: 8px;
-          text-align: center;
-        }
-
-        .form-subtitle {
-          font-size: 16px;
-          color: #6b7280;
-          margin-bottom: 32px;
-          text-align: center;
-        }
-
-        .form-group {
-          margin-bottom: 20px;
-        }
-
-        .form-label {
-          display: block;
-          font-size: 14px;
-          font-weight: 500;
-          color: #374151;
-          margin-bottom: 8px;
-        }
-
-        .input-wrapper {
-          position: relative;
-        }
-
-        .input-icon {
-          position: absolute;
-          left: 16px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #6b7280;
-          font-size: 20px;
-          z-index: 2;
-        }
-
-        .form-input {
-          width: 100%;
-          height: 56px;
-          padding: 0 16px 0 52px;
-          border: 2px solid #e5e7eb;
-          border-radius: 12px;
-          background: #f9fafb;
-          font-size: 16px;
-          color: #111827;
-          transition: all 0.3s ease;
-        }
-
-        .form-input:focus {
-          outline: none;
-          border-color: #1e40af;
-          background: #ffffff;
-          box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1);
-        }
-
-        .form-input::placeholder {
-          color: #9ca3af;
-        }
-
-        .password-toggle {
-          position: absolute;
-          right: 16px;
-          top: 50%;
-          transform: translateY(-50%);
-          background: none;
-          border: none;
-          color: #6b7280;
-          cursor: pointer;
-          font-size: 20px;
-          padding: 4px;
-          border-radius: 4px;
-          transition: all 0.2s ease;
-        }
-
-        .password-toggle:hover {
-          color: #1e40af;
-          background: #f3f4f6;
-        }
-
-        .form-select {
-          width: 100%;
-          height: 56px;
-          padding: 0 16px;
-          border: 2px solid #e5e7eb;
-          border-radius: 12px;
-          background: #f9fafb;
-          font-size: 16px;
-          color: #111827;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .form-select:focus {
-          outline: none;
-          border-color: #1e40af;
-          background: #ffffff;
-          box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1);
-        }
-
-        .form-options {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 24px;
-        }
-
-        .checkbox-wrapper {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .form-checkbox {
-          width: 18px;
-          height: 18px;
-          border: 2px solid #d1d5db;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-
-        .form-checkbox:checked {
-          background: #1e40af;
-          border-color: #1e40af;
-        }
-
-        .checkbox-label {
-          font-size: 14px;
-          color: #374151;
-          cursor: pointer;
-        }
-
-        .forgot-link {
-          font-size: 14px;
-          color: #1e40af;
-          text-decoration: none;
-          font-weight: 500;
-          transition: all 0.2s ease;
-        }
-
-        .forgot-link:hover {
-          color: #1d4ed8;
-          text-decoration: underline;
-        }
-
-        .submit-btn {
-          width: 100%;
-          height: 56px;
-          background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-          border: none;
-          border-radius: 12px;
-          color: white;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          margin-bottom: 24px;
-        }
-
-        .submit-btn:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(30, 64, 175, 0.3);
-        }
-
-        .submit-btn:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-          transform: none;
-        }
-
-        .loading-spinner {
-          width: 20px;
-          height: 20px;
-          border: 2px solid rgba(255, 255, 255, 0.3);
-          border-top: 2px solid white;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-
-        .error-message {
-          background: #fef2f2;
-          border: 1px solid #fecaca;
-          color: #dc2626;
-          padding: 12px 16px;
-          border-radius: 8px;
-          font-size: 14px;
-          margin-bottom: 20px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .signup-link {
-          text-align: center;
-          font-size: 14px;
-          color: #6b7280;
-        }
-
-        .signup-link a {
-          color: #1e40af;
-          text-decoration: none;
-          font-weight: 600;
-          transition: all 0.2s ease;
-        }
-
-        .signup-link a:hover {
-          color: #1d4ed8;
-          text-decoration: underline;
-        }
-
-        .role-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 12px;
-          margin-bottom: 20px;
-        }
-
-        .role-option {
-          padding: 16px;
-          border: 2px solid #e5e7eb;
-          border-radius: 12px;
-          background: #f9fafb;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          text-align: center;
-          font-size: 14px;
-          font-weight: 500;
-          color: #374151;
-        }
-
-        .role-option:hover {
-          border-color: #1e40af;
-          background: #eff6ff;
-        }
-
-        .role-option.active {
-          border-color: #1e40af;
-          background: #1e40af;
-          color: white;
-        }
-
-        @media (max-width: 480px) {
-          .auth-card {
-            padding: 32px 24px;
-            margin: 10px;
-          }
-          
-          .brand-title {
-            font-size: 24px;
-          }
-          
-          .form-title {
-            font-size: 20px;
-          }
-          
-          .role-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
-
-      <div className="auth-container">
-        <div className="auth-card">
-          {/* Brand Section */}
-          <div className="brand-section">
-            <div className="brand-logo">
-  <img src="/images/rukn-logo.png" alt="Brand Logo" className="logo-image" />
+          {error && (
+            <div className={styles.errorMessage}>
+              <AlertTriangle size={20} /> {/* Replaced Icon */}
+              {error}
             </div>
-            <h3 className="brand-title">Rukn Alwatekon Center</h3>
-            <p className="brand-subtitle">Professional Healthcare Management System</p>
-          </div>
+          )}
 
-          {/* Form Section */}
-          <div>
-            <h4 className="form-title">Welcome Back</h4>
-            <p className="form-subtitle">Please sign in to your account</p>
+          <form onSubmit={handleSubmit}>
+            {/* Role Selection */}
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Select Your Role</label>
+              <div className={styles.roleGrid}>
+                <div
+                  className={`${styles.roleOption} ${role === "admin" ? styles.active : ""}`}
+                  onClick={() => setRole("admin")}
+                >
+                  <ShieldCheck size={20} style={{ marginBottom: "4px" }} /> {/* Replaced Icon */}
+                  <div>Admin</div>
+                </div>
 
-            {error && (
-              <div className="error-message">
-                <Icon icon="heroicons:exclamation-triangle" />
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit}>
-              {/* Role Selection */}
-              <div className="form-group">
-                <label className="form-label">Select Your Role</label>
-                <div className="role-grid">
-                  <div className={`role-option ${role === "admin" ? "active" : ""}`} onClick={() => setRole("admin")}>
-                    <Icon icon="eos-icons:admin" style={{ fontSize: "20px", marginBottom: "4px" }} />
-                    <div>Admin</div>
-                  </div>
-                
-                  <div className={`role-option ${role === "doctor" ? "active" : ""}`} onClick={() => setRole("doctor")}>
-                    <Icon icon="healthicons:doctor" style={{ fontSize: "20px", marginBottom: "4px" }} />
-                    <div>Doctor</div>
-                  </div>
-                  <div
-                    className={`role-option ${role === "accountant" ? "active" : ""}`}
-                    onClick={() => setRole("accountant")}
-                  >
-                    <Icon icon="mdi:account-cash" style={{ fontSize: "20px", marginBottom: "4px" }} />
-                    <div>Accountant</div>
-                  </div>
+                <div
+                  className={`${styles.roleOption} ${role === "doctor" ? styles.active : ""}`}
+                  onClick={() => setRole("doctor")}
+                >
+                  <Stethoscope size={20} style={{ marginBottom: "4px" }} /> {/* Replaced Icon */}
+                  <div>Doctor</div>
+                </div>
+                <div
+                  className={`${styles.roleOption} ${role === "accountant" ? styles.active : ""}`}
+                  onClick={() => setRole("accountant")}
+                >
+                  <Wallet size={20} style={{ marginBottom: "4px" }} /> {/* Replaced Icon */}
+                  <div>Accountant</div>
+                </div>
+                <div
+                  className={`${styles.roleOption} ${role === "HeadDoctor" ? styles.active : ""}`}
+                  onClick={() => setRole("HeadDoctor")}
+                >
+                  <Stethoscope size={20} style={{ marginBottom: "4px" }} /> {/* Replaced Icon */}
+                  <div>Head Doctor</div>
                 </div>
               </div>
+            </div>
 
-              {/* Email Input */}
-              <div className="form-group">
-                <label className="form-label">Email Address</label>
-                <div className="input-wrapper">
-                  <Icon icon="mage:email" className="input-icon" />
-                  <input
-                    type="email"
-                    className="form-input"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
+            {/* Email Input */}
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Email Address</label>
+              <div className={styles.inputWrapper}>
+                <Mail size={20} className={styles.inputIcon} /> {/* Replaced Icon */}
+                <input
+                  type="email"
+                  className={styles.formInput}
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
+            </div>
 
-              {/* Password Input */}
-              <div className="form-group">
-                <label className="form-label">Password</label>
-                <div className="input-wrapper">
-                  <Icon icon="solar:lock-password-outline" className="input-icon" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    className="form-input"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                  <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
-                    <Icon icon={showPassword ? "heroicons:eye-slash" : "heroicons:eye"} />
-                  </button>
-                </div>
+            {/* Password Input */}
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Password</label>
+              <div className={styles.inputWrapper}>
+                <Lock size={20} className={styles.inputIcon} /> {/* Replaced Icon */}
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className={styles.formInput}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button type="button" className={styles.passwordToggle} onClick={() => setShowPassword(!showPassword)}>
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />} {/* Replaced Icon */}
+                </button>
               </div>
+            </div>
 
-              {/* Form Options */}
-              <div className="form-options">
-                <div className="checkbox-wrapper">
-                  <input type="checkbox" id="remember" className="form-checkbox" />
-                  <label htmlFor="remember" className="checkbox-label">
-                    Remember me
-                  </label>
-                </div>
-                <Link href="#" className="forgot-link">
-                  Forgot Password?
-                </Link>
+            {/* Form Options */}
+            <div className={styles.formOptions}>
+              <div className={styles.checkboxWrapper}>
+                <input type="checkbox" id="remember" className={styles.formCheckbox} />
+                <label htmlFor="remember" className={styles.checkboxLabel}>
+                  Remember me
+                </label>
               </div>
+              <Link href="#" className={styles.forgotLink}>
+                Forgot Password?
+              </Link>
+            </div>
 
-              {/* Submit Button */}
-              <button type="submit" className="submit-btn" disabled={loading}>
-                {loading ? (
-                  <>
-                    <div className="loading-spinner"></div>
-                    Signing In...
-                  </>  
-                ) : (
-                  <>
-                    <Icon icon="heroicons:arrow-right-on-rectangle" />
-                    Sign In
-                  </>
-                )}
-              </button>
-            </form>          
-          </div>
+            {/* Submit Button */}
+            <button type="submit" className={styles.submitBtn} disabled={loading}>
+              {loading ? (
+                <>
+                  <div className={styles.loadingSpinner}></div>
+                  Signing In...
+                </>
+              ) : (
+                <>
+                  <LogIn size={20} /> {/* Replaced Icon */}
+                  Sign In
+                </>
+              )}
+            </button>
+          </form>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

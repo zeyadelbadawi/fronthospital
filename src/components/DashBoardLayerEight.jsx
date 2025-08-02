@@ -1,46 +1,67 @@
 "use client"
-import { useState } from "react"
-import { Download, Plus, RefreshCw, BarChart3 } from "lucide-react"
-import HomeComOne from "./child/HomeComOne";
-import HomeComTo from "./child/HomeComTo";
-import PatientVisitedDepartment from "./child/PatientVisitedbyDepartment";
-import PatientVisitByGender from "./child/PatientVisitByGender";
-import HomeComThree from "./child/HomeComThree";
-import HomeComFour from "./child/HomeComFour";
-import HomeComSix from "./child/HomeComSix";
+import HomeComOne from "./child/HomeComOne"
+import HomeComTo from "./child/HomeComTo"
+import HomeComThree from "./child/HomeComThree"
+import HomeComFour from "./child/HomeComFour"
+import HomeComSix from "./child/HomeComSix"
 import styles from "@/styles/home-components.module.css"
+import { useEffect, useState } from "react"
+import jwtDecode from "jwt-decode"
 
 const DashBoardLayerEight = () => {
-  
+  const [userRole, setUserRole] = useState(null)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token")
+      if (token) {
+        try {
+          const decodedToken = jwtDecode(token)
+          setUserRole(decodedToken.role)
+        } catch (error) {
+          console.error("Error decoding token:", error)
+          setUserRole(null)
+        }
+      }
+    }
+  }, [])
+
+  const isHeadDoctor = userRole === "HeadDoctor"
+
   return (
     <div className={styles.dashboardContainer}>
-      <div className="container-fluid">
-        {/* Dashboard Header */}
-        <div className={`${styles.dashboardCard} mb-4`}>
-         
-        </div>
+ 
 
-        {/* Statistics Cards Row */}
-        <div className="row g-4 mb-4">
-          <HomeComOne />
-          <HomeComTo />
-          <HomeComSix />
-        </div>
+      {/* Statistics Cards Row (HomeComOne) - Now always shows 3 cards in a row, taking full width */}
+      <div className={`${styles.gridRow} ${styles.gap4} ${styles.marginBottom4}`}>
+        <HomeComOne isHeadDoctor={isHeadDoctor} />
+      </div>
 
-        {/* Charts Row 1 */}
-        <div className="row g-4 mb-4">
-          <div className="col-xl-8 col-lg-7">
+      {/* Charts Row 1 (HomeComFour and HomeComThree) - Side-by-side with same height */}
+      <div className={`${styles.gridRow} ${styles.gap4} ${styles.marginBottom4}`}>
+        {!isHeadDoctor && (
+          <div className={`${styles.gridCol} ${styles.colXl7} ${styles.colLg6} ${styles.colMd12}`}>
             <HomeComFour />
           </div>
-          <div className="col-xl-4 col-lg-7">
-            <HomeComThree />
-          </div>
+        )}
+        <div
+          className={`${styles.gridCol} ${isHeadDoctor ? styles.col12 : `${styles.colXl5} ${styles.colLg6} ${styles.colMd12}`}`}
+        >
+          <HomeComThree />
         </div>
+      </div>
 
-        {/* Charts Row 2 */}
-        <div className="row g-4 mb-4">
-          <PatientVisitByGender />
-          <PatientVisitedDepartment />
+      {/* Chart Row 2 (HomeComTo) - Now takes full width */}
+      <div className={`${styles.gridRow} ${styles.gap4} ${styles.marginBottom4}`}>
+        <div className={`${styles.gridCol} ${styles.col12}`}>
+          <HomeComTo />
+        </div>
+      </div>
+
+      {/* Chart Row 3 (HomeComSix) - Moved to its own full-width row */}
+      <div className={`${styles.gridRow} ${styles.gap4} ${styles.marginBottom4}`}>
+        <div className={`${styles.gridCol} ${styles.col12}`}>
+          <HomeComSix />
         </div>
       </div>
     </div>

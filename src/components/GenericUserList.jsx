@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import axiosInstance from "../helper/axiosSetup"
-import { Search, Plus, Eye, Edit, Trash2 } from "lucide-react"
+import { Search, Plus, Eye, Edit, Trash2 } from 'lucide-react'
 import styles from "../styles/user-management.module.css"
 
 const GenericUserList = ({ role }) => {
@@ -118,7 +118,7 @@ const GenericUserList = ({ role }) => {
     if (isPatient) {
       return ["#", "Name", "Email", "Phone", "Gender","member since", "Action"]
     } else if (isDoctor) {
-      return ["#", "Username", "Email", "Phone", "Title", "Availability", "Department(s)", "Action"]
+      return ["#", "Username", "Email", "Phone", "Availability", "Department(s)", "Action"]
     } else if (isAccountant) {
       return ["#", "Name", "Email", "Action"]
     }
@@ -145,7 +145,6 @@ const GenericUserList = ({ role }) => {
           <td className={styles.nameCell}>{user.username}</td>
           <td className={styles.emailCell}>{user.email}</td>
           <td className={styles.phoneCell}>{user.phone}</td>
-          <td className={styles.genderCell}>{user.title || "N/A"}</td>
           <td className={styles.genderCell}>{user.availability || "N/A"}</td>
           <td className={styles.departmentCell}>{formatDepartments(user.departments)}</td>
         </>

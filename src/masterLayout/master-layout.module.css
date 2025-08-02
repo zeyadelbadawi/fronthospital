@@ -107,36 +107,39 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
-.logoIcon {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%
-);
-  border-radius: 12px;
+.logoImageContainer {
+  width: 60px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 24px;
-  font-weight: bold;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(199, 210, 254, 0.5);
   position: relative;
   overflow: hidden;
 }
 
-.logoIcon::before {
+.logoImageContainer::before {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.2) 50%, transparent 70%);
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
   animation: shimmer 3s infinite;
+}
+
+.logoImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 @keyframes shimmer {
@@ -155,13 +158,7 @@
 }
 
 .logoTitle {
-  background: linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%
-);
+  background: linear-gradient(135deg, #2977ba 0%, #3f3f87 25%, #cc2889 60%, #2977ba 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -176,6 +173,68 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+/* Centered Header Logo Styles */
+.headerLogoCenter {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+.headerLogo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  text-decoration: none;
+  background: linear-gradient(135deg, #f0f9ff, #fdf2f8);
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  border: 1px solid #c7d2fe;
+}
+
+.headerLogo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+  background: linear-gradient(135deg, #dbeafe, #fce7f3);
+}
+
+.headerLogoImageContainer {
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(199, 210, 254, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.headerLogoImageContainer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+  animation: shimmer 3s infinite;
+}
+
+.headerLogoImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+  position: relative;
+  z-index: 1;
 }
 
 .sidebarMenuArea {
@@ -194,13 +253,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  background: linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%
-);
+  background: linear-gradient(135deg, #2977ba 0%, #3f3f87 25%, #cc2889 60%, #2977ba 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -217,18 +270,16 @@
   height: 2px;
   background: linear-gradient(90deg, #3f3f87, #cc2889, transparent);
   border-radius: 1px;
-        margin-bottom: -5px;
-
+  margin-bottom: -5px;
 }
 
 .sidebarMenu li {
   margin-bottom: 0.25rem;
   padding: 0 1rem;
-  text-align: center;
 }
 
 .sidebarMenu a {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 1rem;
   padding: 1rem 1rem;
@@ -240,6 +291,8 @@
   border-radius: 12px;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sidebarMenu a::before {
@@ -249,13 +302,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%
-);
+  background: linear-gradient(135deg, #2977ba 0%, #3f3f87 25%, #cc2889 60%, #2977ba 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: -1;
@@ -269,13 +316,7 @@
 }
 
 .sidebarMenu a.activePage {
-  background: linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%
-);
+  background: linear-gradient(135deg, #2977ba 0%, #3f3f87 25%, #cc2889 60%, #2977ba 100%);
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4), 0 2px 6px rgba(236, 72, 153, 0.2);
   transform: translateX(4px);
@@ -322,15 +363,36 @@
   margin-left: 280px;
 }
 
-/* Professional Navbar */
+/* Professional Navbar with Scroll Animation */
 .navbarHeader {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid #e0e7ff;
-  padding: 1rem 2rem;
-  position: sticky;
+  padding: 2.9rem 2rem;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
+  z-index: 998;
   box-shadow: 0 1px 3px 0 rgba(59, 130, 246, 0.1), 0 1px 2px 0 rgba(236, 72, 153, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(0);
+      margin-top: -10px;
+}
+
+.navbarHeader.headerVisible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.navbarHeader.headerHidden {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+/* Add this new class for when sidebar is active */
+.navbarHeaderActive {
+  left: 280px;
 }
 
 .sidebarToggle,
@@ -379,7 +441,7 @@
 
 .navbarSearch input:focus {
   outline: none;
-  border-color: #3f3f87 ;
+  border-color: #3f3f87;
   background: #ffffff;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 0 0 8px rgba(236, 72, 153, 0.05);
   transform: translateY(-1px);
@@ -494,12 +556,29 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
-/* Dashboard Body */
+/* Dashboard Body with Header Offset */
 .dashboardMainBody {
   flex: 1;
   padding: 2rem;
   background: linear-gradient(135deg, #f0f9ff 0%, #fdf2f8 50%, #f8fafc 100%);
   min-height: calc(100vh - 140px);
+  margin-top: 80px; /* Add top margin to account for fixed header */
+}
+
+.dashboardMainBody::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("/images/rukn-logo.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 600px;
+  opacity: 0.09;
+  z-index: 0;
+  pointer-events: none;
 }
 
 /* Professional Footer */
@@ -511,11 +590,15 @@
   box-shadow: 0 -1px 3px 0 rgba(59, 130, 246, 0.1);
 }
 
+.dFooter .row {
+  justify-content: center; /* Center the content instead of space-between */
+}
+
 .dFooter p {
-  margin: 0;
   font-size: 0.875rem;
-  color: #64748b;
+  color: #3f3f87;
   font-weight: 500;
+  text-align: center; /* Also center the text itself */
 }
 
 /* Professional Notification Styles */
@@ -534,13 +617,7 @@
 
 .notificationTitle {
   font-size: 1.125rem;
-  background: linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%
-);
+  background: linear-gradient(135deg, #2977ba 0%, #3f3f87 25%, #cc2889 60%, #2977ba 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -549,13 +626,7 @@
 }
 
 .notificationCount {
-  background: linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%
-);
+  background: linear-gradient(135deg, #2977ba 0%, #3f3f87 25%, #cc2889 60%, #2977ba 100%);
   color: white;
   font-weight: 700;
   font-size: 1rem;
@@ -714,13 +785,7 @@
 
 .profileInfo h6 {
   font-size: 1.125rem;
-  background: linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%
-);
+  background: linear-gradient(135deg, #2977ba 0%, #3f3f87 25%, #cc2889 60%, #2977ba 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -784,7 +849,7 @@
   width: 40px;
 }
 .h40px {
-  height: 40px;
+  height: 30px;
 }
 .w44px {
   width: 44px;
@@ -815,6 +880,9 @@
 }
 .fwMedium {
   font-weight: 500;
+}
+.fwLarg {
+  font-weight: 900;
 }
 .roundedCircle {
   border-radius: 50%;
@@ -880,7 +948,7 @@
   gap: 0.5rem;
 }
 .gap3 {
-  gap: 0.75rem;
+  gap: 1.65rem;
 }
 .gap4 {
   gap: 1rem;
@@ -984,6 +1052,9 @@
   .dashboardMain.active {
     margin-left: 0;
   }
+  .navbarHeaderActive {
+    left: 0;
+  }
   .navbarSearch {
     width: 250px;
   }
@@ -1002,6 +1073,9 @@
   .sidebarToggle {
     display: none;
   }
+  .navbarHeaderActive {
+    left: 0;
+  }
   .navbarSearch {
     width: 200px;
   }
@@ -1016,6 +1090,7 @@
   }
   .dashboardMainBody {
     padding: 1rem;
+    margin-top: 70px; /* Adjust for smaller header on mobile */
   }
   .navbarHeader {
     padding: 1rem 1.5rem;
@@ -1030,11 +1105,22 @@
     justify-content: center;
     padding: 1.5rem;
   }
+  .logoImageContainer {
+    width: 50px;
+    height: 50px;
+  }
+  .headerLogoImageContainer {
+    width: 44px;
+    height: 44px;
+  }
 }
 
 @media (max-width: 576px) {
   .navbarHeader {
     padding: 0.75rem 1rem;
+  }
+  .navbarHeaderActive {
+    left: 0;
   }
   .navbarSearch {
     display: none;
@@ -1047,6 +1133,7 @@
   }
   .dashboardMainBody {
     padding: 1rem;
+    margin-top: 65px; /* Adjust for smallest header */
   }
   .sidebarLogo {
     padding: 1.5rem;
@@ -1059,6 +1146,14 @@
   .profileHeader {
     margin: 1rem;
     padding: 0.75rem 1rem;
+  }
+  .logoImageContainer {
+    width: 45px;
+    height: 45px;
+  }
+  .headerLogoImageContainer {
+    width: 40px;
+    height: 40px;
   }
 }
 
@@ -1098,7 +1193,8 @@
   .sidebar,
   .dashboardMain,
   .sidebarMenu a,
-  .dropdownMenu {
+  .dropdownMenu,
+  .navbarHeader {
     transition: none;
   }
 
@@ -1106,7 +1202,7 @@
     animation: none;
   }
 
-  .logoIcon::before {
+  .logoImageContainer::before {
     animation: none;
   }
 }

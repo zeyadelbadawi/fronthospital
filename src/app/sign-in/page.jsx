@@ -1,4 +1,5 @@
-import SignInLayer from "@/components/SignInLayer";
+// No changes needed in this file as it only imports SignInLayer
+import SignInLayer from "@/components/SignInLayer"
 
 export const metadata = {
   title: "Sign In - Rukn Alwatekon Medical Center",
