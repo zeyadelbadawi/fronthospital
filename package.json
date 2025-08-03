@@ -9,8 +9,24 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.1",
+    "@syncfusion/ej2-base": "^30.1.42",
+    "@syncfusion/ej2-react-documenteditor": "^30.1.42",
+    "axios": "^1.11.0",
+    "date-fns": "^4.1.0",
+    "js-cookie": "^3.0.5",
+    "jwt-decode": "^4.0.0",
+    "lucide-react": "^0.536.0",
+    "next": "15.4.5",
     "react": "19.1.0",
+    "react-apexcharts": "^1.7.0",
+    "react-datepicker": "^8.4.0",
     "react-dom": "19.1.0",
-    "next": "15.4.5"
+    "react-icons": "^5.5.0",
+    "react-select": "^5.10.2",
+    "react-toastify": "^11.0.5",
+    "socket.io-client": "^4.8.1",
+    "zod": "^4.0.14",
+    "zustand": "^5.0.7"
   }
 }

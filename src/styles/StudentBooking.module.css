@@ -1,0 +1,1863 @@
+.ruknBookingWizard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 2rem 1rem;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
+}
+
+.ruknBookingWizard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 80%, rgba(233, 30, 99, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(74, 74, 138, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(0, 188, 212, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.ltr {
+  direction: ltr;
+  text-align: left;
+}
+
+.ruknWizardContainer {
+  max-width: 90rem;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.ruknHeader {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.ruknHeaderIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  background-color: #2563eb;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+}
+
+.ruknHeaderIcon span {
+  font-size: 1.5rem;
+  color: white;
+}
+
+.ruknMainTitle {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+}
+
+.ruknSubTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #4a4a8a;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+  background: linear-gradient(135deg, #4a4a8a 0%, #e91e63 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ruknDescription {
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Success Message Styles */
+.ruknSaveSuccessMessage {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 10001;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2);
+  animation: slideInFromRight 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), fadeOut 0.5s ease-in-out 3.5s forwards;
+  max-width: 400px;
+  min-width: 300px;
+}
+
+.rtl .ruknSaveSuccessMessage {
+  right: auto;
+  left: 2rem;
+  animation: slideInFromLeft 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), fadeOut 0.5s ease-in-out 3.5s forwards;
+}
+
+.ruknSaveSuccessContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.ruknSaveSuccessIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: checkmarkPulse 2s infinite;
+}
+
+.ruknSaveSuccessText h4 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: white;
+}
+
+.ruknSaveSuccessText p {
+  font-size: 0.9rem;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
+}
+
+/* Tooltip Styles */
+.ruknTooltipContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.ruknTooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 0.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 1000;
+}
+
+.ruknTooltipContainer:hover .ruknTooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-5px);
+}
+
+.ruknTooltipContent {
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 280px;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.ruknTooltipContent::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #374151;
+}
+
+.rtl .ruknTooltip {
+  left: auto;
+  right: 50%;
+  transform: translateX(50%);
+}
+
+.rtl .ruknTooltipContainer:hover .ruknTooltip {
+  transform: translateX(50%) translateY(-5px);
+}
+
+.ruknProgressCard {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border-left: 5px solid #e91e63;
+  animation: slideInFromTop 0.8s ease-out;
+  transform: translateY(0);
+}
+
+.rtl .ruknProgressCard {
+  border-left: none;
+  border-right: 5px solid #e91e63;
+}
+
+.ruknStepsContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.ruknStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.ruknStepCircle {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.ruknStepCircle::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.ruknStepCircle.active {
+  background: linear-gradient(135deg, #e91e63 0%, #4a4a8a 100%);
+  color: white;
+  box-shadow: 0 8px 25px rgba(233, 30, 99, 0.4);
+  transform: scale(1.1);
+  animation: pulse 2s infinite;
+}
+
+.ruknStepCircle.active::before {
+  transform: translateX(100%);
+}
+
+.ruknStepCircle:hover {
+  transform: scale(1.05) rotate(5deg);
+}
+
+.ruknStepCircle.inactive {
+  background: rgba(255, 255, 255, 0.8);
+  color: #64748b;
+  border: 2px solid #e2e8f0;
+}
+
+.ruknStepTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 0 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.ruknStepTitle.active {
+  color: #e91e63;
+  font-weight: 700;
+}
+
+.ruknStepTitle.inactive {
+  color: #64748b;
+}
+
+.ruknStepLine {
+  position: absolute;
+  height: 3px;
+  width: 4rem;
+  top: 1.75rem;
+  left: calc(50% + 1.75rem);
+  transition: all 0.3s ease;
+  border-radius: 2px;
+}
+
+.rtl .ruknStepLine {
+  left: auto;
+  right: calc(50% + 1.75rem);
+}
+
+.ruknStepLine.active {
+  background: linear-gradient(90deg, #e91e63 0%, #4a4a8a 100%);
+  box-shadow: 0 2px 8px rgba(233, 30, 99, 0.3);
+}
+
+.ruknStepLine.inactive {
+  background: #e2e8f0;
+}
+
+.ruknMainCard {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+  border-left: 5px solid #4a4a8a;
+  animation: slideInFromBottom 0.8s ease-out 0.2s both;
+  transform: translateY(0);
+}
+
+.rtl .ruknMainCard {
+  border-left: none;
+  border-right: 5px solid #4a4a8a;
+}
+
+.ruknCardContent {
+  padding: 2.5rem;
+}
+
+.ruknStepContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  animation: fadeInScale 0.6s ease-out;
+}
+
+.ruknStepHeader {
+  text-align: center;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.8s ease-out 0.1s both;
+}
+
+.ruknStepHeader h3 {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #4a4a8a;
+  margin-bottom: 0.75rem;
+  margin-top: 0;
+  background: linear-gradient(135deg, #4a4a8a 0%, #e91e63 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ruknStepHeader p {
+  color: #64748b;
+  font-size: 1.125rem;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.ruknFormGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+.ruknFormGroupdes {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: fadeInUp 0.6s ease-out 0.2s both;
+  z-index: 0;
+}
+
+.ruknFormGroupdes:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.ruknFormGroupdes:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.ruknFormGroupdes:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.ruknFormGroupdes:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.ruknFormGroup:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+.ruknFormGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .ruknFormGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.ruknLabel {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4a4a8a;
+  margin-bottom: 0.75rem;
+}
+
+.ruknSelect,
+.ruknInput,
+.ruknTextarea {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  color: #374151;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.ruknSelect::before,
+.ruknInput::before,
+.ruknTextarea::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(233, 30, 99, 0.1), transparent);
+  transition: left 0.6s ease;
+}
+
+.ruknSelect:hover::before,
+.ruknInput:hover::before,
+.ruknTextarea:hover::before {
+  left: 100%;
+}
+
+.ruknSelect:focus,
+.ruknInput:focus,
+.ruknTextarea:focus {
+  outline: none;
+  border-color: #e91e63;
+  box-shadow: 0 0 0 4px rgba(233, 30, 99, 0.1), 0 4px 12px rgba(233, 30, 99, 0.15);
+  background: white;
+  transform: translateY(-1px);
+}
+
+.ruknSelect.error,
+.ruknInput.error,
+.ruknTextarea.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.ruknTextarea {
+  resize: none;
+  min-height: 6rem;
+}
+
+/* Enhanced Date and Time Picker Styles */
+.ruknDatePickerWrapper,
+.ruknTimePickerWrapper,
+.ruknSelectWrapper {
+  position: relative;
+  z-index: 10;
+}
+
+.ruknSelectWrapper:active {
+  color: #1f2937;
+}
+
+.ruknDatePicker,
+.ruknTimePicker {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  color: #374151;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  z-index: 90000000000000000099999;
+}
+
+.ruknDatePicker:focus,
+.ruknTimePicker:focus {
+  outline: none;
+  border-color: #e91e63;
+  box-shadow: 0 0 0 4px rgba(233, 30, 99, 0.1), 0 4px 12px rgba(233, 30, 99, 0.15);
+  background: white;
+  transform: translateY(-1px);
+}
+
+.ruknDatePicker.error,
+.ruknTimePicker.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+/* Enhanced DatePicker Popper */
+.ruknDatePickerPopper {
+  z-index: 9999 !important;
+}
+
+.ruknDatePickerPopper .react-datepicker {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.ruknDatePickerPopper .react-datepicker__header {
+  background: linear-gradient(135deg, #e91e63 0%, #4a4a8a 100%);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  padding: 1rem;
+}
+
+.ruknDatePickerPopper .react-datepicker__current-month {
+  color: white;
+  font-weight: 700;
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.ruknDatePickerPopper .react-datepicker__day-names {
+  margin-bottom: 0.5rem;
+}
+
+.ruknDatePickerPopper .react-datepicker__day-name {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.ruknDatePickerPopper .react-datepicker__navigation {
+  top: 1.25rem;
+}
+
+.ruknDatePickerPopper .react-datepicker__navigation--previous {
+  left: 1rem;
+}
+
+.ruknDatePickerPopper .react-datepicker__navigation--next {
+  right: 1rem;
+}
+
+.ruknDatePickerPopper .react-datepicker__navigation-icon::before {
+  border-color: white;
+  border-width: 2px 2px 0 0;
+}
+
+.ruknDatePickerPopper .react-datepicker__month-container {
+  background: white;
+  padding: 1rem;
+}
+
+.ruknDatePickerPopper .react-datepicker__day {
+  border-radius: 8px;
+  margin: 0.125rem;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.ruknAvailableDay {
+  background: rgba(233, 30, 99, 0.1) !important;
+  color: #e91e63 !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(233, 30, 99, 0.3) !important;
+}
+
+.ruknAvailableDay:hover {
+  background: rgba(233, 30, 99, 0.2) !important;
+  transform: scale(1.05) !important;
+}
+
+.ruknUnavailableDay {
+  background: rgba(156, 163, 175, 0.1) !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+}
+
+.ruknDatePickerPopper .react-datepicker__day--selected {
+  background: linear-gradient(135deg, #e91e63 0%, #4a4a8a 100%) !important;
+  color: white !important;
+  font-weight: 700 !important;
+  transform: scale(1.1) !important;
+  box-shadow: 0 4px 12px rgba(233, 30, 99, 0.4) !important;
+}
+
+.ruknDatePickerPopper .react-datepicker__day--today {
+  background: rgba(74, 74, 138, 0.1) !important;
+  color: #4a4a8a !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(74, 74, 138, 0.3) !important;
+}
+
+/* Enhanced TimePicker Popper */
+.ruknTimePickerPopper {
+  z-index: 9999 !important;
+}
+
+.ruknTimePickerPopper .react-datepicker {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.ruknTimePickerPopper .react-datepicker__header {
+  background: linear-gradient(135deg, #4a4a8a 0%, #e91e63 100%);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  padding: 1rem;
+}
+
+.ruknTimePickerPopper .react-datepicker-time__caption {
+  color: white;
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.ruknTimePickerPopper .react-datepicker__time-container {
+  background: white;
+  border-radius: 0 0 16px 16px;
+}
+
+.ruknTimePickerPopper .react-datepicker__time {
+  background: white;
+  border-radius: 0 0 16px 16px;
+}
+
+.ruknTimePickerPopper .react-datepicker__time-box {
+  border-radius: 0 0 16px 16px;
+}
+
+.ruknTimePickerPopper .react-datepicker__time-list {
+  padding: 0.5rem;
+  max-height: 200px;
+}
+
+.ruknTimePickerPopper .react-datepicker__time-list-item {
+  border-radius: 8px;
+  margin: 0.125rem 0;
+  padding: 0.75rem 1rem;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ruknAvailableTime {
+  background-color: #ecfdf5 !important;
+  color: #059669 !important;
+  border-left: 3px solid #10b981;
+}
+
+.ruknAvailableTime:hover {
+  background-color: #d1fae5 !important;
+  transform: translateX(2px);
+}
+
+/* Enhanced date picker calendar styles */
+.ruknDatePickerCalendar .react-datepicker__day--disabled {
+  cursor: not-allowed !important;
+  opacity: 0.3 !important;
+  background-color: #f3f4f6 !important;
+  color: #9ca3af !important;
+}
+
+.ruknDatePickerCalendar .react-datepicker__day--outside-month {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Time picker dropdown enhancements */
+.ruknTimePickerPopper .react-datepicker__time-list-item--disabled {
+  cursor: not-allowed !important;
+  opacity: 0.3 !important;
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+  text-decoration: line-through;
+  pointer-events: none !important;
+}
+
+.ruknTimePickerPopper .react-datepicker__time-list-item:not(.react-datepicker__time-list-item--disabled):hover {
+  background-color: #e91e63 !important;
+  color: white !important;
+}
+/* Enhanced availability states for date picker */
+.ruknFullyBookedDay {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+  text-decoration: line-through;
+  cursor: not-allowed !important;
+  opacity: 0.5;
+}
+
+.ruknLimitedAvailabilityDay {
+  background-color: #fef3c7 !important;
+  color: #d97706 !important;
+  border: 2px solid #f59e0b;
+}
+
+.ruknDisabledTime {
+  cursor: not-allowed !important;
+  opacity: 0.3 !important;
+  pointer-events: none !important;
+}
+
+/* Time Slots Grid */
+.ruknTimeSlotsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.ruknTimeSlot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 70px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.ruknTimeSlot.available {
+  border-color: #10b981;
+  color: #059669;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+}
+
+.ruknTimeSlot.available:hover {
+  border-color: #059669;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.ruknTimeSlot.booked {
+  border-color: #dc2626;
+  color: #dc2626;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.ruknTimeSlot.selected {
+  border-color: #e91e63;
+  background: linear-gradient(135deg, #e91e63 0%, #4a4a8a 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(233, 30, 99, 0.4);
+}
+
+.ruknTimeSlot.selected:hover {
+  border-color: #e91e63;
+  background: linear-gradient(135deg, #9f2951 0%, #5e5ec6 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(233, 30, 99, 0.4);
+}
+
+.ruknTimeSlotTime {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.ruknTimeSlotStatus {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Enhanced availability information */
+.ruknAvailabilityInfo {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.ruknBookedSlotsInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #dc2626;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.ruknNoSlotsAvailable {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #dc2626;
+  font-weight: 600;
+  padding: 0.5rem;
+  background-color: #fee2e2;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+}
+
+.ruknAvailableSlotsInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #059669;
+  font-weight: 500;
+}
+
+.ruknBookedIcon,
+.ruknWarningIcon,
+.ruknAvailableIcon {
+  font-size: 1.1rem;
+}
+
+.ruknUnavailableTime {
+  background: rgba(156, 163, 175, 0.1) !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+}
+
+.ruknTimePickerPopper .react-datepicker__time-list-item--selected {
+  background: linear-gradient(135deg, #e91e63 0%, #4a4a8a 100%) !important;
+  color: white !important;
+  font-weight: 700 !important;
+  transform: translateX(4px) !important;
+  box-shadow: 0 4px 12px rgba(233, 30, 99, 0.4) !important;
+}
+
+/* Enhanced Notes */
+.ruknDateNote,
+.ruknTimeNote {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(233, 30, 99, 0.05);
+  border-radius: 8px;
+  border-left: 3px solid #e91e63;
+  font-weight: 500;
+}
+
+.rtl .ruknDateNote,
+.rtl .ruknTimeNote {
+  border-left: none;
+  border-right: 3px solid #e91e63;
+}
+
+/* Z-index management */
+.ruknDatePickerWrapper .react-datepicker-popper,
+.ruknTimePickerWrapper .react-datepicker-popper {
+  z-index: 9999 !important;
+}
+
+.ruknSelectWrapper .css-26l3qy-menu {
+  z-index: 9999 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .ruknDatePickerPopper .react-datepicker,
+  .ruknTimePickerPopper .react-datepicker {
+    font-size: 0.875rem;
+  }
+
+  .ruknDatePickerPopper .react-datepicker__day,
+  .ruknTimePickerPopper .react-datepicker__time-list-item {
+    padding: 0.5rem;
+  }
+}
+
+.ruknServiceTotal {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(233, 30, 99, 0.1) 0%, rgba(74, 74, 138, 0.1) 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(233, 30, 99, 0.2);
+}
+
+.ruknServiceTotal p {
+  color: #e91e63;
+  font-weight: 700;
+  font-size: 1.125rem;
+  margin: 0;
+}
+
+.ruknButtonGroup {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 2rem;
+  gap: 1rem;
+}
+
+.ruknButtonGroup.end {
+  justify-content: flex-end;
+}
+
+.rtl .ruknButtonGroup.end {
+  justify-content: flex-start;
+}
+
+.ruknButton {
+  padding: 1rem 2rem;
+  font-weight: 700;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+  transform: translateY(0);
+}
+
+.ruknButton::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+.ruknButton:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.ruknButton:active {
+  transform: scale(0.98);
+}
+
+.ruknButtonPrimary {
+  background: linear-gradient(135deg, #e91e63 0%, #4a4a8a 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
+}
+
+.ruknButtonPrimary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(233, 30, 99, 0.4);
+}
+
+.ruknButtonPrimary:disabled,
+.ruknButtonPrimary.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  background: #9ca3af;
+  box-shadow: none;
+}
+
+.ruknButtonSecondary {
+  background: rgba(255, 255, 255, 0.8);
+  color: #4a4a8a;
+  border: 2px solid #e2e8f0;
+  backdrop-filter: blur(10px);
+}
+
+.ruknButtonSecondary:hover {
+  background: white;
+  border-color: #4a4a8a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 74, 138, 0.2);
+}
+
+.ruknButtonSuccess {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 1.25rem 3rem;
+  font-size: 1.125rem;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+.ruknButtonSuccess:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
+}
+
+.ruknButtonSuccess:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.ruknPaymentSummary {
+  background: linear-gradient(135deg, rgba(233, 30, 99, 0.05) 0%, rgba(74, 74, 138, 0.05) 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(233, 30, 99, 0.1);
+}
+
+.ruknPaymentSummary h4 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #4a4a8a;
+  margin-bottom: 1.5rem;
+  margin-top: 0;
+}
+
+.ruknPaymentRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.ruknPaymentRow span:first-child {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.ruknPaymentRow span:last-child {
+  font-weight: 700;
+  color: #374151;
+}
+
+.ruknPaymentTotal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #e91e63;
+  padding: 1rem 0;
+  border-top: 2px solid rgba(233, 30, 99, 0.2);
+  margin-top: 1rem;
+}
+
+.ruknPaymentCenter {
+  text-align: center;
+}
+
+.ruknPaymentNote {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 1rem;
+  margin-bottom: 0;
+  font-style: italic;
+}
+
+.ruknSuccessContainer {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem 0;
+  animation: bounceIn 1s ease-out;
+}
+
+.ruknSuccessIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 8rem;
+  height: 8rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+  border-radius: 50%;
+  margin: 0 auto 2rem;
+  border: 3px solid rgba(16, 185, 129, 0.2);
+  animation: float 3s ease-in-out infinite;
+}
+
+.ruknSuccessIcon span {
+  font-size: 3rem;
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+.ruknSuccessTitle {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #4a4a8a;
+  margin-bottom: 1rem;
+  margin-top: 0;
+  background: linear-gradient(135deg, #4a4a8a 0%, #e91e63 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ruknSuccessMessage {
+  font-size: 1.25rem;
+  color: #64748b;
+  margin-bottom: 2rem;
+  margin-top: 0;
+  line-height: 1.6;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ruknNextSteps {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(5, 150, 105, 0.05) 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+  border: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.ruknNextSteps h4 {
+  font-weight: 700;
+  color: #059669;
+  margin-bottom: 1rem;
+  margin-top: 0;
+  font-size: 1.25rem;
+}
+
+.ruknNextSteps ul {
+  font-size: 1rem;
+  color: #047857;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  line-height: 1.8;
+}
+
+.ruknNextSteps li {
+  margin-bottom: 0.5rem;
+  padding-left: 1rem;
+}
+
+.rtl .ruknNextSteps li {
+  padding-left: 0;
+  padding-right: 1rem;
+}
+
+.ruknDocumentContainer {
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.ruknErrorMessage {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.ruknWarningMessage {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  color: #d97706;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.ruknAssignmentResults {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(2, 132, 199, 0.1) 100%);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  color: #0284c7;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.ruknAssignmentSummary p {
+  margin: 0.5rem 0;
+  font-weight: 500;
+}
+
+.ruknAssignmentFinalResults {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #059669;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+}
+
+.ruknServiceAssignment {
+  margin: 0.75rem 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.ruknErrorText {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: block;
+  font-weight: 500;
+}
+
+.loadingSpinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(233, 30, 99, 0.1);
+  border-top: 3px solid #e91e63;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1200px) {
+  .ruknWizardContainer {
+    max-width: 95%;
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .ruknWizardContainer {
+    max-width: 100%;
+    padding: 0 0.5rem;
+  }
+
+  .ruknBookingWizard {
+    padding: 1rem 0.5rem;
+  }
+
+  .ruknStepsContainer {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .ruknStep {
+    flex: 0 0 calc(50% - 0.5rem);
+  }
+
+  .ruknStepLine {
+    display: none;
+  }
+
+  .ruknButtonGroup {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .ruknButtonGroup.end {
+    align-items: stretch;
+  }
+
+  .ruknCardContent {
+    padding: 1.5rem;
+  }
+
+  .ruknProgressCard {
+    padding: 1.5rem;
+  }
+
+  .ruknStepHeader h3 {
+    font-size: 1.5rem;
+  }
+
+  .ruknSuccessTitle {
+    font-size: 2rem;
+  }
+
+  .ruknSuccessIcon {
+    width: 6rem;
+    height: 6rem;
+  }
+
+  .ruknSuccessIcon span {
+    font-size: 2rem;
+  }
+
+  .ruknSaveSuccessMessage {
+    top: 1rem;
+    right: 1rem;
+    left: 1rem;
+    max-width: none;
+  }
+
+  .rtl .ruknSaveSuccessMessage {
+    left: 1rem;
+    right: 1rem;
+  }
+
+  .ruknSaveSuccessContent {
+    padding: 1rem;
+  }
+
+  .ruknSaveSuccessIcon {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .ruknSaveSuccessText h4 {
+    font-size: 1rem;
+  }
+
+  .ruknSaveSuccessText p {
+    font-size: 0.8rem;
+  }
+}
+
+@keyframes slideInFromTop {
+  0% {
+    opacity: 0;
+    transform: translateY(-100px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromBottom {
+  0% {
+    opacity: 0;
+    transform: translateY(100px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  0% {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(233, 30, 99, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(233, 30, 99, 0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.1);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.1);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+@keyframes checkmarkPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+.ruknFormGroup:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.ruknFormGroup:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.ruknFormGroup:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.ruknFormGroup:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.ruknFormGroup:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+/* Availability checking styles */
+.ruknAvailabilityLoading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-style: italic;
+  padding: 1rem;
+  text-align: center;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.ruknAvailabilityError {
+  padding: 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.ruknBookedTime {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+  text-decoration: line-through;
+  cursor: not-allowed !important;
+  opacity: 0.5;
+  pointer-events: none !important;
+}
+
+.ruknBookedTime::after {
+  content: " (Booked)";
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.ruknBookedSlotsInfo {
+  font-size: 0.875rem;
+  color: #f59e0b;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid #f59e0b;
+  font-weight: 500;
+}
+
+.rtl .ruknBookedSlotsInfo {
+  border-left: none;
+  border-right: 3px solid #f59e0b;
+}
+
+/* Enhanced time picker styles for better availability indication */
+.ruknTimePickerPopper .react-datepicker__time-list-item--disabled {
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #dc2626 !important;
+  cursor: not-allowed !important;
+  text-decoration: line-through !important;
+}
+
+.ruknTimePickerPopper .react-datepicker__time-list-item--disabled:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  transform: none !important;
+}
+
+/* Loading state for time picker */
+/* Enhanced time picker styles */
+.ruknTimePicker:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Responsive adjustments for availability features */
+@media (max-width: 768px) {
+  .ruknAvailabilityLoading,
+  .ruknAvailabilityError,
+  .ruknBookedSlotsInfo {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+  }
+
+  .ruknBookedTime::after {
+    content: " (X)";
+    font-size: 0.7rem;
+  }
+}
+
+.iconInline {
+  display: inline-block;
+  vertical-align: middle;
+  margin-inline-end: 0.5rem; /* For LTR */
+  margin-inline-start: 0; /* For RTL */
+}
+
+.rtl .iconInline {
+  margin-inline-en: 0;
+  margin-inline-start: 0.5rem;
+}
+
+/* Dynamic Import Loading Styles for SyncfusionDocxCase */
+.ruknDocumentImportLoader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #e2e8f0;
+}
+
+.ruknDocumentImportLoader::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 30% 70%, rgba(233, 30, 99, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 70% 30%, rgba(74, 74, 138, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.ruknDocumentImportContent {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 400px;
+}
+
+.ruknDocumentImportIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  background: linear-gradient(135deg, #e91e63 0%, #4a4a8a 100%);
+  border-radius: 50%;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 25px rgba(233, 30, 99, 0.3);
+  animation: importIconPulse 2s ease-in-out infinite;
+}
+
+.ruknDocumentImportIcon svg {
+  color: white;
+  animation: importIconFloat 3s ease-in-out infinite;
+}
+
+.ruknDocumentImportTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #4a4a8a;
+  margin-bottom: 0.75rem;
+  margin-top: 0;
+  background: linear-gradient(135deg, #4a4a8a 0%, #e91e63 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ruknDocumentImportSubtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+  margin-top: 0;
+}
+
+.ruknDocumentImportProgress {
+  width: 100%;
+  max-width: 280px;
+  height: 4px;
+  background: rgba(233, 30, 99, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 0 auto 1.5rem;
+  position: relative;
+}
+
+.ruknDocumentImportProgressBar {
+  height: 100%;
+  background: linear-gradient(90deg, #e91e63 0%, #4a4a8a 100%);
+  border-radius: 2px;
+  animation: importProgressFlow 2s ease-in-out infinite;
+  position: relative;
+}
+
+.ruknDocumentImportProgressBar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+  animation: importProgressShimmer 1.5s infinite;
+}
+
+.ruknDocumentImportTip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.08) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: #047857;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.rtl .ruknDocumentImportTip {
+  text-align: right;
+}
+
+.ruknDocumentImportTip svg {
+  color: #10b981;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  animation: importTipGlow 2s ease-in-out infinite;
+}
+
+/* Import Loading Animations */
+@keyframes importIconPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 8px 25px rgba(233, 30, 99, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 12px 35px rgba(233, 30, 99, 0.5);
+  }
+}
+
+@keyframes importIconFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes importProgressFlow {
+  0% {
+    width: 0%;
+  }
+  50% {
+    width: 70%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+@keyframes importProgressShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes importTipGlow {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.2) drop-shadow(0 0 3px rgba(16, 185, 129, 0.4));
+  }
+}
+
+/* Responsive adjustments for import loader */
+@media (max-width: 768px) {
+  .ruknDocumentImportLoader {
+    min-height: 350px;
+    padding: 1.5rem 1rem;
+  }
+
+  .ruknDocumentImportIcon {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .ruknDocumentImportTitle {
+    font-size: 1.1rem;
+  }
+
+  .ruknDocumentImportSubtitle {
+    font-size: 0.9rem;
+  }
+
+  .ruknDocumentImportTip {
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+  }
+}

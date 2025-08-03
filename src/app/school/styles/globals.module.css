@@ -1,0 +1,1016 @@
+/* Global Styles with Professional Logo Colors */
+
+/* App Container */
+.appContainer {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.appContainer::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("/images/rukn-logo.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 1000px;
+  opacity: 0.015;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Welcome View */
+.welcomeContainer {
+  padding: 3rem 2rem;
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  min-height: 100vh;
+}
+
+.welcomeContent {
+  max-width: 80rem;
+  margin: 0 auto;
+  position: relative;
+}
+
+.welcomeHeader {
+  text-align: center;
+  margin-bottom: 4rem;
+  position: relative;
+}
+
+.welcomeHeader::before {
+  content: "";
+  position: absolute;
+  top: -2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(90deg, #1e3a8a 0%, #d946ef 50%, #0ea5e9 100%);
+  border-radius: 2px;
+}
+
+.welcomeTitle {
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #1e3a8a 0%, #d946ef 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.2;
+  position: relative;
+}
+
+.welcomeTitle::after {
+  content: "🏫";
+  position: absolute;
+  top: -1rem;
+  right: -2rem;
+  font-size: 2rem;
+  opacity: 0.8;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.welcomeSubtitle {
+  font-size: 1.375rem;
+  color: #6b7280;
+  font-weight: 500;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Cards Grid */
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+/* Department Card */
+.departmentCard {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  padding: 2.5rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  border: 2px solid #e5e7eb;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.departmentCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #1e3a8a 0%, #d946ef 50%, #0ea5e9 100%);
+  transform: scaleX(0);
+  transition: transform 0.4s ease;
+}
+
+.departmentCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  border-color: #1e3a8a;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(30, 58, 138, 0.02) 100%);
+}
+
+.departmentCard:hover::before {
+  transform: scaleX(1);
+}
+
+.departmentCard:active {
+  transform: translateY(-4px);
+  transition: transform 0.1s ease;
+}
+
+/* Card Icon */
+.cardIcon {
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.cardIcon.blue {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+  color: #1e3a8a;
+  border: 2px solid rgba(37, 99, 235, 0.2);
+}
+
+.cardIcon.purple {
+  background: linear-gradient(135deg, rgba(217, 70, 239, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+  color: #d946ef;
+  border: 2px solid rgba(217, 70, 239, 0.2);
+}
+
+.cardIcon.green {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+  color: #10b981;
+  border: 2px solid rgba(16, 185, 129, 0.2);
+}
+
+.cardIcon.orange {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
+  color: #f59e0b;
+  border: 2px solid rgba(245, 158, 11, 0.2);
+}
+
+.cardIcon.red {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+  color: #ef4444;
+  border: 2px solid rgba(239, 68, 68, 0.2);
+}
+
+.cardIcon.lightBlue {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(2, 132, 199, 0.1) 100%);
+  color: #0ea5e9;
+  border: 2px solid rgba(14, 165, 233, 0.2);
+}
+
+.departmentCard:hover .cardIcon {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.departmentCard:hover .cardIcon.blue {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%);
+  border-color: #1e3a8a;
+}
+
+.departmentCard:hover .cardIcon.purple {
+  background: linear-gradient(135deg, rgba(217, 70, 239, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%);
+  border-color: #d946ef;
+}
+
+.departmentCard:hover .cardIcon.green {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.2) 100%);
+  border-color: #10b981;
+}
+
+.departmentCard:hover .cardIcon.orange {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%);
+  border-color: #f59e0b;
+}
+
+.departmentCard:hover .cardIcon.red {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.2) 100%);
+  border-color: #ef4444;
+}
+
+.departmentCard:hover .cardIcon.lightBlue {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(2, 132, 199, 0.2) 100%);
+  border-color: #0ea5e9;
+}
+
+/* Card Title */
+.cardTitle {
+  font-size: 1.375rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  color: #1f2937;
+  line-height: 1.3;
+  transition: all 0.3s ease;
+}
+
+.departmentCard:hover .cardTitle {
+  background: linear-gradient(135deg, #1e3a8a 0%, #d946ef 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card Description */
+.cardDescription {
+  color: #6b7280;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+  transition: color 0.3s ease;
+}
+
+.departmentCard:hover .cardDescription {
+  color: #374151;
+}
+
+/* Content Placeholder */
+.contentPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: #6b7280;
+  background: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  border: 2px dashed #e5e7eb;
+  margin: 2rem;
+  transition: all 0.3s ease;
+}
+
+.contentPlaceholder:hover {
+  border-color: #1e3a8a;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+}
+
+.contentPlaceholder::before {
+  content: "📚";
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.7;
+}
+
+.contentPlaceholder h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.75rem 0;
+}
+
+.contentPlaceholder p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 400px;
+}
+
+/* Assign Patients Styles */
+.assignPatientsContainer {
+  padding: 2rem;
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+.assignPatientsCard {
+  background: #ffffff;
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  border: 2px solid #e5e7eb;
+  overflow: hidden;
+  position: relative;
+}
+
+.assignPatientsCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #1e3a8a 0%, #d946ef 50%, #0ea5e9 100%);
+}
+
+/* Card Header */
+.cardHeader {
+  border-bottom: 2px solid #e5e7eb;
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  position: relative;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #1e3a8a 0%, #d946ef 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pageTitle::before {
+  content: "👥";
+  font-size: 1.25rem;
+}
+
+/* Search Form */
+.searchForm {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.searchInputContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchInput {
+  padding: 0.875rem 1rem 0.875rem 3rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  font-size: 0.95rem;
+  width: 300px;
+  background: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #1e3a8a;
+  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+}
+
+.searchIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #9ca3af;
+  transition: color 0.3s ease;
+}
+
+.searchInput:focus + .searchIcon {
+  color: #1e3a8a;
+}
+
+/* Primary Button */
+.primaryButton {
+  background: linear-gradient(135deg, #1e3a8a 0%, #d946ef 100%);
+  color: #ffffff;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.primaryButton:hover {
+  background: linear-gradient(135deg, #1e40af 0%, #c026d3 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.primaryButton:active {
+  transform: translateY(0);
+}
+
+/* Card Body */
+.cardBody {
+  padding: 2rem;
+  background: #ffffff;
+}
+
+/* Loading Container */
+.loadingContainer {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.loadingSpinner {
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #1e3a8a;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingText {
+  color: #6b7280;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Table Container */
+.tableContainer {
+  overflow-x: auto;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.patientsTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  font-size: 0.95rem;
+}
+
+/* Table Header */
+.tableHeader {
+  border-bottom: 2px solid #e5e7eb;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+.tableHeader th {
+  text-align: left;
+  padding: 1.25rem 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.textCenter {
+  text-align: center !important;
+}
+
+/* Table Row */
+.tableRow {
+  border-bottom: 1px solid #f3f4f6;
+  transition: all 0.3s ease;
+}
+
+.tableRow:hover {
+  background: linear-gradient(135deg, #f9fafb 0%, rgba(30, 58, 138, 0.02) 100%);
+  transform: translateX(4px);
+}
+
+.tableRow td {
+  padding: 1.25rem 1.5rem;
+  vertical-align: top;
+}
+
+/* Patient Info */
+.patientName {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.patientInfo {
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+/* Status Badge */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statusBadge.assigned {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.statusBadge.notAssigned {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+/* Action Button */
+.actionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.actionButton.assign {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+}
+
+.actionButton.assign:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.actionButton.unassign {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+}
+
+.actionButton.unassign:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.actionIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* No Data */
+.noData {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #6b7280;
+}
+
+.noData::before {
+  content: "📋";
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.noData h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.noData p {
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Pagination Container */
+.paginationContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.paginationInfo {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.paginationButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.paginationButton {
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #ffffff;
+  color: #374151;
+  font-weight: 500;
+}
+
+.paginationButton:hover:not(.active) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+.paginationButton.active {
+  background: linear-gradient(135deg, #1e3a8a 0%, #d946ef 100%);
+  color: #ffffff;
+  border-color: #1e3a8a;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+/* Patients View */
+.patientsViewContainer {
+  padding: 2rem;
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+.patientsViewCard {
+  background: #ffffff;
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  border: 2px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.patientsViewHeader {
+  border-bottom: 2px solid #e5e7eb;
+  background: linear-gradient(135deg, #1e3a8a 0%, #d946ef 100%);
+  padding: 2rem;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.patientsViewHeader::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.patientsViewTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.patientsViewTitle::before {
+  content: "👨‍⚕️";
+  font-size: 1.25rem;
+}
+
+.patientsViewSubtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.patientsViewBody {
+  padding: 2rem;
+  background: #ffffff;
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.emptyIcon {
+  color: #9ca3af;
+  margin-bottom: 1.5rem;
+  width: 4rem;
+  height: 4rem;
+}
+
+.emptyTitle {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.75rem 0;
+}
+
+.emptyDescription {
+  color: #6b7280;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .cardsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .welcomeTitle {
+    font-size: 2.5rem;
+  }
+
+  .departmentCard {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .cardsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .welcomeContainer {
+    padding: 2rem 1rem;
+  }
+
+  .welcomeTitle {
+    font-size: 2rem;
+  }
+
+  .welcomeSubtitle {
+    font-size: 1.125rem;
+  }
+
+  .cardHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .headerContent {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchInput {
+    width: 100%;
+  }
+
+  .paginationContainer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .assignPatientsContainer,
+  .patientsViewContainer {
+    padding: 1rem;
+  }
+
+  .cardBody,
+  .patientsViewBody {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcomeContainer {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .welcomeTitle {
+    font-size: 1.75rem;
+  }
+
+  .welcomeTitle::after {
+    display: none;
+  }
+
+  .departmentCard {
+    padding: 1.5rem;
+  }
+
+  .cardIcon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .cardTitle {
+    font-size: 1.25rem;
+  }
+
+  .tableContainer {
+    font-size: 0.875rem;
+  }
+
+  .tableHeader th,
+  .tableRow td {
+    padding: 1rem;
+  }
+
+  .searchInput {
+    font-size: 0.9rem;
+  }
+}
+
+/* Animation Enhancements */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.welcomeContent {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.departmentCard {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.departmentCard:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.departmentCard:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.departmentCard:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.departmentCard:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.assignPatientsCard,
+.patientsViewCard {
+  animation: slideInRight 0.5s ease-out;
+}
+
+/* Focus States for Accessibility */
+.departmentCard:focus,
+.primaryButton:focus,
+.actionButton:focus,
+.paginationButton:focus {
+  outline: 2px solid #1e3a8a;
+  outline-offset: 2px;
+}
+
+.searchInput:focus {
+  outline: 2px solid #1e3a8a;
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .departmentCard,
+  .assignPatientsCard,
+  .patientsViewCard {
+    border-width: 3px;
+  }
+
+  .statusBadge {
+    border-width: 2px;
+  }
+
+  .tableRow:hover {
+    background: #f3f4f6;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .departmentCard,
+  .primaryButton,
+  .actionButton,
+  .paginationButton,
+  .tableRow {
+    transition: none;
+  }
+
+  .loadingSpinner {
+    animation: none;
+  }
+
+  .welcomeContent,
+  .departmentCard,
+  .assignPatientsCard,
+  .patientsViewCard {
+    animation: none;
+  }
+
+  .welcomeTitle::after {
+    animation: none;
+  }
+
+  .cardIcon,
+  .departmentCard:hover .cardIcon {
+    transform: none;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .appContainer::before,
+  .welcomeContainer::before {
+    display: none;
+  }
+
+  .departmentCard {
+    break-inside: avoid;
+  }
+
+  .tableContainer {
+    break-inside: avoid;
+  }
+}

@@ -1,0 +1,108 @@
+/* src/styles/loading-spinner.module.css */
+
+.spinnerOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999; /* Ensure it's on top of everything */
+  backdrop-filter: blur(5px); /* Subtle blur effect */
+  transition: opacity 0.3s ease-in-out;
+  opacity: 1;
+}
+
+.spinnerOverlay[aria-hidden="true"] {
+  opacity: 0;
+  pointer-events: none; /* Allow clicks through when hidden */
+}
+
+.spinnerContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.spinnerLogo {
+  width: 150px; /* Adjust size as needed */
+  height: 150px; /* Adjust size as needed */
+  object-fit: contain;
+  animation: pulse 2s infinite ease-in-out; /* Gentle pulse animation */
+}
+
+.loadingText {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #454492; /* A color from your brand palette */
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Optional: Add a subtle rotation for more dynamic feel */
+/*
+@keyframes rotateAndPulse {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(1.02) rotate(5deg);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.05) rotate(0deg);
+    opacity: 0.8;
+  }
+  75% {
+    transform: scale(1.02) rotate(-5deg);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.spinnerLogo {
+  animation: rotateAndPulse 3s infinite ease-in-out;
+}
+*/
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .spinnerLogo {
+    width: 100px;
+    height: 100px;
+  }
+  .loadingText {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .spinnerLogo {
+    width: 80px;
+    height: 80px;
+  }
+  .loadingText {
+    font-size: 0.9rem;
+  }
+}
