@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
+    "@iconify/react": "^6.0.0",
     "@syncfusion/ej2-base": "^30.1.42",
     "@syncfusion/ej2-react-documenteditor": "^30.1.42",
     "axios": "^1.11.0",

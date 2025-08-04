@@ -775,18 +775,18 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
             });
           }
 
-          await sendEmail({
-            to: `${selectedPatient?.email}`,
-            filePath: "",
-            subject: "Booking New Appointment",
-            text: `We have booked a new appointment in ${programPayload.programType
-              .replace(/_/g, " ")
-              .split(" ")
-              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(" ")} for you at date: ${
-              new Date(programPayload.date).toISOString().split("T")[0]
-            } and time: ${programPayload.time}`,
-          });
+          // await sendEmail({
+          //   to: `${selectedPatient?.email}`,
+          //   filePath: "",
+          //   subject: "Booking New Appointment",
+          //   text: `We have booked a new appointment in ${programPayload.programType
+          //     .replace(/_/g, " ")
+          //     .split(" ")
+          //     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          //     .join(" ")} for you at date: ${
+          //     new Date(programPayload.date).toISOString().split("T")[0]
+          //   } and time: ${programPayload.time}`,
+          // });
 
             setCurrentStep(5) // Move to complete step
           }

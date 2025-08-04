@@ -32,6 +32,7 @@ import styles from "./master-layout.module.css"
 import Cookies from "js-cookie"
 import Image from "next/image"
 import { notificationsIcons } from "@/utils/assignmentUtils"
+import { Icon } from "@iconify/react"
 
 
 const MasterLayout = ({ children }) => {

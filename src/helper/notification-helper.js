@@ -18,7 +18,6 @@ export const sendEmail = async ({ to, filePath, subject, text }) => {
 };
 export const sendNotification = async ({ isList, receiverIds, rule, receiverId, title, message, type }) => {
     try {
-                console.log("abu madi is gay", isList);
 
         let response;   
         if (isList) {

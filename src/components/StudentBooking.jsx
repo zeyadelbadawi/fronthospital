@@ -706,18 +706,18 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
           }
 
           // send user email in token
-           await sendEmail({
-            to: `${patientEmail}`,
-            filePath: "",
-            subject: "Booking New Appointment",
-            text: `We have created a new appointment in ${programPayload.programType
-              .replace(/_/g, " ")
-              .split(" ")
-              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(" ")} for you, on date: ${
-              new Date(programPayload.date).toISOString().split("T")[0]
-            } and time: ${programPayload.time}`,
-          }); 
+          //  await sendEmail({
+          //   to: `${patientEmail}`,
+          //   filePath: "",
+          //   subject: "Booking New Appointment",
+          //   text: `We have created a new appointment in ${programPayload.programType
+          //     .replace(/_/g, " ")
+          //     .split(" ")
+          //     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          //     .join(" ")} for you, on date: ${
+          //     new Date(programPayload.date).toISOString().split("T")[0]
+          //   } and time: ${programPayload.time}`,
+          // }); 
             setCurrentStep(4) // Move to complete step
           }
         } 

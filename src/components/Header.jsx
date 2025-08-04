@@ -5,6 +5,10 @@ import { RiGlobalLine, RiArrowDownSLine } from "react-icons/ri"
 import { Bell, CheckCircle, XCircle, Info, AlertCircle, Mail, Calendar, Package } from "lucide-react" // Import Lucide icons
 import styles from "../styles/Header.module.css"
 import { useLanguage } from "../contexts/LanguageContext"
+import axiosInstance from "../helper/axiosSetup"
+import useSocket from "@/hooks/useSocket"
+import { formatDistanceToNow } from "date-fns"
+import { notificationsIcons } from "@/utils/assignmentUtils"
 
 export default function Header({
   user,
@@ -35,55 +39,81 @@ export default function Header({
     return new Intl.DateTimeFormat("en-US", options).format(date)
   }
 
-  // Dummy notifications for demonstration
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: "new",
-      message: "New message from support regarding your appointment.",
-      timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-      isRead: false,
-    },
-    {
-      id: 2,
-      type: "success",
-      message: "Your payment for the full program was successful.",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      isRead: false,
-    },
-    {
-      id: 3,
-      type: "error",
-      message: "Failed to load your recent activities. Please try again.",
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-      isRead: false,
-    },
-    {
-      id: 4,
-      type: "info",
-      message: "Reminder: Your next session is tomorrow at 10:00 AM.",
-      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-      isRead: true, // Example of a read notification
-    },
-    {
-      id: 5,
-      type: "warning",
-      message: "Your subscription is expiring soon. Renew now!",
-      timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 week ago
-      isRead: false,
-    },
-  ])
+  // Replace the static notifications state with dynamic state
+  const [notifications, setNotifications] = useState([])
+  const [count, setCount] = useState(0)
 
+  // Add socket integration for real-time notifications
+  useSocket(user?.id, ({ count, notifications }) => {
+    setNotifications(notifications)
+    setCount(count)
+  })
+
+  // Add dynamic notification fetching function
+  const getNotifications = async () => {
+    try {
+      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/notification/byId/${user?.id}`)
+      setNotifications(response.data.notifications || [])
+      setCount(response.data.count || 0)
+      console.log("Fetched notifications:", response.data.notifications)
+    } catch (error) {
+      console.error("Error fetching notifications:", error)
+    }
+  }
+
+  // Add useEffect to fetch notifications when user changes
+  useEffect(() => {
+    if (!user?.id) return
+    getNotifications()
+  }, [user?.id])
+
+  // Replace handleNotificationClick with dynamic version
+  const handleNotificationClick = async (noteId) => {
+    try {
+      axiosInstance.put(`${process.env.NEXT_PUBLIC_API_URL}/notification/read/${noteId}`).then((response) => {
+        getNotifications()
+        console.log("Notification marked as read:", response.data)
+      })
+    } catch (error) {
+      console.error("Error handling notification click:", error)
+    }
+  }
+
+  // Update markAllAsRead to work with dynamic notifications
+  const markAllAsRead = async () => {
+    try {
+      // Mark all notifications as read via API
+      const unreadNotifications = notifications.filter((notif) => !notif.isRead)
+      await Promise.all(
+        unreadNotifications.map((notif) =>
+          axiosInstance.put(`${process.env.NEXT_PUBLIC_API_URL}/notification/read/${notif._id}`),
+        ),
+      )
+      getNotifications()
+      setNotificationsOpen(false)
+    } catch (error) {
+      console.error("Error marking all as read:", error)
+    }
+  }
+
+  // Update getNotificationIcon to use dynamic icons from assignmentUtils
   const getNotificationIcon = (type) => {
+    const iconName = notificationsIcons[type] || "bell"
+
     switch (type) {
+      case "create":
       case "new":
         return <Mail className={styles.notificationItemIcon} />
+      case "successfully":
       case "success":
         return <CheckCircle className={`${styles.notificationItemIcon} ${styles.successIcon}`} />
+      case "unsuccessfully":
       case "error":
         return <XCircle className={`${styles.notificationItemIcon} ${styles.errorIcon}`} />
+      case "update":
       case "info":
         return <Info className={`${styles.notificationItemIcon} ${styles.infoIcon}`} />
+      case "reschedule":
       case "warning":
         return <AlertCircle className={`${styles.notificationItemIcon} ${styles.warningIcon}`} />
       case "appointment":
@@ -95,18 +125,7 @@ export default function Header({
     }
   }
 
-  const handleNotificationClick = (id) => {
-    setNotifications((prevNotifications) =>
-      prevNotifications.map((notif) => (notif.id === id ? { ...notif, isRead: true } : notif)),
-    )
-    // Optionally, you can navigate or perform other actions here
-  }
-
-  const markAllAsRead = () => {
-    setNotifications((prevNotifications) => prevNotifications.map((notif) => ({ ...notif, isRead: true })))
-    setNotificationsOpen(false)
-  }
-
+  // Update unreadCount to work with dynamic data
   const unreadCount = notifications.filter((notif) => !notif.isRead).length
 
   useEffect(() => {
@@ -151,13 +170,13 @@ export default function Header({
                 aria-label={language === "ar" ? "الإشعارات" : "Notifications"}
               >
                 <Bell className={styles.bellIcon} />
-                {unreadCount > 0 && <span className={styles.notificationCount}>{unreadCount}</span>}
+                {count > 0 && <span className={styles.notificationCount}>{count > 10 ? "10+" : count}</span>}
               </button>
               {notificationsOpen && (
                 <div className={styles.notificationDropdownMenu}>
                   <div className={styles.notificationHeader}>
                     <h4 className={styles.notificationTitle}>{language === "ar" ? "الإشعارات" : "Notifications"}</h4>
-                    {unreadCount > 0 && (
+                    {count > 0 && (
                       <button onClick={markAllAsRead} className={styles.markAllReadButton}>
                         {language === "ar" ? "تحديد الكل كمقروء" : "Mark all as read"}
                       </button>
@@ -167,16 +186,18 @@ export default function Header({
                     {notifications.length > 0 ? (
                       notifications.map((notification) => (
                         <div
-                          key={notification.id}
+                          key={notification._id}
                           className={`${styles.notificationItem} ${!notification.isRead ? styles.unreadNotification : ""}`}
-                          onClick={() => handleNotificationClick(notification.id)}
+                          onClick={() => handleNotificationClick(notification._id)}
                         >
                           {!notification.isRead && <span className={styles.unreadDot} />}
                           {getNotificationIcon(notification.type)}
                           <div className={styles.notificationContent}>
                             <p className={styles.notificationMessage}>{notification.message}</p>
                             <span className={styles.notificationTimestamp}>
-                              {formatDateTime(notification.timestamp)}
+                              {formatDistanceToNow(new Date(notification.createdAt), {
+                                addSuffix: true,
+                              })}
                             </span>
                           </div>
                         </div>
