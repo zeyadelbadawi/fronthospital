@@ -5,6 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import styles from "../styles/StudentBooking.module.css"
 import InteractiveGuide from "./InteractiveGuide" // Import the new interactive guide
 import styles2 from "../styles/AdminStudentBooking.module.css"
+import { sendNotification, sendEmail } from "@/helper/notification-helper";
 
 // Import Lucide React icons
 import {
@@ -73,7 +74,7 @@ const SyncfusionDocxCase = dynamic(() => import("@/components/SyncfusionDocxCase
 })
 // تحميل CSS للـ DatePicker بشكل منفصل
 import("react-datepicker/dist/react-datepicker.css")
-const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName }) => {
+const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,   patientEmail }) => {
   const { language, translations } = useLanguage()
   const t = translations[language]
   const [selectedDay, setSelectedDay] = useState(null)
@@ -95,6 +96,28 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName })
   const [availabilityError, setAvailabilityError] = useState("")
   const [showInteractiveGuide, setShowInteractiveGuide] = useState(false) // New state for interactive guide
   const [showCaseStudyCreation, setShowCaseStudyCreation] = useState(false)
+
+
+  const [doctorIds, setDoctorIds] = useState([]);
+
+  const getDoctorIds = async () => {
+    try {
+        const axiosInstance = await getAxiosInstance()
+      const response = await axiosInstance.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/notification/doctor-ids`
+      );
+      const doctors = response?.data;
+      console.log("Doctor IDs fetched:", doctors);
+      setDoctorIds(doctors);
+    } catch (error) {
+      console.error("Error fetching doctor IDs:", error);
+      setDoctorIds([]);
+    }
+  };
+  useEffect(() => {
+    getDoctorIds();
+  }, []);
+
 
   // Check localStorage for interactive guide status on mount
   useEffect(() => {
@@ -649,8 +672,52 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName })
                 })
               }
             }
+
             // Reset form fields after successful payment
             resetFormFields()
+               await sendNotification({
+            isList: false,
+            title: `Booking New Appointment`,
+            message: `You have booked a new appointment in ${programPayload.programType
+              .replace(/_/g, " ")
+              .split(" ")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")} at date: ${
+              new Date(programPayload.date).toISOString().split("T")[0]
+            } and time: ${programPayload.time}`,
+            receiverId: patientId,
+            rule: "Patient",
+            type: "create",
+          });
+
+          if (doctorIds.length > 0) {
+            await sendNotification({
+              isList: true,
+              title: `New ${programPayload.programType
+                .replace(/_/g, " ")
+                .split(" ")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")} Created`,
+              message: `Create a new program to student: ${patientName}`,
+              receiverIds: doctorIds,
+              rule: "Doctor",
+              type: "create",
+            });
+          }
+
+          // send user email in token
+           await sendEmail({
+            to: `${patientEmail}`,
+            filePath: "",
+            subject: "Booking New Appointment",
+            text: `We have created a new appointment in ${programPayload.programType
+              .replace(/_/g, " ")
+              .split(" ")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")} for you, on date: ${
+              new Date(programPayload.date).toISOString().split("T")[0]
+            } and time: ${programPayload.time}`,
+          }); 
             setCurrentStep(4) // Move to complete step
           }
         } 

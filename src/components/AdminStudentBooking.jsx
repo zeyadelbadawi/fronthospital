@@ -31,6 +31,7 @@ import {
   UserPlus,
   ArrowLeft,
 } from "lucide-react"
+import { sendNotification, sendEmail } from "@/helper/notification-helper";
 
 // Dynamic imports for heavy components
 const DatePicker = dynamic(() => import("react-datepicker"), {
@@ -68,7 +69,7 @@ const SyncfusionDocxCase = dynamic(() => import("@/components/SyncfusionDocxCase
 // Load CSS for DatePicker separately
 import("react-datepicker/dist/react-datepicker.css")
 
-const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }) => {
+const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
   // Patient Selection State (NEW)
   const [selectedPatient, setSelectedPatient] = useState(null)
   const [patientSelectionMode, setPatientSelectionMode] = useState("buttons") // "buttons" | "existing" | "new"
@@ -76,6 +77,26 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
   const [isLoadingPatients, setIsLoadingPatients] = useState(false)
   const [showNewPatientModal, setShowNewPatientModal] = useState(false)
   const [showCaseStudyCreation, setShowCaseStudyCreation] = useState(false)
+
+  const [doctorIds, setDoctorIds] = useState([]);
+
+  const getDoctorIds = async () => {
+    try {
+            const axiosInstance = await getAxiosInstance()
+      const response = await axiosInstance.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/notification/doctor-ids`
+      );
+      const doctors = response?.data;
+      console.log("Doctor IDs fetched:", doctors);
+      setDoctorIds(doctors);
+    } catch (error) {
+      console.error("Error fetching doctor IDs:", error);
+      setDoctorIds([]);
+    }
+  };
+  useEffect(() => {
+    getDoctorIds();
+  }, []);
 
   // New Patient Form State
   const [newPatientForm, setNewPatientForm] = useState({
@@ -723,6 +744,50 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep, adminId, adminName }
             }
             // Reset form fields after successful payment
             resetFormFields()
+
+  await sendNotification({
+            isList: false,
+            title: `Booking New Appointment`,
+            message: `We have created a new appointment in ${programPayload.programType
+              .replace(/_/g, " ")
+              .split(" ")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")} for you, on date: ${
+              new Date(programPayload.date).toISOString().split("T")[0]
+            } and time: ${programPayload.time}`,
+            receiverId: selectedPatient?.id,
+            rule: "Patient",
+            type: "create",
+          });
+
+          if (doctorIds.length > 0) {
+            await sendNotification({
+              isList: true,
+              title: `New ${programPayload.programType
+                .replace(/_/g, " ")
+                .split(" ")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")} Created`,
+              message: `Create a new program to student: ${selectedPatient?.name}`,
+              receiverIds: doctorIds,
+              rule: "Doctor",
+              type: "create",
+            });
+          }
+
+          await sendEmail({
+            to: `${selectedPatient?.email}`,
+            filePath: "",
+            subject: "Booking New Appointment",
+            text: `We have booked a new appointment in ${programPayload.programType
+              .replace(/_/g, " ")
+              .split(" ")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")} for you at date: ${
+              new Date(programPayload.date).toISOString().split("T")[0]
+            } and time: ${programPayload.time}`,
+          });
+
             setCurrentStep(5) // Move to complete step
           }
         } 

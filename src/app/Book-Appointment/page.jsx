@@ -8,6 +8,9 @@ import StudentBooking from "@/components/StudentBooking"
 import { useLanguage } from "@/contexts/LanguageContext"
 import styles from "./Book-Appointment.module.css"
 
+
+// router.get("/patient/:id", async (req, res) => {
+
 export default function Page() {
   const { language, translations } = useLanguage()
   const t = translations[language]
@@ -143,6 +146,8 @@ export default function Page() {
           setCurrentStep={setCurrentStep}
           patientId={user?.id}
           patientName={user?.name}
+          patientEmail={user?.email}
+
         />
       </div>
 
