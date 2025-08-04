@@ -1,4 +1,13 @@
 // Frontend utility functions for assignment management
+export const notificationsIcons = {
+  create: "material-symbols:add-circle-outline",
+  update: "mdi:pencil-outline",
+  reschedule: "mdi:calendar-clock",
+  delete: "material-symbols:delete-outline",
+  successfully: "mdi:check-circle-outline",
+  unsuccessfully: "mdi:close-circle-outline",
+  active: "mdi:toggle-switch",
+};
 
 export const formatAssignmentStatus = (status) => {
   const statusMap = {

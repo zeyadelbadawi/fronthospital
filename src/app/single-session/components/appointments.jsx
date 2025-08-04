@@ -27,6 +27,8 @@ import axiosInstance from "@/helper/axiosSetup"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import styles from "../styles/appointments-management.module.css"
+import { sendNotification,sendEmail } from "@/helper/notification-helper"
+
 
 export function AppointmentsManagement() {
   const [appointments, setAppointments] = useState([])
@@ -149,7 +151,8 @@ export function AppointmentsManagement() {
     }
   }
 
-  const handleCancelAppointment = async (appointmentId, reason = "") => {
+  const handleCancelAppointment = async (appointmentId,appointment, reason = "") => {
+
     try {
       const response = await axiosInstance.put(
         `${process.env.NEXT_PUBLIC_API_URL}/appointmentManagement/appointment/${appointmentId}/cancel`,
@@ -158,8 +161,26 @@ export function AppointmentsManagement() {
 
       if (response.status === 200) {
         alert("Appointment cancelled successfully!")
-        setDeleteModal({ open: false, appointment: null })
-        fetchAppointments()
+                await sendNotification({
+     isList: false,
+          title: `Single session appointment cancelled`,
+          message: `Your session has been cancelled on date : ${
+            appointment?.date?.split("T")[0]
+          } and time: ${appointment.time}`,
+          receiverId: appointment.patientid._id, // Ensure patient ID is passed
+          rule: "Patient",
+          type: "delete",
+        });
+        await sendEmail({
+          to: `${appointment?.patientid?.email}`,
+          filePath: "",
+          subject: "Appointment Cancellation",
+          text: `Your appointment scheduled on ${
+            appointment?.date?.split("T")[0]
+          } at ${appointment.time} has been cancelled. Reason: ${reason}`,
+        });
+        setDeleteModal({ open: false, appointment: null });
+        fetchAppointments();
       }
     } catch (error) {
       console.error("Error cancelling appointment:", error)
@@ -182,14 +203,20 @@ export function AppointmentsManagement() {
         alert("Appointment rescheduled successfully!")
         setRescheduleModal({ open: false, appointment: null })
 
-        // Dynamically pass the patient ID from the appointment
-        // await sendNotification({
-        //   isList: false,
-        //   title: `Single session appointment update`,
-        //   message: `Your session has been rescheduled to date:  ${rescheduleForm.newDate} and time:  ${rescheduleForm.newTime}`,
-        //   receiverId: appointment.patientid._id,  // Ensure patient ID is passed
-        //   rule: "Patient",
-        // })
+ await sendNotification({
+          isList: false,
+          title: `Single session appointment rescheduled`,
+          message: `Your session has been rescheduled to date:  ${rescheduleForm.newDate} and time:  ${rescheduleForm.newTime}`,
+          receiverId: appointment.patientid._id, // Ensure patient ID is passed
+          rule: "Patient",
+          type: "reschedule",
+        });
+        await sendEmail({
+          to: `${appointment?.patientid?.email}`,
+          filePath: "",
+          subject: "Appointment Rescheduled",
+          text: `Your appointment has been rescheduled to date:  ${rescheduleForm.newDate} and time:  ${rescheduleForm.newTime}`,
+        });
         fetchAppointments()
       }
     } catch (error) {
@@ -198,8 +225,11 @@ export function AppointmentsManagement() {
     }
   }
 
-  const handleCompleteAppointment = async (appointmentId, notes = "") => {
-    try {
+const handleCompleteAppointment = async (
+    appointmentId,
+    appointment,
+    notes = ""
+  ) => {    try {
       const response = await axiosInstance.put(
         `${process.env.NEXT_PUBLIC_API_URL}/appointmentManagement/appointment/${appointmentId}/complete`,
         { notes },
@@ -207,6 +237,27 @@ export function AppointmentsManagement() {
 
       if (response.status === 200) {
         alert("Appointment marked as completed!")
+        
+        await sendNotification({
+
+          isList: false,
+          title: `Single session appointment Completed`,
+          message: `Your session has been marked as completed on date: ${
+            appointment?.date?.split("T")[0]
+          } and time: ${appointment?.time}`,
+          receiverId: appointment.patientid._id, // Ensure patient ID is passed
+          rule: "Patient",
+          type: "successfully",
+        });
+        await sendEmail({
+          to: `${appointment?.patientid?.email}`,
+          filePath: "",
+          subject: "Appointment Cancellation",
+          text: `Your appointment has been marked as completed on date: ${
+            appointment?.date?.split("T")[0]
+          } and time: ${appointment?.time}`,
+        });
+        
         // Optimistically update the status in the local state
         setAppointments((prevAppointments) => {
           const updatedApps = prevAppointments.map((app) =>
@@ -543,7 +594,7 @@ export function AppointmentsManagement() {
                                 status.status !== "cancelled" && ( // أزرار الإكمال والإلغاء تظهر إذا لم يكن الموعد مكتملًا أو ملغيًا
                                   <>
                                     <button
-                                      onClick={() => handleCompleteAppointment(appointment._id)}
+                                      onClick={() => handleCompleteAppointment(appointment._id, appointment)}
                                       className={`${styles.actionButton} ${styles.completeButton}`}
                                       title="Mark as Completed"
                                     >
@@ -799,7 +850,7 @@ export function AppointmentsManagement() {
                 <button
                   onClick={() => {
                     const reason = document.getElementById("cancellationReason").value
-                    handleCancelAppointment(deleteModal.appointment._id, reason)
+                    handleCancelAppointment(deleteModal.appointment._id, deleteModal.appointment, reason)
                   }}
                   className={styles.deleteButton}
                 >

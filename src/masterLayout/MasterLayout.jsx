@@ -31,6 +31,8 @@ import { formatDistanceToNow } from "date-fns"
 import styles from "./master-layout.module.css"
 import Cookies from "js-cookie"
 import Image from "next/image"
+import { notificationsIcons } from "@/utils/assignmentUtils"
+
 
 const MasterLayout = ({ children }) => {
   const [user, setUser] = useState(null)
@@ -507,7 +509,8 @@ const MasterLayout = ({ children }) => {
                           >
                             <div className={styles.notificationContent}>
                               <span className={`${styles.positionRelative} ${styles.notificationIcon}`}>
-                                <Heart className={styles.textXxl} />
+                                <Icon icon={notificationsIcons[item?.type]} className={styles.textXxl} />
+
                                 {!item.isRead && <span className={styles.unreadDot} />}
                               </span>
                               <div className={styles.notificationText}>
