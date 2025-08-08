@@ -185,6 +185,15 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
         ),
         price: 100,
       },
+        {
+        value: "Psychotherapy",
+        label: (
+          <>
+            <HeartPulse size={18} className={styles.iconInline} /> Psychotherapy
+          </>
+        ),
+        price: 1900,
+      },
       {
         value: "ABA",
         label: (

@@ -195,6 +195,16 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
         price: 1200,
       },
       {
+        value: "Psychotherapy",
+        label: (
+          <>
+            <Hand size={18} className={styles.iconInline} />{" "}
+            {language === "ar" ? "العلاج النفسي" : "Psychotherapy"}
+          </>
+        ),
+        price: 1900,
+      },
+      {
         value: "special_education",
         label: (
           <>
