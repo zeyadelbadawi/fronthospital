@@ -107,7 +107,6 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
         `${process.env.NEXT_PUBLIC_API_URL}/notification/doctor-ids`
       );
       const doctors = response?.data;
-      console.log("Doctor IDs fetched:", doctors);
       setDoctorIds(doctors);
     } catch (error) {
       console.error("Error fetching doctor IDs:", error);
@@ -308,14 +307,11 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
       try {
         const axiosInstance = await getAxiosInstance()
         const formattedDate = date.toISOString().split("T")[0]
-        console.log("Fetching booked slots for:", { formattedDate, programType })
         const response = await axiosInstance.get(
           `${process.env.NEXT_PUBLIC_API_URL}/availability/booked-slots/${programType}/${formattedDate}`,
         )
         if (response.data.success) {
-          console.log("Booked slots response:", response.data.bookedSlots)
           setBookedSlots(response.data.bookedSlots)
-          console.log("Frontend bookedSlots state updated to:", response.data.bookedSlots)
         } else {
           setAvailabilityError("Failed to fetch availability")
         }
@@ -445,16 +441,10 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
       try {
         const axiosInstance = await getAxiosInstance()
         // --- START DEBUGGING LOGS ---
-        console.log("verifyAvailabilityBeforePayment: selectedTime before formatting:", selectedTime)
         const formattedTime = formatTimeToHHMM(selectedTime)
-        console.log("verifyAvailabilityBeforePayment: formattedTime after formatting:", formattedTime)
         // --- END DEBUGGING LOGS ---
         const formattedDate = selectedDay.toISOString() // Use full ISO string for backend
-        console.log("Verifying availability payload:", {
-          programType: programTypeToVerify,
-          date: formattedDate,
-          time: formattedTime,
-        })
+     
         // Check if formattedTime is null or invalid before sending
         if (!formattedTime) {
           console.error("verifyAvailabilityBeforePayment: formattedTime is null or invalid. Aborting API call.")
@@ -468,7 +458,6 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
             time: formattedTime,
           },
         )
-        console.log("Availability verification response:", response.data)
         return response.data.available
       } catch (error) {
         console.error("Error verifying availability:", error)
@@ -643,7 +632,6 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
         paymentStatus: initialPayment >= totalAmount ? "FULLY_PAID" : "PARTIALLY_PAID",
         paymentMethod: programTypeForPayment === "full_program" ? "MIXED" : "CASH", // Use programTypeForPayment here
       }
-      console.log("Attempting to save program with payload:", programPayload)
       const response = await axiosInstance.post("/authentication/saveProgram", programPayload)
       if (response.status === 200) {
         const programId = response.data.program._id
@@ -1142,7 +1130,6 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
                     {/* Time Slots Grid */}
                     {selectedDay && !isLoadingAvailability && (
                       <div className={styles.ruknTimeSlotsGrid}>
-                        {console.log("Rendering time slots grid with bookedSlots:", bookedSlots)}{" "}
                         {getAllPossibleTimeSlots().map((slot) => {
                           const isBooked = bookedSlots.some((bookedSlot) => bookedSlot.time === slot.timeString)
                           const isSelected = selectedTime && formatTimeToHHMM(selectedTime) === slot.timeString

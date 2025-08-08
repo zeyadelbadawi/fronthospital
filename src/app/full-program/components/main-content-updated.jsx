@@ -14,6 +14,7 @@ import {
   BookOpen,
   RefreshCw,
   AlertCircle,
+  Sparkle,
 } from "lucide-react"
 import AccessControl from "./access-control"
 import {
@@ -22,6 +23,7 @@ import {
   AssignPatientsPhysicalTherapyDoctor,
   AssignPatientsOccupationalTherapyDoctor,
   AssignPatientsSpecialEducationDoctor,
+  AssignPatientsPsychotherapyDoctor,
 } from "./generic-assign-patients-doctor"
 import AllPatients from "./all-patients"
 import GenericAdminAssign from "./generic-admin-assign" // New import for generic component
@@ -39,6 +41,7 @@ const MainContentUpdated = ({
   selectedAbaPatientId,
   selectedOccupationalPatientId,
   selectedPhysicalPatientId,
+  selectedPsychotherapyPatientId,
   selectedSpecialPatientId,
   selectedSpeechPatientId,
   onBackToDashboard,
@@ -88,7 +91,6 @@ const MainContentUpdated = ({
   const fetchDoctorDepartments = async () => {
     try {
       const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/doctorFile/doctor-deps/${user?.id}`)
-      console.log("Doctor Department Response:", response?.data)
       setDoctorDepartment(response?.data)
     } catch (error) {
       console.error("Error fetching doctor department:", error)
@@ -97,13 +99,13 @@ const MainContentUpdated = ({
 
   const getDepartmentIdByName = (name) => {
     if (!doctorDepartment || !Array.isArray(doctorDepartment)) {
-      console.log("No doctor departments available")
       return null
     }
 
     const departmentNameMap = {
       ABA: "ABA",
       Speech: "speech",
+      Psychotherapy: "Psychotherapy",
       "Physical Therapy": "physicalTherapy",
       "Occupational Therapy": "OccupationalTherapy",
       "Special Education": "SpecialEducation",
@@ -116,7 +118,6 @@ const MainContentUpdated = ({
       return deptName === dbName
     })
 
-    console.log(`Department search for "${name}" (DB: "${dbName}"):`, department)
     return department ? department._id : null
   }
 
@@ -162,6 +163,20 @@ const MainContentUpdated = ({
             .catch(() => ({ data: { doctors: [] } })),
         ]).then(([assignmentsRes, doctorsRes]) => ({
           name: "PT",
+          assignments: assignmentsRes.data.pagination?.totalItems || 0,
+          patients: assignmentsRes.data.pagination?.totalItems || 0,
+          doctors: doctorsRes.data.doctors?.length || 0,
+        })),
+
+        Promise.all([
+          axiosInstance
+            .get("/Psychotherapy/patient-assignments")
+            .catch(() => ({ data: { pagination: { totalItems: 0 } } })),
+          axiosInstance
+            .get("/doctor-student-assignment/doctors-by-department/Psychotherapy")
+            .catch(() => ({ data: { doctors: [] } })),
+        ]).then(([assignmentsRes, doctorsRes]) => ({
+          name: "Psychotherapy",
           assignments: assignmentsRes.data.pagination?.totalItems || 0,
           patients: assignmentsRes.data.pagination?.totalItems || 0,
           doctors: doctorsRes.data.doctors?.length || 0,
@@ -224,7 +239,6 @@ const MainContentUpdated = ({
         myAssignments = appointmentsResponse.data.appointments || []
         totalPatients = myAssignments.length
       } catch (error) {
-        console.log("Could not fetch doctor assignments:", error)
         totalPatients = 0
         myAssignments = []
       }
@@ -276,7 +290,6 @@ const MainContentUpdated = ({
         completedSessions = myAppointments.filter((apt) => new Date(apt.date) < now).length
         upcomingSessions = myAppointments.filter((apt) => new Date(apt.date) >= now).length
       } catch (error) {
-        console.log("Could not fetch Student data:", error)
       }
 
       setDashboardData({
@@ -341,6 +354,13 @@ const MainContentUpdated = ({
           stats: { patients: 0, doctors: 0, sessions: 0 },
         },
         {
+          title: "Psychotherapy",
+          description: "Psychotherapy rehabilitation and movement therapy",
+          icon: Sparkle,
+          color: "yellow",
+          stats: { patients: 0, doctors: 0, sessions: 0 },
+        },
+        {
           title: "Occupational Therapy",
           description: "Daily living skills and occupational rehabilitation",
           icon: Palette,
@@ -362,6 +382,7 @@ const MainContentUpdated = ({
       Speech: MessageSquare,
       PT: Activity,
       OT: Palette,
+      Psychotherapy: Sparkle,
       "Special Education": BookOpen,
     }
 
@@ -370,6 +391,7 @@ const MainContentUpdated = ({
       Speech: "green",
       PT: "purple",
       OT: "orange",
+      Psychotherapy: "yellow",
       "Special Education": "red",
     }
 
@@ -378,6 +400,7 @@ const MainContentUpdated = ({
       Speech: "Speech and language pathology services",
       PT: "Physical rehabilitation and movement therapy",
       OT: "Daily living skills and occupational rehabilitation",
+      Psychotherapy: "Psychotherapy rehabilitation therapy",
       "Special Education": "Specialized educational support and interventions",
     }
 
@@ -385,6 +408,8 @@ const MainContentUpdated = ({
       title:
         dept.name === "PT"
           ? "Physical Therapy"
+          :dept.name === "Psychotherapy"
+          ? "Psychotherapy"
           : dept.name === "OT"
             ? "Occupational Therapy"
             : dept.name === "ABA"
@@ -404,11 +429,6 @@ const MainContentUpdated = ({
   }
 
   const renderContent = () => {
-    console.log("MainContentUpdated - activeContent:", activeContent)
-    console.log("MainContentUpdated - selectedAbaPatientId:", selectedAbaPatientId)
-
-    console.log("MainContentUpdated - user role:", user?.role)
-    console.log("MainContentUpdated - doctorDepartment:", doctorDepartment)
 
     // Handle initial/dashboard view based on user role
     if (activeContent === "dashboard") {
@@ -706,9 +726,7 @@ const MainContentUpdated = ({
         }
 
       case "aba-exam-editor": // NEW CASE FOR ABA EXAM EDITOR
-        console.log("Inside aba-exam-editor case. selectedAbaPatientId:", selectedAbaPatientId)
         const hasAccessABAExam = doctorDepartment?.some((dept) => dept.name === "ABA")
-        console.log("Inside aba-exam-editor case. hasAccess (ABA):", hasAccessABAExam)
 
         if (user?.role !== "doctor") {
           return (
@@ -781,10 +799,7 @@ const MainContentUpdated = ({
         return (
           <AccessControl allowedRoles={["doctor"]}>
             {(() => {
-              console.log("Checking ABA access...")
-              console.log("User role:", user?.role)
-              console.log("Doctor departments:", doctorDepartment)
-
+          
               if (user?.role !== "doctor") {
                 return (
                   <div className={styles.upcomingContainer}>
@@ -822,11 +837,9 @@ const MainContentUpdated = ({
                 return deptName === "ABA"
               })
 
-              console.log("ABA access check result:", hasAccess)
 
               if (hasAccess) {
                 const departmentId = getDepartmentIdByName("ABA")
-                console.log("ABA department ID:", departmentId)
 
                 return <DoctorPlan doctorId={user?.id} departmentId={departmentId} />
               } else {
@@ -951,7 +964,6 @@ const MainContentUpdated = ({
         }
 
       case "speech-exam-editor": // NEW CASE FOR speech EXAM EDITOR
-        console.log("Inside speech-exam-editor case. selectedSpeechPatientId:", selectedSpeechPatientId)
         const hasAccessSpeechExam = doctorDepartment?.some((dept) => dept.name === "speech")
 
         if (user?.role !== "doctor") {
@@ -1025,10 +1037,7 @@ const MainContentUpdated = ({
         return (
           <AccessControl allowedRoles={["doctor"]}>
             {(() => {
-              console.log("Checking Speech access...")
-              console.log("User role:", user?.role)
-              console.log("Doctor departments:", doctorDepartment)
-
+          
               if (user?.role !== "doctor") {
                 return (
                   <div className={styles.upcomingContainer}>
@@ -1066,11 +1075,9 @@ const MainContentUpdated = ({
                 return deptName === "speech"
               })
 
-              console.log("Speech access check result:", hasAccess)
 
               if (hasAccess) {
                 const departmentId = getDepartmentIdByName("Speech")
-                console.log("Speech department ID:", departmentId)
 
                 return <DoctorPlan doctorId={user?.id} departmentId={departmentId} />
               } else {
@@ -1197,9 +1204,7 @@ const MainContentUpdated = ({
         }
 
       case "physical-exam-editor": // NEW CASE FOR physical EXAM EDITOR
-        console.log("Inside physical-exam-editor case. selectedAbaPatientId:", selectedPhysicalPatientId)
         const hasAccessPhysicalExam = doctorDepartment?.some((dept) => dept.name === "physicalTherapy")
-        console.log("Inside physicalTherapy-exam-editor case. hasAccess (physicalTherapy):", hasAccessPhysicalExam)
 
         if (user?.role !== "doctor") {
           return (
@@ -1274,10 +1279,7 @@ const MainContentUpdated = ({
         return (
           <AccessControl allowedRoles={["doctor"]}>
             {(() => {
-              console.log("Checking Physical Therapy access...")
-              console.log("User role:", user?.role)
-              console.log("Doctor departments:", doctorDepartment)
-
+           
               if (user?.role !== "doctor") {
                 return (
                   <div className={styles.upcomingContainer}>
@@ -1315,11 +1317,9 @@ const MainContentUpdated = ({
                 return deptName === "physicalTherapy"
               })
 
-              console.log("Physical Therapy access check result:", hasAccess)
 
               if (hasAccess) {
                 const departmentId = getDepartmentIdByName("Physical Therapy")
-                console.log("Physical Therapy department ID:", departmentId)
 
                 return <DoctorPlan doctorId={user?.id} departmentId={departmentId} />
               } else {
@@ -1341,6 +1341,189 @@ const MainContentUpdated = ({
             })()}
           </AccessControl>
         )
+
+
+
+
+
+
+            case "all-patients-Psychotherapy":
+        return (
+          <AccessControl allowedRoles={["admin"]}>
+            <AllPatients contentType="all-patients-Psychotherapy" />
+          </AccessControl>
+        )
+
+      case "assign-patients-Psychotherapy":
+        return (
+          <AccessControl allowedRoles={["doctor"]}>
+            <AssignPatientsPsychotherapyDoctor
+              onViewPsychotherapyPlan={onNavigateContent}
+              onViewPsychotherapyExam={onNavigateContent}
+            />{" "}
+          </AccessControl>
+        )
+
+      case "admin-assign-Psychotherapy":
+        return (
+          <AccessControl allowedRoles={["admin"]}>
+            <GenericAdminAssign department="Psychotherapy" />
+          </AccessControl>
+        )
+
+      case "Psychotherapy-assignments-table":
+        return (
+          <AccessControl allowedRoles={["admin"]}>
+            <AllPatients contentType="all-patients-Psychotherapy" />
+          </AccessControl>
+        )
+
+      case "Psychotherapy-plan-editor":
+        const hasAccessPsychotherapy = doctorDepartment?.some((dept) => dept.name === "Psychotherapy")
+
+        if (user?.role !== "doctor") {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Access Denied</h3>
+                    <p>Only doctors can access department plans.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        if (!doctorDepartment || doctorDepartment.length === 0) {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Loading...</h3>
+                    <p>Loading your department information...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        if (hasAccessPsychotherapy && selectedPsychotherapyPatientId) {
+          return (
+            <GenericPlanView department="Psychotherapy" patientId={selectedPsychotherapyPatientId} onBack={onBackToDashboard} />
+          )
+        } else if (hasAccessPsychotherapy && !selectedPsychotherapyPatientId) {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Users className={styles.comingSoonIcon} />
+                    <h3>No Student Selected</h3>
+                    <p>Please select a Student from "My Psychotherapy Students" to view their plan.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        } else {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Access Denied</h3>
+                    <p>You don't have access to Psychotherapy department plans.</p>
+                    <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
+                      Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+      case "Psychotherapy-exam-editor": // NEW CASE FOR Psychotherapy EDITOR
+        const hasAccessPsychotherapyExam = doctorDepartment?.some((dept) => dept.name === "Psychotherapy")
+
+        if (user?.role !== "doctor") {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Access Denied</h3>
+                    <p>Only doctors can access department exams.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        if (!doctorDepartment || doctorDepartment.length === 0) {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Loading...</h3>
+                    <p>Loading your department information...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        if (hasAccessPsychotherapyExam && selectedPsychotherapyPatientId) {
+          return (
+            <GenericExamView department="Psychotherapy" patientId={selectedPsychotherapyPatientId} onBack={onBackToDashboard} />
+          )
+        } else if (hasAccessPsychotherapyExam && !selectedPsychotherapyPatientId) {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Users className={styles.comingSoonIcon} />
+                    <h3>No Student Selected</h3>
+                    <p>Please select a Student from "My Psychotherapy Students" to view their exam.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        } else {
+          return (
+            <div className={styles.upcomingContainer}>
+              <div className={styles.upcomingCard}>
+                <div className={styles.cardBody}>
+                  <div className={styles.comingSoon}>
+                    <Shield className={styles.comingSoonIcon} />
+                    <h3>Access Denied</h3>
+                    <p>You don't have access to Psychotherapy department exams.</p>
+                    <p style={{ fontSize: "12px", marginTop: "10px", color: "#666" }}>
+                      Your departments: {doctorDepartment.map((d) => d.name).join(", ")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+      
+
 
       case "all-patients-occupational-therapy":
         return (
@@ -1450,16 +1633,9 @@ const MainContentUpdated = ({
         }
 
       case "occupational-exam-editor": // NEW CASE FOR Occupational EXAM EDITOR
-        console.log(
-          "Inside Occupational-exam-editor case. selectedOccupationalPatientId:",
-          selectedOccupationalPatientId,
-        )
+        
         const hasAccessOccupationalExam = doctorDepartment?.some((dept) => dept.name === "OccupationalTherapy")
-        console.log(
-          "Inside OccupationalTherapy-exam-editor case. hasAccess (OccupationalTherapy):",
-          hasAccessOccupationalExam,
-        )
-
+       
         if (user?.role !== "doctor") {
           return (
             <div className={styles.upcomingContainer}>
@@ -1537,10 +1713,7 @@ const MainContentUpdated = ({
         return (
           <AccessControl allowedRoles={["doctor"]}>
             {(() => {
-              console.log("Checking Occupational Therapy access...")
-              console.log("User role:", user?.role)
-              console.log("Doctor departments:", doctorDepartment)
-
+         
               if (user?.role !== "doctor") {
                 return (
                   <div className={styles.upcomingContainer}>
@@ -1578,11 +1751,9 @@ const MainContentUpdated = ({
                 return deptName === "OccupationalTherapy"
               })
 
-              console.log("Occupational Therapy access check result:", hasAccess)
 
               if (hasAccess) {
                 const departmentId = getDepartmentIdByName("Occupational Therapy")
-                console.log("Occupational Therapy department ID:", departmentId)
 
                 return <DoctorPlan doctorId={user?.id} departmentId={departmentId} />
               } else {
@@ -1709,9 +1880,7 @@ const MainContentUpdated = ({
         }
 
       case "special-exam-editor": // NEW CASE FOR SpecialEducation EXAM EDITOR
-        console.log("Inside special-exam-editor case. selectedspecialPatientId:", selectedSpecialPatientId)
         const hasAccessSpecialExam = doctorDepartment?.some((dept) => dept.name === "SpecialEducation")
-        console.log("Inside SpecialEducation-exam-editor case. hasAccess (special):", hasAccessSpecialExam)
 
         if (user?.role !== "doctor") {
           return (
@@ -1786,10 +1955,7 @@ const MainContentUpdated = ({
         return (
           <AccessControl allowedRoles={["doctor"]}>
             {(() => {
-              console.log("Checking Special Education access...")
-              console.log("User role:", user?.role)
-              console.log("Doctor departments:", doctorDepartment)
-
+            
               if (user?.role !== "doctor") {
                 return (
                   <div className={styles.upcomingContainer}>
@@ -1827,11 +1993,9 @@ const MainContentUpdated = ({
                 return deptName === "SpecialEducation"
               })
 
-              console.log("Special Education access check result:", hasAccess)
 
               if (hasAccess) {
                 const departmentId = getDepartmentIdByName("Special Education")
-                console.log("Special Education department ID:", departmentId)
 
                 return <DoctorPlan doctorId={user?.id} departmentId={departmentId} />
               } else {

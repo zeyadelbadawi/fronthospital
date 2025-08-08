@@ -1,5 +1,5 @@
 "use client"
-import Link from "next/link"
+import CustomLink from '@/components/CustomLink'
 import { useState, useRef, useEffect } from "react"
 import { ChevronDown, Bell, CheckCircle, XCircle, Info, AlertCircle, Mail, Calendar, Package } from "lucide-react"
 import styles from "../styles/DoctorHeader.module.css"
@@ -25,11 +25,7 @@ export default function DoctorHeader({
   const [unreadCount, setUnreadCount] = useState(0) // Renamed from 'count' for clarity
 
   // Debug: Log user object to see what's available
-  useEffect(() => {
-    console.log("DoctorHeader - User object:", user)
-    console.log("DoctorHeader - Username:", user?.username)
-    console.log("DoctorHeader - User role:", user?.role)
-  }, [user])
+
 
   // Use useSocket hook for real-time updates
   useSocket(user?.id, ({ count, notifications: newNotifications }) => {
@@ -45,7 +41,6 @@ export default function DoctorHeader({
       const fetchedNotifications = response.data.notifications || []
       setNotifications(fetchedNotifications)
       setUnreadCount(fetchedNotifications.filter((notif) => !notif.isRead).length)
-      console.log("Fetched doctor notifications:", fetchedNotifications)
     } catch (error) {
       console.error("Error fetching doctor notifications:", error)
     }
@@ -64,7 +59,6 @@ export default function DoctorHeader({
       await axiosInstance.put(`${process.env.NEXT_PUBLIC_API_URL}/notification/read/${notificationId}`)
       // After marking as read, refetch notifications to update the UI
       getNotifications()
-      console.log(`Notification ${notificationId} marked as read.`)
     } catch (error) {
       console.error("Error marking notification as read:", error)
     }
@@ -83,7 +77,6 @@ export default function DoctorHeader({
     // If there's no "mark all as read" endpoint, individual clicks will handle it.
     // For this example, we'll just rely on individual clicks or a full refetch.
     // If you need a backend "mark all as read" endpoint, let me know!
-    console.log("Mark all as read (local update).")
   }
 
   useEffect(() => {
@@ -144,9 +137,9 @@ export default function DoctorHeader({
 
   return (
     <header className={styles.header}>
-      <Link href="/doctorportal" className={styles.logoContainer}>
+      <CustomLink href="/doctorportal" className={styles.logoContainer}>
         <img src={logoSrc || "/placeholder.svg"} className={styles.logo} alt="Rukn Elwatikon Medical Center Logo" />
-      </Link>
+      </CustomLink>
 
       <div className={styles.titleContainer}>
         <h1 className={styles.title}>{title}</h1>
@@ -214,16 +207,16 @@ export default function DoctorHeader({
 
               {dropdownOpen && (
                 <div className={styles.dropdownMenu}>
-                  <Link href="/calendar-main" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                  <CustomLink href="/calendar-main" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
                     weekly schedule
-                  </Link>
-                  <Link
+                  </CustomLink>
+                  <CustomLink
                     href="/doctorportal/profile-doctor"
                     className={styles.dropdownItem}
                     onClick={() => setDropdownOpen(false)}
                   >
                     Profile Settings
-                  </Link>
+                  </CustomLink>
 
                   <hr className={styles.dropdownDivider} />
                   <button

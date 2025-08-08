@@ -53,7 +53,6 @@ export default function DeleteAppointment({ currentId, onSuccess }) {
         onSuccess()
         closeDeleteModal() // Close modal on success
         showToast("success", "Appointment deleted successfully!")
-        console.log("Appointment deleted successfully:", response.data)
       }
     } catch (error) {
       console.error("Error deleting appointment:", error.response ? error.response.data.error : error.message)

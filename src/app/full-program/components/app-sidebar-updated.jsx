@@ -16,6 +16,7 @@ import {
   Calendar,
   DollarSign,
   FileText,
+  Sparkle,
 } from "lucide-react"
 import { isAuthenticated, getCurrentUser } from "../utils/auth-utils"
 import axiosInstance from "@/helper/axiosSetup"
@@ -48,31 +49,25 @@ const AppSidebarUpdated = ({ onContentChange }) => {
   const fetchDoctorDepartments = async (doctorId) => {
     setLoadingDepartments(true)
     try {
-      console.log("Fetching departments for doctor:", doctorId)
       // First, get the doctor's information including their departments
       const doctorResponse = await axiosInstance.get(`/authentication/doctor/${doctorId}`)
       const doctorData = doctorResponse.data
-      console.log("Doctor data:", doctorData)
 
       if (doctorData && doctorData.departments && doctorData.departments.length > 0) {
         // Extract department names from the populated departments
         const departmentNames = doctorData.departments.map((dept) => dept.name)
-        console.log("Doctor's assigned departments:", departmentNames)
         setDoctorDepartments(departmentNames)
       } else {
-        console.log("No departments found for doctor")
         setDoctorDepartments([])
       }
     } catch (error) {
       console.error("Error fetching doctor departments:", error)
       // Fallback: try to get assignments from doctor-student-assignment
       try {
-        console.log("Trying fallback method...")
         const assignmentsResponse = await axiosInstance.get(`/doctor-student-assignment/doctor-assignments/${doctorId}`)
         const assignments = assignmentsResponse.data?.assignments || []
         // Extract unique departments from assignments
         const departments = [...new Set(assignments.map((assignment) => assignment.department))]
-        console.log("Departments from assignments:", departments)
         setDoctorDepartments(departments)
       } catch (fallbackError) {
         console.error("Fallback error:", fallbackError)
@@ -119,6 +114,8 @@ const AppSidebarUpdated = ({ onContentChange }) => {
       ABA: ["ABA", "Applied Behavior Analysis", "Behavioral Analysis"],
       Speech: ["Speech", "speech", "Speech Therapy", "Speech-Language Pathology"],
       PT: ["PT", "Physical Therapy", "physicalTherapy", "Physiotherapy"],
+      Psychotherapy: ["Psychotherapy", "psychotherapy", "Psycho therapy"],
+
       OT: ["OT", "Occupational Therapy", "OccupationalTherapy"],
       "Special Education": ["Special Education", "SpecialEducation", "Special Ed", "SPED"],
     }
@@ -280,6 +277,41 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           label: "Assign Student to Doctors",
           icon: Settings,
           content: "admin-assign-physical-therapy",
+          roles: ["admin"],
+        },
+       
+      ],
+    },
+    {
+      id: "Psychotherapy",
+      title: "Psychotherapy",
+      icon:   Sparkle,
+      expandable: true,
+      expanded: expandedSections.Psychotherapy,
+      roles: ["admin", "doctor"],
+      departmentName: "Psychotherapy",
+      items: [
+        {
+          id: "all-patients-Psychotherapy",
+          label: "All Psychotherapy Students",
+          icon: Users,
+          content: "all-patients-Psychotherapy",
+          roles: ["admin"],
+        },
+        {
+          id: "assign-patients-Psychotherapy",
+          label: "My Psychotherapy Students",
+          icon: User,
+          content: "assign-patients-Psychotherapy",
+          roles: ["doctor"],
+        },
+     
+
+        {
+          id: "admin-assign-Psychotherapy",
+          label: "Assign Student to Doctors",
+          icon: Settings,
+          content: "admin-assign-Psychotherapy",
           roles: ["admin"],
         },
        

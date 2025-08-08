@@ -11,6 +11,7 @@ import {
   Hand,
   GraduationCap,
   MessageSquare,
+  Sparkle,
 } from "lucide-react"
 import { useContentStore } from "../store/content-store"
 import { isAuthenticated, getCurrentUser, isDoctor } from "../utils/auth-utils"
@@ -32,6 +33,15 @@ const departments = [
     departmentName: "PT",
     items: [
       { id: "physical-therapy-patients", name: "All Students", type: "patients", therapyType: "physical-therapy" },
+    ],
+  },
+   {
+    id: "Psychotherapy",
+    name: "Psychotherapy Students",
+    icon: Sparkle,
+    departmentName: "Psychotherapy",
+    items: [
+      { id: "Psychotherapy-patients", name: "All Students", type: "patients", therapyType: "Psychotherapy" },
     ],
   },
   {
@@ -95,31 +105,25 @@ export function AppSidebar() {
   const fetchDoctorDepartments = async (doctorId) => {
     setLoadingDepartments(true)
     try {
-      console.log("Fetching departments for doctor:", doctorId)
       // First, get the doctor's information including their departments
       const doctorResponse = await axiosInstance.get(`/authentication/doctor/${doctorId}`)
       const doctorData = doctorResponse.data
-      console.log("Doctor data:", doctorData)
 
       if (doctorData && doctorData.departments && doctorData.departments.length > 0) {
         // Extract department names from the populated departments
         const departmentNames = doctorData.departments.map((dept) => dept.name)
-        console.log("Doctor's assigned departments:", departmentNames)
         setDoctorDepartments(departmentNames)
       } else {
-        console.log("No departments found for doctor")
         setDoctorDepartments([])
       }
     } catch (error) {
       console.error("Error fetching doctor departments:", error)
       // Fallback: try to get assignments from doctor-student-assignment
       try {
-        console.log("Trying fallback method...")
         const assignmentsResponse = await axiosInstance.get(`/doctor-student-assignment/doctor-assignments/${doctorId}`)
         const assignments = assignmentsResponse.data?.assignments || []
         // Extract unique departments from assignments
         const departments = [...new Set(assignments.map((assignment) => assignment.department))]
-        console.log("Departments from assignments:", departments)
         setDoctorDepartments(departments)
       } catch (fallbackError) {
         console.error("Fallback error:", fallbackError)
@@ -141,6 +145,8 @@ export function AppSidebar() {
       ABA: ["ABA", "Applied Behavior Analysis", "Behavioral Analysis"],
       Speech: ["Speech", "speech", "Speech Therapy", "Speech-Language Pathology"],
       PT: ["PT", "Physical Therapy", "physicalTherapy", "Physiotherapy"],
+            Psychotherapy: ["Psychotherapy", "psychotherapy", "Psycho therapy"],
+
       OT: ["OT", "Occupational Therapy", "OccupationalTherapy"],
       "Special Education": ["Special Education", "SpecialEducation", "Special Ed", "SPED"],
     }

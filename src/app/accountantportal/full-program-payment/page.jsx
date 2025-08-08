@@ -13,18 +13,13 @@ export default function FullProgramPaymentPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      console.log("Full Program Payment page - checking auth")
 
       const token = localStorage.getItem("token")
       const userData = localStorage.getItem("user")
 
-      console.log("Auth check:", {
-        userData: !!userData,
-        token: !!token,
-      })
+     
 
       if (!token) {
-        console.log("No token found, redirecting to accountant portal")
         router.push("/accountantportal")
         return
       }
@@ -33,14 +28,12 @@ export default function FullProgramPaymentPage() {
       if (userData) {
         try {
           const parsedUser = JSON.parse(userData)
-          console.log("Parsed user from localStorage:", parsedUser)
 
           if (parsedUser.role === "accountant") {
             setUser(parsedUser)
             setLoading(false)
             return
           } else {
-            console.log("User is not an accountant, redirecting")
             router.push("/accountantportal")
             return
           }
@@ -51,15 +44,12 @@ export default function FullProgramPaymentPage() {
 
       // If no user data in localStorage, try to fetch from API
       try {
-        console.log("Fetching user profile from API")
         const response = await axiosInstance.get("/authentication/profile")
-        console.log("Profile API response:", response.data)
 
         if (response.data && response.data.role === "accountant") {
           localStorage.setItem("user", JSON.stringify(response.data))
           setUser(response.data)
         } else {
-          console.log("User is not an accountant or no data, redirecting")
           router.push("/accountantportal")
           return
         }

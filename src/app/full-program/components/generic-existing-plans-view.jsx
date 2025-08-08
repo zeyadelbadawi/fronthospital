@@ -22,6 +22,11 @@ const DEPARTMENT_CONFIG = {
     displayName: "Physical Therapy",
     endpoint: "physicalTherapy",
   },
+    Psychotherapy: {
+    name: "Psychotherapy",
+    displayName: "Psychotherapy",
+    endpoint: "Psychotherapy",
+  },
   OccupationalTherapy: {
     name: "Occupational Therapy",
     displayName: "Occupational Therapy",
@@ -130,6 +135,8 @@ const GenericExistingPlansView = ({ department = "aba", patientId, onClose, onBa
 export const ExistingABAPlansView = (props) => <GenericExistingPlansView department="aba" {...props} />
 export const ExistingSpeechPlansView = (props) => <GenericExistingPlansView department="speech" {...props} />
 export const ExistingPhysicalPlansView = (props) => <GenericExistingPlansView department="physicalTherapy" {...props} />
+export const ExistingPsychotherapyPlansView = (props) => <GenericExistingPlansView department="Psychotherapy" {...props} />
+
 export const ExistingOccupationalPlansView = (props) => (
   <GenericExistingPlansView department="OccupationalTherapy" {...props} />
 )

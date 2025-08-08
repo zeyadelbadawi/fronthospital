@@ -1,5 +1,5 @@
 "use client"
-import Link from "next/link"
+import CustomLink from '@/components/CustomLink'
 import { useState } from "react"
 import { ChevronDown, Globe } from "lucide-react"
 import styles from "../styles/AccountantHeader.module.css"
@@ -20,9 +20,9 @@ export default function AccountantHeader({
 
   return (
     <header className={`${styles.header} ${isRTL ? styles.rtl : styles.ltr}`}>
-      <Link href="/accountantportal" className={styles.logoContainer}>
+      <CustomLink href="/accountantportal" className={styles.logoContainer}>
         <img src={logoSrc || "/placeholder.svg"} className={styles.logo} alt="Rukn Elwatikon Center Logo" />
-      </Link>
+      </CustomLink>
 
       <div className={styles.titleContainer}>
         <h4 className={styles.title}>{language === "ar" ? "مركز ركن الواثقون المالي - بوابة المحاسب" : title}</h4>
@@ -49,19 +49,19 @@ export default function AccountantHeader({
 
             {dropdownOpen && (
               <div className={styles.dropdownMenu}>
-                <Link
+                <CustomLink
                   href="/accountant-dashboard"
                   className={styles.dropdownItem}
                   onClick={() => setDropdownOpen(false)}
                 >
                   {language === "ar" ? "لوحة القيادة" : "Dashboard"}
-                </Link>
-                <Link href="/accountant-profile" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                </CustomLink>
+                <CustomLink href="/accountant-profile" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
                   {language === "ar" ? "إعدادات الملف الشخصي" : "Profile Settings"}
-                </Link>
-                <Link href="/financial-reports" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                </CustomLink>
+                <CustomLink href="/financial-reports" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
                   {language === "ar" ? "التقارير المالية" : "Financial Reports"}
-                </Link>
+                </CustomLink>
                 <hr className={styles.dropdownDivider} />
                 <button
                   className={`${styles.dropdownItem} ${styles.logoutItem}`}

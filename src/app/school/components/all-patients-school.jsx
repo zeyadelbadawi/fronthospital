@@ -27,7 +27,6 @@ const AllPatientsSchool = () => {
         `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs-optimized?page=${currentPage}&search=${search}&limit=10`,
       )
 
-      console.log("API Response:", response.data)
 
       // Handle both array and object responses
       const programsData = response.data.programs || response.data || []
@@ -65,10 +64,7 @@ const AllPatientsSchool = () => {
       return
     }
 
-    console.log("Opening plan for:", {
-      patientId: program.patientId,
-      unicValue: program.unicValue,
-    })
+ 
 
     // Set the selected program to open the plan editor component
     setSelectedProgram({

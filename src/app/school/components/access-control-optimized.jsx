@@ -27,7 +27,6 @@ const AccessControlOptimized = ({ children }) => {
         const hasAccess = hasSchoolAccessOptimized()
         const user = getCurrentUserOptimized()
 
-        console.log("✅ OPTIMIZED: Authentication check completed with caching")
 
         setAuthState({
           isAuthenticated: isAuth,

@@ -27,7 +27,6 @@ export default function AdminBookAppointmentPage() {
       const res = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      console.log("Fetched admin user data:", res.data)
 
       // Check if user is admin
       if (res.data.role !== "admin") {
@@ -49,7 +48,6 @@ export default function AdminBookAppointmentPage() {
           const retry = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/profile`, {
             headers: { Authorization: `Bearer ${r.data.accessToken}` },
           })
-          console.log("Fetched admin user data after refresh:", retry.data)
 
           // Check if user is admin after refresh
           if (retry.data.role !== "admin") {

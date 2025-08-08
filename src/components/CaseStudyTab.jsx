@@ -67,7 +67,6 @@ const CaseStudyTab = ({ patientId, patientName }) => {
         `${process.env.NEXT_PUBLIC_API_URL}/authentication/patient-case-study/${patientId}`,
       )
 
-      console.log("Case study response:", response.data) // Debug log
       setCaseStudyData(response.data)
     } catch (err) {
       console.error("Error fetching case study:", err)

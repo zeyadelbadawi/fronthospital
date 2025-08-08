@@ -11,7 +11,6 @@ import { useLanguage } from "@/contexts/LanguageContext" // Import language cont
 // 1. استقبل الـ prop الجديدة في تعريف المكون
 export default function SyncfusionDocx({ userData, planEndpoint, email, onDocumentSaved }) {
   // أضف onDocumentSaved هنا
-  console.log("SyncfusionDocx", userData)
   const documentEditorContainerRef = useRef(null)
   const { language } = useLanguage() // Get current language
 
@@ -176,7 +175,6 @@ export default function SyncfusionDocx({ userData, planEndpoint, email, onDocume
           // Send notifications and email
           await Promise.all([sendNotification(), sendEmail(response.data.filePath)])
 
-          console.log("Document saved successfully:", response.data)
           if (onDocumentSaved) {
             // تحقق مما إذا كانت الدالة موجودة قبل استدعائها
             onDocumentSaved() // استدعاء الدالة لتحديث حالة الأب
@@ -216,9 +214,7 @@ export default function SyncfusionDocx({ userData, planEndpoint, email, onDocume
         subject: userData.title,
         text: userData.message,
       })
-      console.log("email send successfully ", response.data)
     } catch (error) {
-      console.log("Error while send email", error)
       // Show email error toast (optional, non-blocking)
       toast.warning(messages.emailWarning, {
         position: "top-right",
@@ -248,9 +244,7 @@ export default function SyncfusionDocx({ userData, planEndpoint, email, onDocume
           message: userData.message,
         })
       }
-      console.log("Notification send successfully", response.data)
     } catch (error) {
-      console.log("Error while send notification", error)
       // Show notification error toast (optional, non-blocking)
       toast.warning(messages.notificationWarning, {
         position: "top-right",

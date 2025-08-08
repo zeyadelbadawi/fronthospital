@@ -131,9 +131,6 @@ export function SchoolAppointments() {
 
       const programs = response.data.programs || []
 
-      // Programs already come with isCompleted status from server
-      // No need for additional API calls!
-      console.log(`✅ OPTIMIZED: Loaded ${programs.length} programs with status in single API call`)
 
       setSchoolPrograms(programs)
       setTotalPages(response.data.totalPages || 1)
@@ -162,7 +159,6 @@ export function SchoolAppointments() {
       setAppointments(appointmentsData)
       setAppointmentStats(stats)
 
-      console.log(`✅ OPTIMIZED: Loaded ${appointmentsData.length} appointments with stats in single API call`)
     } catch (error) {
       console.error("Error fetching optimized appointments:", error)
       showToast("Failed to load appointments. Please try again.", "error")

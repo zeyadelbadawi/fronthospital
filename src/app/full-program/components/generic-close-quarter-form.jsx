@@ -35,6 +35,11 @@ const DEPARTMENT_CONFIG = {
     displayName: "Special Education",
     endpoint: "SpecialEducation",
   },
+    Psychotherapy: {
+    name: "Psychotherapy",
+    displayName: "Psychotherapy",
+    endpoint: "Psychotherapy",
+  },
 }
 
 // Form validation schema
@@ -80,7 +85,6 @@ const GenericCloseQuarterForm = ({
     },
   })
 
-  console.log("Received department:", department)
 
   const handleClose = () => {
     if (onClose) {
@@ -308,6 +312,9 @@ export const CloseQuarterFormSpeech = (props) => <GenericCloseQuarterForm depart
 export const CloseQuarterFormPhysical = (props) => (
   <GenericCloseQuarterForm department="physicalTherapy" type="plan" {...props} />
 )
+export const CloseQuarterFormPsychotherapy = (props) => (
+  <GenericCloseQuarterForm department="Psychotherapy" type="plan" {...props} />
+)
 export const CloseQuarterFormOccupationalTherapy = (props) => (
   <GenericCloseQuarterForm department="OccupationalTherapy" type="plan" {...props} />
 )
@@ -322,6 +329,9 @@ export const CloseQuarterFormSpeechExam = (props) => (
 )
 export const CloseQuarterFormPhysicalExam = (props) => (
   <GenericCloseQuarterForm department="physicalTherapy" type="exam" {...props} />
+)
+export const CloseQuarterFormPsychotherapyExam = (props) => (
+  <GenericCloseQuarterForm department="Psychotherapy" type="exam" {...props} />
 )
 export const CloseQuarterFormOccupationalTherapyExam = (props) => (
   <GenericCloseQuarterForm department="OccupationalTherapy" type="exam" {...props} />

@@ -233,16 +233,7 @@ const FullProgramTab = ({
 
     const subscriptionEndDate = appointment.subscriptionEndDate ? new Date(appointment.subscriptionEndDate) : null
 
-    // Debug logging
-    console.log("Appointment Status Debug:", {
-      appointmentId: appointment._id,
-      status: appointment.status,
-      now: now.toISOString(),
-      appointmentDateTime: appointmentDateTime.toISOString(),
-      subscriptionEndDate: subscriptionEndDate?.toISOString(),
-      isAppointmentInFuture: appointmentDateTime > now,
-      isSubscriptionExpired: subscriptionEndDate ? subscriptionEndDate < now : false,
-    })
+
 
     if (appointment.status === "not active") {
       if (appointmentDateTime > now) {
@@ -377,7 +368,6 @@ const FullProgramTab = ({
   const handleFileDownload = async (file) => {
     try {
       const fileUrl = getFileUrl(file)
-      console.log("Downloading file from:", fileUrl) // Debug log
 
       const response = await axios.get(fileUrl, { responseType: "blob" })
 
@@ -397,7 +387,6 @@ const FullProgramTab = ({
 
   const handleViewFile = (file) => {
     const fileUrl = getFileUrl(file)
-    console.log("Viewing file from:", fileUrl) // Debug log
 
     setViewingDocument({
       filePath: fileUrl,

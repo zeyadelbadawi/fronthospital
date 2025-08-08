@@ -33,6 +33,11 @@ const DEPARTMENT_CONFIG = {
     displayName: "physicalTherapy",
     fullName: "Physical Therapy",
   },
+    Psychotherapy: {
+    endpoint: "Psychotherapy",
+    displayName: "Psychotherapy",
+    fullName: "Psychotherapy",
+  },
   occupational: {
     endpoint: "OccupationalTherapy",
     displayName: "OccupationalTherapy",

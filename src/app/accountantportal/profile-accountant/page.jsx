@@ -16,18 +16,15 @@ const ProfileAccountantPage = () => {
     const userData = localStorage.getItem("user")
     const token = localStorage.getItem("token")
     
-    console.log("Profile page - checking auth:", { userData: !!userData, token: !!token })
     
     if (userData && token) {
       try {
         const parsedUser = JSON.parse(userData)
-        console.log("Parsed user:", parsedUser)
         
         if (parsedUser.role === "accountant") {
           setUser(parsedUser)
           setLoading(false)
         } else {
-          console.log("User role is not accountant:", parsedUser.role)
           router.push("/accountantportal")
         }
       } catch (error) {
@@ -35,7 +32,6 @@ const ProfileAccountantPage = () => {
         router.push("/accountantportal")
       }
     } else {
-      console.log("No user data or token found")
       router.push("/accountantportal")
     }
   }, [router])

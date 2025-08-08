@@ -76,7 +76,6 @@ const HomeComFour = () => {
         setTotalIncome(data.totalIncome)
         setSeries([data.netIncome, data.pendingMoney])
 
-        console.log("Income summary loaded:", data)
       } catch (error) {
         console.error("Error fetching income data:", error)
         // Set default values in case of error

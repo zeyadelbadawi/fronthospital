@@ -285,7 +285,6 @@ export function AccountantAppointments() {
         const dateTimeB = new Date(`${b.date}T${b.time}`)
         return dateTimeB - dateTimeA
       })
-      console.log("Fetched active appointments:", sortedAppointments)
       setAppointments(sortedAppointments)
     } catch (error) {
       console.error("Error fetching appointments:", error)
@@ -483,7 +482,6 @@ export function AccountantAppointments() {
             success: true,
             assignment: response.data,
           })
-          console.log(`Successfully assigned to ${dept.name}:`, response.data)
         }
       } catch (error) {
         assignmentResults.totalFailed++
@@ -495,7 +493,6 @@ export function AccountantAppointments() {
         console.error(`Error assigning to ${dept.name}:`, error)
       }
     }
-    console.log("Assignment Results:", assignmentResults)
     if (assignmentResults.totalFailed > 0) {
       console.warn(`${assignmentResults.totalFailed} department assignments failed`)
     }

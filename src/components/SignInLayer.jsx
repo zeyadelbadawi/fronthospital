@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react"
-import Link from "next/link"
+import CustomLink from '@/components/CustomLink'
 import { useRouter } from "next/navigation"
 import axios from "axios"
 import { AlertTriangle, ShieldCheck, Stethoscope, Wallet, Mail, Lock, EyeOff, Eye, LogIn } from "lucide-react"
@@ -34,7 +34,6 @@ const SignInLayer = () => {
         withCredentials: true,
       })
 
-      console.log("login=>>>>", response.data)
       const token = response.data.accessToken
       localStorage.setItem("token", token)
 
@@ -160,9 +159,9 @@ const SignInLayer = () => {
                   Remember me
                 </label>
               </div>
-              <Link href="#" className={styles.forgotLink}>
+              <CustomLink href="#" className={styles.forgotLink}>
                 Forgot Password?
-              </Link>
+              </CustomLink>
             </div>
 
             {/* Submit Button */}

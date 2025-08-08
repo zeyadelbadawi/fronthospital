@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import CustomLink from '@/components/CustomLink'
 import { useRouter } from "next/navigation";
 import axiosInstance from "../helper/axiosSetup";
 import { Search, Plus, Edit, Trash2 } from "lucide-react";
@@ -77,10 +77,10 @@ const DepartmentListLayer = () => {
               />
               <Search className={styles.searchIcon} />
             </div>
-            <Link href="/add-department" className={styles.addButton}>
+            <CustomLink href="/add-department" className={styles.addButton}>
               <Plus className={styles.addIcon} />
               Add New Department
-            </Link>
+            </CustomLink>
           </div>
         </div>
 

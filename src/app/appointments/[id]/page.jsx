@@ -53,7 +53,6 @@ export default function StudentsAppointmentDepartment({ params }) {
       setLoading(true)
       const response = await axiosInstance.get(`/appointments/findById/${id}`)
       setCurrentAppointment(response?.data?.appointment)
-      console.log("Appointment by id fetched successfully:", response.data)
     } catch (error) {
       setLoading(false)
       showToast("error", `Error fetching appointment details: ${error.response?.data?.error || error.message}`)
@@ -76,7 +75,6 @@ export default function StudentsAppointmentDepartment({ params }) {
       )
       setStudentsByDepartment(response.data)
       setTotalPages1(Math.ceil((response?.data?.assignments?.length || 0) / 10))
-      console.log("Doctor's available students fetched successfully:", response.data)
     } catch (error) {
       setLoading(false)
       showToast("error", `Error fetching doctor's available students: ${error.response?.data?.error || error.message}`)
@@ -94,7 +92,6 @@ export default function StudentsAppointmentDepartment({ params }) {
       )
       setStudentsAppointment(response?.data?.studentsAppointment || [])
       setTotalPages2(Math.ceil((response?.data?.studentsAppointment?.length || 0) / 10))
-      console.log("student in appointment successfully:", response.data.studentsAppointment)
     } catch (error) {
       setLoading(false)
       showToast("error", `Error fetching appointed students: ${error.response?.data?.error || error.message}`)
@@ -123,14 +120,12 @@ export default function StudentsAppointmentDepartment({ params }) {
       if (response.status === 201) {
         showToast("success", "Student added to appointment successfully!")
       }
-      console.log("Students added to appointment successfully:", response.data.studentsAppointment)
     } catch (error) {
       setButtonLoading(false)
 
       // Check if it's a conflict error (status 409)
       if (error.response?.status === 409 && error.response?.data?.conflictDetails) {
         const conflictData = error.response.data.conflictDetails
-        console.log("Conflict details:", conflictData)
         setConflictDetails(conflictData)
         setPendingAssignment(addedData)
         setShowWarningModal(true)
@@ -150,7 +145,6 @@ export default function StudentsAppointmentDepartment({ params }) {
       setButtonLoading(true)
       const response = await axiosInstance.delete(`/students-appointment/${studentAppointmentId}`)
       showToast("success", "Student removed from appointment successfully!")
-      console.log("Students deleted from appointment successfully:", response.data.studentsAppointment)
     } catch (error) {
       setButtonLoading(false)
       showToast("error", `Error removing student from appointment: ${error.response?.data?.error || error.message}`)
@@ -180,7 +174,6 @@ export default function StudentsAppointmentDepartment({ params }) {
 
       if (response.status === 201) {
         showToast("success", "Student assigned to appointment (forced) successfully!")
-        console.log("Students added to appointment successfully (forced):", response.data.studentsAppointment)
       }
     } catch (error) {
       showToast("error", `Error assigning student to appointment: ${error.response?.data?.error || error.message}`)

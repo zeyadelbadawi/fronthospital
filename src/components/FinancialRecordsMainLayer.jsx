@@ -35,15 +35,11 @@ export default function FinancialRecordsMainLayer({ user }) {
       setLoading(true)
       setError(null)
 
-      console.log("Attempting to fetch financial data for user ID:", user?.id)
 
       const [moneyResponse, checksResponse] = await Promise.all([
         axiosInstance.get(`/authentication/money/patient/${user.id}`),
         axiosInstance.get(`/authentication/checks/patient/${user.id}`),
       ])
-
-      console.log("Raw money response data:", moneyResponse.data)
-      console.log("Raw checks response data:", checksResponse.data)
 
       const extractedMoneyData = Array.isArray(moneyResponse.data?.data?.records)
         ? moneyResponse.data.data.records
@@ -57,9 +53,7 @@ export default function FinancialRecordsMainLayer({ user }) {
           ? checksResponse.data
           : []
 
-      console.log("Extracted money data (should be array):", extractedMoneyData)
-      console.log("Extracted checks data (should be array):", extractedChecksData)
-
+ 
       setMoneyRecords(extractedMoneyData)
       setCheckRecords(extractedChecksData)
     } catch (err) {
@@ -131,12 +125,7 @@ export default function FinancialRecordsMainLayer({ user }) {
   const currentMoneyRecords = Array.isArray(moneyRecords) ? moneyRecords : []
   const currentCheckRecords = Array.isArray(checkRecords) ? checkRecords : []
 
-  console.log("moneyRecords state before calculations:", currentMoneyRecords)
-  console.log(
-    "Type of moneyRecords state:",
-    typeof currentMoneyRecords,
-    Array.isArray(currentMoneyRecords) ? "(Array)" : "(Not Array)",
-  )
+
 
   const totalPending = currentMoneyRecords
     .filter((record) => record?.status === "pending")

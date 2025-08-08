@@ -44,6 +44,15 @@ export const DEPARTMENTS = {
     loadingText: "Loading your Special Education students...",
 
   },
+    Psycho_therapy: {
+    name: "Psychotherapy",
+    displayName: "Psychotherapy",
+    fullName: "Psychotherapy",
+    apiEndpoint: "/Psychotherapy",
+    doctorDepartment: "Psychotherapy",
+    loadingText: "Loading your Psychotherapy students...",
+
+  },
 }
 
 // Helper function to get department by content type
@@ -54,6 +63,8 @@ export const getDepartmentByContentType = (contentType) => {
     "all-patients-physical-therapy": DEPARTMENTS.PHYSICAL_THERAPY,
     "all-patients-occupational-therapy": DEPARTMENTS.OCCUPATIONAL_THERAPY,
     "all-patients-special-education": DEPARTMENTS.SPECIAL_EDUCATION,
+    "all-patients-Psychotherapy": DEPARTMENTS.Psycho_therapy,
+
   }
 
   return departmentMap[contentType]

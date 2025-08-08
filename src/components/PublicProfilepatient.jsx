@@ -2,23 +2,9 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import axios from "axios"
-import jwt_decode from "jwt-decode"
+import { jwtDecode } from "jwt-decode"
 import { toast, ToastContainer } from "react-toastify"
-import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  Edit3,
-  Lock,
-  Activity,
-  Eye,
-  EyeOff,
-  Save,
-  X,
-  GraduationCap,
-} from "lucide-react"
+import { User, Mail, Phone, MapPin, Calendar, Edit3, Lock, Activity, Eye, EyeOff, Save, X, GraduationCap, Link } from 'lucide-react'
 import styles from "../styles/profile-view.module.css"
 import FullProgramTab from "./FullProgramTab"
 import SchoolTab from "./SchoolTab"
@@ -55,7 +41,8 @@ const PublicProfilepatient = ({ patientID }) => {
     const fetchPatientData = async () => {
       try {
         const token = localStorage.getItem("token")
-        const decodedToken = jwt_decode(token)
+        const decodedToken = jwtDecode(token)
+
         const userId = decodedToken?.id
         const patientResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/patient/${userId}`)
         setPatient(patientResponse.data)
@@ -74,7 +61,7 @@ const PublicProfilepatient = ({ patientID }) => {
     }
 
     try {
-      const decodedToken = jwt_decode(token)
+      const decodedToken = jwtDecode(token) // Use jwtDecode here
       const userRole = decodedToken?.role
       const userId = decodedToken?.id
 
@@ -204,7 +191,7 @@ const PublicProfilepatient = ({ patientID }) => {
                   <li className={styles.infoItem}>
                     <span className={styles.infoLabel}>
                       <User className={styles.infoLabelIcon} />
-                      {t?.profile?.fullName || "Full Name"}
+                      {t?.profile?.fullName || "Full Name"}{" "}
                     </span>
                     <span className={styles.infoValue}>{name}</span>
                   </li>
@@ -241,6 +228,25 @@ const PublicProfilepatient = ({ patientID }) => {
                       {address || t?.profile?.notProvided || "Not provided"}
                     </span>
                   </li>
+                  {/* NEW: Google Drive Link */}
+                  {patient.driveLink && (
+                    <li className={styles.infoItem}>
+                      <span className={styles.infoLabel}>
+                        <Link className={styles.infoLabelIcon} />
+                        Google Drive
+                      </span>
+                      <span className={styles.infoValue}>
+                        <a
+                          href={patient.driveLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.driveLink} // Apply a specific style for the link
+                        >
+                          {patient.driveLink}
+                        </a>
+                      </span>
+                    </li>
+                  )}
                 </ul>
               </div>
             </div>

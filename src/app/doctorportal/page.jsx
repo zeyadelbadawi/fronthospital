@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react"
 import dynamic from "next/dynamic"
 import axiosInstance from "@/helper/axiosSetup"
-import Link from "next/link"
+import CustomLink from '@/components/CustomLink'
 import {
   Stethoscope,
   Calendar,
@@ -384,11 +384,11 @@ export default function DoctorPortalPage() {
         {/* Services Grid */}
         <div className={styles.servicesGrid}>
           {services.map(({ href, Icon, label, description }, idx) => (
-            <Link key={idx} href={href} className={styles.serviceCard} onClick={handleCardClick(href)}>
+            <CustomLink key={idx} href={href} className={styles.serviceCard} onClick={handleCardClick(href)}>
               <Icon className={styles.serviceIcon} />
               <h3 className={styles.serviceTitle}>{label}</h3>
               <p className={styles.serviceDescription}>{description}</p>
-            </Link>
+            </CustomLink>
           ))}
         </div>
       </main>

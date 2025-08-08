@@ -103,7 +103,6 @@ export default function AppointmentBooking() {
             "success",
             `Appointment saved successfully! New slot added for ${currentSelection.department}.`,
           )
-          console.log("Appointments saved successfully", response.data)
           setCurrentSelection({
             department: "",
             day: "",

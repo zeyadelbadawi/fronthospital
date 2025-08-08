@@ -27,7 +27,6 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
 
   useEffect(() => {
     if (patientId && unicValue) {
-      console.log("Loading data for:", { patientId, unicValue })
       fetchPatientData()
       fetchExistingPlan()
       fetchPlanStats()
@@ -39,7 +38,6 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
     setLoading(true)
     try {
       const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/patient/${patientId}`)
-      console.log("Student data fetched:", response.data)
       setPatient(response.data)
     } catch (error) {
       console.error("Error fetching Student data:", error)
@@ -55,7 +53,6 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
         `${process.env.NEXT_PUBLIC_API_URL}/school/program-info/${patientId}/${encodeURIComponent(unicValue)}`,
       )
 
-      console.log("Program info fetched:", response.data)
       if (response.data.program) {
         setProgramInfo({
           unicValue: response.data.program.unicValue,
@@ -75,11 +72,9 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
 
   const fetchExistingPlan = async () => {
     try {
-      console.log("Fetching plan for:", { patientId, unicValue })
       const response = await axiosInstance.get(
         `${process.env.NEXT_PUBLIC_API_URL}/school/plan/${patientId}/${encodeURIComponent(unicValue)}`,
       )
-      console.log("Existing plan data fetched:", response.data)
 
       const planData = response.data || {
         title: "School Program Plan",
@@ -136,7 +131,6 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
 
     setSaving(true)
     try {
-      console.log("Starting save process...")
 
       // Get the SyncfusionDocx component reference
       const syncfusionComponent = document.querySelector("#container")
@@ -152,11 +146,9 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
         return
       }
 
-      console.log("Getting document content...")
 
       // Get document content as blob - same as SyncfusionDocx2.jsx
       const documentContent = await editorContainer.documentEditor.saveAsBlob("Docx")
-      console.log("Document blob created:", documentContent)
 
       if (!documentContent || documentContent.size === 0) {
         console.error("Document content is empty")
@@ -177,13 +169,7 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
       // DON'T append title to FormData to avoid array issue
       // Let the backend use its default title value
 
-      console.log("FormData prepared:", {
-        fileName,
-        patientId: patientId,
-        blobSize: documentContent.size,
-        endpoint: `${process.env.NEXT_PUBLIC_API_URL}/school/upload-plan/${patientId}/${encodeURIComponent(unicValue)}`,
-        note: "Title not included in FormData to avoid array casting issue",
-      })
+  
 
       // Send the form data to server - same endpoint as SyncfusionDocx2.jsx
       const response = await axiosInstance.post(
@@ -197,11 +183,9 @@ const PatientSchoolPlanEditor = ({ patientId, unicValue, onBack }) => {
         },
       )
 
-      console.log("Save response:", response.data)
 
       // Handle the response
       if (response.status === 200) {
-        console.log("Document saved successfully:", response.data)
 
         // Update local state with saved data
         if (response.data.plan) {

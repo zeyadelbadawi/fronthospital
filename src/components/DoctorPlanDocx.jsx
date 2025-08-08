@@ -6,7 +6,6 @@ import axiosInstance from "@/helper/axiosSetup"
 
 const DoctorPLanDocx = forwardRef(
   ({ filePath, doctorId, departmentId, documentId, fileName, quarterOfYear, year }, ref) => {
-    console.log("filePath", filePath)
     const documentEditorContainerRef = useRef(null)
 
     // Load Syncfusion styles

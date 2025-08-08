@@ -65,6 +65,15 @@ const DEPARTMENT_CONFIG = {
     loadingText: "Loading your Special Education students...",
     emptyText: "You don't have any Special Education students assigned to you yet.",
   },
+    Psychotherapy: {
+    endpoint: "Psychotherapy",
+    displayName: "Psychotherapy",
+    fullName: "Psychotherapy",
+    title: "My Psychotherapy Students",
+    subtitle: "Manage and view your assigned Psychotherapy students",
+    loadingText: "Loading your Psychotherapy students...",
+    emptyText: "You don't have any Psychotherapy students assigned to you yet.",
+  },
 }
 
 export default function GenericAssignPatientsDoctor({ department, onViewPlan, onViewExam }) {
@@ -98,7 +107,6 @@ export default function GenericAssignPatientsDoctor({ department, onViewPlan, on
     try {
       setLoading(true)
       setError("")
-      console.log("Fetching students for doctor:", doctorId)
 
       let response
       try {
@@ -110,7 +118,6 @@ export default function GenericAssignPatientsDoctor({ department, onViewPlan, on
         )
       } catch (error) {
         if (error.response?.status === 404) {
-          console.log("Primary endpoint not found, trying alternative...")
           response = await axiosInstance.get(`/doctor-student-assignment/doctor-assignments/${doctorId}`, {
             params: {
               department: config.endpoint,
@@ -124,7 +131,6 @@ export default function GenericAssignPatientsDoctor({ department, onViewPlan, on
         }
       }
 
-      console.log("Doctor students response:", response.data)
       const assignmentsData = response.data.assignments || []
       setAssignments(assignmentsData)
       setTotalPages(response.data.totalPages || 1)
@@ -158,7 +164,6 @@ export default function GenericAssignPatientsDoctor({ department, onViewPlan, on
       const response = await axiosInstance.post("/manualSubscriptionChecker/manual-check-subscriptions")
       setSubscriptionCheckMessage(response.data.message || "Subscription check completed.")
       setSubscriptionCheckError(false)
-      console.log("Subscription check results:", response.data.results)
     } catch (error) {
       console.error("Error triggering manual subscription check:", error)
       setSubscriptionCheckMessage(error.response?.data?.message || "Failed to perform subscription check.")
@@ -179,7 +184,6 @@ export default function GenericAssignPatientsDoctor({ department, onViewPlan, on
   }
 
   const handlePlanClick = (patientId) => {
-    console.log("handlePlanClick called for Student ID:", patientId)
     if (!patientId) {
       console.error("Student ID is missing for plan click.")
       return
@@ -193,7 +197,6 @@ export default function GenericAssignPatientsDoctor({ department, onViewPlan, on
   }
 
   const handleExamClick = (patientId) => {
-    console.log("handleExamClick called for Student ID:", patientId)
     if (!patientId) {
       console.error("Student ID is missing for exam click.")
       return
@@ -648,6 +651,16 @@ export function AssignPatientsPhysicalTherapyDoctor({ onViewPhysicalPlan, onView
       department="physical"
       onViewPlan={onViewPhysicalPlan}
       onViewExam={onViewPhysicalExam}
+    />
+  )
+}
+
+export function AssignPatientsPsychotherapyDoctor({ onViewPsychotherapyPlan, onViewPsychotherapyExam }) {
+  return (
+    <GenericAssignPatientsDoctor
+      department="Psychotherapy"
+      onViewPlan={onViewPsychotherapyPlan}
+      onViewExam={onViewPsychotherapyExam}
     />
   )
 }

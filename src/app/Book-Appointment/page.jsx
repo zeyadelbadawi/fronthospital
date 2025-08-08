@@ -46,7 +46,6 @@ export default function Page() {
       const res = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      console.log("Fetched user data:", res.data) // Add this line
       setUser(res.data)
     } catch (err) {
       if (err.response?.status === 403) {
@@ -60,7 +59,6 @@ export default function Page() {
           const retry = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/profile`, {
             headers: { Authorization: `Bearer ${r.data.accessToken}` },
           })
-          console.log("Fetched user data after refresh:", retry.data) // Add this line
           setUser(retry.data)
         } catch {}
       }

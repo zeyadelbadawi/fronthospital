@@ -250,16 +250,7 @@ const SchoolTab = ({
       }
     }
 
-    console.log("Program:", program.unicValue)
-    console.log("First appointment raw data:", {
-      date: firstAppointment.date,
-      time: firstAppointment.time,
-      status: firstAppointment.status,
-    })
-    console.log("First appointment parsed time:", firstAppointmentTime)
-    console.log("Current time:", now)
-    console.log("Time comparison:", firstAppointmentTime > now ? "Future" : "Past")
-
+   
     // الحالة 1: الموعد الأول لم يأتي بعد ولم يكتمل
     if (firstAppointmentTime > now && firstAppointment.status !== "completed") {
       return {
@@ -402,7 +393,6 @@ const SchoolTab = ({
   const handleFileDownload = async (file) => {
     try {
       const fileUrl = getFileUrl(file)
-      console.log("Downloading file from:", fileUrl)
 
       const response = await axios.get(fileUrl, { responseType: "blob" })
 
@@ -422,7 +412,6 @@ const SchoolTab = ({
 
   const handleViewFile = (file) => {
     const fileUrl = getFileUrl(file)
-    console.log("Viewing file from:", fileUrl)
 
     setViewingDocument({
       filePath: fileUrl,

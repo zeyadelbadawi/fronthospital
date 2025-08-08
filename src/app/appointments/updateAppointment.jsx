@@ -180,7 +180,6 @@ export default function AppointmentUpdate({ appointmentId, currentData, onSucces
         const response = await axiosInstance.put(`/appointments/${appointmentId}`, updateData)
 
         if (response.status === 200) {
-          console.log("Appointment updated successfully:", response.data)
           onSuccess()
           closeUpdateModal() // Close modal on success
           setCurrentSelection({

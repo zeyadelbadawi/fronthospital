@@ -1,31 +1,9 @@
 "use client"
 import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
-import Link from "next/link"
+import CustomLink from "@/components/CustomLink" // Changed from Link
 import axiosInstance from "../helper/axiosSetup"
-import {
-  X,
-  ArrowRight,
-  Menu,
-  Bell,
-  User,
-  Home,
-  Activity,
-  FileText,
-  GraduationCap,
-  UserPlus,
-  Calendar,
-  CalendarDays,
-  Users,
-  Stethoscope,
-  Calculator,
-  Building,
-  CreditCard,
-  Receipt,
-  AlertTriangle,
-  Heart,
-  DoorOpen,
-} from "lucide-react"
+import { X, ArrowRight, Menu, Bell, User, Home, Activity, FileText, GraduationCap, UserPlus, Calendar, CalendarDays, Users, Stethoscope, Calculator, Building, CreditCard, Receipt, AlertTriangle, Heart, DoorOpen, FileVideoCamera } from 'lucide-react'
 import useSocket from "@/hooks/useSocket"
 import { formatDistanceToNow } from "date-fns"
 import styles from "./master-layout.module.css"
@@ -130,7 +108,7 @@ const MasterLayout = ({ children }) => {
       }
     }
 
-    const dropdownTriggers = document.querySelectorAll(".sidebar-menu .dropdown > a, .sidebar-menu .dropdown > Link")
+    const dropdownTriggers = document.querySelectorAll(".sidebar-menu .dropdown > a, .sidebar-menu .dropdown > CustomLink") // Changed from Link
     dropdownTriggers.forEach((trigger) => {
       trigger.addEventListener("click", handleDropdownClick)
     })
@@ -240,7 +218,6 @@ const MasterLayout = ({ children }) => {
       const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/notification/byId/${user?.id}`)
       setNotifications(response.data.notifications || [])
       setCount(response.data.count || 0)
-      console.log("Fetched notifications:", response.data.notifications)
     } catch (error) {
       console.error("Error fetching notifications:", error)
     }
@@ -255,7 +232,6 @@ const MasterLayout = ({ children }) => {
     try {
       axiosInstance.put(`${process.env.NEXT_PUBLIC_API_URL}/notification/read/${noteId}`).then((response) => {
         getNotifications()
-        console.log("Notification marked as read:", response.data)
       })
     } catch (error) {
       console.error("Error handling notification click:", error)
@@ -302,7 +278,7 @@ const MasterLayout = ({ children }) => {
           <X />
         </button>
         <div>
-          <Link href="/" className={styles.sidebarLogo}>
+          <CustomLink href="/" className={styles.sidebarLogo}> {/* Changed to CustomLink */}
             <div className={styles.logoImageContainer}>
               <Image
                 src="/images/rukn-logo.png"
@@ -317,110 +293,108 @@ const MasterLayout = ({ children }) => {
               <div className={styles.logoTitle}>Rukn Alwatikon</div>
               <div className={styles.logoSubtitle}>Rehabilitation Center</div>
             </div>
-          </Link>
+          </CustomLink> {/* Changed to CustomLink */}
         </div>
         <div className={styles.sidebarMenuArea}>
           <ul className={styles.sidebarMenu} id="sidebar-menu">
             <li className={styles.sidebarMenuGroupTitle}>Home</li>
             <li>
-              <Link href="/" className={pathname === "/" ? styles.activePage : ""}>
+              <CustomLink href="/" className={pathname === "/" ? styles.activePage : ""}> {/* Changed to CustomLink */}
                 <Home className={styles.menuIcon} />
                 <span>Statistics</span>
-              </Link>
+              </CustomLink> {/* Changed to CustomLink */}
             </li>
             <li className={styles.sidebarMenuGroupTitle}>All Programs</li>
             <li>
-              <Link href="/full-program" className={pathname === "/full-program" ? styles.activePage : ""}>
+              <CustomLink href="/full-program" className={pathname === "/full-program" ? styles.activePage : ""}> {/* Changed to CustomLink */}
                 <Activity className={styles.menuIcon} />
                 <span>Full Programs</span>
-              </Link>
+              </CustomLink> {/* Changed to CustomLink */}
             </li>
             <li>
-              <Link href="/single-session" className={pathname === "/single-session" ? styles.activePage : ""}>
+              <CustomLink href="/single-session" className={pathname === "/single-session" ? styles.activePage : ""}> {/* Changed to CustomLink */}
                 <FileText className={styles.menuIcon} />
                 <span>Single Programs</span>
-              </Link>
+              </CustomLink> {/* Changed to CustomLink */}
             </li>
             <li>
-              <Link href="/school" className={pathname === "/school" ? styles.activePage : ""}>
+              <CustomLink href="/school" className={pathname === "/school" ? styles.activePage : ""}> {/* Changed to CustomLink */}
                 <GraduationCap className={styles.menuIcon} />
                 <span>School Evaluations</span>
-              </Link>
+              </CustomLink> {/* Changed to CustomLink */}
             </li>
             <li>
-              <Link
+              <CustomLink
                 href="/Admin-Book-Appointment"
                 className={pathname === "/Admin-Book-Appointment" ? styles.activePage : ""}
-              >
+              > {/* Changed to CustomLink */}
                 <UserPlus className={styles.menuIcon} />
                 <span>Book New Appointment</span>
-              </Link>
+              </CustomLink> {/* Changed to CustomLink */}
             </li>
             <li className={styles.sidebarMenuGroupTitle}>Full Program Schedule</li>
             <li>
-              <Link href="/calendar-main" className={pathname === "/calendar-main" ? styles.activePage : ""}>
+              <CustomLink href="/calendar-main" className={pathname === "/calendar-main" ? styles.activePage : ""}> {/* Changed to CustomLink */}
                 <Calendar className={styles.menuIcon} />
                 <span>Show Schedule</span>
-              </Link>
+              </CustomLink> {/* Changed to CustomLink */}
             </li>
             <li>
-              <Link
+              <CustomLink
                 href="/full-program-appointments"
                 className={pathname === "/full-program-appointments" ? styles.activePage : ""}
-              >
+              > {/* Changed to CustomLink */}
                 <CalendarDays className={styles.menuIcon} />
                 <span>Update Schedule</span>
-              </Link>
+              </CustomLink> {/* Changed to CustomLink */}
             </li>
             <li className={styles.sidebarMenuGroupTitle}>All Users</li>
             <li>
-              <Link href="/student/list" className={pathname === "/student/list" ? styles.activePage : ""}>
+              <CustomLink href="/student/list" className={pathname === "/student/list" ? styles.activePage : ""}> {/* Changed to CustomLink */}
                 <Users className={styles.menuIcon} />
                 <span>All Students</span>
-              </Link>
+              </CustomLink> {/* Changed to CustomLink */}
             </li>
+             <li>
+                <CustomLink href="/drive-link" className={pathname === "/drive-link" ? styles.activePage : ""}> {/* Changed to CustomLink */}
+                  <FileVideoCamera className={styles.menuIcon} />
+                  <span>Student Media</span>
+                </CustomLink> {/* Changed to CustomLink */}
+              </li>
             <li>
-              <Link href="/doctor/list" className={pathname === "/doctor/list" ? styles.activePage : ""}>
+              <CustomLink href="/doctor/list" className={pathname === "/doctor/list" ? styles.activePage : ""}> {/* Changed to CustomLink */}
                 <Stethoscope className={styles.menuIcon} />
                 <span>All Doctors</span>
-              </Link>
+              </CustomLink> {/* Changed to CustomLink */}
             </li>
             {/* Hide "All Accountants" for HeadDoctor */}
             {!isHeadDoctor && (
               <li>
-                <Link href="/accountant/list" className={pathname === "/accountant/list" ? styles.activePage : ""}>
+                <CustomLink href="/accountant/list" className={pathname === "/accountant/list" ? styles.activePage : ""}> {/* Changed to CustomLink */}
                   <Calculator className={styles.menuIcon} />
                   <span>All Accountants</span>
-                </Link>
+                </CustomLink> {/* Changed to CustomLink */}
               </li>
             )}
-            {/* Hide "All Departments" for HeadDoctor */}
-            {!isHeadDoctor && (
-              <li>
-                <Link href="/department-list" className={pathname === "/department-list" ? styles.activePage : ""}>
-                  <Building className={styles.menuIcon} />
-                  <span>All Departments</span>
-                </Link>
-              </li>
-            )}
+             
             {/* Hide Payment Reports section for HeadDoctor */}
             {!isHeadDoctor && (
               <>
                 <li className={styles.sidebarMenuGroupTitle}>Payment Reports</li>
                 <li>
-                  <Link
+                  <CustomLink
                     href="/Payment-Transactions"
                     className={pathname === "/Payment-Transactions" ? styles.activePage : ""}
-                  >
+                  > {/* Changed to CustomLink */}
                     <CreditCard className={styles.menuIcon} />
                     <span>Payment Management System</span>
-                  </Link>
+                  </CustomLink> {/* Changed to CustomLink */}
                 </li>
                 <li>
-                  <Link href="/table-data" className={pathname === "/table-data" ? styles.activePage : ""}>
+                  <CustomLink href="/checks" className={pathname === "/checks" ? styles.activePage : ""}> {/* Changed to CustomLink */}
                     <Receipt className={styles.menuIcon} />
                     <span>Checks Management System</span>
-                  </Link>
+                  </CustomLink> {/* Changed to CustomLink */}
                 </li>
               </>
             )}
@@ -453,7 +427,7 @@ const MasterLayout = ({ children }) => {
 
             {/* Centered Header Logo */}
             <div className={styles.headerLogoCenter}>
-              <Link href="/" className={styles.headerLogo}>
+              <CustomLink href="/" className={styles.headerLogo}> 
                 <div className={styles.headerLogoImageContainer}>
                   <Image
                     src="/images/rukn-logo.png"
@@ -464,7 +438,7 @@ const MasterLayout = ({ children }) => {
                     priority
                   />
                 </div>
-              </Link>
+              </CustomLink>
             </div>
 
             <div className={styles.colAuto}>
@@ -569,23 +543,23 @@ const MasterLayout = ({ children }) => {
                     <ul className={styles.profileMenuList}>
                       {user && userRole !== "admin" && (
                         <li className={styles.profileMenuItem}>
-                          <Link href={profileLink} className={styles.profileMenuLink}>
+                          <CustomLink href={profileLink} className={styles.profileMenuLink}> {/* Changed to CustomLink */}
                             <User className={styles.textXl} />
                             My Profile
-                          </Link>
+                          </CustomLink>
                         </li>
                       )}
                       <li className={styles.profileMenuItem}>
                         {!user ? (
-                          <Link href="/sign-in" className={styles.profileMenuLink}>
+                          <CustomLink href="/sign-in" className={styles.profileMenuLink}> {/* Changed to CustomLink */}
                             <DoorOpen className={styles.textXl} />
                             Login
-                          </Link>
+                          </CustomLink> 
                         ) : (
-                          <Link href="#" className={styles.profileMenuLink} onClick={handleLogout}>
+                          <CustomLink href="#" className={styles.profileMenuLink} onClick={handleLogout}> {/* Changed to CustomLink */}
                             <DoorOpen className={styles.textXl} />
                             Log Out
-                          </Link>
+                          </CustomLink> 
                         )}
                       </li>
                     </ul>

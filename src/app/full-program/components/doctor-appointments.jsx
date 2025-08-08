@@ -83,7 +83,6 @@ export function DoctorAppointments() {
         return dateTimeB - dateTimeA // Most recent first
       })
 
-      console.log("Fetched all appointments:", sortedAppointments)
 setAppointments(sortedAppointments.filter(app => app.programType === "full_program"))
     } catch (error) {
       console.error("Error fetching appointments:", error)

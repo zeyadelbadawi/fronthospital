@@ -25,6 +25,12 @@ const DEPARTMENT_CONFIG = {
     endpoint: "physicalTherapy",
     doctorEndpoint: "physicalTherapy",
   },
+    Psychotherapy: {
+    name: "Psychotherapy",
+    displayName: "Psychotherapy",
+    endpoint: "Psychotherapy",
+    doctorEndpoint: "Psychotherapy",
+  },
   OccupationalTherapy: {
     name: "Occupational Therapy",
     displayName: "Occupational Therapy",
@@ -46,7 +52,6 @@ const GenericAdminAssign = ({ department = "aba" }) => {
   const [loading, setLoading] = useState(true)
   const [selectedPatient, setSelectedPatient] = useState("")
   const [selectedDoctor, setSelectedDoctor] = useState("")
-  const [subscriptionEndDate, setSubscriptionEndDate] = useState("")
   const [notes, setNotes] = useState("")
   const [message, setMessage] = useState("")
   const [formErrors, setFormErrors] = useState({})
@@ -57,7 +62,6 @@ const GenericAdminAssign = ({ department = "aba" }) => {
     assignedPatients: 0,
     unassignedPatients: 0,
     totalDoctors: 0,
-    expiredAssignments: 0,
   })
 
 const config = DEPARTMENT_CONFIG[department]
@@ -84,13 +88,11 @@ if (!config) {
       setLoading(true)
 
       // Fetch patients from department assignment collection
-      console.log(`Fetching ${config.name} Students from Student${config.name}Assignment...`)
       let patientsResponse
       try {
         patientsResponse = await axiosInstance.get(`/${config.endpoint}/patient-assignments`, {
           params: { page: 1, search: "" },
         })
-        console.log(`${config.name} Students response:`, patientsResponse.data)
       } catch (error) {
         console.error(`${config.name} Students fetch failed:`, error)
         setMessage(`Failed to fetch ${config.name} Students: ` + (error.response?.data?.message || error.message))
@@ -98,13 +100,11 @@ if (!config) {
       }
 
       // Fetch doctors in department
-      console.log(`Fetching ${config.name} doctors...`)
       let doctorsResponse
       try {
         doctorsResponse = await axiosInstance.get(
           `/doctor-student-assignment/doctors-by-department/${config.doctorEndpoint}`,
         )
-        console.log(`${config.name} doctors response:`, doctorsResponse.data)
       } catch (error) {
         console.error("Doctors fetch failed:", error)
         setMessage("Failed to fetch doctors: " + (error.response?.data?.message || error.message))
@@ -112,24 +112,18 @@ if (!config) {
       }
 
       // Fetch current doctor-student assignments for department
-      console.log(`Fetching ${config.name} doctor-student assignments...`)
       let assignmentsResponse
       try {
         assignmentsResponse = await axiosInstance.get("/doctor-student-assignment/all-assignments", {
           params: { department: config.doctorEndpoint, page: 1, limit: 100 },
         })
-        console.log(`${config.name} assignments response:`, assignmentsResponse.data)
       } catch (error) {
         console.error("Assignments fetch failed:", error)
         setMessage("Failed to fetch assignments: " + (error.response?.data?.message || error.message))
         assignmentsResponse = { data: { assignments: [] } }
       }
 
-      console.log("All responses received:", {
-        patients: patientsResponse.data,
-        doctors: doctorsResponse.data,
-        assignments: assignmentsResponse.data,
-      })
+ 
 
       // Set the data
       const patientsData = patientsResponse.data.assignments || patientsResponse.data.patients || []
@@ -145,14 +139,12 @@ if (!config) {
       const assignedPatients = assignmentsData.length
       const unassignedPatients = totalPatients - assignedPatients
       const totalDoctors = doctorsData.length
-      const expiredAssignments = assignmentsData.filter((a) => isSubscriptionExpired(a.subscriptionEndDate)).length
 
       setStats({
         totalPatients,
         assignedPatients,
         unassignedPatients,
         totalDoctors,
-        expiredAssignments,
       })
 
       if (doctorsData.length === 0) {
@@ -205,9 +197,6 @@ if (!config) {
       errors.doctor = "Please select a doctor"
     }
 
-    if (subscriptionEndDate && new Date(subscriptionEndDate) <= new Date()) {
-      errors.subscriptionEndDate = "Subscription end date must be in the future"
-    }
 
     const existingAssignment = getAssignmentForPatient(selectedPatient)
     if (existingAssignment) {
@@ -226,14 +215,12 @@ if (!config) {
         doctor: selectedDoctor,
         patient: selectedPatient,
         department: config.doctorEndpoint,
-        subscriptionEndDate: subscriptionEndDate || null,
         notes: notes,
       })
 
       setMessage("Student assigned successfully!")
       setSelectedPatient("")
       setSelectedDoctor("")
-      setSubscriptionEndDate("")
       setNotes("")
       setFormErrors({})
 
@@ -244,20 +231,6 @@ if (!config) {
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  const isSubscriptionExpired = (endDate) => {
-    if (!endDate) return false
-    return new Date(endDate) < new Date()
-  }
-
-  if (loading && patients.length === 0) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-        <p className={styles.loadingText}>Loading {config.displayName} assignments...</p>
-      </div>
-    )
   }
 
   return (
@@ -272,7 +245,7 @@ if (!config) {
                   {config.displayName} Department - Admin Assignment
                 </h2>
                 <p className={styles.pageSubtitle}>
-                  Assign {config.displayName} students to doctors and manage subscriptions
+                  Assign {config.displayName} students to doctors 
                 </p>
               </div>
               <div className={styles.headerActions}>
@@ -426,29 +399,7 @@ if (!config) {
                   </p>
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    <Calendar size={16} style={{ marginRight: "0.5rem", display: "inline" }} />
-                    Subscription End Date
-                  </label>
-                  <input
-                    type="date"
-                    value={subscriptionEndDate}
-                    onChange={(e) => {
-                      setSubscriptionEndDate(e.target.value)
-                      if (formErrors.subscriptionEndDate) {
-                        setFormErrors((prev) => ({ ...prev, subscriptionEndDate: null }))
-                      }
-                    }}
-                    min={new Date().toISOString().split("T")[0]}
-                    className={`${styles.formInput} ${formErrors.subscriptionEndDate ? "border-red-500" : ""}`}
-                  />
-                  {formErrors.subscriptionEndDate && (
-                    <p style={{ fontSize: "0.75rem", color: "#dc2626", marginTop: "0.25rem", fontWeight: "500" }}>
-                      {formErrors.subscriptionEndDate}
-                    </p>
-                  )}
-                </div>
+          
 
                 <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                   <label className={styles.formLabel}>
@@ -502,6 +453,8 @@ if (!config) {
 export const AdminAssignABA = (props) => <GenericAdminAssign department="aba" {...props} />
 export const AdminAssignSpeech = (props) => <GenericAdminAssign department="speech" {...props} />
 export const AdminAssignPhysicalTherapy = (props) => <GenericAdminAssign department="physicalTherapy" {...props} />
+export const AdminAssignPsychotherapy = (props) => <GenericAdminAssign department="Psychotherapy" {...props} />
+
 export const AdminAssignOccupationalTherapy = (props) => (
   <GenericAdminAssign department="OccupationalTherapy" {...props} />
 )

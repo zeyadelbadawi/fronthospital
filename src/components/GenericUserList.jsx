@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useCallback } from "react"
-import Link from "next/link"
+import CustomLink from '@/components/CustomLink'
 import { useRouter } from "next/navigation"
 import axiosInstance from "../helper/axiosSetup"
 import { Search, Plus, Eye, Edit, Trash2 } from 'lucide-react'
@@ -177,10 +177,10 @@ const GenericUserList = ({ role }) => {
               />
               <Search className={styles.searchIcon} />
             </div>
-            <Link href={currentEndpoints.add} className={styles.addButton}>
+            <CustomLink href={currentEndpoints.add} className={styles.addButton}>
               <Plus className={styles.addIcon} />
               Add New {role.charAt(0).toUpperCase() + role.slice(1)}
-            </Link>
+            </CustomLink>
           </div>
         </div>
 

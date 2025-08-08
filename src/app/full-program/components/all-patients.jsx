@@ -22,7 +22,6 @@ const AllPatients = ({ contentType }) => {
   const [showEditModal, setShowEditModal] = useState(false)
   const [assignmentToEdit, setAssignmentToEdit] = useState(null)
   const [editDoctor, setEditDoctor] = useState("")
-  const [editSubscriptionEndDate, setEditSubscriptionEndDate] = useState("")
   const [editNotes, setEditNotes] = useState("")
   const [editFormErrors, setEditFormErrors] = useState({})
   const [isUpdating, setIsUpdating] = useState(false)
@@ -32,7 +31,6 @@ const AllPatients = ({ contentType }) => {
     assignedPatients: 0,
     unassignedPatients: 0,
     totalDoctors: 0,
-    expiredAssignments: 0,
   })
 
   const department = getDepartmentByContentType(contentType)
@@ -63,13 +61,11 @@ const AllPatients = ({ contentType }) => {
       setLoading(true)
 
       // Fetch patients from department-specific PatientAssignment collection
-      console.log(`Fetching ${department.displayName} Students from Student${department.name}Assignment...`)
       let patientsResponse
       try {
         patientsResponse = await axiosInstance.get(`${department.apiEndpoint}/patient-assignments`, {
           params: { page: currentPage, search: searchTerm },
         })
-        console.log(`${department.displayName} Student response:`, patientsResponse.data)
       } catch (error) {
         console.error(`${department.displayName} Student fetch failed:`, error)
         setMessage(
@@ -79,13 +75,11 @@ const AllPatients = ({ contentType }) => {
       }
 
       // Fetch doctors in department
-      console.log(`Fetching ${department.displayName} doctors...`)
       let doctorsResponse
       try {
         doctorsResponse = await axiosInstance.get(
           `/doctor-student-assignment/doctors-by-department/${department.doctorDepartment}`,
         )
-        console.log(`${department.displayName} doctors response:`, doctorsResponse.data)
       } catch (error) {
         console.error("Doctors fetch failed:", error)
         setMessage("Failed to fetch doctors: " + (error.response?.data?.message || error.message))
@@ -93,13 +87,11 @@ const AllPatients = ({ contentType }) => {
       }
 
       // Fetch current doctor-student assignments for department
-      console.log(`Fetching ${department.displayName} doctor-student assignments...`)
       let assignmentsResponse
       try {
         assignmentsResponse = await axiosInstance.get("/doctor-student-assignment/all-assignments", {
           params: { department: department.doctorDepartment, page: 1, limit: 100 },
         })
-        console.log(`${department.displayName} assignments response:`, assignmentsResponse.data)
       } catch (error) {
         console.error("Assignments fetch failed:", error)
         setMessage("Failed to fetch assignments: " + (error.response?.data?.message || error.message))
@@ -120,14 +112,12 @@ const AllPatients = ({ contentType }) => {
       const assignedPatients = assignmentsData.length
       const unassignedPatients = totalPatients - assignedPatients
       const totalDoctors = doctorsData.length
-      const expiredAssignments = assignmentsData.filter((a) => isSubscriptionExpired(a.subscriptionEndDate)).length
 
       setStats({
         totalPatients,
         assignedPatients,
         unassignedPatients,
         totalDoctors,
-        expiredAssignments,
       })
     } catch (error) {
       console.error("Error fetching data:", error)
@@ -157,15 +147,13 @@ const AllPatients = ({ contentType }) => {
       errors.doctor = "Please select a doctor"
     }
 
-    if (editSubscriptionEndDate && new Date(editSubscriptionEndDate) <= new Date()) {
-      errors.subscriptionEndDate = "Subscription end date must be in the future"
-    }
+
 
     // Check if trying to assign to the same doctor
     if (editDoctor === assignmentToEdit.doctor?._id) {
       // Allow same doctor if other fields are being updated
       if (
-        editSubscriptionEndDate === (assignmentToEdit.subscriptionEndDate?.split("T")[0] || "") &&
+
         editNotes === (assignmentToEdit.notes || "")
       ) {
         errors.general = "No changes detected"
@@ -183,7 +171,6 @@ const AllPatients = ({ contentType }) => {
       // Update the assignment
       const response = await axiosInstance.put(`/doctor-student-assignment/update-assignment/${assignmentToEdit._id}`, {
         doctor: editDoctor,
-        subscriptionEndDate: editSubscriptionEndDate || null,
         notes: editNotes,
       })
 
@@ -191,7 +178,6 @@ const AllPatients = ({ contentType }) => {
       setShowEditModal(false)
       setAssignmentToEdit(null)
       setEditDoctor("")
-      setEditSubscriptionEndDate("")
       setEditNotes("")
       setEditFormErrors({})
 
@@ -218,19 +204,7 @@ const AllPatients = ({ contentType }) => {
     }
   }
 
-  const handleUpdateSubscription = async (assignmentId, newEndDate) => {
-    try {
-      await axiosInstance.put(`/doctor-student-assignment/update-subscription/${assignmentId}`, {
-        subscriptionEndDate: newEndDate,
-        status: "active",
-      })
-      setMessage("Subscription updated successfully!")
-      await fetchData()
-    } catch (error) {
-      console.error("Error updating subscription:", error)
-      setMessage("Error updating subscription: " + (error.response?.data?.message || error.message))
-    }
-  }
+
 
   const filteredPatients = patients.filter(
     (assignment) =>
@@ -238,11 +212,6 @@ const AllPatients = ({ contentType }) => {
       assignment.patient?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       assignment.patient?.patientId?.toLowerCase().includes(searchTerm.toLowerCase()),
   )
-
-  const isSubscriptionExpired = (endDate) => {
-    if (!endDate) return false
-    return new Date(endDate) < new Date()
-  }
 
   const handleViewDetails = (assignment) => {
     setSelectedAssignment(assignment)
@@ -257,7 +226,6 @@ const AllPatients = ({ contentType }) => {
   const handleEditClick = (assignment) => {
     setAssignmentToEdit(assignment)
     setEditDoctor(assignment.doctor?._id || "")
-    setEditSubscriptionEndDate(assignment.subscriptionEndDate ? assignment.subscriptionEndDate.split("T")[0] : "")
     setEditNotes(assignment.notes || "")
     setEditFormErrors({})
     setShowEditModal(true)
@@ -271,7 +239,6 @@ const AllPatients = ({ contentType }) => {
     setAssignmentToDelete(null)
     setAssignmentToEdit(null)
     setEditDoctor("")
-    setEditSubscriptionEndDate("")
     setEditNotes("")
     setEditFormErrors({})
   }
@@ -326,10 +293,7 @@ const AllPatients = ({ contentType }) => {
               <div className={styles.statNumber}>{stats.totalDoctors}</div>
               <div className={styles.statLabel}>Available Doctors</div>
             </div>
-            <div className={styles.statItem}>
-              <div className={styles.statNumber}>{stats.expiredAssignments}</div>
-              <div className={styles.statLabel}>Expired</div>
-            </div>
+           
           </div>
 
           {/* Search integrated in header */}
@@ -450,15 +414,7 @@ const AllPatients = ({ contentType }) => {
                           Doctor Assignment Date
                         </div>
                       </th>
-                      <th>
-                        <div className={styles.headerCell}>
-                          <Calendar className={styles.headerIcon} />
-                          Subscription End
-                        </div>
-                      </th>
-                      <th className={styles.textCenter}>
-                        <div className={styles.headerCell}>Status</div>
-                      </th>
+                     
                       <th className={styles.textCenter}>
                         <div className={styles.headerCell}>Actions</div>
                       </th>
@@ -469,12 +425,11 @@ const AllPatients = ({ contentType }) => {
                       const patient = patientAssignment.patient || patientAssignment.patientId
                       const patientId = patient?._id
                       const doctorAssignment = getAssignmentForPatient(patientId)
-                      const isExpired = doctorAssignment && isSubscriptionExpired(doctorAssignment.subscriptionEndDate)
 
                       return (
                         <tr
                           key={patientAssignment._id}
-                          className={`${styles.tableRow} ${isExpired ? "bg-red-50" : ""}`}
+                          className={`${styles.tableRow} }`}
                         >
                           <td className={styles.indexCell}>{index + 1}</td>
                           <td className={styles.patientCell}>
@@ -537,50 +492,8 @@ const AllPatients = ({ contentType }) => {
                               )}
                             </div>
                           </td>
-                          <td className={styles.dateCell}>
-                            {doctorAssignment ? (
-                              <div style={{ display: "flex", alignItems: "center" }}>
-                                <Calendar style={{ marginRight: "0.25rem" }} size={16} />
-                                <span
-                                  className={`${styles.formInput} ${
-                                    isExpired ? "border-red-300 bg-red-50" : "border-gray-300"
-                                  }`}
-                                  style={{
-                                    fontSize: "0.875rem",
-                                    padding: "0.25rem",
-                                    backgroundColor: "transparent",
-                                    border: "none",
-                                  }}
-                                >
-                                  {doctorAssignment.subscriptionEndDate
-                                    ? doctorAssignment.subscriptionEndDate.split("T")[0]
-                                    : ""}
-                                </span>
-                                {isExpired && (
-                                  <AlertCircle style={{ marginLeft: "0.25rem", color: "#dc2626" }} size={16} />
-                                )}
-                              </div>
-                            ) : (
-                              <span style={{ fontSize: "0.875rem", color: "#9ca3af" }}>-</span>
-                            )}
-                          </td>
-                          <td className={styles.typeCell}>
-                            {doctorAssignment ? (
-                              <span
-                                className={`${styles.typeBadge} ${
-                                  isExpired
-                                    ? styles.assessment
-                                    : doctorAssignment.status === "active"
-                                      ? styles.therapy
-                                      : styles.evaluation
-                                }`}
-                              >
-                                {isExpired ? "Expired" : doctorAssignment.status || "active"}
-                              </span>
-                            ) : (
-                              <span className={`${styles.typeBadge} ${styles.default}`}>Unassigned</span>
-                            )}
-                          </td>
+                          
+                          
                           <td className={styles.actionsCell}>
                             <div className={styles.actionButtons}>
                               {doctorAssignment ? (
@@ -712,26 +625,7 @@ const AllPatients = ({ contentType }) => {
                     )}
                   </div>
 
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>Subscription End Date</label>
-                    <input
-                      type="date"
-                      value={editSubscriptionEndDate}
-                      onChange={(e) => {
-                        setEditSubscriptionEndDate(e.target.value)
-                        if (editFormErrors.subscriptionEndDate) {
-                          setEditFormErrors((prev) => ({ ...prev, subscriptionEndDate: null }))
-                        }
-                      }}
-                      min={new Date().toISOString().split("T")[0]}
-                      className={`${styles.formInput} ${editFormErrors.subscriptionEndDate ? "border-red-500" : ""}`}
-                    />
-                    {editFormErrors.subscriptionEndDate && (
-                      <p style={{ fontSize: "0.75rem", color: "#dc2626", marginTop: "0.25rem" }}>
-                        {editFormErrors.subscriptionEndDate}
-                      </p>
-                    )}
-                  </div>
+                
 
                   <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                     <label className={styles.formLabel}>Notes</label>
@@ -808,34 +702,13 @@ const AllPatients = ({ contentType }) => {
                     })}
                   </div>
                 </div>
-                <div className={styles.detailItem}>
-                  <div className={styles.detailLabel}>Subscription End Date</div>
-                  <div className={styles.detailValue}>
-                    {selectedAssignment.subscriptionEndDate
-                      ? new Date(selectedAssignment.subscriptionEndDate).toLocaleDateString("en-US", {
-                          weekday: "long",
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })
-                      : "No end date set"}
-                  </div>
-                </div>
+               
                 <div className={styles.detailItem}>
                   <div className={styles.detailLabel}>Status</div>
                   <div className={styles.detailValue}>
                     <span
-                      className={`${styles.typeBadge} ${
-                        isSubscriptionExpired(selectedAssignment.subscriptionEndDate)
-                          ? styles.assessment
-                          : selectedAssignment.status === "active"
-                            ? styles.therapy
-                            : styles.evaluation
-                      }`}
                     >
-                      {isSubscriptionExpired(selectedAssignment.subscriptionEndDate)
-                        ? "Expired"
-                        : selectedAssignment.status || "Active"}
+                      {selectedAssignment.status || "Active"}
                     </span>
                   </div>
                 </div>

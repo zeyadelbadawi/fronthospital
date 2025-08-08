@@ -536,7 +536,7 @@ background: linear-gradient(
 }
 
 .cancelButton {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
   color: white;
 }
 

@@ -24,7 +24,6 @@ const HomeComSix = () => {
           params: { limit: 5 }, // Changed from 8 to 5
         })
 
-        console.log("Completed appointments data received:", data)
 
         if (data.success) {
           setAppointments(data.appointments || [])

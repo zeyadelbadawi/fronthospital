@@ -37,11 +37,7 @@ export default function DocxUploadForm({ variant = "regular", onSuccess, onClose
 
   const isPrevious = variant === "previous"
 
-  console.log("🔧 DocxUploadForm - Component Props:", {
-    variant,
-    isPrevious,
-    defaultValues,
-  })
+
 
   // Convert default values to strings to match schema
   const processedDefaultValues = {
@@ -50,7 +46,6 @@ export default function DocxUploadForm({ variant = "regular", onSuccess, onClose
     year: defaultValues?.year ? String(defaultValues.year) : "",
   }
 
-  console.log("🔄 Processed default values:", processedDefaultValues)
 
   const {
     control,

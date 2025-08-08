@@ -1,5 +1,5 @@
 "use client"
-import Link from "next/link"
+import CustomLink from '@/components/CustomLink'
 import { useState, useRef, useEffect } from "react"
 import { RiGlobalLine, RiArrowDownSLine } from "react-icons/ri"
 import { Bell, CheckCircle, XCircle, Info, AlertCircle, Mail, Calendar, Package } from "lucide-react" // Import Lucide icons
@@ -55,7 +55,6 @@ export default function Header({
       const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/notification/byId/${user?.id}`)
       setNotifications(response.data.notifications || [])
       setCount(response.data.count || 0)
-      console.log("Fetched notifications:", response.data.notifications)
     } catch (error) {
       console.error("Error fetching notifications:", error)
     }
@@ -72,7 +71,6 @@ export default function Header({
     try {
       axiosInstance.put(`${process.env.NEXT_PUBLIC_API_URL}/notification/read/${noteId}`).then((response) => {
         getNotifications()
-        console.log("Notification marked as read:", response.data)
       })
     } catch (error) {
       console.error("Error handling notification click:", error)
@@ -146,9 +144,9 @@ export default function Header({
 
   return (
     <header className={`${styles.header} ${isRTL ? styles.rtl : styles.ltr}`}>
-      <Link href="/clientportal" className={styles.logoContainer}>
+      <CustomLink href="/clientportal" className={styles.logoContainer}>
         <img src={logoSrc || "/placeholder.svg"} className={styles.logo} alt="Rukn Elwatikon Center Logo" />
-      </Link>
+      </CustomLink>
 
       <div className={styles.titleContainer}>
         <h3 className={styles.title}>{language === "ar" ? "بوابة مركز ركن الواثقون للطلاب" : title}</h3>
@@ -224,12 +222,12 @@ export default function Header({
 
               {dropdownOpen && (
                 <div className={styles.dropdownMenu}>
-                  <Link href="/student-calendar" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                  <CustomLink href="/student-calendar" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
                     {language === "ar" ? "مواعيدي" : "My Appointments"}
-                  </Link>
-                  <Link href="/profile" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                  </CustomLink>
+                  <CustomLink href="/profile" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
                     {language === "ar" ? "الملف الشخصي" : "My Profile"}
-                  </Link>
+                  </CustomLink>
                   <hr className={styles.dropdownDivider} />
                   <button
                     className={`${styles.dropdownItem} ${styles.logoutItem}`}

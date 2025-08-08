@@ -66,7 +66,6 @@ const StudentCalendarMainLayer = () => {
       setUser(userData)
       return userData
     } catch (error) {
-      console.log("Error getting current user:", error.response)
       return null
     }
   }
@@ -88,7 +87,6 @@ const StudentCalendarMainLayer = () => {
       setUser(userData)
       return userData
     } catch (error) {
-      console.log("Error getting current user:", error.response)
       return null
     }
   }
@@ -128,10 +126,8 @@ const StudentCalendarMainLayer = () => {
       }
 
       setAppointments(studentAppointments)
-      console.log("Student appointments fetched successfully:", studentAppointments)
     } catch (error) {
       setIsLoading(false)
-      console.log("Error fetching student appointments:", error.response)
     } finally {
       setIsLoading(false)
     }

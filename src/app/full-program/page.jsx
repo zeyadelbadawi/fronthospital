@@ -24,6 +24,7 @@ export default function FullProgramPage() {
   const [selectedPhysicalPatientId, setSelectedPhysicalPatientId] = useState(null)
   const [selectedSpecialPatientId, setSelectedSpecialPatientId] = useState(null)
   const [selectedSpeechPatientId, setSelectedSpeechPatientId] = useState(null)
+  const [selectedPsychotherapyPatientId, setSelectedPsychotherapyPatientId] = useState(null)
 
   // New states for user management
   const [user, setUser] = useState(null)
@@ -46,7 +47,6 @@ export default function FullProgramPage() {
       const response = await axiosInstance.post("/manualSubscriptionChecker/manual-check-subscriptions")
       setSubscriptionCheckMessage(response.data.message || "Subscription check completed.")
       setSubscriptionCheckError(false)
-      console.log("Subscription check results:", response.data.results)
     } catch (error) {
       console.error("Error triggering manual subscription check:", error)
       setSubscriptionCheckMessage(error.response?.data?.message || "Failed to perform subscription check.")
@@ -135,12 +135,10 @@ export default function FullProgramPage() {
   const handleLoadingComplete = async () => {
     setIsLoading(false)
     // Trigger the subscription check after loading is complete
-    console.log("Triggering automatic subscription check after loading...")
     await handleManualSubscriptionCheck()
   }
 
   const handleContentChange = (content, patientId = null) => {
-    console.log("handleContentChange called with content:", content, "and patientId:", patientId)
     setActiveContent(content)
     if (content === "aba-plan-editor" || content === "aba-exam-editor") {
       setSelectedAbaPatientId(patientId)
@@ -148,6 +146,8 @@ export default function FullProgramPage() {
       setSelectedOccupationalPatientId(patientId)
     } else if (content === "physical-plan-editor" || content === "physical-exam-editor") {
       setSelectedPhysicalPatientId(patientId)
+    } else if (content === "Psychotherapy-plan-editor" || content === "Psychotherapy-exam-editor") {
+      setSelectedPsychotherapyPatientId(patientId)
     } else if (content === "special-plan-editor" || content === "special-exam-editor") {
       setSelectedSpecialPatientId(patientId)
     } else if (content === "speech-plan-editor" || content === "speech-exam-editor") {
@@ -158,6 +158,8 @@ export default function FullProgramPage() {
       setSelectedSpeechPatientId(null)
       setSelectedSpecialPatientId(null)
       setSelectedPhysicalPatientId(null)
+      setSelectedPsychotherapyPatientId(null)
+
     }
   }
 
@@ -190,6 +192,8 @@ export default function FullProgramPage() {
                 selectedAbaPatientId={selectedAbaPatientId}
                 selectedOccupationalPatientId={selectedOccupationalPatientId}
                 selectedPhysicalPatientId={selectedPhysicalPatientId}
+                selectedPsychotherapyPatientId={selectedPsychotherapyPatientId}
+
                 selectedSpecialPatientId={selectedSpecialPatientId}
                 selectedSpeechPatientId={selectedSpeechPatientId}
                 onBackToDashboard={() => handleContentChange("dashboard")}
@@ -213,6 +217,8 @@ export default function FullProgramPage() {
           selectedAbaPatientId={selectedAbaPatientId}
           selectedOccupationalPatientId={selectedOccupationalPatientId}
           selectedPhysicalPatientId={selectedPhysicalPatientId}
+          selectedPsychotherapyPatientId={selectedPsychotherapyPatientId}
+
           selectedSpecialPatientId={selectedSpecialPatientId}
           selectedSpeechPatientId={selectedSpeechPatientId}
           onBackToDashboard={() => handleContentChange("dashboard")}

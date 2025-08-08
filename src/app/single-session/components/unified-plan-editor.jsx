@@ -59,6 +59,18 @@ const PLAN_CONFIGS = {
     icon: Brain,
     color: "#F59E0B", // Orange
   },
+  "Psychotherapy": {
+    title: "Psychotherapy Plan",
+    subtitle: "Psychotherapy Rehabilitation Treatment Plan",
+    apiEndpoint: "/PsychotherapyS/plan",
+    uploadEndpoint: "/PsychotherapyS/upload-plan",
+    assignmentsEndpoint: "/PsychotherapyS/Psychotherapy-assignments",
+    defaultFileName: "Psychotherapy-plan-defoult.docx",
+    uploadPath: "PsychotherapyS/plan",
+    planType: "Psychotherapy",
+    icon: Brain,
+    color: "#F59E0B", // Orange
+  },
   "occupational-therapy": {
     title: "Occupational Therapy Plan",
     subtitle: "Occupational Rehabilitation Treatment Plan",
@@ -113,7 +125,6 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
       return
     }
     if (patientId) {
-      console.log("Loading data for:", { patientId, therapyType })
       fetchPatientData()
       fetchExistingPlan()
       fetchPlanStats()
@@ -124,7 +135,6 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
     setLoading(true)
     try {
       const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/patient/${patientId}`)
-      console.log("Student data fetched:", response.data)
       setPatient(response.data)
     } catch (error) {
       console.error("Error fetching Student data:", error)
@@ -136,10 +146,7 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
 
   const fetchExistingPlan = async () => {
     try {
-      console.log("Fetching plan for:", { patientId, therapyType })
       const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}${config.apiEndpoint}/${patientId}`)
-      console.log("Existing plan data fetched:", response.data)
-
       const planData = response.data || {
         title: config.title,
         filePath: "",
@@ -200,7 +207,6 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
 
     setSaving(true)
     try {
-      console.log("Starting save process...")
 
       // Get the SyncfusionDocx component reference
       const syncfusionComponent = document.querySelector("#container")
@@ -216,11 +222,9 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
         return
       }
 
-      console.log("Getting document content...")
 
       // Get document content as blob
       const documentContent = await editorContainer.documentEditor.saveAsBlob("Docx")
-      console.log("Document blob created:", documentContent)
 
       if (!documentContent || documentContent.size === 0) {
         console.error("Document content is empty")
@@ -238,12 +242,7 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
       formData.append("document", documentContent, fileName)
       formData.append("patientId", patientId)
 
-      console.log("FormData prepared:", {
-        fileName,
-        patientId: patientId,
-        blobSize: documentContent.size,
-        endpoint: `${process.env.NEXT_PUBLIC_API_URL}${config.uploadEndpoint}/${patientId}`,
-      })
+ 
 
       // Send the form data to server
       const response = await axiosInstance.post(
@@ -257,11 +256,9 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
         },
       )
 
-      console.log("Save response:", response.data)
 
       // Handle the response
       if (response.status === 200) {
-        console.log("Document saved successfully:", response.data)
 
         // Update local state with saved data
         if (response.data.plan) {

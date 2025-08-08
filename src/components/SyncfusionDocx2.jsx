@@ -8,7 +8,6 @@ import {
 } from "@syncfusion/ej2-react-documenteditor";
 import axiosInstance from "@/helper/axiosSetup";
 export default function SyncfusionDocx({ userData, planEndpoint, email }) {
-  console.log("SyncfusionDocx", userData);
   const documentEditorContainerRef = useRef(null);
 
   // Load Syncfusion styles
@@ -38,7 +37,6 @@ export default function SyncfusionDocx({ userData, planEndpoint, email }) {
 
   const sendEmail = async (filePath) => {
     try {
-      console.log("Sending email with file path:", filePath);
       
       const response = await axiosInstance.post(
         `${process.env.NEXT_PUBLIC_API_URL}/email/send-email`,
@@ -50,7 +48,6 @@ export default function SyncfusionDocx({ userData, planEndpoint, email }) {
         }
       );
       
-      console.log("Email sent successfully:", response.data);
     } catch (error) {
       console.error("Error while sending email:", error);
     }
@@ -82,7 +79,6 @@ export default function SyncfusionDocx({ userData, planEndpoint, email }) {
         );
       }
       
-      console.log("Notification sent successfully:", response.data);
     } catch (error) {
       console.error("Error while sending notification:", error);
     }

@@ -1,7 +1,8 @@
 "use client"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import dynamic from "next/dynamic"
-import Link from "next/link"
+import CustomLink from '@/components/CustomLink'
+
 import { CreditCard, FileCheck, DollarSign, User, Shield, Eye, EyeOff, Check, X, AlertTriangle } from "lucide-react"
 import AccountantHeader from "../../components/accountant-header"
 import styles from "../../styles/AccountantPortal.module.css"
@@ -138,7 +139,6 @@ export default function AccountantPortalPage() {
 
     try {
       const res = await axiosInstance.get("/authentication/profile")
-      console.log("Profile loaded:", res.data)
 
       // Store user data in localStorage for other components to use
       localStorage.setItem("user", JSON.stringify(res.data))
@@ -150,7 +150,6 @@ export default function AccountantPortalPage() {
           const r = await axiosInstance.post("/authentication/refresh")
           localStorage.setItem("token", r.data.accessToken)
           const retry = await axiosInstance.get("/authentication/profile")
-          console.log("Profile loaded after refresh:", retry.data)
 
           // Store user data in localStorage
           localStorage.setItem("user", JSON.stringify(retry.data))
@@ -218,7 +217,6 @@ export default function AccountantPortalPage() {
           password: loginPassword,
         })
 
-        console.log("Login response:", res.data)
 
         localStorage.setItem("token", res.data.accessToken)
 
@@ -362,11 +360,11 @@ export default function AccountantPortalPage() {
         {/* Services Grid */}
         <div className={styles.servicesGrid}>
           {services.map(({ href, Icon, label, description }, idx) => (
-            <Link key={idx} href={href} className={styles.serviceCard} onClick={handleCardClick(href)}>
+            <CustomLink key={idx} href={href} className={styles.serviceCard} onClick={handleCardClick(href)}>
               <Icon className={styles.serviceIcon} />
               <h3 className={styles.serviceTitle}>{label}</h3>
               <p className={styles.serviceDescription}>{description}</p>
-            </Link>
+            </CustomLink>
           ))}
         </div>
       </main>

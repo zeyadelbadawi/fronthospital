@@ -67,6 +67,8 @@ export function AppointmentsManagement() {
     { value: "", label: "All Departments" },
     { value: "speech", label: "Speech Therapy" },
     { value: "physical_therapy", label: "Physical Therapy" },
+    { value: "Psychotherapy", label: "Psychotherapy" },
+
     { value: "ABA", label: "ABA" },
     { value: "occupational_therapy", label: "Occupational Therapy" },
     { value: "special_education", label: "Special Education" },
@@ -78,6 +80,8 @@ export function AppointmentsManagement() {
     { value: "occupational_therapy", label: "Occupational Therapy" },
     { value: "special_education", label: "Special Education" },
     { value: "speech", label: "Speech Therapy" },
+        { value: "Psychotherapy", label: "SPsychotherapy" },
+
   ]
 
   useEffect(() => {
@@ -263,7 +267,6 @@ const handleCompleteAppointment = async (
           const updatedApps = prevAppointments.map((app) =>
             app._id === appointmentId ? { ...app, status: "completed" } : app,
           )
-          console.log("Optimistically updated appointments:", updatedApps)
           return updatedApps
         })
         // Re-fetch appointments to ensure full data consistency with backend
@@ -305,6 +308,8 @@ const handleCompleteAppointment = async (
       const colors = {
         speech: "speech",
         physical_therapy: "physical",
+                Psychotherapy: "Psychotherapy",
+
         ABA: "aba",
         occupational_therapy: "occupational",
         special_education: "special",
@@ -488,12 +493,6 @@ const handleCompleteAppointment = async (
                     const status = getAppointmentStatus(appointment)
                     const departments = getDepartmentBadges(appointment.programkind)
                     const startIndex = (currentPage - 1) * 10
-
-                    // --- DEBUGGING LOGS ---
-              //      console.log(
-                //      `Appointment ID: ${appointment._id}, Raw Status: ${appointment.status}, Derived Status: ${status.status}`,
-                //       )
-                    // --- END DEBUGGING LOGS ---
 
                     return (
                       <tr key={appointment._id} className={styles.tableRow}>

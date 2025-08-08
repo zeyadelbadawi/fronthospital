@@ -3,7 +3,7 @@
 import { useState, useEffect, useContext } from "react"
 import axiosInstance from "../../helper/axiosSetup"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
+import CustomLink from '@/components/CustomLink'
 import { ModelContextInst } from "@/contexts/ModelContext"
 import UpdateModel from "@/components/UpdateModel"
 import Loader from "@/components/Loader"
@@ -51,7 +51,6 @@ export default function AppointmentPage() {
       const response = await axiosInstance.get("/appointments/")
       setAppointments(response.data)
       setTotalPages(Math.ceil(response?.data?.appointments?.length / 10))
-      console.log("Appointments fetched successfully:", response.data)
     } catch (error) {
       setLoading(false)
       showToast("error", `Error fetching appointments: ${error.response?.data?.error || error.message}`)
@@ -119,12 +118,12 @@ export default function AppointmentPage() {
               />
             </div>
           </div>
-          <Link href="/appointments/add-appointments" className={styles.addButton}>
+          <CustomLink href="/appointments/add-appointments" className={styles.addButton}>
             <svg className={styles.addButtonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Add New Appointment
-          </Link>
+          </CustomLink>
         </div>
       </div>
 
@@ -161,7 +160,7 @@ export default function AppointmentPage() {
                     <td className={styles.doctorCell}>{appointment.doctor.username}</td>
                     <td className={styles.actionsCell}>
                       <div className={styles.actionButtons}>
-                        <Link
+                        <CustomLink
                           href={`/appointments/${appointment._id}`}
                           className={`${styles.actionButton} ${styles.viewButton}`}
                         >
@@ -179,7 +178,7 @@ export default function AppointmentPage() {
                               d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                             />
                           </svg>
-                        </Link>
+                        </CustomLink>
                         <button
                           type="button"
                           className={`${styles.actionButton} ${styles.editButton}`}

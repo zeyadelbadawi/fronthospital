@@ -39,6 +39,13 @@ const DEPARTMENT_CONFIG = {
     fullName: "Physical Therapy",
     CloseQuarterComponent: GenericCloseQuarterForm,
   },
+
+    Psychotherapy: {
+    endpoint: "Psychotherapy",
+    displayName: "Psychotherapy",
+    fullName: "Psychotherapy",
+    CloseQuarterComponent: GenericCloseQuarterForm,
+  },
   occupational: {
     endpoint: "OccupationalTherapy",
     displayName: "OccupationalTherapy",
@@ -507,6 +514,10 @@ export function SpeechExamView({ patientId, onBack }) {
 
 export function PhysicalExamView({ patientId, onBack }) {
   return <GenericExamView department="physical" patientId={patientId} onBack={onBack} />
+}
+
+export function PsychotherapyExamView({ patientId, onBack }) {
+  return <GenericExamView department="Psychotherapy" patientId={patientId} onBack={onBack} />
 }
 
 export function OccupationalExamView({ patientId, onBack }) {

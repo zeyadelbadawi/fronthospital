@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { Home, ChevronRight } from 'lucide-react';
-import Link from "next/link";
+import CustomLink from '@/components/CustomLink'
 import styles from "../styles/breadcrumb.module.css";
 
 const Breadcrumb = ({ heading, title }) => {
@@ -13,14 +13,14 @@ const Breadcrumb = ({ heading, title }) => {
       <nav aria-label="Breadcrumb navigation">
         <ul className={styles.breadcrumbList}>
           <li className={styles.breadcrumbItem}>
-            <Link
+            <CustomLink
               href="/"
               className={styles.breadcrumbLink}
               aria-label="Go to homepage"
             >
               <Home className={styles.homeIcon} size={18} />
               <span>Home</span>
-            </Link>
+            </CustomLink>
           </li>
           
           {/* Separator */}

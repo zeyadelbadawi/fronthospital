@@ -6,7 +6,6 @@ import axiosInstance from "@/helper/axiosSetup"
 import { userData, planEndpoint } from "@/constants" // Import userData and planEndpoint
 
 export default function DoctorPLanDocx({ filePath }) {
-  console.log("filePath", filePath)
   const documentEditorContainerRef = useRef(null)
 
   // Load Syncfusion styles
@@ -58,7 +57,6 @@ export default function DoctorPLanDocx({ filePath }) {
 
         // Handle the response as needed
         if (response.status === 200) {
-          console.log("Document saved successfully:", response.data)
         }
       } catch (error) {
         console.error("Error saving document:", error.response)

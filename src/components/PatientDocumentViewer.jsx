@@ -7,7 +7,6 @@ import styles from "@/styles/syncfusion-docx.module.css"
 
 const PatientDocumentViewer = forwardRef(
   ({ filePath,  }, ref) => {
-    console.log("filePath", filePath)
     const documentEditorContainerRef = useRef(null)
     const [isLoading, setIsLoading] = useState (true)
 
@@ -84,13 +83,11 @@ const PatientDocumentViewer = forwardRef(
     }, [filePath])
 
  const handleDocumentChange = useCallback(() => {
-    console.log("Document changed - setting read-only mode")
     if (documentEditorContainerRef.current) {
       try {
         // Set read-only mode as per Syncfusion documentation
         documentEditorContainerRef.current.documentEditor.isReadOnly = true
         setIsLoading(false)
-        console.log("Document set to read-only mode successfully")
       } catch (err) {
         console.error("Error setting read-only mode:", err)
         setIsLoading(false)
@@ -100,7 +97,6 @@ const PatientDocumentViewer = forwardRef(
 
 
     const handleCreated = useCallback(() => {
-    console.log("Document editor created")
     if (documentEditorContainerRef.current && filePath) {
       try {
         // Hide properties pane programmatically

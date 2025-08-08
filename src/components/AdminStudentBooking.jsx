@@ -87,7 +87,6 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
         `${process.env.NEXT_PUBLIC_API_URL}/notification/doctor-ids`
       );
       const doctors = response?.data;
-      console.log("Doctor IDs fetched:", doctors);
       setDoctorIds(doctors);
     } catch (error) {
       console.error("Error fetching doctor IDs:", error);
@@ -375,14 +374,11 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
       try {
         const axiosInstance = await getAxiosInstance()
         const formattedDate = date.toISOString().split("T")[0]
-        console.log("Fetching booked slots for:", { formattedDate, programType })
         const response = await axiosInstance.get(
           `${process.env.NEXT_PUBLIC_API_URL}/availability/booked-slots/${programType}/${formattedDate}`,
         )
         if (response.data.success) {
-          console.log("Booked slots response:", response.data.bookedSlots)
           setBookedSlots(response.data.bookedSlots)
-          console.log("Frontend bookedSlots state updated to:", response.data.bookedSlots)
         } else {
           setAvailabilityError("Failed to fetch availability")
         }
@@ -507,16 +503,10 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
     async (programTypeToVerify) => {
       try {
         const axiosInstance = await getAxiosInstance()
-        console.log("verifyAvailabilityBeforePayment: selectedTime before formatting:", selectedTime)
         const formattedTime = formatTimeToHHMM(selectedTime)
-        console.log("verifyAvailabilityBeforePayment: formattedTime after formatting:", formattedTime)
 
         const formattedDate = selectedDay.toISOString()
-        console.log("Verifying availability payload:", {
-          programType: programTypeToVerify,
-          date: formattedDate,
-          time: formattedTime,
-        })
+    
 
         if (!formattedTime) {
           console.error("verifyAvailabilityBeforePayment: formattedTime is null or invalid. Aborting API call.")
@@ -531,7 +521,6 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
             time: formattedTime,
           },
         )
-        console.log("Availability verification response:", response.data)
         return response.data.available
       } catch (error) {
         console.error("Error verifying availability:", error)
@@ -679,7 +668,6 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
       if (programTypeForPayment === "full_package_evaluation") {
         programTypeForPayment = "full_program"
       }
-      console.log("Program type for payment and verification:", programTypeForPayment) // Add this log
       // Verify availability before proceeding with payment
       const isAvailable = await verifyAvailabilityBeforePayment(programTypeForPayment) // Pass the derived programType
       if (!isAvailable) {
@@ -713,7 +701,6 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
         paymentStatus: initialPayment >= totalAmount ? "FULLY_PAID" : "PARTIALLY_PAID",
         paymentMethod: programTypeForPayment === "full_program" ? "MIXED" : "CASH", // Use programTypeForPayment here
       }
-      console.log("Attempting to save program with payload:", programPayload)
       const response = await axiosInstance.post("/authentication/saveProgram", programPayload)
       if (response.status === 200) {
         const programId = response.data.program._id

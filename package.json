@@ -19,6 +19,7 @@
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.536.0",
     "next": "15.4.5",
+    "nprogress": "^0.2.0",
     "react": "19.1.0",
     "react-apexcharts": "^1.7.0",
     "react-datepicker": "^8.4.0",
@@ -27,6 +28,7 @@
     "react-select": "^5.10.2",
     "react-toastify": "^11.0.5",
     "socket.io-client": "^4.8.1",
+    "yup": "^1.7.0",
     "zod": "^4.0.14",
     "zustand": "^5.0.7"
   }

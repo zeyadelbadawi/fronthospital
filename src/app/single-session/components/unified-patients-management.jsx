@@ -56,6 +56,17 @@ const THERAPY_CONFIGS = {
     emptyTitle: "No Physical Therapy Students Found",
     emptyDescription: "No students are currently assigned to the Physical Therapy department.",
   },
+  "Psychotherapy": {
+    title: "Psychotherapy Students",
+    subtitle: "Manage and view all students assigned to Psychotherapy",
+    apiEndpoint: "/PsychotherapyS/Psychotherapy-assignments",
+    completeEndpoint: "/PsychotherapyS/complete-assignment",
+    modalTitle: "Psychotherapy Assignment",
+    loadingText: "Loading Psychotherapy Students...",
+    emptyTitle: "No Psychotherapy Students Found",
+    emptyDescription: "No students are currently assigned to the Psychotherapy department.",
+  },
+
   "occupational-therapy": {
     title: "Occupational Therapy Students",
     subtitle: "Manage and view all students assigned to Occupational Therapy",

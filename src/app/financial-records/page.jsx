@@ -41,7 +41,6 @@ export default function FinancialRecordsPage() {
       const res = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      console.log("Fetched user data:", res.data)
       setUser(res.data)
     } catch (err) {
       if (err.response?.status === 403) {
@@ -55,7 +54,6 @@ export default function FinancialRecordsPage() {
           const retry = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/profile`, {
             headers: { Authorization: `Bearer ${r.data.accessToken}` },
           })
-          console.log("Fetched user data after refresh:", retry.data)
           setUser(retry.data)
         } catch {}
       }
