@@ -5,7 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import styles from "../styles/StudentBooking.module.css"
 import InteractiveGuide from "./InteractiveGuide" // Import the new interactive guide
 import styles2 from "../styles/AdminStudentBooking.module.css"
-import { sendNotification, sendEmail } from "@/helper/notification-helper";
+import { sendNotification } from "@/helper/notification-helper"
 
 // Import Lucide React icons
 import {
@@ -29,6 +29,7 @@ import {
   Mic,
   AlertCircle,
   Lightbulb,
+  Banknote,
 } from "lucide-react"
 // Dynamic imports للمكونات الثقيلة
 const DatePicker = dynamic(() => import("react-datepicker"), {
@@ -53,7 +54,7 @@ const SyncfusionDocxCase = dynamic(() => import("@/components/SyncfusionDocxCase
         <p className={styles.ruknDocumentImportSubtitle}>
           {
             "يرجى الانتظار بينما نقوم بتحضير محرر المستندات المتقدم..." /* Arabic */ ||
-            "Please wait while we prepare the advanced document editor..." /* English */
+              "Please wait while we prepare the advanced document editor..." /* English */
           }
         </p>
         <div className={styles.ruknDocumentImportProgress}>
@@ -64,7 +65,7 @@ const SyncfusionDocxCase = dynamic(() => import("@/components/SyncfusionDocxCase
           <span>
             {
               "💡 نصيحة: ستتمكن من تحرير وحفظ مستند دراسة الحالة بمجرد اكتمال التحميل" /* Arabic */ ||
-              "💡 Tip: You'll be able to edit and save your case study document once loading completes" /* English */
+                "💡 Tip: You'll be able to edit and save your case study document once loading completes" /* English */
             }
           </span>
         </div>
@@ -74,12 +75,13 @@ const SyncfusionDocxCase = dynamic(() => import("@/components/SyncfusionDocxCase
 })
 // تحميل CSS للـ DatePicker بشكل منفصل
 import("react-datepicker/dist/react-datepicker.css")
-const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,   patientEmail }) => {
+const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, patientEmail }) => {
   const { language, translations } = useLanguage()
   const t = translations[language]
   const [selectedDay, setSelectedDay] = useState(null)
   const [selectedTime, setSelectedTime] = useState(null)
   const [description, setDescription] = useState("")
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
   // evaluationType will now store an object { value, label }
   const [evaluationType, setEvaluationType] = useState(null)
   const [plan, setPlan] = useState(null)
@@ -96,27 +98,24 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
   const [availabilityError, setAvailabilityError] = useState("")
   const [showInteractiveGuide, setShowInteractiveGuide] = useState(false) // New state for interactive guide
   const [showCaseStudyCreation, setShowCaseStudyCreation] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState("online") // "online" or "cash"
 
-
-  const [doctorIds, setDoctorIds] = useState([]);
+  const [doctorIds, setDoctorIds] = useState([])
 
   const getDoctorIds = async () => {
     try {
-        const axiosInstance = await getAxiosInstance()
-      const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/notification/doctor-ids`
-      );
-      const doctors = response?.data;
-      setDoctorIds(doctors);
+      const axiosInstance = await getAxiosInstance()
+      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/notification/doctor-ids`)
+      const doctors = response?.data
+      setDoctorIds(doctors)
     } catch (error) {
-      console.error("Error fetching doctor IDs:", error);
-      setDoctorIds([]);
+      console.error("Error fetching doctor IDs:", error)
+      setDoctorIds([])
     }
-  };
+  }
   useEffect(() => {
-    getDoctorIds();
-  }, []);
-
+    getDoctorIds()
+  }, [])
 
   // Check localStorage for interactive guide status on mount
   useEffect(() => {
@@ -198,8 +197,7 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
         value: "Psychotherapy",
         label: (
           <>
-            <Hand size={18} className={styles.iconInline} />{" "}
-            {language === "ar" ? "العلاج النفسي" : "Psychotherapy"}
+            <Hand size={18} className={styles.iconInline} /> {language === "ar" ? "العلاج النفسي" : "Psychotherapy"}
           </>
         ),
         price: 1900,
@@ -409,13 +407,13 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
       // if the user is just reviewing payment. Removed for now.
     }
   }, [currentStep])
-  // Enhanced date filtering - only allow Fridays and Sundays
+  // Enhanced date filtering - only allow Mondays to Fridays
   const filterWeekdays = useCallback((date) => {
     const day = date.getDay()
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    // Only allow Fridays (5) and Sundays (0) and dates from today onwards
-    return (day === 0 || day === 5) && date >= today
+    // Allow Monday (1) through Friday (5), block Saturday (6) and Sunday (0)
+    return day >= 1 && day <= 5 && date >= today
   }, [])
   // Generate all possible time slots (12:00 PM to 8:00 PM, every 30 minutes)
   const getAllPossibleTimeSlots = useCallback(() => {
@@ -454,7 +452,7 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
         const formattedTime = formatTimeToHHMM(selectedTime)
         // --- END DEBUGGING LOGS ---
         const formattedDate = selectedDay.toISOString() // Use full ISO string for backend
-     
+
         // Check if formattedTime is null or invalid before sending
         if (!formattedTime) {
           console.error("verifyAvailabilityBeforePayment: formattedTime is null or invalid. Aborting API call.")
@@ -630,6 +628,7 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
         initialPayment = totalAmount
       }
       const formattedTime = formatTimeToHHMM(selectedTime)
+
       const programPayload = {
         ...programData,
         patientId,
@@ -637,43 +636,122 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
         programType: programTypeForPayment, // Use programTypeForPayment here
         time: formattedTime,
         totalAmount,
-        paidAmount: initialPayment,
-        remainingAmount: totalAmount - initialPayment,
-        paymentStatus: initialPayment >= totalAmount ? "FULLY_PAID" : "PARTIALLY_PAID",
-        paymentMethod: programTypeForPayment === "full_program" ? "MIXED" : "CASH", // Use programTypeForPayment here
+        paidAmount: paymentMethod === "cash" ? 0 : initialPayment, // 0 for cash, actual amount for online
+        remainingAmount: paymentMethod === "cash" ? totalAmount : totalAmount - initialPayment,
+        paymentStatus:
+          paymentMethod === "cash" ? "PENDING" : initialPayment >= totalAmount ? "FULLY_PAID" : "PARTIALLY_PAID",
+        paymentMethod:
+          paymentMethod === "cash" ? "CASH" : programTypeForPayment === "full_program" ? "MIXED" : "ONLINE",
       }
+
       const response = await axiosInstance.post("/authentication/saveProgram", programPayload)
       if (response.status === 200) {
         const programId = response.data.program._id
-        if (programTypeForPayment === "single_session" || programTypeForPayment === "school_evaluation") {
-          const moneyResponse = await axiosInstance.post("/authentication/saveMoneyRecord", {
-            patientId,
-            programId,
-            price: totalAmount, // Full amount but pending
-            status: "completed", // Changed from "completed" to "pending"
-            invoiceId: `INV-${Math.random().toString(36).substring(2, 15)}`,
-            programType: programTypeForPayment, // Use programTypeForPayment here
-            comment: `Initial payment for ${programTypeForPayment} - Student: ${patientName}`, // Use programTypeForPayment here
-            patientName,
-          })
-          if (moneyResponse.status === 200) {
-            if (programTypeForPayment === "school_evaluation") {
-              // Use programTypeForPayment here
-              const assignmentResult = await createPatientSchoolAssignment(patientId, description)
-              if (!assignmentResult.success) {
-                setAssignmentError(assignmentResult.error)
-              } else {
-                setAssignmentResults({
-                  totalAssigned: 1,
-                  totalFailed: 0,
-                  details: [{ assignment: { notes: assignmentResult.message || "School evaluation assigned" } }],
+
+        if (paymentMethod === "online") {
+          if (programTypeForPayment === "single_session" || programTypeForPayment === "school_evaluation") {
+            const moneyResponse = await axiosInstance.post("/authentication/saveMoneyRecord", {
+              patientId,
+              programId,
+              price: totalAmount, // Full amount but pending
+              status: "completed", // Changed from "completed" to "pending"
+              invoiceId: `INV-${Math.random().toString(36).substring(2, 15)}`,
+              programType: programTypeForPayment, // Use programTypeForPayment here
+              comment: `Initial payment for ${programTypeForPayment} - Student: ${patientName}`, // Use programTypeForPayment here
+              patientName,
+            })
+            if (moneyResponse.status === 200) {
+              if (programTypeForPayment === "school_evaluation") {
+                // Use programTypeForPayment here
+                const assignmentResult = await createPatientSchoolAssignment(patientId, description)
+                if (!assignmentResult.success) {
+                  setAssignmentError(assignmentResult.error)
+                } else {
+                  setAssignmentResults({
+                    totalAssigned: 1,
+                    totalFailed: 0,
+                    details: [{ assignment: { notes: assignmentResult.message || "School evaluation assigned" } }],
+                  })
+                }
+              }
+
+              // Reset form fields after successful payment
+              resetFormFields()
+              await sendNotification({
+                isList: false,
+                title: `Booking New Appointment`,
+                message: `You have booked a new appointment in ${programPayload.programType
+                  .replace(/_/g, " ")
+                  .split(" ")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ")} at date: ${
+                  new Date(programPayload.date).toISOString().split("T")[0]
+                } and time: ${programPayload.time}`,
+                receiverId: patientId,
+                rule: "Patient",
+                type: "create",
+              })
+
+              if (doctorIds.length > 0) {
+                await sendNotification({
+                  isList: true,
+                  title: `New ${programPayload.programType
+                    .replace(/_/g, " ")
+                    .split(" ")
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(" ")} Created`,
+                  message: `Create a new program to student: ${patientName}`,
+                  receiverIds: doctorIds,
+                  rule: "Doctor",
+                  type: "create",
                 })
               }
-            }
 
-            // Reset form fields after successful payment
-            resetFormFields()
-               await sendNotification({
+              // send user email in token
+              //  await sendEmail({
+              //   to: `${patientEmail}`,
+              //   filePath: "",
+              //   subject: "Booking New Appointment",
+              //   text: `We have created a new appointment in ${programPayload.programType
+              //     .replace(/_/g, " ")
+              //     .split(" ")
+              //     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              //     .join(" ")} for you, on date: ${
+              //     new Date(programPayload.date).toISOString().split("T")[0]
+              //   } and time: ${programPayload.time}`,
+              // });
+              setCurrentStep(4) // Move to complete step
+            }
+          } else if (programTypeForPayment === "full_program") {
+            const moneyResponse = await axiosInstance.post("/authentication/saveMoneyRecord", {
+              patientId,
+              programId,
+              price: initialPayment, // Full amount but pending
+              status: "completed", // Changed from "completed" to "pending"
+              invoiceId: `INV-${Math.random().toString(36).substring(2, 15)}`,
+              programType: programTypeForPayment, // Use programTypeForPayment here
+              comment: `Initial 20% fees payment for ${programTypeForPayment} - Student: ${patientName}`, // Use programTypeForPayment here
+              patientName,
+            })
+            if (moneyResponse.status === 200) {
+              setCurrentStep(4) // Move to complete step
+            }
+          }
+        } else {
+          if (programTypeForPayment === "school_evaluation") {
+            const assignmentResult = await createPatientSchoolAssignment(patientId, description)
+            if (!assignmentResult.success) {
+              setAssignmentError(assignmentResult.error)
+            } else {
+              setAssignmentResults({
+                totalAssigned: 1,
+                totalFailed: 0,
+                details: [{ assignment: { notes: assignmentResult.message || "School evaluation assigned" } }],
+              })
+            }
+          }
+          resetFormFields()
+          await sendNotification({
             isList: false,
             title: `Booking New Appointment`,
             message: `You have booked a new appointment in ${programPayload.programType
@@ -682,11 +760,11 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
               .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
               .join(" ")} at date: ${
               new Date(programPayload.date).toISOString().split("T")[0]
-            } and time: ${programPayload.time}`,
+            } and time: ${programPayload.time}. Please pay at the center.`,
             receiverId: patientId,
             rule: "Patient",
             type: "create",
-          });
+          })
 
           if (doctorIds.length > 0) {
             await sendNotification({
@@ -696,45 +774,13 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
                 .split(" ")
                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(" ")} Created`,
-              message: `Create a new program to student: ${patientName}`,
+              message: `Create a new program to student: ${patientName} (Cash Payment Pending)`,
               receiverIds: doctorIds,
               rule: "Doctor",
               type: "create",
-            });
+            })
           }
-
-          // send user email in token
-          //  await sendEmail({
-          //   to: `${patientEmail}`,
-          //   filePath: "",
-          //   subject: "Booking New Appointment",
-          //   text: `We have created a new appointment in ${programPayload.programType
-          //     .replace(/_/g, " ")
-          //     .split(" ")
-          //     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          //     .join(" ")} for you, on date: ${
-          //     new Date(programPayload.date).toISOString().split("T")[0]
-          //   } and time: ${programPayload.time}`,
-          // }); 
-            setCurrentStep(4) // Move to complete step
-          }
-        } 
-        else if (programTypeForPayment === "full_program"){
-
-          const moneyResponse = await axiosInstance.post("/authentication/saveMoneyRecord", {
-            patientId,
-            programId,
-            price: initialPayment, // Full amount but pending
-            status: "completed", // Changed from "completed" to "pending"
-            invoiceId: `INV-${Math.random().toString(36).substring(2, 15)}`,
-            programType: programTypeForPayment, // Use programTypeForPayment here
-            comment: `Initial 20% fees payment for ${programTypeForPayment} - Student: ${patientName}`, // Use programTypeForPayment here
-            patientName,
-          })
-          if (moneyResponse.status === 200) {
-              setCurrentStep(4) // Move to complete step
-          }
-        
+          setCurrentStep(4)
         }
       }
     } catch (error) {
@@ -788,10 +834,8 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
     fetchBookedSlots,
     verifyAvailabilityBeforePayment, // Keep verifyAvailabilityBeforePayment in dependencies
     resetFormFields, // Add resetFormFields to dependencies
+    paymentMethod, // Added paymentMethod to dependencies
   ])
-
-
-
 
   const steps = useMemo(
     () => [
@@ -1089,11 +1133,13 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
                             setSelectedTime(null) // Reset time when date changes
                             setValidationErrors((prev) => ({ ...prev, selectedDay: null, selectedTime: null }))
                           }}
+                          onCalendarOpen={() => setIsDatePickerOpen(true)}
+                          onCalendarClose={() => setIsDatePickerOpen(false)}
                           filterDate={filterWeekdays}
                           placeholderText={
                             language === "ar"
-                              ? "اختر تاريخاً (الجمعة أو الأحد فقط)"
-                              : "Choose a date (Fridays & Sundays only)"
+                              ? "اختر تاريخاً من الإثنين إلى الجمعة"
+                              : "Select a date from Monday to Friday"
                           }
                           className={`${styles.ruknDatePicker} ${validationErrors.selectedDay ? styles.error : ""}`}
                           dateFormat="EEEE, MMMM dd, yyyy"
@@ -1104,7 +1150,8 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
                           calendarClassName={styles.ruknDatePickerCalendar}
                           dayClassName={(date) => {
                             const day = date.getDay()
-                            if (day === 0 || day === 5) {
+                            if (day >= 1 && day <= 5) {
+                              // Check if it's Monday to Friday
                               return styles.ruknAvailableDay
                             }
                             return styles.ruknUnavailableDay
@@ -1119,8 +1166,8 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
                     <div className={styles.ruknDateNote}>
                       <Calendar size={16} className={styles.iconInline} />{" "}
                       {language === "ar"
-                        ? "المواعيد متاحة أيام الجمعة والأحد فقط"
-                        : "Appointments available on Fridays and Sundays only"}
+                        ? "المواعيد متاحة من الإثنين إلى الجمعة"
+                        : "Appointments available Monday to Friday"}
                     </div>
                   </div>
                   {/* Time Picker Section */}
@@ -1147,8 +1194,9 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
                             <button
                               key={slot.timeString}
                               type="button"
-                              className={`${styles.ruknTimeSlot} ${isSelected ? styles.selected : ""
-                                } ${isBooked ? styles.booked : styles.available}`}
+                              className={`${styles.ruknTimeSlot} ${
+                                isSelected ? styles.selected : ""
+                              } ${isBooked ? styles.booked : styles.available}`}
                               onClick={() => {
                                 if (!isBooked) {
                                   const timeDate = new Date()
@@ -1193,7 +1241,10 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
                     </div>
                   </div>
                 </div>
-                <div className={styles.ruknFormGroupdes}>
+                <div
+                  className={styles.ruknFormGroupdes}
+                  style={{ marginTop: isDatePickerOpen ? "280px" : "0", transition: "margin-top 0.3s ease" }}
+                >
                   <label className={styles.ruknLabel}>{language === "ar" ? "الوصف *" : "Description *"}</label>
                   <textarea
                     className={`${styles.ruknTextarea} ${validationErrors.description ? styles.error : ""}`}
@@ -1225,7 +1276,7 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
                           options={serviceOptions}
                           getOptionLabel={(e) => (
                             <>
-                              {e.label} (${e.price})
+                              {e.label} ({e.price}&nbsp;AED)
                             </>
                           )} // Modified to render JSX label
                           onChange={handleServiceChange}
@@ -1243,7 +1294,7 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
                     {totalPrice > 0 && (
                       <div className={styles.ruknServiceTotal}>
                         <p>
-                          {language === "ar" ? "إجمالي الخدمات المحددة:" : "Selected Services Total:"} ${totalPrice}
+                          {language === "ar" ? "إجمالي الخدمات المحددة:" : "Selected Services Total:"} {totalPrice}&nbsp;AED
                         </p>
                       </div>
                     )}
@@ -1398,6 +1449,69 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
                       : "Secure payment processing for your appointment"}
                   </p>
                 </div>
+
+                <div className={styles.ruknFormGroup}>
+                  <label className={styles.ruknLabel}>{language === "ar" ? "طريقة الدفع *" : "Payment Method *"}</label>
+                  <div className={styles.ruknPaymentMethodGrid}>
+                    <div
+                      className={`${styles.ruknPaymentCard} ${paymentMethod === "online" ? styles.selected : ""}`}
+                      onClick={() => setPaymentMethod("online")}
+                    >
+                      <div className={styles.ruknPaymentCardIcon}>
+                        <CreditCard size={32} />
+                      </div>
+                      <div className={styles.ruknPaymentCardContent}>
+                        <h4 className={styles.ruknPaymentCardTitle}>
+                          {language === "ar" ? "الدفع عبر الإنترنت" : "Pay Online"}
+                        </h4>
+                        <p className={styles.ruknPaymentCardDescription}>
+                          {language === "ar" ? "ادفع الآن بشكل آمن وسريع" : "Pay securely and instantly"}
+                        </p>
+                        <div className={styles.ruknPaymentCardFeatures}>
+                          <span className={styles.ruknPaymentFeature}>
+                            <Check size={16} /> {language === "ar" ? "فوري" : "Instant"}
+                          </span>
+                          <span className={styles.ruknPaymentFeature}>
+                            <Check size={16} /> {language === "ar" ? "آمن" : "Secure"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className={styles.ruknPaymentCardCheck}>
+                        {paymentMethod === "online" && <Check size={24} />}
+                      </div>
+                    </div>
+
+                    <div
+                      className={`${styles.ruknPaymentCard} ${paymentMethod === "cash" ? styles.selected : ""}`}
+                      onClick={() => setPaymentMethod("cash")}
+                    >
+                      <div className={styles.ruknPaymentCardIcon}>
+                        <Banknote size={32} />
+                      </div>
+                      <div className={styles.ruknPaymentCardContent}>
+                        <h4 className={styles.ruknPaymentCardTitle}>
+                          {language === "ar" ? "الدفع نقداً في المركز" : "Pay Cash at Center"}
+                        </h4>
+                        <p className={styles.ruknPaymentCardDescription}>
+                          {language === "ar" ? "ادفع عند وصولك للمركز" : "Pay when you arrive at the center"}
+                        </p>
+                        <div className={styles.ruknPaymentCardFeatures}>
+                          <span className={styles.ruknPaymentFeature}>
+                            <Check size={16} /> {language === "ar" ? "مرن" : "Flexible"}
+                          </span>
+                          <span className={styles.ruknPaymentFeature}>
+                            <Check size={16} /> {language === "ar" ? "سهل" : "Easy"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className={styles.ruknPaymentCardCheck}>
+                        {paymentMethod === "cash" && <Check size={24} />}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* </CHANGE> */}
+
                 {assignmentError && (
                   <div className={styles.ruknWarningMessage}>
                     <Info size={18} className={styles.iconInline} /> {language === "ar" ? "تحذير:" : "Warning:"}{" "}
@@ -1423,27 +1537,39 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
                     </div>
                   </div>
                 )}
+
+                {paymentMethod === "cash" && (
+                  <div className={styles.ruknInfoMessage}>
+                    <Info size={18} className={styles.iconInline} />
+                    <span>
+                      {language === "ar"
+                        ? "يرجى الدفع في المركز في موعدك"
+                        : "Please pay at the center on your appointment date"}
+                    </span>
+                  </div>
+                )}
+
                 <div className={styles.ruknPaymentSummary}>
                   <h4>{language === "ar" ? "ملخص الدفع" : "Payment Summary"}</h4>
                   {programData.programType === "full_program" ? (
                     <>
                       <div className={styles.ruknPaymentRow}>
                         <span>{language === "ar" ? "إجمالي البرنامج الكامل:" : "Full Program Total:"}</span>
-                        <span>5,000 EGP</span>
+                        <span>5,000&nbsp;AED</span>
                       </div>
                       <div className={styles.ruknPaymentRow}>
                         <span>{language === "ar" ? "الدفعة الأولية (اليوم):" : "Initial Payment (Today):"}</span>
-                        <span>1,000 EGP</span>
+                        <span>1,000&nbsp;AED</span>
                       </div>
                       <div className={styles.ruknPaymentRow}>
                         <span>
                           {language === "ar" ? "المتبقي (بعد الاستشارة):" : "Remaining (After Consultation):"}
                         </span>
-                        <span>4,000 EGP</span>
+                        <span>4,000&nbsp;AED</span>
                       </div>
                       <div className={styles.ruknPaymentTotal}>
                         <span>{language === "ar" ? "الدفع الآن:" : "Paying Now:"}</span>
-                        <span>1,000 EGP</span>
+                        <span>1,000&nbsp;AED</span>
                       </div>
                       <p className={styles.ruknPaymentNote}>
                         {language === "ar"
@@ -1455,17 +1581,17 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
                     <>
                       <div className={styles.ruknPaymentRow}>
                         <span>{language === "ar" ? "رسوم البرنامج:" : "Program Fee:"}</span>
-                        <span>${getProgramPrice(programData.programType)}</span>
+                        <span>{getProgramPrice(programData.programType)}&nbsp;AED</span>
                       </div>
                       {totalPrice > 0 && (
                         <div className={styles.ruknPaymentRow}>
                           <span>{language === "ar" ? "خدمات إضافية:" : "Additional Services:"}</span>
-                          <span>${totalPrice}</span>
+                          <span>{totalPrice}&nbsp;AED</span>
                         </div>
                       )}
                       <div className={styles.ruknPaymentTotal}>
                         <span>{language === "ar" ? "المبلغ الإجمالي:" : "Total Amount:"}</span>
-                        <span>${getProgramPrice(programData.programType) + totalPrice}</span>
+                        <span>{getProgramPrice(programData.programType) + totalPrice}&nbsp;AED</span>
                       </div>
                     </>
                   )}
@@ -1494,17 +1620,38 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName,  
                     disabled={isProcessingPayment}
                     className={`${styles.ruknButton} ${styles.ruknButtonSuccess}`}
                   >
-                    <CreditCard size={20} />{" "}
-                    {isProcessingPayment
-                      ? language === "ar"
-                        ? "جارٍ المعالجة..."
-                        : "Processing..."
-                      : language === "ar"
-                        ? "إكمال الدفع"
-                        : "Complete Payment"}
+                    {paymentMethod === "cash" ? (
+                      <>
+                        <Calendar size={20} />{" "}
+                        {isProcessingPayment
+                          ? language === "ar"
+                            ? "جارٍ الحجز..."
+                            : "Booking..."
+                          : language === "ar"
+                            ? "تأكيد الحجز"
+                            : "Confirm Booking"}
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard size={20} />{" "}
+                        {isProcessingPayment
+                          ? language === "ar"
+                            ? "جارٍ المعالجة..."
+                            : "Processing..."
+                          : language === "ar"
+                            ? "إكمال الدفع"
+                            : "Complete Payment"}
+                      </>
+                    )}
                   </button>
                   <p className={styles.ruknPaymentNote}>
-                    {language === "ar" ? "معالجة الدفع الآمنة • SSL مشفر" : "Secure payment processing • SSL encrypted"}
+                    {paymentMethod === "cash"
+                      ? language === "ar"
+                        ? "سيتم تأكيد حجزك • الدفع عند الوصول"
+                        : "Your booking will be confirmed • Pay on arrival"
+                      : language === "ar"
+                        ? "معالجة الدفع الآمنة • SSL مشفر"
+                        : "Secure payment processing • SSL encrypted"}
                   </p>
                 </div>
               </div>
