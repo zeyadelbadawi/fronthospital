@@ -312,6 +312,7 @@ const FullProgramTab = ({
   }
 
   const formatDate = (dateString) => {
+    if (!dateString) return ""
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -320,6 +321,7 @@ const FullProgramTab = ({
   }
 
   const formatTime = (timeString) => {
+    if (!timeString) return ""
     return new Date(`2000-01-01T${timeString}`).toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
@@ -327,36 +329,84 @@ const FullProgramTab = ({
     })
   }
 
+  const calculateSubscriptionProgress = (appointment) => {
+    const now = new Date()
+    const startDate = new Date(appointment.assignmentDate)
+    const endDate = new Date(appointment.subscriptionEndDate)
+
+    // Calculate total duration and elapsed time
+    const totalDuration = endDate - startDate
+    const elapsed = now - startDate
+    const remaining = endDate - now
+
+    // Calculate percentage (0-100)
+    const percentage = Math.min(Math.max((elapsed / totalDuration) * 100, 0), 100)
+
+    // Calculate days remaining
+    const daysRemaining = Math.ceil(remaining / (1000 * 60 * 60 * 24))
+
+    // Determine status
+    const isExpired = now > endDate
+    const isNearExpiry = daysRemaining <= 30 && daysRemaining > 0
+
+    return {
+      percentage: isExpired ? 100 : percentage,
+      daysRemaining,
+      isExpired,
+      isNearExpiry,
+      startDate,
+      endDate,
+    }
+  }
+
+  const formatTimeRemaining = (daysRemaining) => {
+    if (daysRemaining < 0) {
+      return t?.profile?.expired || "Expired"
+    } else if (daysRemaining === 0) {
+      return t?.profile?.expiringToday || "Expiring Today"
+    } else if (daysRemaining === 1) {
+      return t?.profile?.oneDayLeft || "1 day left"
+    } else if (daysRemaining <= 7) {
+      return `${daysRemaining} ${daysRemaining === 1 ? t?.profile?.dayLeft || "day left" : t?.profile?.daysLeft || "days left"}`
+    } else if (daysRemaining <= 30) {
+      const weeks = Math.ceil(daysRemaining / 7)
+      return `${weeks} ${weeks === 1 ? t?.profile?.weekLeft || "week left" : t?.profile?.weeksLeft || "weeks left"}`
+    } else {
+      const months = Math.ceil(daysRemaining / 30)
+      return `${months} ${months === 1 ? t?.profile?.monthLeft || "month left" : t?.profile?.monthsLeft || "months left"}`
+    }
+  }
+
   const getPaymentBadge = (appointment) => {
     const { paymentStatus, paymentMethod, paidAmount, totalAmount } = appointment
 
     // For Full Program: Two-stage payment system
-    // First payment: 1000 AED (evaluation)
-    // Second payment: 4000 AED (remaining)
+    // First payment: 1000 EGP (evaluation)
+    // Second payment: 4000 EGP (remaining)
 
     if (paymentStatus === "FULLY_PAID") {
-      // All payments completed (5000 AED total)
+      // All payments completed (5000 EGP total)
       return {
         text: t?.profile?.fullyPaid || "Fully Paid",
         icon: <CheckCircle size={14} />,
         className: styles.fullyPaidBadge,
-        tooltip: t?.profile?.allPaymentsCompleted || "All payments completed (5000 AED)",
+        tooltip: t?.profile?.allPaymentsCompleted || "All payments completed (5000 EGP)",
       }
     } else if (paymentStatus === "PARTIALLY_PAID") {
-      // Evaluation paid (1000 AED), remaining pending (4000 AED)
+      // Evaluation paid (1000 EGP), remaining pending (4000 EGP)
       if (paymentMethod === "ONLINE" || paymentMethod === "MIXED") {
         return {
           text: t?.profile?.evaluationPaidOnline || "Evaluation Paid Online",
           icon: <CreditCard size={14} />,
           className: styles.paidOnlineBadge,
-          tooltip: `${t?.profile?.paid || "Paid"}: ${paidAmount} AED ${t?.profile?.online || "online"}. ${t?.profile?.remaining || "Remaining"}: ${totalAmount - paidAmount} AED`,
+          tooltip: `${t?.profile?.paid || "Paid"}: ${paidAmount} EGP ${t?.profile?.online || "online"}. ${t?.profile?.remaining || "Remaining"}: ${totalAmount - paidAmount} EGP`,
         }
       } else {
         return {
           text: t?.profile?.evaluationPaidAtCenter || "Evaluation Paid at Center",
           icon: <Banknote size={14} />,
           className: styles.paidAtCenterBadge,
-          tooltip: `${t?.profile?.paid || "Paid"}: ${paidAmount} AED ${t?.profile?.atCenter || "at center"}. ${t?.profile?.remaining || "Remaining"}: ${totalAmount - paidAmount} AED`,
+          tooltip: `${t?.profile?.paid || "Paid"}: ${paidAmount} EGP ${t?.profile?.atCenter || "at center"}. ${t?.profile?.remaining || "Remaining"}: ${totalAmount - paidAmount} EGP`,
         }
       }
     } else if (paymentStatus === "PENDING") {
@@ -480,7 +530,7 @@ const FullProgramTab = ({
       case "expired":
         return renderExpiredProgramCard(appointment, index)
       default:
-        return renderActiveProgramCard(appointment, index)
+        return renderActiveProgramCard(appointment, index) // Fallback for unknown status
     }
   }
 
@@ -582,6 +632,7 @@ const FullProgramTab = ({
   const renderActiveProgramCard = (appointment, index) => {
     const programNumber = getProgramNumber(appointment, fullProgramData)
     const paymentBadge = getPaymentBadge(appointment)
+    const subscriptionProgress = calculateSubscriptionProgress(appointment)
 
     return (
       <div key={appointment._id} className={`${styles.appointmentCard} ${styles.activeCard}`}>
@@ -608,6 +659,30 @@ const FullProgramTab = ({
                   </span>
                 </div>
               )}
+              <div className={styles.subscriptionProgressContainer}>
+                <div className={styles.progressHeader}>
+                  <span className={styles.progressLabel}>
+                    {t?.profile?.subscriptionProgress || "Subscription Progress"}
+                  </span>
+                  <span
+                    className={`${styles.progressTime} ${subscriptionProgress.isNearExpiry ? styles.progressTimeWarning : ""}`}
+                  >
+                    {formatTimeRemaining(subscriptionProgress.daysRemaining)}
+                  </span>
+                </div>
+                <div className={styles.progressBarContainer}>
+                  <div
+                    className={`${styles.progressBarFill} ${subscriptionProgress.isNearExpiry ? styles.progressBarWarning : styles.progressBarActive}`}
+                    style={{ width: `${subscriptionProgress.percentage}%` }}
+                  >
+                    <div className={styles.progressBarGlow}></div>
+                  </div>
+                </div>
+                <div className={styles.progressDates}>
+                  <span className={styles.progressDate}>{formatDate(subscriptionProgress.startDate)}</span>
+                  <span className={styles.progressDate}>{formatDate(subscriptionProgress.endDate)}</span>
+                </div>
+              </div>
             </div>
           </div>
           <div className={styles.appointmentStats}>
@@ -877,6 +952,7 @@ const FullProgramTab = ({
   const renderExpiredProgramCard = (appointment, index) => {
     const programNumber = getProgramNumber(appointment, fullProgramData)
     const paymentBadge = getPaymentBadge(appointment)
+    const subscriptionProgress = calculateSubscriptionProgress(appointment)
 
     return (
       <div key={appointment._id} className={`${styles.appointmentCard} ${styles.expiredCard}`}>
@@ -903,6 +979,25 @@ const FullProgramTab = ({
                   </span>
                 </div>
               )}
+              <div className={styles.subscriptionProgressContainer}>
+                <div className={styles.progressHeader}>
+                  <span className={styles.progressLabel}>
+                    {t?.profile?.subscriptionProgress || "Subscription Progress"}
+                  </span>
+                  <span className={`${styles.progressTime} ${styles.progressTimeExpired}`}>
+                    {t?.profile?.expired || "Expired"}
+                  </span>
+                </div>
+                <div className={styles.progressBarContainer}>
+                  <div className={`${styles.progressBarFill} ${styles.progressBarExpired}`} style={{ width: "100%" }}>
+                    <div className={styles.progressBarGlow}></div>
+                  </div>
+                </div>
+                <div className={styles.progressDates}>
+                  <span className={styles.progressDate}>{formatDate(subscriptionProgress.startDate)}</span>
+                  <span className={styles.progressDate}>{formatDate(subscriptionProgress.endDate)}</span>
+                </div>
+              </div>
             </div>
           </div>
           <div className={styles.appointmentStats}>
