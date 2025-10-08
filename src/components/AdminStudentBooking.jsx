@@ -1708,7 +1708,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
                     <>
                       <div className={styles.ruknPaymentRow}>
                         <span>Full Program Total:</span>
-                        <span>5,000 EGP</span>
+                        <span>5,000 AED</span>
                       </div>
                       <div className={styles.ruknPaymentRow}>
                         <span>Payment Status:</span>
@@ -1716,7 +1716,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
                       </div>
                       <div className={styles.ruknPaymentTotal}>
                         <span>Amount Due:</span>
-                        <span>1,000 EGP</span>
+                        <span>1,000 AED</span>
                       </div>
                     </>
                   ) : (
