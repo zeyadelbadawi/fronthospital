@@ -190,7 +190,7 @@ export default function FinancialRecordsMainLayer({ user }) {
           </div>
           <div className={styles.summaryContent}>
             <h3>{formatCurrency(totalChecks)}</h3>
-            <p>{language === "ar" ? "إجمالي الشيكات" : "Total Checks"}</p>
+            <p>{language === "ar" ? "��جمالي الشيكات" : "Total Checks"}</p>
           </div>
         </div>
 
