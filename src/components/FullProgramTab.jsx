@@ -18,6 +18,9 @@ import {
   AlertTriangle,
   PlayCircle,
   StopCircle,
+  CreditCard,
+  Banknote,
+  DollarSign,
 } from "lucide-react"
 import styles from "../styles/full-program-tab.module.css"
 import PatientDocumentViewer from "./PatientDocumentViewer"
@@ -233,8 +236,6 @@ const FullProgramTab = ({
 
     const subscriptionEndDate = appointment.subscriptionEndDate ? new Date(appointment.subscriptionEndDate) : null
 
-
-
     if (appointment.status === "not active") {
       if (appointmentDateTime > now) {
         return "upcoming" // Case a: Future appointment, not active
@@ -324,6 +325,62 @@ const FullProgramTab = ({
       minute: "2-digit",
       hour12: true,
     })
+  }
+
+  const getPaymentBadge = (appointment) => {
+    const { paymentStatus, paymentMethod, paidAmount, totalAmount } = appointment
+
+    // For Full Program: Two-stage payment system
+    // First payment: 1000 AED (evaluation)
+    // Second payment: 4000 AED (remaining)
+
+    if (paymentStatus === "FULLY_PAID") {
+      // All payments completed (5000 AED total)
+      return {
+        text: t?.profile?.fullyPaid || "Fully Paid",
+        icon: <CheckCircle size={14} />,
+        className: styles.fullyPaidBadge,
+        tooltip: t?.profile?.allPaymentsCompleted || "All payments completed (5000 AED)",
+      }
+    } else if (paymentStatus === "PARTIALLY_PAID") {
+      // Evaluation paid (1000 AED), remaining pending (4000 AED)
+      if (paymentMethod === "ONLINE" || paymentMethod === "MIXED") {
+        return {
+          text: t?.profile?.evaluationPaidOnline || "Evaluation Paid Online",
+          icon: <CreditCard size={14} />,
+          className: styles.paidOnlineBadge,
+          tooltip: `${t?.profile?.paid || "Paid"}: ${paidAmount} AED ${t?.profile?.online || "online"}. ${t?.profile?.remaining || "Remaining"}: ${totalAmount - paidAmount} AED`,
+        }
+      } else {
+        return {
+          text: t?.profile?.evaluationPaidAtCenter || "Evaluation Paid at Center",
+          icon: <Banknote size={14} />,
+          className: styles.paidAtCenterBadge,
+          tooltip: `${t?.profile?.paid || "Paid"}: ${paidAmount} AED ${t?.profile?.atCenter || "at center"}. ${t?.profile?.remaining || "Remaining"}: ${totalAmount - paidAmount} AED`,
+        }
+      }
+    } else if (paymentStatus === "PENDING") {
+      // No payment yet
+      if (paymentMethod === "ONLINE") {
+        // User selected online but hasn't paid yet (shouldn't happen often)
+        return {
+          text: t?.profile?.pendingOnlinePayment || "Pending Online Payment",
+          icon: <Clock size={14} />,
+          className: styles.pendingOnlineBadge,
+          tooltip: t?.profile?.waitingForOnlinePayment || "Waiting for online payment",
+        }
+      } else {
+        // Cash payment - waiting for client to pay at center
+        return {
+          text: t?.profile?.pendingPaymentAtCenter || "Pending Payment at Center",
+          icon: <DollarSign size={14} />,
+          className: styles.pendingCashBadge,
+          tooltip: t?.profile?.paymentDueAtCenter || "Payment due when client arrives at center",
+        }
+      }
+    }
+
+    return null
   }
 
   const toggleExpanded = (type, id) => {
@@ -429,6 +486,7 @@ const FullProgramTab = ({
 
   const renderUpcomingAppointmentCard = (appointment, index) => {
     const timeUntil = getTimeUntilAppointment(appointment)
+    const paymentBadge = getPaymentBadge(appointment)
 
     return (
       <div key={appointment._id} className={`${styles.appointmentCard} ${styles.upcomingCard}`}>
@@ -443,6 +501,14 @@ const FullProgramTab = ({
                 {formatDate(appointment.date)} at {formatTime(appointment.time)}
               </p>
               <p className={styles.appointmentDescription}>{appointment.description}</p>
+              {paymentBadge && (
+                <div className={styles.paymentBadgeContainer} title={paymentBadge.tooltip}>
+                  <span className={`${styles.paymentBadge} ${paymentBadge.className}`}>
+                    {paymentBadge.icon}
+                    <span>{paymentBadge.text}</span>
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           <div className={styles.appointmentStats}>
@@ -468,6 +534,8 @@ const FullProgramTab = ({
   }
 
   const renderMissedAppointmentCard = (appointment, index) => {
+    const paymentBadge = getPaymentBadge(appointment)
+
     return (
       <div key={appointment._id} className={`${styles.appointmentCard} ${styles.missedCard}`}>
         <div className={styles.appointmentHeader}>
@@ -479,6 +547,14 @@ const FullProgramTab = ({
                 {formatDate(appointment.date)} at {formatTime(appointment.time)}
               </p>
               <p className={styles.appointmentDescription}>{appointment.description}</p>
+              {paymentBadge && (
+                <div className={styles.paymentBadgeContainer} title={paymentBadge.tooltip}>
+                  <span className={`${styles.paymentBadge} ${paymentBadge.className}`}>
+                    {paymentBadge.icon}
+                    <span>{paymentBadge.text}</span>
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           <div className={styles.appointmentStats}>
@@ -505,6 +581,7 @@ const FullProgramTab = ({
 
   const renderActiveProgramCard = (appointment, index) => {
     const programNumber = getProgramNumber(appointment, fullProgramData)
+    const paymentBadge = getPaymentBadge(appointment)
 
     return (
       <div key={appointment._id} className={`${styles.appointmentCard} ${styles.activeCard}`}>
@@ -523,6 +600,14 @@ const FullProgramTab = ({
               <p className={styles.appointmentDates}>
                 {formatDate(appointment.assignmentDate)} - {formatDate(appointment.subscriptionEndDate)}
               </p>
+              {paymentBadge && (
+                <div className={styles.paymentBadgeContainer} title={paymentBadge.tooltip}>
+                  <span className={`${styles.paymentBadge} ${paymentBadge.className}`}>
+                    {paymentBadge.icon}
+                    <span>{paymentBadge.text}</span>
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           <div className={styles.appointmentStats}>
@@ -791,6 +876,7 @@ const FullProgramTab = ({
 
   const renderExpiredProgramCard = (appointment, index) => {
     const programNumber = getProgramNumber(appointment, fullProgramData)
+    const paymentBadge = getPaymentBadge(appointment)
 
     return (
       <div key={appointment._id} className={`${styles.appointmentCard} ${styles.expiredCard}`}>
@@ -809,6 +895,14 @@ const FullProgramTab = ({
               <p className={styles.appointmentDates}>
                 {formatDate(appointment.assignmentDate)} - {formatDate(appointment.subscriptionEndDate)}
               </p>
+              {paymentBadge && (
+                <div className={styles.paymentBadgeContainer} title={paymentBadge.tooltip}>
+                  <span className={`${styles.paymentBadge} ${paymentBadge.className}`}>
+                    {paymentBadge.icon}
+                    <span>{paymentBadge.text}</span>
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           <div className={styles.appointmentStats}>
