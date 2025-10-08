@@ -56,7 +56,7 @@ const THERAPY_CONFIGS = {
     emptyTitle: "No Physical Therapy Students Found",
     emptyDescription: "No students are currently assigned to the Physical Therapy department.",
   },
-  "Psychotherapy": {
+  Psychotherapy: {
     title: "Psychotherapy Students",
     subtitle: "Manage and view all students assigned to Psychotherapy",
     apiEndpoint: "/PsychotherapyS/Psychotherapy-assignments",
@@ -127,7 +127,16 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
       const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}${config.apiEndpoint}?${params}`)
 
       const assignmentsData = Array.isArray(response.data) ? response.data : response.data.assignments || []
-      setAssignments(assignmentsData)
+
+      const paidAssignments = assignmentsData.filter((assignment) => {
+        // Check if programId exists and has payment status
+        if (!assignment.programId) return false
+
+        // Only show if payment is fully paid (either online or cash confirmed by accountant)
+        return assignment.programId.paymentStatus === "FULLY_PAID"
+      })
+
+      setAssignments(paidAssignments)
       setTotalPages(response.data.totalPages || 1)
     } catch (error) {
       console.error(`Error fetching ${config.title}:`, error)
@@ -364,7 +373,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
                       <th>
                         <div className={styles.headerCell}>
                           <Filter className={styles.headerIcon} />
-                          plan Status
+                          Plan Status
                         </div>
                       </th>
                       <th className={styles.textCenter}>Actions</th>
