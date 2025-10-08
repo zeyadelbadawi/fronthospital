@@ -131,8 +131,12 @@ export function SchoolAppointments() {
 
       const programs = response.data.programs || []
 
+      const paidPrograms = programs.filter((program) => {
+        // Only show if payment is fully paid (either online or cash confirmed by accountant)
+        return program.paymentStatus === "FULLY_PAID"
+      })
 
-      setSchoolPrograms(programs)
+      setSchoolPrograms(paidPrograms)
       setTotalPages(response.data.totalPages || 1)
     } catch (error) {
       console.error("Error fetching optimized school programs:", error)
@@ -158,7 +162,6 @@ export function SchoolAppointments() {
 
       setAppointments(appointmentsData)
       setAppointmentStats(stats)
-
     } catch (error) {
       console.error("Error fetching optimized appointments:", error)
       showToast("Failed to load appointments. Please try again.", "error")
