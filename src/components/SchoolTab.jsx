@@ -20,6 +20,9 @@ import {
   PlayCircle,
   PauseCircle,
   AlertTriangle,
+  CreditCard,
+  Banknote,
+  DollarSign,
 } from "lucide-react"
 import styles from "../styles/school-tab.module.css"
 import PatientDocumentViewer from "./PatientDocumentViewer"
@@ -250,7 +253,6 @@ const SchoolTab = ({
       }
     }
 
-   
     // الحالة 1: الموعد الأول لم يأتي بعد ولم يكتمل
     if (firstAppointmentTime > now && firstAppointment.status !== "completed") {
       return {
@@ -508,6 +510,51 @@ const SchoolTab = ({
     return programIndex + 1 // Program numbers start from 1
   }
 
+  const getPaymentBadge = (appointment) => {
+    const { paymentStatus, paymentMethod, paidAmount, totalAmount } = appointment
+
+    // For School Program: One-time payment (full amount upfront)
+
+    if (paymentStatus === "FULLY_PAID") {
+      // Payment completed
+      if (paymentMethod === "ONLINE") {
+        return {
+          text: t?.profile?.paidOnline || "Paid Online",
+          icon: <CreditCard size={14} />,
+          className: styles.paidOnlineBadge,
+          tooltip: `${t?.profile?.paidOnlineViaWebsite || "Paid online via website"}: ${totalAmount} AED`,
+        }
+      } else {
+        return {
+          text: t?.profile?.paidAtCenter || "Paid at Center",
+          icon: <Banknote size={14} />,
+          className: styles.paidAtCenterBadge,
+          tooltip: `${t?.profile?.paidCashAtCenter || "Paid cash at center"}: ${totalAmount} AED`,
+        }
+      }
+    } else if (paymentStatus === "PENDING") {
+      // No payment yet
+      if (paymentMethod === "ONLINE") {
+        return {
+          text: t?.profile?.pendingOnlinePayment || "Pending Online Payment",
+          icon: <Clock size={14} />,
+          className: styles.pendingOnlineBadge,
+          tooltip: t?.profile?.waitingForOnlinePayment || "Waiting for online payment",
+        }
+      } else {
+        // Cash payment - waiting for client to pay at center
+        return {
+          text: t?.profile?.pendingPaymentAtCenter || "Pending Payment at Center",
+          icon: <DollarSign size={14} />,
+          className: styles.pendingCashBadge,
+          tooltip: `${t?.profile?.paymentDueAtCenter || "Payment due when client arrives at center"}: ${totalAmount} AED`,
+        }
+      }
+    }
+
+    return null
+  }
+
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
@@ -592,7 +639,7 @@ const SchoolTab = ({
                     <h4 className={styles.programTitle}>
                       {t?.profile?.schoolProgram || "School Program"} {programNumber}
                     </h4>
-                
+
                     <div className={styles.programProgress}>
                       <span className={styles.progressText}>
                         {program.completedAppointments} {t?.profile?.of || "of"} {program.totalAppointments}{" "}
@@ -640,26 +687,38 @@ const SchoolTab = ({
                       </h5>
                     </div>
                     <div className={styles.appointmentsList}>
-                      {program.appointments.map((appointment) => (
-                        <div key={appointment._id} className={styles.appointmentItem}>
-                          <div className={styles.appointmentInfo}>
-                            {getAppointmentStatusIcon(appointment)}
-                            <div className={styles.appointmentDetails}>
-                              <span className={styles.appointmentDate}>
-                                {formatDate(appointment.date)} {t?.profile?.at || "at"} {formatTime(appointment.time)}
+                      {program.appointments.map((appointment) => {
+                        const paymentBadge = getPaymentBadge(appointment)
+
+                        return (
+                          <div key={appointment._id} className={styles.appointmentItem}>
+                            <div className={styles.appointmentInfo}>
+                              {getAppointmentStatusIcon(appointment)}
+                              <div className={styles.appointmentDetails}>
+                                <span className={styles.appointmentDate}>
+                                  {formatDate(appointment.date)} {t?.profile?.at || "at"} {formatTime(appointment.time)}
+                                </span>
+                                <span className={styles.appointmentDescription}>{appointment.description}</span>
+                                {paymentBadge && (
+                                  <div className={styles.paymentBadgeContainer} title={paymentBadge.tooltip}>
+                                    <span className={`${styles.paymentBadge} ${paymentBadge.className}`}>
+                                      {paymentBadge.icon}
+                                      <span>{paymentBadge.text}</span>
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className={styles.appointmentStatus}>
+                              <span
+                                className={`${styles.statusBadge} ${styles[getAppointmentStatusText(appointment).toLowerCase() + "Status"]}`}
+                              >
+                                {getAppointmentStatusText(appointment)}
                               </span>
-                              <span className={styles.appointmentDescription}>{appointment.description}</span>
                             </div>
                           </div>
-                          <div className={styles.appointmentStatus}>
-                            <span
-                              className={`${styles.statusBadge} ${styles[getAppointmentStatusText(appointment).toLowerCase() + "Status"]}`}
-                            >
-                              {getAppointmentStatusText(appointment)}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
 
