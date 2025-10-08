@@ -3,7 +3,28 @@ import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import CustomLink from "@/components/CustomLink" // Changed from Link
 import axiosInstance from "../helper/axiosSetup"
-import { X, ArrowRight, Menu, Bell, User, Home, Activity, FileText, GraduationCap, UserPlus, Calendar, CalendarDays, Users, Stethoscope, Calculator, Building, CreditCard, Receipt, AlertTriangle, Heart, DoorOpen, FileVideoCamera } from 'lucide-react'
+import {
+  X,
+  ArrowRight,
+  Menu,
+  Bell,
+  User,
+  Home,
+  Activity,
+  FileText,
+  GraduationCap,
+  UserPlus,
+  Calendar,
+  CalendarDays,
+  Users,
+  Stethoscope,
+  Calculator,
+  CreditCard,
+  Receipt,
+  AlertTriangle,
+  DoorOpen,
+  LucideCamera as FileVideoCamera,
+} from "lucide-react"
 import useSocket from "@/hooks/useSocket"
 import { formatDistanceToNow } from "date-fns"
 import styles from "./master-layout.module.css"
@@ -11,7 +32,6 @@ import Cookies from "js-cookie"
 import Image from "next/image"
 import { notificationsIcons } from "@/utils/assignmentUtils"
 import { Icon } from "@iconify/react"
-
 
 const MasterLayout = ({ children }) => {
   const [user, setUser] = useState(null)
@@ -108,7 +128,9 @@ const MasterLayout = ({ children }) => {
       }
     }
 
-    const dropdownTriggers = document.querySelectorAll(".sidebar-menu .dropdown > a, .sidebar-menu .dropdown > CustomLink") // Changed from Link
+    const dropdownTriggers = document.querySelectorAll(
+      ".sidebar-menu .dropdown > a, .sidebar-menu .dropdown > CustomLink",
+    ) // Changed from Link
     dropdownTriggers.forEach((trigger) => {
       trigger.addEventListener("click", handleDropdownClick)
     })
@@ -149,14 +171,6 @@ const MasterLayout = ({ children }) => {
     }
   }, [location])
 
-  const sidebarControl = () => {
-    setSidebarActive(!sidebarActive)
-  }
-
-  const mobileMenuControl = () => {
-    setMobileMenu(!mobileMenu)
-  }
-
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -173,9 +187,11 @@ const MasterLayout = ({ children }) => {
         })
 
         const userData = response.data
+        console.log("[v0] Profile data received:", userData)
         setUser(userData)
         setUserRole(userData.role)
-        setUserName(userData.username)
+        // Handle both username (for admin/doctor/HeadDoctor) and name (for patient/accountant)
+        setUserName(userData.username || userData.name || "")
         setLoading(false)
       } catch (error) {
         console.error("Error fetching user data:", error)
@@ -199,9 +215,10 @@ const MasterLayout = ({ children }) => {
             })
 
             const userData = retryResponse.data
+            console.log("[v0] Profile data received after refresh:", userData)
             setUser(userData)
             setUserRole(userData.role)
-            setUserName(userData.username)
+            setUserName(userData.username || userData.name || "")
           } catch (refreshError) {
             console.error("Refresh token failed:", refreshError)
             window.location.href = "/sign-in"
@@ -262,6 +279,10 @@ const MasterLayout = ({ children }) => {
   // Helper function to check if user is HeadDoctor
   const isHeadDoctor = userRole === "HeadDoctor"
 
+  const mobileMenuControl = () => {
+    setMobileMenu(!mobileMenu)
+  }
+
   return (
     <section className={mobileMenu ? `${styles.overlay} ${styles.active}` : styles.overlay}>
       {/* Sidebar */}
@@ -278,7 +299,9 @@ const MasterLayout = ({ children }) => {
           <X />
         </button>
         <div>
-          <CustomLink href="/" className={styles.sidebarLogo}> {/* Changed to CustomLink */}
+          <CustomLink href="/" className={styles.sidebarLogo}>
+            {" "}
+            {/* Changed to CustomLink */}
             <div className={styles.logoImageContainer}>
               <Image
                 src="/images/rukn-logo.png"
@@ -293,90 +316,127 @@ const MasterLayout = ({ children }) => {
               <div className={styles.logoTitle}>Rukn Alwatikon</div>
               <div className={styles.logoSubtitle}>Rehabilitation Center</div>
             </div>
-          </CustomLink> {/* Changed to CustomLink */}
+          </CustomLink>{" "}
+          {/* Changed to CustomLink */}
         </div>
         <div className={styles.sidebarMenuArea}>
           <ul className={styles.sidebarMenu} id="sidebar-menu">
             <li className={styles.sidebarMenuGroupTitle}>Home</li>
             <li>
-              <CustomLink href="/" className={pathname === "/" ? styles.activePage : ""}> {/* Changed to CustomLink */}
+              <CustomLink href="/" className={pathname === "/" ? styles.activePage : ""}>
+                {" "}
+                {/* Changed to CustomLink */}
                 <Home className={styles.menuIcon} />
                 <span>Statistics</span>
-              </CustomLink> {/* Changed to CustomLink */}
+              </CustomLink>{" "}
+              {/* Changed to CustomLink */}
             </li>
             <li className={styles.sidebarMenuGroupTitle}>All Programs</li>
             <li>
-              <CustomLink href="/full-program" className={pathname === "/full-program" ? styles.activePage : ""}> {/* Changed to CustomLink */}
+              <CustomLink href="/full-program" className={pathname === "/full-program" ? styles.activePage : ""}>
+                {" "}
+                {/* Changed to CustomLink */}
                 <Activity className={styles.menuIcon} />
                 <span>Full Programs</span>
-              </CustomLink> {/* Changed to CustomLink */}
+              </CustomLink>{" "}
+              {/* Changed to CustomLink */}
             </li>
             <li>
-              <CustomLink href="/single-session" className={pathname === "/single-session" ? styles.activePage : ""}> {/* Changed to CustomLink */}
+              <CustomLink href="/single-session" className={pathname === "/single-session" ? styles.activePage : ""}>
+                {" "}
+                {/* Changed to CustomLink */}
                 <FileText className={styles.menuIcon} />
                 <span>Single Programs</span>
-              </CustomLink> {/* Changed to CustomLink */}
+              </CustomLink>{" "}
+              {/* Changed to CustomLink */}
             </li>
             <li>
-              <CustomLink href="/school" className={pathname === "/school" ? styles.activePage : ""}> {/* Changed to CustomLink */}
+              <CustomLink href="/school" className={pathname === "/school" ? styles.activePage : ""}>
+                {" "}
+                {/* Changed to CustomLink */}
                 <GraduationCap className={styles.menuIcon} />
                 <span>School Evaluations</span>
-              </CustomLink> {/* Changed to CustomLink */}
+              </CustomLink>{" "}
+              {/* Changed to CustomLink */}
             </li>
             <li>
               <CustomLink
                 href="/Admin-Book-Appointment"
                 className={pathname === "/Admin-Book-Appointment" ? styles.activePage : ""}
-              > {/* Changed to CustomLink */}
+              >
+                {" "}
+                {/* Changed to CustomLink */}
                 <UserPlus className={styles.menuIcon} />
                 <span>Book New Appointment</span>
-              </CustomLink> {/* Changed to CustomLink */}
+              </CustomLink>{" "}
+              {/* Changed to CustomLink */}
             </li>
             <li className={styles.sidebarMenuGroupTitle}>Full Program Schedule</li>
             <li>
-              <CustomLink href="/calendar-main" className={pathname === "/calendar-main" ? styles.activePage : ""}> {/* Changed to CustomLink */}
+              <CustomLink href="/calendar-main" className={pathname === "/calendar-main" ? styles.activePage : ""}>
+                {" "}
+                {/* Changed to CustomLink */}
                 <Calendar className={styles.menuIcon} />
                 <span>Show Schedule</span>
-              </CustomLink> {/* Changed to CustomLink */}
+              </CustomLink>{" "}
+              {/* Changed to CustomLink */}
             </li>
             <li>
               <CustomLink
                 href="/full-program-appointments"
                 className={pathname === "/full-program-appointments" ? styles.activePage : ""}
-              > {/* Changed to CustomLink */}
+              >
+                {" "}
+                {/* Changed to CustomLink */}
                 <CalendarDays className={styles.menuIcon} />
                 <span>Update Schedule</span>
-              </CustomLink> {/* Changed to CustomLink */}
+              </CustomLink>{" "}
+              {/* Changed to CustomLink */}
             </li>
             <li className={styles.sidebarMenuGroupTitle}>All Users</li>
             <li>
-              <CustomLink href="/student/list" className={pathname === "/student/list" ? styles.activePage : ""}> {/* Changed to CustomLink */}
+              <CustomLink href="/student/list" className={pathname === "/student/list" ? styles.activePage : ""}>
+                {" "}
+                {/* Changed to CustomLink */}
                 <Users className={styles.menuIcon} />
                 <span>All Students</span>
-              </CustomLink> {/* Changed to CustomLink */}
+              </CustomLink>{" "}
+              {/* Changed to CustomLink */}
             </li>
-             <li>
-                <CustomLink href="/drive-link" className={pathname === "/drive-link" ? styles.activePage : ""}> {/* Changed to CustomLink */}
-                  <FileVideoCamera className={styles.menuIcon} />
-                  <span>Student Media</span>
-                </CustomLink> {/* Changed to CustomLink */}
-              </li>
             <li>
-              <CustomLink href="/doctor/list" className={pathname === "/doctor/list" ? styles.activePage : ""}> {/* Changed to CustomLink */}
+              <CustomLink href="/drive-link" className={pathname === "/drive-link" ? styles.activePage : ""}>
+                {" "}
+                {/* Changed to CustomLink */}
+                <FileVideoCamera className={styles.menuIcon} />
+                <span>Student Media</span>
+              </CustomLink>{" "}
+              {/* Changed to CustomLink */}
+            </li>
+            <li>
+              <CustomLink href="/doctor/list" className={pathname === "/doctor/list" ? styles.activePage : ""}>
+                {" "}
+                {/* Changed to CustomLink */}
                 <Stethoscope className={styles.menuIcon} />
                 <span>All Doctors</span>
-              </CustomLink> {/* Changed to CustomLink */}
+              </CustomLink>{" "}
+              {/* Changed to CustomLink */}
             </li>
             {/* Hide "All Accountants" for HeadDoctor */}
             {!isHeadDoctor && (
               <li>
-                <CustomLink href="/accountant/list" className={pathname === "/accountant/list" ? styles.activePage : ""}> {/* Changed to CustomLink */}
+                <CustomLink
+                  href="/accountant/list"
+                  className={pathname === "/accountant/list" ? styles.activePage : ""}
+                >
+                  {" "}
+                  {/* Changed to CustomLink */}
                   <Calculator className={styles.menuIcon} />
                   <span>All Accountants</span>
-                </CustomLink> {/* Changed to CustomLink */}
+                </CustomLink>{" "}
+                {/* Changed to CustomLink */}
               </li>
             )}
-             
+
             {/* Hide Payment Reports section for HeadDoctor */}
             {!isHeadDoctor && (
               <>
@@ -385,16 +445,22 @@ const MasterLayout = ({ children }) => {
                   <CustomLink
                     href="/Payment-Transactions"
                     className={pathname === "/Payment-Transactions" ? styles.activePage : ""}
-                  > {/* Changed to CustomLink */}
+                  >
+                    {" "}
+                    {/* Changed to CustomLink */}
                     <CreditCard className={styles.menuIcon} />
                     <span>Payment Management System</span>
-                  </CustomLink> {/* Changed to CustomLink */}
+                  </CustomLink>{" "}
+                  {/* Changed to CustomLink */}
                 </li>
                 <li>
-                  <CustomLink href="/checks" className={pathname === "/checks" ? styles.activePage : ""}> {/* Changed to CustomLink */}
+                  <CustomLink href="/checks" className={pathname === "/checks" ? styles.activePage : ""}>
+                    {" "}
+                    {/* Changed to CustomLink */}
                     <Receipt className={styles.menuIcon} />
                     <span>Checks Management System</span>
-                  </CustomLink> {/* Changed to CustomLink */}
+                  </CustomLink>{" "}
+                  {/* Changed to CustomLink */}
                 </li>
               </>
             )}
@@ -409,7 +475,7 @@ const MasterLayout = ({ children }) => {
           <div className={`${styles.row} ${styles.alignItemsCenter} ${styles.justifyContentBetween}`}>
             <div className={styles.colAuto}>
               <div className={`${styles.dFlex} ${styles.flexWrap} ${styles.alignItemsCenter} ${styles.gap4}`}>
-                <button type="button" className={styles.sidebarToggle} onClick={sidebarControl}>
+                <button type="button" className={styles.sidebarToggle} onClick={() => setSidebarActive(!sidebarActive)}>
                   {sidebarActive ? (
                     <ArrowRight className={`${styles.text2xl}`} />
                   ) : (
@@ -421,13 +487,12 @@ const MasterLayout = ({ children }) => {
                 </button>
 
                 {/* Add Header Logo */}
-                
               </div>
             </div>
 
             {/* Centered Header Logo */}
             <div className={styles.headerLogoCenter}>
-              <CustomLink href="/" className={styles.headerLogo}> 
+              <CustomLink href="/" className={styles.headerLogo}>
                 <div className={styles.headerLogoImageContainer}>
                   <Image
                     src="/images/rukn-logo.png"
@@ -527,23 +592,31 @@ const MasterLayout = ({ children }) => {
                   <div
                     className={`${styles.dropdownMenu} ${styles.dropdownMenuSm} ${isProfileOpen ? styles.show : ""}`}
                   >
-                    <div className={styles.profileHeader}>
-                      <div className={styles.profileInfo}>
-                        <h6 className={`${styles.textLg} ${styles.fwSemibold} ${styles.mb2}`}>
-                          {userName || "Loading..."}
-                        </h6>
-                        <span className={` ${styles.fwLarg} ${styles.textMd}`}>
-                          <b className={` ${styles.fwLarg} ${styles.textSm}`}>Role:</b> {userRole || "Loading..."}
-                        </span>
+                    {user && (userRole === "admin" || userRole === "HeadDoctor") && (
+                      <div className={styles.profileHeader}>
+                        <div className={styles.profileInfo}>
+                          <h6 className={`${styles.textLg} ${styles.fwSemibold} ${styles.mb2}`}>
+                            {userName || "Loading..."}
+                          </h6>
+                          <span className={` ${styles.fwLarg} ${styles.textMd}`}>
+                            <b className={` ${styles.fwLarg} ${styles.textSm}`}>Role:</b> {userRole || "Loading..."}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.profileCloseBtn}
+                          onClick={() => setIsProfileOpen(false)}
+                        >
+                          <X className={styles.textXl} />
+                        </button>
                       </div>
-                      <button type="button" className={styles.profileCloseBtn} onClick={() => setIsProfileOpen(false)}>
-                        <X className={styles.textXl} />
-                      </button>
-                    </div>
+                    )}
                     <ul className={styles.profileMenuList}>
                       {user && userRole !== "admin" && (
                         <li className={styles.profileMenuItem}>
-                          <CustomLink href={profileLink} className={styles.profileMenuLink}> {/* Changed to CustomLink */}
+                          <CustomLink href={profileLink} className={styles.profileMenuLink}>
+                            {" "}
+                            {/* Changed to CustomLink */}
                             <User className={styles.textXl} />
                             My Profile
                           </CustomLink>
@@ -551,15 +624,19 @@ const MasterLayout = ({ children }) => {
                       )}
                       <li className={styles.profileMenuItem}>
                         {!user ? (
-                          <CustomLink href="/sign-in" className={styles.profileMenuLink}> {/* Changed to CustomLink */}
+                          <CustomLink href="/sign-in" className={styles.profileMenuLink}>
+                            {" "}
+                            {/* Changed to CustomLink */}
                             <DoorOpen className={styles.textXl} />
                             Login
-                          </CustomLink> 
+                          </CustomLink>
                         ) : (
-                          <CustomLink href="#" className={styles.profileMenuLink} onClick={handleLogout}> {/* Changed to CustomLink */}
+                          <CustomLink href="#" className={styles.profileMenuLink} onClick={handleLogout}>
+                            {" "}
+                            {/* Changed to CustomLink */}
                             <DoorOpen className={styles.textXl} />
                             Log Out
-                          </CustomLink> 
+                          </CustomLink>
                         )}
                       </li>
                     </ul>
@@ -577,7 +654,9 @@ const MasterLayout = ({ children }) => {
         <footer className={styles.dFooter}>
           <div className={`${styles.row} ${styles.alignItemsCenter} ${styles.justifyContentBetween}`}>
             <div className={styles.colAuto}>
-              <p className={styles.mb0}>© 2025 Rukn Alwatikon Center for Rehabilitation people of determination. All Rights Reserved.</p>
+              <p className={styles.mb0}>
+                © 2025 Rukn Alwatikon Center for Rehabilitation people of determination. All Rights Reserved.
+              </p>
             </div>
           </div>
         </footer>
