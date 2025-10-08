@@ -201,7 +201,7 @@ export function AccountantAppointments() {
       totalAmount += Number.parseFloat(check.amount) || 0
     })
     if (totalAmount < 4000) {
-      errors.push(`Total check amount (${totalAmount} EGP) must be at least 4000 EGP`)
+      errors.push(`Total check amount (${totalAmount} AED) must be at least 4000 AED`)
     }
     return errors
   }
@@ -510,7 +510,7 @@ export function AccountantAppointments() {
                           <span
                             className={`${styles.remainingAmount} ${appointment.paymentStatus === "FULLY_PAID" ? styles.fullyPaidAmount : ""}`}
                           >
-                            {appointment.paymentStatus === "FULLY_PAID" ? "0" : getRemainingAmount(appointment)} EGP
+                            {appointment.paymentStatus === "FULLY_PAID" ? "0" : getRemainingAmount(appointment)} AED
                           </span>
                         </td>
                         <td className={styles.actionsCell}>
@@ -599,11 +599,11 @@ export function AccountantAppointments() {
                 </div>
                 <div className={styles.summaryRow}>
                   <span>Already Paid:</span>
-                  <span>1,000 EGP</span>
+                  <span>1,000 AED</span>
                 </div>
                 <div className={styles.summaryRow}>
                   <span>Remaining Amount:</span>
-                  <span className={styles.remainingHighlight}>4,000 EGP</span>
+                  <span className={styles.remainingHighlight}>4,000 AED</span>
                 </div>
               </div>
               <div className={styles.paymentMethodSection}>
@@ -617,7 +617,7 @@ export function AccountantAppointments() {
                       checked={paymentMethod === "cash"}
                       onChange={(e) => setPaymentMethod(e.target.value)}
                     />
-                    <span>Cash Payment (4,000 EGP)</span>
+                    <span>Cash Payment (4,000 AED)</span>
                   </label>
                   <label className={styles.paymentOption}>
                     <input
@@ -640,7 +640,7 @@ export function AccountantAppointments() {
                         <Plus className={styles.buttonIcon} />
                         Add Check
                       </button>
-                      <div className={styles.totalAmount}>Total: {getTotalCheckAmount()} EGP (Min: 4,000 EGP)</div>
+                      <div className={styles.totalAmount}>Total: {getTotalCheckAmount()} AED (Min: 4,000 AED)</div>
                     </div>
                   </div>
                   {checkDetails.map((check, index) => (
@@ -655,7 +655,7 @@ export function AccountantAppointments() {
                       </div>
                       <div className={styles.checkFormGrid}>
                         <div className={styles.formGroup}>
-                          <label>Amount (EGP) *</label>
+                          <label>Amount (AED) *</label>
                           <input
                             type="number"
                             value={check.amount}
@@ -713,8 +713,8 @@ export function AccountantAppointments() {
                 {processing
                   ? "Processing..."
                   : paymentMethod === "cash"
-                    ? "Complete Payment (4,000 EGP)"
-                    : `Complete Payment (${getTotalCheckAmount()} EGP)`}
+                    ? "Complete Payment (4,000&nbsp;AED)"
+                    : `Complete Payment (${getTotalCheckAmount()}&nbsp;AED)`}
               </button>
             </div>
           </div>
@@ -750,15 +750,15 @@ export function AccountantAppointments() {
                 </div>
                 <div className={styles.detailItem}>
                   <label>Total Amount:</label>
-                  <span>{selectedAppointment.totalAmount} EGP</span>
+                  <span>{selectedAppointment.totalAmount} AED</span>
                 </div>
                 <div className={styles.detailItem}>
                   <label>Paid Amount:</label>
-                  <span>{selectedAppointment.paidAmount} EGP</span>
+                  <span>{selectedAppointment.paidAmount} AED</span>
                 </div>
                 <div className={styles.detailItem}>
                   <label>Remaining Amount:</label>
-                  <span>{selectedAppointment.remainingAmount} EGP</span>
+                  <span>{selectedAppointment.remainingAmount} AED</span>
                 </div>
                 <div className={styles.detailItem}>
                   <label>Payment Status:</label>
