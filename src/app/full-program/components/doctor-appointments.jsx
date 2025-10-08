@@ -83,7 +83,13 @@ export function DoctorAppointments() {
         return dateTimeB - dateTimeA // Most recent first
       })
 
-setAppointments(sortedAppointments.filter(app => app.programType === "full_program"))
+      setAppointments(
+        sortedAppointments.filter(
+          (app) =>
+            app.programType === "full_program" &&
+            (app.paymentStatus === "PARTIALLY_PAID" || app.paymentStatus === "FULLY_PAID"),
+        ),
+      )
     } catch (error) {
       console.error("Error fetching appointments:", error)
     } finally {
@@ -184,12 +190,8 @@ setAppointments(sortedAppointments.filter(app => app.programType === "full_progr
           </span>
         )
       case "PENDING":
-         return (
-          <span className={`${styles.paymentBadge} ${styles.partiallyPaid}`}>
-            PENDING 0 %
-          </span>
-        )
-          }
+        return <span className={`${styles.paymentBadge} ${styles.partiallyPaid}`}>PENDING 0 %</span>
+    }
   }
 
   const handleMarkAsActive = async (appointmentId) => {
@@ -664,7 +666,7 @@ setAppointments(sortedAppointments.filter(app => app.programType === "full_progr
                             {appointment.totalAmount && (
                               <div className={styles.paymentDetails}>
                                 <small>
-                                  {appointment.paidAmount || 0}/{appointment.totalAmount} EGP
+                                  {appointment.paidAmount || 0}/{appointment.totalAmount} AED
                                 </small>
                               </div>
                             )}
