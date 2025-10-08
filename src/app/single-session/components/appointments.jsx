@@ -27,8 +27,12 @@ import axiosInstance from "@/helper/axiosSetup"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import styles from "../styles/appointments-management.module.css"
-import { sendNotification,sendEmail } from "@/helper/notification-helper"
-
+import { sendNotification, sendEmail } from "@/helper/notification-helper"
+import {
+  generateAppointmentCancellationEmail,
+  generateAppointmentRescheduleEmail,
+  generateAppointmentCompletionEmail,
+} from "@/components/email-templates/AppointmentEmailTemplate"
 
 export function AppointmentsManagement() {
   const [appointments, setAppointments] = useState([])
@@ -68,7 +72,6 @@ export function AppointmentsManagement() {
     { value: "speech", label: "Speech Therapy" },
     { value: "physical_therapy", label: "Physical Therapy" },
     { value: "Psychotherapy", label: "Psychotherapy" },
-
     { value: "ABA", label: "ABA" },
     { value: "occupational_therapy", label: "Occupational Therapy" },
     { value: "special_education", label: "Special Education" },
@@ -80,8 +83,7 @@ export function AppointmentsManagement() {
     { value: "occupational_therapy", label: "Occupational Therapy" },
     { value: "special_education", label: "Special Education" },
     { value: "speech", label: "Speech Therapy" },
-        { value: "Psychotherapy", label: "SPsychotherapy" },
-
+    { value: "Psychotherapy", label: "Psychotherapy" },
   ]
 
   useEffect(() => {
@@ -107,7 +109,13 @@ export function AppointmentsManagement() {
       )
 
       const appointmentsData = response.data.appointments || []
-      setAppointments(appointmentsData)
+
+      const paidAppointments = appointmentsData.filter((appointment) => {
+        // Only show appointments where payment is fully paid
+        return appointment.paymentStatus === "FULLY_PAID"
+      })
+
+      setAppointments(paidAppointments)
       setTotalPages(response.data.totalPages || 1)
     } catch (error) {
       console.error("Error fetching appointments:", error)
@@ -155,8 +163,7 @@ export function AppointmentsManagement() {
     }
   }
 
-  const handleCancelAppointment = async (appointmentId,appointment, reason = "") => {
-
+  const handleCancelAppointment = async (appointmentId, appointment, reason = "") => {
     try {
       const response = await axiosInstance.put(
         `${process.env.NEXT_PUBLIC_API_URL}/appointmentManagement/appointment/${appointmentId}/cancel`,
@@ -165,26 +172,30 @@ export function AppointmentsManagement() {
 
       if (response.status === 200) {
         alert("Appointment cancelled successfully!")
-                await sendNotification({
-     isList: false,
+        await sendNotification({
+          isList: false,
           title: `Single session appointment cancelled`,
           message: `Your session has been cancelled on date : ${
             appointment?.date?.split("T")[0]
           } and time: ${appointment.time}`,
-          receiverId: appointment.patientid._id, // Ensure patient ID is passed
+          receiverId: appointment.patientid._id,
           rule: "Patient",
           type: "delete",
-        });
+        })
+        const emailHtml = generateAppointmentCancellationEmail({
+          patientName: appointment?.patientid?.name || "Patient",
+          date: appointment?.date?.split("T")[0],
+          time: appointment.time,
+          reason: reason,
+        })
         await sendEmail({
           to: `${appointment?.patientid?.email}`,
           filePath: "",
           subject: "Appointment Cancellation",
-          text: `Your appointment scheduled on ${
-            appointment?.date?.split("T")[0]
-          } at ${appointment.time} has been cancelled. Reason: ${reason}`,
-        });
-        setDeleteModal({ open: false, appointment: null });
-        fetchAppointments();
+          html: emailHtml,
+        })
+        setDeleteModal({ open: false, appointment: null })
+        fetchAppointments()
       }
     } catch (error) {
       console.error("Error cancelling appointment:", error)
@@ -207,20 +218,28 @@ export function AppointmentsManagement() {
         alert("Appointment rescheduled successfully!")
         setRescheduleModal({ open: false, appointment: null })
 
- await sendNotification({
+        await sendNotification({
           isList: false,
           title: `Single session appointment rescheduled`,
           message: `Your session has been rescheduled to date:  ${rescheduleForm.newDate} and time:  ${rescheduleForm.newTime}`,
-          receiverId: appointment.patientid._id, // Ensure patient ID is passed
+          receiverId: appointment.patientid._id,
           rule: "Patient",
           type: "reschedule",
-        });
+        })
+        const emailHtml = generateAppointmentRescheduleEmail({
+          patientName: appointment?.patientid?.name || "Patient",
+          oldDate: appointment?.date?.split("T")[0],
+          oldTime: appointment.time,
+          newDate: rescheduleForm.newDate,
+          newTime: rescheduleForm.newTime,
+          reason: rescheduleForm.reason,
+        })
         await sendEmail({
           to: `${appointment?.patientid?.email}`,
           filePath: "",
           subject: "Appointment Rescheduled",
-          text: `Your appointment has been rescheduled to date:  ${rescheduleForm.newDate} and time:  ${rescheduleForm.newTime}`,
-        });
+          html: emailHtml,
+        })
         fetchAppointments()
       }
     } catch (error) {
@@ -229,11 +248,8 @@ export function AppointmentsManagement() {
     }
   }
 
-const handleCompleteAppointment = async (
-    appointmentId,
-    appointment,
-    notes = ""
-  ) => {    try {
+  const handleCompleteAppointment = async (appointmentId, appointment, notes = "") => {
+    try {
       const response = await axiosInstance.put(
         `${process.env.NEXT_PUBLIC_API_URL}/appointmentManagement/appointment/${appointmentId}/complete`,
         { notes },
@@ -241,35 +257,34 @@ const handleCompleteAppointment = async (
 
       if (response.status === 200) {
         alert("Appointment marked as completed!")
-        
         await sendNotification({
-
           isList: false,
           title: `Single session appointment Completed`,
           message: `Your session has been marked as completed on date: ${
             appointment?.date?.split("T")[0]
           } and time: ${appointment?.time}`,
-          receiverId: appointment.patientid._id, // Ensure patient ID is passed
+          receiverId: appointment.patientid._id,
           rule: "Patient",
           type: "successfully",
-        });
+        })
+        const emailHtml = generateAppointmentCompletionEmail({
+          patientName: appointment?.patientid?.name || "Patient",
+          date: appointment?.date?.split("T")[0],
+          time: appointment?.time,
+          notes: notes,
+        })
         await sendEmail({
           to: `${appointment?.patientid?.email}`,
           filePath: "",
-          subject: "Appointment Cancellation",
-          text: `Your appointment has been marked as completed on date: ${
-            appointment?.date?.split("T")[0]
-          } and time: ${appointment?.time}`,
-        });
-        
-        // Optimistically update the status in the local state
+          subject: "Appointment Completed",
+          html: emailHtml,
+        })
         setAppointments((prevAppointments) => {
           const updatedApps = prevAppointments.map((app) =>
             app._id === appointmentId ? { ...app, status: "completed" } : app,
           )
           return updatedApps
         })
-        // Re-fetch appointments to ensure full data consistency with backend
         fetchAppointments()
       }
     } catch (error) {
@@ -308,8 +323,7 @@ const handleCompleteAppointment = async (
       const colors = {
         speech: "speech",
         physical_therapy: "physical",
-                Psychotherapy: "Psychotherapy",
-
+        Psychotherapy: "Psychotherapy",
         ABA: "aba",
         occupational_therapy: "occupational",
         special_education: "special",
@@ -513,24 +527,20 @@ const handleCompleteAppointment = async (
                               <span className={styles.timeValue}>
                                 {(() => {
                                   const datePart = new Date(appointment.date)
-                                  // استخراج مكونات التاريخ لضمان التوافق مع تنسيق ISO
                                   const year = datePart.getFullYear()
-                                  const month = (datePart.getMonth() + 1).toString().padStart(2, "0") // الشهر يبدأ من 0
+                                  const month = (datePart.getMonth() + 1).toString().padStart(2, "0")
                                   const day = datePart.getDate().toString().padStart(2, "0")
-
-                                  // دمج التاريخ والوقت في سلسلة نصية صالحة لتنسيق ISO 8601
                                   const combinedDateTimeString = `${year}-${month}-${day}T${appointment.time}:00`
                                   const displayTime = new Date(combinedDateTimeString)
 
-                                  // التحقق مما إذا كان التاريخ صالحًا قبل التنسيق
                                   if (isNaN(displayTime.getTime())) {
-                                    return "Invalid Time" // أو أي رسالة خطأ أخرى
+                                    return "Invalid Time"
                                   }
 
                                   return displayTime.toLocaleTimeString([], {
                                     hour: "2-digit",
                                     minute: "2-digit",
-                                    hour12: true, // لعرض الوقت بصيغة AM/PM
+                                    hour12: true,
                                   })
                                 })()}
                               </span>
@@ -580,7 +590,7 @@ const handleCompleteAppointment = async (
                               >
                                 <Eye className={styles.actionIcon} />
                               </button>
-                              {status.status === "upcoming" && ( // زر إعادة الجدولة يظهر فقط للمواعيد القادمة
+                              {status.status === "upcoming" && (
                                 <button
                                   onClick={() => setRescheduleModal({ open: true, appointment })}
                                   className={`${styles.actionButton} ${styles.rescheduleButton}`}
@@ -589,24 +599,24 @@ const handleCompleteAppointment = async (
                                   <CalendarIcon className={styles.actionIcon} />
                                 </button>
                               )}
-                              {status.status !== "completed" &&
-                                status.status !== "cancelled" && ( // أزرار الإكمال والإلغاء تظهر إذا لم يكن الموعد مكتملًا أو ملغيًا
-                                  <>
-                                    <button
-                                      onClick={() => handleCompleteAppointment(appointment._id, appointment)}
-                                      className={`${styles.actionButton} ${styles.completeButton}`}
-                                      title="Mark as Completed"
-                                    >
-                                      <Check className={styles.actionIcon} />
-                                    </button>
-                                    <button
-                                      onClick={() => setDeleteModal({ open: true, appointment })}
-                                      className={`${styles.actionButton} ${styles.deleteButton}`}
-                                      title="Cancel Appointment">
-                                      <Trash2 className={styles.actionIcon} />
-                                    </button>
-                                  </>
-                                )}
+                              {status.status !== "completed" && status.status !== "cancelled" && (
+                                <>
+                                  <button
+                                    onClick={() => handleCompleteAppointment(appointment._id, appointment)}
+                                    className={`${styles.actionButton} ${styles.completeButton}`}
+                                    title="Mark as Completed"
+                                  >
+                                    <Check className={styles.actionIcon} />
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteModal({ open: true, appointment })}
+                                    className={`${styles.actionButton} ${styles.deleteButton}`}
+                                    title="Cancel Appointment"
+                                  >
+                                    <Trash2 className={styles.actionIcon} />
+                                  </button>
+                                </>
+                              )}
                             </div>
                           ) : (
                             <div className={styles.actionButtons}>
@@ -799,7 +809,7 @@ const handleCompleteAppointment = async (
                   Cancel
                 </button>
                 <button
-                  onClick={() => handleRescheduleAppointment(rescheduleModal.appointment)} // Pass the correct appointment
+                  onClick={() => handleRescheduleAppointment(rescheduleModal.appointment)}
                   className={styles.completeActionButton}
                 >
                   <CalendarIcon size={16} />
