@@ -27,12 +27,18 @@ const AllPatientsSchool = () => {
         `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs-optimized?page=${currentPage}&search=${search}&limit=10`,
       )
 
-
       // Handle both array and object responses
       const programsData = response.data.programs || response.data || []
-      setPrograms(Array.isArray(programsData) ? programsData : [])
+      const allPrograms = Array.isArray(programsData) ? programsData : []
+
+      const paidPrograms = allPrograms.filter((program) => {
+        // Only show if payment is fully paid (either online or cash confirmed by accountant)
+        return program.paymentStatus === "FULLY_PAID"
+      })
+
+      setPrograms(paidPrograms)
       setTotalPages(response.data.totalPages || 1)
-      setTotalPrograms(response.data.totalPrograms || programsData.length || 0)
+      setTotalPrograms(paidPrograms.length)
     } catch (error) {
       console.error("Error fetching school programs:", error)
       setPrograms([])
@@ -63,8 +69,6 @@ const AllPatientsSchool = () => {
       showErrorMessage("Cannot open plan: Missing required information")
       return
     }
-
- 
 
     // Set the selected program to open the plan editor component
     setSelectedProgram({
@@ -287,7 +291,6 @@ const AllPatientsSchool = () => {
                         Number of Sessions
                       </div>
                     </th>
-                    
                     <th>
                       <div className={styles.headerCell}>
                         <ClipboardCheck className={styles.headerIcon} />
@@ -344,7 +347,6 @@ const AllPatientsSchool = () => {
                             <span className={styles.sessionsLabel}>sessions</span>
                           </div>
                         </td>
-                      
                         <td className={styles.typeCell}>
                           <span className={`${styles.typeBadge} ${getStatusBadgeClass(program.status)}`}>
                             {program.status || "Unknown"}
