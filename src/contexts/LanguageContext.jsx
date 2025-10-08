@@ -538,7 +538,7 @@ const translations = {
       noSchools: "لم يتم العثور على مدارس",
       viewDetails: "عرض التفاصيل",
       editProfile: "تعديل الملف الشخصي",
-      saveChanges: "حفظ التغييرات",
+      saveChanges: "حفظ التغيير��ت",
       cancel: "إلغاء",
       male: "ذكر",
       female: "أنثى",
