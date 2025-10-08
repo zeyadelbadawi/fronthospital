@@ -85,14 +85,14 @@ export function AccountantAppointments() {
         alreadyPaid: "Already Paid:",
         remainingAmount: "Remaining Amount:",
         paymentMethod: "Payment Method",
-        cashPayment: "Cash Payment (4,000 EGP)",
+        cashPayment: "Cash Payment (4,000 AED)",
         installmentPayment: "Installment Payment (Checks)",
         checkDetails: "Check Details",
         addCheck: "Add Check",
         total: "Total",
         min: "Min",
         checkNumber: "Check #",
-        amount: "Amount (EGP) *",
+        amount: "Amount (AED) *",
         checkNumberField: "Check Number *",
         bankName: "Bank Name",
         dueDate: "Due Date *",
@@ -116,7 +116,7 @@ export function AccountantAppointments() {
         paymentSuccess: "Payment completed successfully! Student has been assigned to all departments.",
         paymentError: "Error completing payment: ",
         validationErrors: "Please fix the following errors:",
-        minAmount: "Total check amount ({amount} EGP) must be at least 4000 EGP",
+        minAmount: "Total check amount ({amount} AED) must be at least 4000 AED",
         checkAmountRequired: "Check {number}: Amount is required and must be greater than 0",
         checkNumberRequired: "Check {number}: Check number is required",
         dueDateRequired: "Check {number}: Due date is required",
@@ -181,14 +181,14 @@ export function AccountantAppointments() {
         alreadyPaid: "مدفوع مسبقاً:",
         remainingAmount: "المبلغ المتبقي:",
         paymentMethod: "طريقة الدفع",
-        cashPayment: "دفع نقدي (4,000 جنيه)",
+        cashPayment: "دفع نقدي (4,000 درهم امراتي)",
         installmentPayment: "دفع بالأقساط (شيكات)",
         checkDetails: "تفاصيل الشيكات",
         addCheck: "إضافة شيك",
         total: "الإجمالي",
         min: "الحد الأدنى",
         checkNumber: "شيك رقم",
-        amount: "المبلغ (جنيه) *",
+        amount: "المبلغ (درهم امراتي) *",
         checkNumberField: "رقم الشيك *",
         bankName: "اسم البنك",
         dueDate: "تاريخ الاستحقاق *",
@@ -212,7 +212,7 @@ export function AccountantAppointments() {
         paymentSuccess: "تم إكمال الدفع بنجاح! تم تعيين الطالب لجميع الأقسام.",
         paymentError: "خطأ في إكمال الدفع: ",
         validationErrors: "يرجى إصلاح الأخطاء التالية:",
-        minAmount: "إجمالي مبلغ الشيكات ({amount} جنيه) يجب أن يكون 4000 جنيه على الأقل",
+        minAmount: "إجمالي مبلغ الشيكات ({amount} درهم امراتي) يجب أن يكون 4000 درهم امراتي على الأقل",
         checkAmountRequired: "الشيك {number}: المبلغ مطلوب ويجب أن يكون أكبر من 0",
         checkNumberRequired: "الشيك {number}: رقم الشيك مطلوب",
         dueDateRequired: "الشيك {number}: تاريخ الاستحقاق مطلوب",
@@ -266,9 +266,11 @@ export function AccountantAppointments() {
     try {
       const response = await axiosInstance.get("/full/fullprogram")
       const data = response.data
-      // Filter for active appointments and fetch patient names
       const activeAppointments = data.filter(
-        (appointment) => appointment.status === "active" && appointment.programType === "full_program",
+        (appointment) =>
+          appointment.status === "active" &&
+          appointment.programType === "full_program" &&
+          (appointment.paymentStatus === "PARTIALLY_PAID" || appointment.paymentStatus === "FULLY_PAID"),
       )
       const appointmentsWithNames = await Promise.all(
         activeAppointments.map(async (appointment) => {
@@ -713,7 +715,7 @@ export function AccountantAppointments() {
                             className={`${styles.remainingAmount} ${appointment.paymentStatus === "FULLY_PAID" ? styles.fullyPaidAmount : ""}`}
                           >
                             {appointment.paymentStatus === "FULLY_PAID" ? "0" : getRemainingAmount(appointment)}{" "}
-                            {language === "ar" ? "جنيه" : "EGP"}
+                            {language === "ar" ? "درهم امراتي" : "AED"}
                           </span>
                         </td>
                         <td className={styles.actionsCell}>
@@ -803,11 +805,11 @@ export function AccountantAppointments() {
                 </div>
                 <div className={styles.summaryRow}>
                   <span>{translations.modals.alreadyPaid}</span>
-                  <span>1,000 {language === "ar" ? "جنيه" : "EGP"}</span>
+                  <span>1,000 {language === "ar" ? "درهم امراتي" : "AED"}</span>
                 </div>
                 <div className={styles.summaryRow}>
                   <span>{translations.modals.remainingAmount}</span>
-                  <span className={styles.remainingHighlight}>4,000 {language === "ar" ? "جنيه" : "EGP"}</span>
+                  <span className={styles.remainingHighlight}>4,000 {language === "ar" ? "درهم امراتي" : "AED"}</span>
                 </div>
               </div>
               <div className={styles.paymentMethodSection}>
@@ -845,8 +847,8 @@ export function AccountantAppointments() {
                         {translations.modals.addCheck}
                       </button>
                       <div className={styles.totalAmount}>
-                        {translations.modals.total}: {getTotalCheckAmount()} {language === "ar" ? "جنيه" : "EGP"} (
-                        {translations.modals.min}: 4,000 {language === "ar" ? "جنيه" : "EGP"})
+                        {translations.modals.total}: {getTotalCheckAmount()} {language === "ar" ? "درهم امراتي" : "AED"} (
+                        {translations.modals.min}: 4,000 {language === "ar" ? "درهم امراتي" : "AED"})
                       </div>
                     </div>
                   </div>
@@ -922,8 +924,8 @@ export function AccountantAppointments() {
                 {processing
                   ? translations.modals.processing
                   : paymentMethod === "cash"
-                    ? `${translations.modals.completePaymentButton} (4,000 ${language === "ar" ? "جنيه" : "EGP"})`
-                    : `${translations.modals.completePaymentButton} (${getTotalCheckAmount()} ${language === "ar" ? "جنيه" : "EGP"})`}
+                    ? `${translations.modals.completePaymentButton} (4,000 ${language === "ar" ? "درهم امراتي" : "AED"})`
+                    : `${translations.modals.completePaymentButton} (${getTotalCheckAmount()} ${language === "ar" ? "درهم امراتي" : "AED"})`}
               </button>
             </div>
           </div>
@@ -962,19 +964,19 @@ export function AccountantAppointments() {
                 <div className={styles.detailItem}>
                   <label>{translations.modals.totalAmount}</label>
                   <span>
-                    {selectedAppointment.totalAmount} {language === "ar" ? "جني��" : "EGP"}
+                    {selectedAppointment.totalAmount} {language === "ar" ? "درهم امراتي" : "AED"}
                   </span>
                 </div>
                 <div className={styles.detailItem}>
                   <label>{translations.modals.paidAmount}</label>
                   <span>
-                    {selectedAppointment.paidAmount} {language === "ar" ? "جنيه" : "EGP"}
+                    {selectedAppointment.paidAmount} {language === "ar" ? "درهم امراتي" : "AED"}
                   </span>
                 </div>
                 <div className={styles.detailItem}>
                   <label>{translations.table.remaining}:</label>
                   <span>
-                    {selectedAppointment.remainingAmount} {language === "ar" ? "جنيه" : "EGP"}
+                    {selectedAppointment.remainingAmount} {language === "ar" ? "درهم امراتي" : "AED"}
                   </span>
                 </div>
                 <div className={styles.detailItem}>
