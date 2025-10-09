@@ -261,6 +261,10 @@
   background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
 }
 
+.activeIcon {
+  color: var(--success-green);
+}
+
 .programDetails {
   flex: 1;
 }
@@ -737,6 +741,59 @@
 
 .unknownIcon {
   color: var(--gray-500);
+}
+
+/* Payment Badge Styles */
+.paymentBadgeContainer {
+  margin-top: 8px;
+}
+
+.paymentBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.paidOnlineBadge {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.paidAtCenterBadge {
+  background-color: #e0e7ff;
+  color: #4f46e5;
+}
+
+.pendingOnlineBadge {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.pendingCashBadge {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.paidBankTransferBadge {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.pendingBankTransferBadge {
+  background-color: #fef3c7;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
+.rejectedBankTransferBadge {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
 /* Responsive Design */

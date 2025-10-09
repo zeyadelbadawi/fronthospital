@@ -524,7 +524,7 @@
   box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
 }
 
-/* Enhanced DatePicker Popper */
+/* Enhanced DatePickerPopper */
 .ruknDatePickerPopper {
   z-index: 10000 !important;
 }
@@ -625,7 +625,7 @@
   border: 1px solid rgba(74, 74, 138, 0.3) !important;
 }
 
-/* Enhanced TimePicker Popper */
+/* Enhanced TimePickerPopper */
 .ruknTimePickerPopper {
   z-index: 10000 !important;
 }
@@ -2089,3 +2089,208 @@
     height: 20px;
   }
 }
+
+/* Bank Transfer Section Styles */
+.ruknBankTransferSection {
+  margin-top: 2rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(233, 30, 99, 0.03) 0%, rgba(74, 74, 138, 0.03) 100%);
+  border-radius: 16px;
+  border: 2px solid rgba(233, 30, 99, 0.1);
+}
+
+.ruknBankDetails {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.ruknBankDetails h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #4a4a8a;
+  margin: 0 0 1.25rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid rgba(233, 30, 99, 0.1);
+}
+
+.ruknBankDetailItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.ruknBankDetailItem:last-child {
+  border-bottom: none;
+}
+
+.ruknBankDetailLabel {
+  font-weight: 600;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.ruknBankDetailValue {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 1rem;
+  font-family: "Courier New", monospace;
+  background: rgba(233, 30, 99, 0.05);
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+}
+
+.ruknScreenshotUpload {
+  margin-top: 1.5rem;
+}
+
+.ruknUploadArea {
+  position: relative;
+  border: 3px dashed #cbd5e1;
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.ruknUploadArea:hover {
+  border-color: #e91e63;
+  background: rgba(233, 30, 99, 0.03);
+  transform: translateY(-2px);
+}
+
+.ruknFileInput {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.ruknUploadLabel {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ruknUploadIcon {
+  color: #e91e63;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+.ruknUploadArea:hover .ruknUploadIcon {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.ruknUploadText {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #4a4a8a;
+  margin: 0;
+}
+
+.ruknUploadHint {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.ruknScreenshotPreview {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #e2e8f0;
+  background: white;
+  padding: 1rem;
+}
+
+.ruknPreviewImage {
+  width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.ruknRemoveButton {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.625rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.ruknRemoveButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+}
+
+.rtl .ruknRemoveButton {
+  right: auto;
+  left: 1.5rem;
+}
+
+/* Responsive adjustments for bank transfer section */
+@media (max-width: 768px) {
+  .ruknBankTransferSection {
+    padding: 1.5rem;
+  }
+
+  .ruknBankDetails {
+    padding: 1.25rem;
+  }
+
+  .ruknBankDetailItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .ruknBankDetailValue {
+    font-size: 0.9rem;
+    word-break: break-all;
+  }
+
+  .ruknUploadArea {
+    padding: 2rem 1rem;
+  }
+
+  .ruknPreviewImage {
+    max-height: 300px;
+  }
+
+  .ruknRemoveButton {
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .rtl .ruknRemoveButton {
+    right: auto;
+    left: 1rem;
+  }
+}
+/* </CHANGE> */

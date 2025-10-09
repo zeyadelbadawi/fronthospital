@@ -21,6 +21,7 @@ import {
   CreditCard,
   Banknote,
   DollarSign,
+  Building2,
 } from "lucide-react"
 import styles from "../styles/full-program-tab.module.css"
 import PatientDocumentViewer from "./PatientDocumentViewer"
@@ -206,16 +207,14 @@ const FullProgramTab = ({
     return null
   }
 
-  // Function to determine appointment status
   const determineAppointmentStatus = (appointment) => {
     const now = new Date()
+    now.setHours(0, 0, 0, 0) // Reset time to start of day for accurate date comparison
 
-    // Create appointment datetime - handle different date formats
     let appointmentDateTime
     try {
-      // Try different date format combinations
       if (appointment.date && appointment.time) {
-        // Ensure proper date format
+        // Parse the date string properly
         const dateStr = appointment.date.includes("T") ? appointment.date.split("T")[0] : appointment.date
         const timeStr = appointment.time.includes(":") ? appointment.time : `${appointment.time}:00`
 
@@ -226,7 +225,6 @@ const FullProgramTab = ({
           appointmentDateTime = new Date(appointment.date + " " + appointment.time)
         }
       } else {
-        // Fallback to assignment date if no specific appointment time
         appointmentDateTime = new Date(appointment.assignmentDate || appointment.date)
       }
     } catch (error) {
@@ -234,19 +232,29 @@ const FullProgramTab = ({
       appointmentDateTime = new Date(appointment.assignmentDate || appointment.date)
     }
 
+    // Reset appointment time to start of day for date-only comparison
+    const appointmentDateOnly = new Date(appointmentDateTime)
+    appointmentDateOnly.setHours(0, 0, 0, 0)
+
     const subscriptionEndDate = appointment.subscriptionEndDate ? new Date(appointment.subscriptionEndDate) : null
+    if (subscriptionEndDate) {
+      subscriptionEndDate.setHours(0, 0, 0, 0)
+    }
 
     if (appointment.status === "not active") {
-      if (appointmentDateTime > now) {
-        return "upcoming" // Case a: Future appointment, not active
+      // Compare dates only - appointment is missed only if the date has passed
+      if (appointmentDateOnly > now) {
+        return "upcoming" // Future appointment
+      } else if (appointmentDateOnly.getTime() === now.getTime()) {
+        return "upcoming" // Today's appointment is still upcoming
       } else {
-        return "missed" // Case b: Past appointment, not active
+        return "missed" // Past appointment
       }
     } else if (appointment.status === "active") {
       if (subscriptionEndDate && subscriptionEndDate < now) {
-        return "expired" // Case d: Active but subscription ended
+        return "expired" // Active but subscription ended
       } else {
-        return "active" // Case c and e: Active program
+        return "active" // Active program
       }
     }
 
@@ -383,6 +391,36 @@ const FullProgramTab = ({
     // For Full Program: Two-stage payment system
     // First payment: 1000 EGP (evaluation)
     // Second payment: 4000 EGP (remaining)
+
+    // Check bank transfer FIRST before other payment methods
+    if (paymentMethod === "BANK_TRANSFER") {
+      if (paymentStatus === "FULLY_PAID" || paymentStatus === "PARTIALLY_PAID") {
+        return {
+          text: t?.profile?.paidViaBankTransfer || "Paid via Bank Transfer",
+          icon: <Building2 size={14} />,
+          className: styles.paidBankTransferBadge,
+          tooltip: `${t?.profile?.paidViaBankTransferConfirmed || "Paid via bank transfer (Confirmed)"}: ${paidAmount || totalAmount} EGP`,
+        }
+      } else if (paymentStatus === "REJECTED") {
+        return {
+          text: t?.profile?.bankTransferRejected || "Bank Transfer Rejected",
+          icon: <XCircle size={14} />,
+          className: styles.rejectedBankTransferBadge,
+          tooltip:
+            t?.profile?.bankTransferRejectedMessage ||
+            "Your bank transfer payment was rejected. Please contact support.",
+        }
+      } else if (paymentStatus === "PENDING") {
+        return {
+          text: t?.profile?.bankTransferPending || "Bank Transfer Pending",
+          icon: <Clock size={14} />,
+          className: styles.pendingBankTransferBadge,
+          tooltip:
+            t?.profile?.bankTransferPendingMessage ||
+            "Your bank transfer is being reviewed. We will notify you once confirmed.",
+        }
+      }
+    }
 
     if (paymentStatus === "FULLY_PAID") {
       // All payments completed (5000 EGP total)

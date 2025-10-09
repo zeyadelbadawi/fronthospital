@@ -30,6 +30,7 @@ import {
   AlertCircle,
   Lightbulb,
   Banknote,
+  Building2,
 } from "lucide-react"
 // Dynamic imports للمكونات الثقيلة
 const DatePicker = dynamic(() => import("react-datepicker"), {
@@ -48,26 +49,16 @@ const SyncfusionDocxCase = dynamic(() => import("@/components/SyncfusionDocxCase
         <div className={styles.ruknDocumentImportIcon}>
           <FileText size={32} />
         </div>
-        <h4 className={styles.ruknDocumentImportTitle}>
-          {"تحميل محرر المستندات..." /* Arabic */ || "Loading Document Editor..." /* English */}
-        </h4>
+        <h4 className={styles.ruknDocumentImportTitle}>{"تحميل محرر المستندات..." /* Arabic */}</h4>
         <p className={styles.ruknDocumentImportSubtitle}>
-          {
-            "يرجى الانتظار بينما نقوم بتحضير محرر المستندات المتقدم..." /* Arabic */ ||
-              "Please wait while we prepare the advanced document editor..." /* English */
-          }
+          {"يرجى الانتظار بينما نقوم بتحضير محرر المستندات المتقدم..." /* Arabic */}
         </p>
         <div className={styles.ruknDocumentImportProgress}>
           <div className={styles.ruknDocumentImportProgressBar}></div>
         </div>
         <div className={styles.ruknDocumentImportTip}>
           <Lightbulb size={16} />
-          <span>
-            {
-              "💡 نصيحة: ستتمكن من تحرير وحفظ مستند دراسة الحالة بمجرد اكتمال التحميل" /* Arabic */ ||
-                "💡 Tip: You'll be able to edit and save your case study document once loading completes" /* English */
-            }
-          </span>
+          <span>{"💡 نصيحة: ستتمكن من تحرير وحفظ مستند دراسة الحالة بمجرد اكتمال التحميل" /* Arabic */}</span>
         </div>
       </div>
     </div>
@@ -98,7 +89,11 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
   const [availabilityError, setAvailabilityError] = useState("")
   const [showInteractiveGuide, setShowInteractiveGuide] = useState(false) // New state for interactive guide
   const [showCaseStudyCreation, setShowCaseStudyCreation] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState("online") // "online" or "cash"
+  const [paymentMethod, setPaymentMethod] = useState("online") // "online", "cash", or "bank_transfer"
+  const [transferScreenshot, setTransferScreenshot] = useState(null)
+  const [screenshotPreview, setScreenshotPreview] = useState(null)
+  const [uploadError, setUploadError] = useState("")
+  // </CHANGE>
 
   const [doctorIds, setDoctorIds] = useState([])
 
@@ -283,6 +278,11 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
     setBookedSlots([])
     setAvailabilityError("")
     setShowCaseStudyCreation(false)
+    // Reset screenshot states
+    setTransferScreenshot(null)
+    setScreenshotPreview(null)
+    setUploadError("")
+    // </CHANGE>
   }, [])
   // في مكون StudentBooking.jsx
 
@@ -397,12 +397,9 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
     if (currentStep === 0) {
       // Reset only if returning to step 0, but not on initial load
       // This prevents clearing user's selection if they just navigate back
-      // This prevents clearing user's selection if they just navigate back
       // For a full reset on initial load, consider a separate effect or initial state
     }
     if (currentStep === 3) {
-      // This was clearing evaluationType and description, which might not be desired
-      // if the user is just reviewing payment. Removed for now.
       // This was clearing evaluationType and description, which might not be desired
       // if the user is just reviewing payment. Removed for now.
     }
@@ -593,12 +590,66 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
     selectedServices,
     setCurrentStep,
   ])
+  const handleScreenshotChange = (e) => {
+    const file = e.target.files[0]
+    setUploadError("")
+
+    if (!file) return
+
+    // Validate file type
+    const validTypes = ["image/png", "image/jpeg", "image/jpg"]
+    if (!validTypes.includes(file.type)) {
+      setUploadError(
+        language === "ar"
+          ? "يرجى تحميل صورة بصيغة PNG أو JPG أو JPEG فقط"
+          : "Please upload only PNG, JPG, or JPEG images",
+      )
+      return
+    }
+
+    // Validate file size (5MB max)
+    const maxSize = 5 * 1024 * 1024 // 5MB in bytes
+    if (file.size > maxSize) {
+      setUploadError(language === "ar" ? "حجم الملف يجب أن يكون أقل من 5 ميجابايت" : "File size must be less than 5MB")
+      return
+    }
+
+    setTransferScreenshot(file)
+
+    // Create preview
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setScreenshotPreview(reader.result)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const removeScreenshot = () => {
+    setTransferScreenshot(null)
+    setScreenshotPreview(null)
+    setUploadError("")
+  }
+  // </CHANGE>
+
   const handlePayment = useCallback(async () => {
     if (isProcessingPayment) return
     setIsProcessingPayment(true)
     setAssignmentError("")
     setAssignmentResults(null)
     try {
+      const axiosInstance = await getAxiosInstance()
+
+      if (paymentMethod === "bank_transfer" && !transferScreenshot) {
+        alert(
+          language === "ar"
+            ? "يرجى تحميل صورة إيصال التحويل البنكي"
+            : "Please upload the bank transfer receipt screenshot",
+        )
+        setIsProcessingPayment(false)
+        return
+      }
+      // </CHANGE>
+
       // Derive programType here, as it's needed for both verification and the main payload
       let programTypeForPayment = programData.programType // Use the programType from programData state
       if (programTypeForPayment === "full_package_evaluation") {
@@ -616,18 +667,42 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
         setCurrentStep(1) // Go back to the scheduling step
         return
       }
-      const axiosInstance = await getAxiosInstance()
-      let totalAmount = 0
-      let initialPayment = 0
-      if (programTypeForPayment === "full_program") {
-        // Use programTypeForPayment here
-        totalAmount = 5000
-        initialPayment = 1000
-      } else {
-        totalAmount = getProgramPrice(programTypeForPayment) + totalPrice // Use programTypeForPayment here
-        initialPayment = totalAmount
+
+      const totalAmount =
+        programTypeForPayment === "full_program" ? 5000 : getProgramPrice(programData.programType) + totalPrice
+      const initialPayment = programTypeForPayment === "full_program" ? 1000 : totalAmount
+
+      if (!selectedDay || !selectedTime) {
+        alert(language === "ar" ? "يرجى اختيار التاريخ والوقت" : "Please select date and time")
+        setIsProcessingPayment(false)
+        return
       }
       const formattedTime = formatTimeToHHMM(selectedTime)
+
+      let screenshotPath = null
+      if (paymentMethod === "bank_transfer" && transferScreenshot) {
+        const formData = new FormData()
+        formData.append("screenshot", transferScreenshot)
+
+        try {
+          const uploadResponse = await axiosInstance.post("/authentication/upload-bank-transfer-screenshot", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          })
+          screenshotPath = uploadResponse.data.filePath
+        } catch (uploadError) {
+          console.error("Screenshot upload failed:", uploadError)
+          alert(
+            language === "ar"
+              ? "فشل تحميل الصورة. يرجى المحاولة مرة أخرى"
+              : "Screenshot upload failed. Please try again",
+          )
+          setIsProcessingPayment(false)
+          return
+        }
+      }
+      // </CHANGE>
 
       const programPayload = {
         ...programData,
@@ -636,12 +711,25 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
         programType: programTypeForPayment, // Use programTypeForPayment here
         time: formattedTime,
         totalAmount,
-        paidAmount: paymentMethod === "cash" ? 0 : initialPayment, // 0 for cash, actual amount for online
-        remainingAmount: paymentMethod === "cash" ? totalAmount : totalAmount - initialPayment,
+        paidAmount: paymentMethod === "cash" || paymentMethod === "bank_transfer" ? 0 : initialPayment, // Bank transfer also starts with 0 paid
+        remainingAmount:
+          paymentMethod === "cash" || paymentMethod === "bank_transfer" ? totalAmount : totalAmount - initialPayment, // Bank transfer has full amount remaining
         paymentStatus:
-          paymentMethod === "cash" ? "PENDING" : initialPayment >= totalAmount ? "FULLY_PAID" : "PARTIALLY_PAID",
+          paymentMethod === "cash" || paymentMethod === "bank_transfer"
+            ? "PENDING"
+            : initialPayment >= totalAmount
+              ? "FULLY_PAID"
+              : "PARTIALLY_PAID", // Bank transfer starts as PENDING
         paymentMethod:
-          paymentMethod === "cash" ? "CASH" : programTypeForPayment === "full_program" ? "MIXED" : "ONLINE",
+          paymentMethod === "cash"
+            ? "CASH"
+            : paymentMethod === "bank_transfer"
+              ? "BANK_TRANSFER"
+              : programTypeForPayment === "full_program"
+                ? "MIXED"
+                : "ONLINE", // Added BANK_TRANSFER payment method
+        transferScreenshot: screenshotPath,
+        // </CHANGE>
       }
 
       const response = await axiosInstance.post("/authentication/saveProgram", programPayload)
@@ -738,6 +826,7 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
             }
           }
         } else {
+          // Handle cash or bank_transfer
           if (programTypeForPayment === "school_evaluation") {
             const assignmentResult = await createPatientSchoolAssignment(patientId, description)
             if (!assignmentResult.success) {
@@ -750,6 +839,7 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
               })
             }
           }
+
           resetFormFields()
           await sendNotification({
             isList: false,
@@ -760,7 +850,7 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
               .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
               .join(" ")} at date: ${
               new Date(programPayload.date).toISOString().split("T")[0]
-            } and time: ${programPayload.time}. Please pay at the center.`,
+            } and time: ${programPayload.time}. Payment is pending ${paymentMethod === "bank_transfer" ? "bank transfer confirmation" : "cash payment"}.`,
             receiverId: patientId,
             rule: "Patient",
             type: "create",
@@ -774,17 +864,19 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
                 .split(" ")
                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(" ")} Created`,
-              message: `Create a new program to student: ${patientName} (Cash Payment Pending)`,
+              message: `Create a new program to student: ${patientName} - Payment pending (${paymentMethod === "bank_transfer" ? "Bank Transfer" : "Cash"})`,
               receiverIds: doctorIds,
               rule: "Doctor",
               type: "create",
             })
           }
+
           setCurrentStep(4)
+          // </CHANGE>
         }
       }
     } catch (error) {
-      console.error("Error saving program:", error)
+      console.error("Payment error:", error)
       // Handle appointment conflict specifically
       if (error.response?.status === 409) {
         const errorData = error.response.data
@@ -835,6 +927,7 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
     verifyAvailabilityBeforePayment, // Keep verifyAvailabilityBeforePayment in dependencies
     resetFormFields, // Add resetFormFields to dependencies
     paymentMethod, // Added paymentMethod to dependencies
+    transferScreenshot, // Added transferScreenshot to dependencies
   ])
 
   const steps = useMemo(
@@ -1294,7 +1387,8 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
                     {totalPrice > 0 && (
                       <div className={styles.ruknServiceTotal}>
                         <p>
-                          {language === "ar" ? "إجمالي الخدمات المحددة:" : "Selected Services Total:"} {totalPrice}&nbsp;AED
+                          {language === "ar" ? "إجمالي الخدمات المحددة:" : "Selected Services Total:"} {totalPrice}
+                          &nbsp;AED
                         </p>
                       </div>
                     )}
@@ -1508,8 +1602,125 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
                         {paymentMethod === "cash" && <Check size={24} />}
                       </div>
                     </div>
+
+                    <div
+                      className={`${styles.ruknPaymentCard} ${paymentMethod === "bank_transfer" ? styles.selected : ""}`}
+                      onClick={() => setPaymentMethod("bank_transfer")}
+                    >
+                      <div className={styles.ruknPaymentCardIcon}>
+                        <Building2 size={32} />
+                      </div>
+                      <div className={styles.ruknPaymentCardContent}>
+                        <h4 className={styles.ruknPaymentCardTitle}>
+                          {language === "ar" ? "التحويل البنكي" : "Bank Transfer"}
+                        </h4>
+                        <p className={styles.ruknPaymentCardDescription}>
+                          {language === "ar" ? "حول المبلغ إلى حسابنا البنكي" : "Transfer amount to our bank account"}
+                        </p>
+                        <div className={styles.ruknPaymentCardFeatures}>
+                          <span className={styles.ruknPaymentFeature}>
+                            <Check size={16} /> {language === "ar" ? "آمن" : "Secure"}
+                          </span>
+                          <span className={styles.ruknPaymentFeature}>
+                            <Check size={16} /> {language === "ar" ? "موثوق" : "Reliable"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className={styles.ruknPaymentCardCheck}>
+                        {paymentMethod === "bank_transfer" && <Check size={24} />}
+                      </div>
+                    </div>
+                    {/* </CHANGE> */}
                   </div>
                 </div>
+
+                {/* Bank Transfer Screenshot Upload */}
+                {paymentMethod === "bank_transfer" && (
+                  <div className={styles.ruknBankTransferSection}>
+                    <div className={styles.ruknInfoMessage}>
+                      <Info size={18} className={styles.iconInline} />
+                      <span>
+                        {language === "ar"
+                          ? "يرجى تحويل المبلغ إلى الحساب البنكي التالي ثم تحميل صورة الإيصال"
+                          : "Please transfer the amount to the following bank account and upload the receipt screenshot"}
+                      </span>
+                    </div>
+
+                    <div className={styles.ruknBankDetails}>
+                      <h4>{language === "ar" ? "تفاصيل الحساب البنكي" : "Bank Account Details"}</h4>
+                      <div className={styles.ruknBankDetailItem}>
+                        <span className={styles.ruknBankDetailLabel}>
+                          {language === "ar" ? "اسم البنك:" : "Bank Name:"}
+                        </span>
+                        <span className={styles.ruknBankDetailValue}>Emirates NBD</span>
+                      </div>
+                      <div className={styles.ruknBankDetailItem}>
+                        <span className={styles.ruknBankDetailLabel}>
+                          {language === "ar" ? "رقم الحساب:" : "Account Number:"}
+                        </span>
+                        <span className={styles.ruknBankDetailValue}>1234567890</span>
+                      </div>
+                      <div className={styles.ruknBankDetailItem}>
+                        <span className={styles.ruknBankDetailLabel}>
+                          {language === "ar" ? "رقم الآيبان:" : "IBAN:"}
+                        </span>
+                        <span className={styles.ruknBankDetailValue}>AE070331234567890123456</span>
+                      </div>
+                    </div>
+
+                    <div className={styles.ruknScreenshotUpload}>
+                      <label className={styles.ruknLabel}>
+                        {language === "ar" ? "تحميل صورة إيصال التحويل *" : "Upload Transfer Receipt Screenshot *"}
+                      </label>
+
+                      {!screenshotPreview ? (
+                        <div className={styles.ruknUploadArea}>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg"
+                            onChange={handleScreenshotChange}
+                            className={styles.ruknFileInput}
+                            id="screenshot-upload"
+                          />
+                          <label htmlFor="screenshot-upload" className={styles.ruknUploadLabel}>
+                            <div className={styles.ruknUploadIcon}>
+                              <FileText size={48} />
+                            </div>
+                            <p className={styles.ruknUploadText}>
+                              {language === "ar"
+                                ? "انقر لتحميل أو اسحب الصورة هنا"
+                                : "Click to upload or drag image here"}
+                            </p>
+                            <p className={styles.ruknUploadHint}>
+                              {language === "ar"
+                                ? "PNG, JPG أو JPEG (حد أقصى 5 ميجابايت)"
+                                : "PNG, JPG or JPEG (Max 5MB)"}
+                            </p>
+                          </label>
+                        </div>
+                      ) : (
+                        <div className={styles.ruknScreenshotPreview}>
+                          <img
+                            src={screenshotPreview || "/placeholder.svg"}
+                            alt="Transfer receipt"
+                            className={styles.ruknPreviewImage}
+                          />
+                          <button type="button" onClick={removeScreenshot} className={styles.ruknRemoveButton}>
+                            <XCircle size={20} />
+                            {language === "ar" ? "إزالة" : "Remove"}
+                          </button>
+                        </div>
+                      )}
+
+                      {uploadError && (
+                        <div className={styles.ruknErrorMessage}>
+                          <AlertCircle size={18} />
+                          {uploadError}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
                 {/* </CHANGE> */}
 
                 {assignmentError && (
@@ -1548,6 +1759,18 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
                     </span>
                   </div>
                 )}
+
+                {paymentMethod === "bank_transfer" && (
+                  <div className={styles.ruknInfoMessage}>
+                    <Info size={18} className={styles.iconInline} />
+                    <span>
+                      {language === "ar"
+                        ? "يرجى إجراء التحويل البنكي وإحضار إيصال التحويل في موعدك"
+                        : "Please complete the bank transfer and bring the receipt on your appointment date"}
+                    </span>
+                  </div>
+                )}
+                {/* </CHANGE> */}
 
                 <div className={styles.ruknPaymentSummary}>
                   <h4>{language === "ar" ? "ملخص الدفع" : "Payment Summary"}</h4>
@@ -1620,7 +1843,7 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
                     disabled={isProcessingPayment}
                     className={`${styles.ruknButton} ${styles.ruknButtonSuccess}`}
                   >
-                    {paymentMethod === "cash" ? (
+                    {paymentMethod === "cash" || paymentMethod === "bank_transfer" ? (
                       <>
                         <Calendar size={20} />{" "}
                         {isProcessingPayment
@@ -1643,15 +1866,21 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
                             : "Complete Payment"}
                       </>
                     )}
+                    {/* </CHANGE> */}
                   </button>
                   <p className={styles.ruknPaymentNote}>
                     {paymentMethod === "cash"
                       ? language === "ar"
                         ? "سيتم تأكيد حجزك • الدفع عند الوصول"
                         : "Your booking will be confirmed • Pay on arrival"
-                      : language === "ar"
-                        ? "معالجة الدفع الآمنة • SSL مشفر"
-                        : "Secure payment processing • SSL encrypted"}
+                      : paymentMethod === "bank_transfer"
+                        ? language === "ar"
+                          ? "سيتم تأكيد حجزك • أحضر إيصال التحويل"
+                          : "Your booking will be confirmed • Bring transfer receipt"
+                        : language === "ar"
+                          ? "معالجة الدفع الآمنة • SSL مشفر"
+                          : "Secure payment processing • SSL encrypted"}
+                    {/* </CHANGE> */}
                   </p>
                 </div>
               </div>

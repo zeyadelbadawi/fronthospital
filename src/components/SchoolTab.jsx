@@ -23,6 +23,7 @@ import {
   CreditCard,
   Banknote,
   DollarSign,
+  Building2,
 } from "lucide-react"
 import styles from "../styles/school-tab.module.css"
 import PatientDocumentViewer from "./PatientDocumentViewer"
@@ -515,6 +516,35 @@ const SchoolTab = ({
 
     // For School Program: One-time payment (full amount upfront)
 
+    if (paymentMethod === "BANK_TRANSFER") {
+      if (paymentStatus === "FULLY_PAID") {
+        return {
+          text: t?.profile?.paidViaBankTransfer || "Paid via Bank Transfer",
+          icon: <Building2 size={14} />,
+          className: styles.paidBankTransferBadge,
+          tooltip: `${t?.profile?.paidViaBankTransferConfirmed || "Paid via bank transfer (Confirmed)"}: ${totalAmount} AED`,
+        }
+      } else if (paymentStatus === "REJECTED") {
+        return {
+          text: t?.profile?.bankTransferRejected || "Bank Transfer Rejected",
+          icon: <XCircle size={14} />,
+          className: styles.rejectedBankTransferBadge,
+          tooltip:
+            t?.profile?.bankTransferRejectedMessage ||
+            "Your bank transfer payment was rejected. Please contact support.",
+        }
+      } else if (paymentStatus === "PENDING") {
+        return {
+          text: t?.profile?.bankTransferPending || "Bank Transfer Pending",
+          icon: <Clock size={14} />,
+          className: styles.pendingBankTransferBadge,
+          tooltip:
+            t?.profile?.bankTransferPendingMessage ||
+            "Your bank transfer is being reviewed. We will notify you once confirmed.",
+        }
+      }
+    }
+
     if (paymentStatus === "FULLY_PAID") {
       // Payment completed
       if (paymentMethod === "ONLINE") {
@@ -661,6 +691,19 @@ const SchoolTab = ({
                     {getSmartStatusIcon(program.smartStatus)}
                     <span className={styles.statLabel}>{program.smartStatus.message}</span>
                   </div>
+                  {(() => {
+                    // Get payment badge from first appointment (they all have same payment info)
+                    const firstAppointment = program.appointments[0]
+                    const paymentBadge = firstAppointment ? getPaymentBadge(firstAppointment) : null
+                    return paymentBadge ? (
+                      <div className={styles.paymentBadgeContainer} title={paymentBadge.tooltip}>
+                        <span className={`${styles.paymentBadge} ${paymentBadge.className}`}>
+                          {paymentBadge.icon}
+                          <span>{paymentBadge.text}</span>
+                        </span>
+                      </div>
+                    ) : null
+                  })()}
                   {program.smartStatus.showPlans && (
                     <div className={`${styles.statBadge} ${styles.filesBadge}`}>
                       <span className={styles.statNumber}>{program.totalFiles}</span>
@@ -688,8 +731,6 @@ const SchoolTab = ({
                     </div>
                     <div className={styles.appointmentsList}>
                       {program.appointments.map((appointment) => {
-                        const paymentBadge = getPaymentBadge(appointment)
-
                         return (
                           <div key={appointment._id} className={styles.appointmentItem}>
                             <div className={styles.appointmentInfo}>
@@ -699,14 +740,6 @@ const SchoolTab = ({
                                   {formatDate(appointment.date)} {t?.profile?.at || "at"} {formatTime(appointment.time)}
                                 </span>
                                 <span className={styles.appointmentDescription}>{appointment.description}</span>
-                                {paymentBadge && (
-                                  <div className={styles.paymentBadgeContainer} title={paymentBadge.tooltip}>
-                                    <span className={`${styles.paymentBadge} ${paymentBadge.className}`}>
-                                      {paymentBadge.icon}
-                                      <span>{paymentBadge.text}</span>
-                                    </span>
-                                  </div>
-                                )}
                               </div>
                             </div>
                             <div className={styles.appointmentStatus}>

@@ -19,6 +19,10 @@ import {
   User,
   Activity,
   Briefcase,
+  CreditCard,
+  Banknote,
+  DollarSign,
+  Building2,
 } from "lucide-react"
 import styles from "../styles/single-program-tab.module.css"
 import PatientDocumentViewer from "./PatientDocumentViewer"
@@ -264,6 +268,78 @@ export default function SingleProgramTab({ patientId, language, translations: t 
     }
   }
 
+  const getPaymentBadge = (program) => {
+    const { paymentStatus, paymentMethod, totalAmount } = program
+
+    // For Single Program: One-time payment
+
+    // Check bank transfer FIRST before other payment methods
+    if (paymentMethod === "BANK_TRANSFER") {
+      if (paymentStatus === "FULLY_PAID") {
+        return {
+          text: t?.profile?.paidViaBankTransfer || "Paid via Bank Transfer",
+          icon: <Building2 size={14} />,
+          className: styles.paidBankTransferBadge,
+          tooltip: `${t?.profile?.paidViaBankTransferConfirmed || "Paid via bank transfer (Confirmed)"}: ${totalAmount} AED`,
+        }
+      } else if (paymentStatus === "REJECTED") {
+        return {
+          text: t?.profile?.bankTransferRejected || "Bank Transfer Rejected",
+          icon: <XCircle size={14} />,
+          className: styles.rejectedBankTransferBadge,
+          tooltip:
+            t?.profile?.bankTransferRejectedMessage ||
+            "Your bank transfer payment was rejected. Please contact support.",
+        }
+      } else if (paymentStatus === "PENDING") {
+        return {
+          text: t?.profile?.bankTransferPending || "Bank Transfer Pending",
+          icon: <Clock size={14} />,
+          className: styles.pendingBankTransferBadge,
+          tooltip:
+            t?.profile?.bankTransferPendingMessage ||
+            "Your bank transfer is being reviewed. We will notify you once confirmed.",
+        }
+      }
+    }
+
+    if (paymentStatus === "FULLY_PAID") {
+      if (paymentMethod === "ONLINE") {
+        return {
+          text: t?.profile?.paidOnline || "Paid Online",
+          icon: <CreditCard size={14} />,
+          className: styles.paidOnlineBadge,
+          tooltip: `${t?.profile?.paidOnlineViaWebsite || "Paid online via website"}: ${totalAmount} AED`,
+        }
+      } else {
+        return {
+          text: t?.profile?.paidAtCenter || "Paid at Center",
+          icon: <Banknote size={14} />,
+          className: styles.paidAtCenterBadge,
+          tooltip: `${t?.profile?.paidCashAtCenter || "Paid cash at center"}: ${totalAmount} AED`,
+        }
+      }
+    } else if (paymentStatus === "PENDING") {
+      if (paymentMethod === "ONLINE") {
+        return {
+          text: t?.profile?.pendingOnlinePayment || "Pending Online Payment",
+          icon: <Clock size={14} />,
+          className: styles.pendingOnlineBadge,
+          tooltip: t?.profile?.waitingForOnlinePayment || "Waiting for online payment",
+        }
+      } else {
+        return {
+          text: t?.profile?.pendingPaymentAtCenter || "Pending Payment at Center",
+          icon: <DollarSign size={14} />,
+          className: styles.pendingCashBadge,
+          tooltip: `${t?.profile?.paymentDueAtCenter || "Payment due when client arrives at center"}: ${totalAmount} AED`,
+        }
+      }
+    }
+
+    return null
+  }
+
   const handleViewFile = (plan, departmentName) => {
     if (plan && plan.filePath) {
       const deptConfig = departmentMapping[departmentName]
@@ -378,6 +454,17 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                     {formatDate(program.date)} at {formatTime(program.time)}
                   </p>
                   <p className={styles.programDescription}>{program.description}</p>
+                  {(() => {
+                    const paymentBadge = getPaymentBadge(program)
+                    return paymentBadge ? (
+                      <div className={styles.paymentBadgeContainer} title={paymentBadge.tooltip}>
+                        <span className={`${styles.paymentBadge} ${paymentBadge.className}`}>
+                          {paymentBadge.icon}
+                          <span>{paymentBadge.text}</span>
+                        </span>
+                      </div>
+                    ) : null
+                  })()}
                   <div className={styles.departmentTags}>
                     {program.departments.map((dept) => (
                       <span
