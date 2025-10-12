@@ -257,7 +257,7 @@
   background: white;
   border-radius: 24px;
   width: 100%;
-  max-width: 450px;
+  max-width: 480px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
@@ -266,10 +266,11 @@
 }
 
 .modalHeader {
-  padding: 2rem 2rem 0;
+  padding: 2.5rem 2.5rem 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
 }
 
 .modalTitle {
@@ -279,6 +280,7 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  letter-spacing: -0.02em;
 }
 
 .closeButton {
@@ -303,7 +305,7 @@
 }
 
 .modalBody {
-  padding: 2rem;
+  padding: 2rem 2.5rem 2.5rem;
 }
 
 .form {
@@ -321,25 +323,35 @@
 
 .label {
   font-weight: 600;
-  color: #374151;
+  color: #1e293b;
   font-size: 0.95rem;
   transition: color 0.2s ease;
+  letter-spacing: -0.01em;
 }
 
 .inputWrapper {
   position: relative;
+  width: 100%;
 }
 
 .input,
 .select {
-  width: 92%;
-  padding: 1rem 1.25rem;
+  width: 100%;
+  padding: 0.875rem 1rem;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   font-size: 1rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: rgba(255, 255, 255, 0.8);
+  background: #f8fafc;
   backdrop-filter: blur(10px);
+  color: #1e293b;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.input::placeholder,
+.select::placeholder {
+  color: #94a3b8;
 }
 
 .input:focus,
@@ -353,11 +365,13 @@
 
 .inputError {
   border-color: #ef4444;
+  background: #fef2f2;
   box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
 }
 
 .inputSuccess {
   border-color: #10b981;
+  background: #f0fdf4;
   box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
 }
 
@@ -369,6 +383,7 @@
   align-items: center;
   gap: 0.5rem;
   animation: slideDown 0.3s ease-out;
+  font-weight: 500;
 }
 
 .successMessage {
@@ -379,6 +394,7 @@
   align-items: center;
   gap: 0.5rem;
   animation: slideDown 0.3s ease-out;
+  font-weight: 500;
 }
 
 .passwordStrength {
@@ -419,15 +435,17 @@
 .strengthText {
   font-size: 0.75rem;
   font-weight: 500;
+  color: #64748b;
 }
 
 .checkbox {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin: 1rem 0;
+  margin: 0.5rem 0;
   cursor: pointer;
   transition: transform 0.2s ease;
+  user-select: none;
 }
 
 .checkbox:hover {
@@ -459,6 +477,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  letter-spacing: -0.01em;
 }
 
 .buttonPrimary {
@@ -505,6 +524,7 @@
 
 .textCenter {
   text-align: center;
+  margin-top: 1.5rem;
 }
 
 .linkButton {
@@ -514,10 +534,10 @@
   text-decoration: none;
   cursor: pointer;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.2s ease;
-  padding: 0.5rem;
-  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
 }
 
 .linkButton:hover {
@@ -681,10 +701,19 @@
   .modalContent {
     margin: 1rem;
     max-width: calc(100% - 2rem);
+    border-radius: 20px;
+  }
+
+  .modalHeader {
+    padding: 2rem 1.5rem 1rem;
   }
 
   .modalBody {
     padding: 1.5rem;
+  }
+
+  .modalTitle {
+    font-size: 1.75rem;
   }
 
   .toast {
