@@ -42,7 +42,7 @@ export default function PasswordStrength({ strength }) {
       <div className={styles.strengthBar}>
         <div className={`${styles.strengthFill} ${getStrengthClass()}`}></div>
       </div>
-      <div className={`${styles.strengthText} ${getStrengthClass()}`}>Password Strength: {getStrengthText()}</div>
+      <div className={styles.strengthText}>Password Strength: {getStrengthText()}</div>
     </div>
   )
 }
