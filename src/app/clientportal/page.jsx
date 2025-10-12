@@ -2,7 +2,10 @@
 import { useEffect, useState, useCallback, useMemo } from "react"
 import dynamic from "next/dynamic"
 import axiosInstance from "../../helper/axiosSetup"
-import CustomLink from '@/components/CustomLink'
+import CustomLink from "@/components/CustomLink"
+import PhoneInput from "react-phone-number-input"
+import "react-phone-number-input/style.css"
+import ReCAPTCHA from "react-google-recaptcha"
 import {
   RiCalendarEventLine,
   RiGroupLine,
@@ -39,6 +42,7 @@ export default function ClientPortalPage() {
   // --- Login Form State ---
   const [loginEmail, setLoginEmail] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
+  const [rememberMe, setRememberMe] = useState(false)
   const [loginErrors, setLoginErrors] = useState({})
   const [loginLoading, setLoginLoading] = useState(false)
   const [showLoginPassword, setShowLoginPassword] = useState(false)
@@ -50,11 +54,18 @@ export default function ClientPortalPage() {
   const [signGender, setSignGender] = useState("")
   const [signPassword, setSignPassword] = useState("")
   const [signConfirm, setSignConfirm] = useState("")
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState(null)
   const [signupErrors, setSignupErrors] = useState({})
   const [signupLoading, setSignupLoading] = useState(false)
   const [showSignPassword, setShowSignPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordStrength, setPasswordStrength] = useState(0)
+
+  const [emailCheckLoading, setEmailCheckLoading] = useState(false)
+  const [phoneCheckLoading, setPhoneCheckLoading] = useState(false)
+  const [emailAvailable, setEmailAvailable] = useState(null)
+  const [phoneAvailable, setPhoneAvailable] = useState(null)
 
   // --- Toast State ---
   const [toast, setToast] = useState(null)
@@ -66,8 +77,9 @@ export default function ClientPortalPage() {
   }, [])
 
   const validatePhone = useCallback((phone) => {
-    const phoneRegex = /^[+]?[1-9][\d]{0,15}$/
-    return phoneRegex.test(phone.replace(/\s/g, ""))
+    if (!phone) return false
+    // Phone number should be in international format with country code
+    return phone.length >= 10
   }, [])
 
   const validatePassword = useCallback((password) => {
@@ -91,6 +103,54 @@ export default function ClientPortalPage() {
     return name.trim().length >= 2 && /^[a-zA-Z\u0600-\u06FF\s]+$/.test(name)
   }, [])
 
+  useEffect(() => {
+    if (!signEmail || !validateEmail(signEmail)) {
+      setEmailAvailable(null)
+      return
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setEmailCheckLoading(true)
+      try {
+        const response = await axiosInstance.post("/authentication/check-email", {
+          email: signEmail,
+        })
+        setEmailAvailable(response.data.available)
+      } catch (error) {
+        console.error("Email check error:", error)
+        setEmailAvailable(null)
+      } finally {
+        setEmailCheckLoading(false)
+      }
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [signEmail, validateEmail])
+
+  useEffect(() => {
+    if (!signPhone || !validatePhone(signPhone)) {
+      setPhoneAvailable(null)
+      return
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setPhoneCheckLoading(true)
+      try {
+        const response = await axiosInstance.post("/authentication/check-phone", {
+          phone: signPhone,
+        })
+        setPhoneAvailable(response.data.available)
+      } catch (error) {
+        console.error("Phone check error:", error)
+        setPhoneAvailable(null)
+      } finally {
+        setPhoneCheckLoading(false)
+      }
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [signPhone, validatePhone])
+
   // --- Optimized Real-time Validation ---
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -105,7 +165,7 @@ export default function ClientPortalPage() {
       }
 
       setLoginErrors(newErrors)
-    }, 300) // Debounce validation
+    }, 300)
 
     return () => clearTimeout(timeoutId)
   }, [loginEmail, loginPassword, validateEmail, t])
@@ -120,10 +180,14 @@ export default function ClientPortalPage() {
 
       if (signEmail && !validateEmail(signEmail)) {
         newErrors.email = t.validation.invalidEmail
+      } else if (emailAvailable === false) {
+        newErrors.email = "Email is already registered"
       }
 
       if (signPhone && !validatePhone(signPhone)) {
         newErrors.phone = t.validation.invalidPhone
+      } else if (phoneAvailable === false) {
+        newErrors.phone = "Phone number is already registered"
       }
 
       if (signPassword) {
@@ -148,6 +212,8 @@ export default function ClientPortalPage() {
     signPhone,
     signPassword,
     signConfirm,
+    emailAvailable,
+    phoneAvailable,
     validateName,
     validateEmail,
     validatePhone,
@@ -233,6 +299,7 @@ export default function ClientPortalPage() {
         const res = await axiosInstance.post("/authentication/signin/patient", {
           email: loginEmail,
           password: loginPassword,
+          rememberMe: rememberMe,
         })
         localStorage.setItem("token", res.data.accessToken)
         setShowLoginModal(false)
@@ -242,6 +309,7 @@ export default function ClientPortalPage() {
         // Reset form
         setLoginEmail("")
         setLoginPassword("")
+        setRememberMe(false)
         setLoginErrors({})
       } catch (err) {
         showToast(err.response?.data?.message || t.messages.loginFailed, "error")
@@ -249,7 +317,7 @@ export default function ClientPortalPage() {
         setLoginLoading(false)
       }
     },
-    [loginErrors, loginEmail, loginPassword, showToast, loadProfile, t],
+    [loginErrors, loginEmail, loginPassword, rememberMe, showToast, loadProfile, t],
   )
 
   // --- Signup submit ---
@@ -267,6 +335,16 @@ export default function ClientPortalPage() {
         return
       }
 
+      if (!termsAccepted) {
+        showToast("You must accept the terms and conditions", "error")
+        return
+      }
+
+      if (!captchaToken) {
+        showToast("Please complete the CAPTCHA verification", "error")
+        return
+      }
+
       setSignupLoading(true)
 
       try {
@@ -276,6 +354,9 @@ export default function ClientPortalPage() {
           phone: signPhone,
           gender: signGender,
           password: signPassword,
+          confirmPassword: signConfirm,
+          termsAccepted: termsAccepted,
+          captchaToken: captchaToken,
         })
 
         showToast(t.messages.signupSuccess)
@@ -289,15 +370,31 @@ export default function ClientPortalPage() {
         setSignGender("")
         setSignPassword("")
         setSignConfirm("")
+        setTermsAccepted(false)
+        setCaptchaToken(null)
         setSignupErrors({})
         setPasswordStrength(0)
+        setEmailAvailable(null)
+        setPhoneAvailable(null)
       } catch (err) {
         showToast(err.response?.data?.message || t.messages.signupFailed, "error")
       } finally {
         setSignupLoading(false)
       }
     },
-    [signupErrors, signGender, signName, signEmail, signPhone, signPassword, showToast, t],
+    [
+      signupErrors,
+      signGender,
+      signName,
+      signEmail,
+      signPhone,
+      signPassword,
+      signConfirm,
+      termsAccepted,
+      captchaToken,
+      showToast,
+      t,
+    ],
   )
 
   // --- Memoized Static Content ---
@@ -466,7 +563,13 @@ export default function ClientPortalPage() {
                 </div>
 
                 <div className={styles.checkbox}>
-                  <input id="remember" type="checkbox" className={styles.checkboxInput} />
+                  <input
+                    id="remember"
+                    type="checkbox"
+                    className={styles.checkboxInput}
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
                   <label htmlFor="remember">{t.auth.rememberMe}</label>
                 </div>
 
@@ -547,7 +650,7 @@ export default function ClientPortalPage() {
                     className={`${styles.input} ${
                       signupErrors.email
                         ? styles.inputError
-                        : signEmail && !signupErrors.email
+                        : signEmail && !signupErrors.email && emailAvailable === true
                           ? styles.inputSuccess
                           : ""
                     }`}
@@ -556,46 +659,48 @@ export default function ClientPortalPage() {
                     required
                     placeholder={t.auth.emailPlaceholder}
                   />
+                  {emailCheckLoading && <div className={styles.loadingText}>Checking availability...</div>}
                   {signupErrors.email && (
                     <div className={styles.errorMessage}>
                       <RiErrorWarningLine />
                       {signupErrors.email}
                     </div>
                   )}
-                  {signEmail && !signupErrors.email && (
+                  {signEmail && !signupErrors.email && emailAvailable === true && !emailCheckLoading && (
                     <div className={styles.successMessage}>
                       <RiCheckLine />
-                      {t.validation.validEmail}
+                      Email is available
                     </div>
                   )}
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.label}>{t.auth.phone}</label>
-                  <input
-                    type="tel"
-                    className={`${styles.input} ${
+                  <PhoneInput
+                    international
+                    defaultCountry="AE"
+                    value={signPhone}
+                    onChange={setSignPhone}
+                    className={`${styles.phoneInput} ${
                       signupErrors.phone
                         ? styles.inputError
-                        : signPhone && !signupErrors.phone
+                        : signPhone && !signupErrors.phone && phoneAvailable === true
                           ? styles.inputSuccess
                           : ""
                     }`}
-                    value={signPhone}
-                    onChange={(e) => setSignPhone(e.target.value)}
-                    required
-                    placeholder={t.auth.phonePlaceholder}
+                    placeholder="Enter phone number"
                   />
+                  {phoneCheckLoading && <div className={styles.loadingText}>Checking availability...</div>}
                   {signupErrors.phone && (
                     <div className={styles.errorMessage}>
                       <RiErrorWarningLine />
                       {signupErrors.phone}
                     </div>
                   )}
-                  {signPhone && !signupErrors.phone && (
+                  {signPhone && !signupErrors.phone && phoneAvailable === true && !phoneCheckLoading && (
                     <div className={styles.successMessage}>
                       <RiCheckLine />
-                      {t.validation.validPhone}
+                      Phone number is available
                     </div>
                   )}
                 </div>
@@ -709,10 +814,43 @@ export default function ClientPortalPage() {
                   )}
                 </div>
 
+                <div className={styles.checkbox}>
+                  <input
+                    id="terms"
+                    type="checkbox"
+                    className={styles.checkboxInput}
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    required
+                  />
+                  <label htmlFor="terms">
+                    I accept the{" "}
+                    <a href="/terms" target="_blank" className={styles.link} rel="noreferrer">
+                      terms and conditions
+                    </a>
+                  </label>
+                </div>
+
+                <div className={styles.captchaContainer}>
+                  <ReCAPTCHA
+                    sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
+                    onChange={(token) => setCaptchaToken(token)}
+                    onExpired={() => setCaptchaToken(null)}
+                  />
+                </div>
+
                 <button
                   type="submit"
                   className={`${styles.button} ${styles.buttonPrimary}`}
-                  disabled={signupLoading || Object.keys(signupErrors).length > 0 || !signGender}
+                  disabled={
+                    signupLoading ||
+                    Object.keys(signupErrors).length > 0 ||
+                    !signGender ||
+                    !termsAccepted ||
+                    !captchaToken ||
+                    emailAvailable === false ||
+                    phoneAvailable === false
+                  }
                 >
                   {signupLoading ? (
                     <>
