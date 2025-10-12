@@ -64,8 +64,10 @@ export default function ClientPortalPage() {
 
   const [emailCheckLoading, setEmailCheckLoading] = useState(false)
   const [phoneCheckLoading, setPhoneCheckLoading] = useState(false)
+  const [usernameCheckLoading, setUsernameCheckLoading] = useState(false)
   const [emailAvailable, setEmailAvailable] = useState(null)
   const [phoneAvailable, setPhoneAvailable] = useState(null)
+  const [usernameAvailable, setUsernameAvailable] = useState(null)
 
   // --- Toast State ---
   const [toast, setToast] = useState(null)
@@ -151,6 +153,30 @@ export default function ClientPortalPage() {
     return () => clearTimeout(timeoutId)
   }, [signPhone, validatePhone])
 
+  useEffect(() => {
+    if (!signName || !validateName(signName)) {
+      setUsernameAvailable(null)
+      return
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setUsernameCheckLoading(true)
+      try {
+        const response = await axiosInstance.post("/authentication/check-username", {
+          username: signName,
+        })
+        setUsernameAvailable(response.data.available)
+      } catch (error) {
+        console.error("Username check error:", error)
+        setUsernameAvailable(null)
+      } finally {
+        setUsernameCheckLoading(false)
+      }
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [signName, validateName])
+
   // --- Optimized Real-time Validation ---
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -176,6 +202,8 @@ export default function ClientPortalPage() {
 
       if (signName && !validateName(signName)) {
         newErrors.name = t.validation.invalidName
+      } else if (usernameAvailable === false) {
+        newErrors.name = "Username is already taken"
       }
 
       if (signEmail && !validateEmail(signEmail)) {
@@ -214,6 +242,7 @@ export default function ClientPortalPage() {
     signConfirm,
     emailAvailable,
     phoneAvailable,
+    usernameAvailable,
     validateName,
     validateEmail,
     validatePhone,
@@ -376,6 +405,7 @@ export default function ClientPortalPage() {
         setPasswordStrength(0)
         setEmailAvailable(null)
         setPhoneAvailable(null)
+        setUsernameAvailable(null)
       } catch (err) {
         showToast(err.response?.data?.message || t.messages.signupFailed, "error")
       } finally {
@@ -600,6 +630,16 @@ export default function ClientPortalPage() {
                   {t.auth.noAccount}
                 </button>
               </div>
+
+              <div className={styles.textCenter} style={{ marginTop: "0.5rem" }}>
+                <a
+                  href="/clientportal/forgot-password"
+                  className={styles.linkButton}
+                  style={{ fontSize: "0.875rem", color: "#64748b" }}
+                >
+                  {t.auth.forgotPassword}
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -629,16 +669,17 @@ export default function ClientPortalPage() {
                     required
                     placeholder={t.auth.fullNamePlaceholder}
                   />
+                  {usernameCheckLoading && <div className={styles.loadingText}>Checking availability...</div>}
                   {signupErrors.name && (
                     <div className={styles.errorMessage}>
                       <RiErrorWarningLine />
                       {signupErrors.name}
                     </div>
                   )}
-                  {signName && !signupErrors.name && (
+                  {signName && !signupErrors.name && usernameAvailable === true && !usernameCheckLoading && (
                     <div className={styles.successMessage}>
                       <RiCheckLine />
-                      {t.validation.validName}
+                      Username is available
                     </div>
                   )}
                 </div>
@@ -849,7 +890,8 @@ export default function ClientPortalPage() {
                     !termsAccepted ||
                     !captchaToken ||
                     emailAvailable === false ||
-                    phoneAvailable === false
+                    phoneAvailable === false ||
+                    usernameAvailable === false
                   }
                 >
                   {signupLoading ? (
