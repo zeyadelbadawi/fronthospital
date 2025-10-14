@@ -1,23 +1,18 @@
-import StudentForm from "@/components/StudentForm";
-import Breadcrumb from "@/components/Breadcrumb";
-import MasterLayout from "@/masterLayout/MasterLayout";
+"use client"
+import RBACWrapper from "@/components/RBACWrapper"
+import StudentForm from "@/components/StudentForm"
+import Breadcrumb from "@/components/Breadcrumb"
+import MasterLayout from "@/masterLayout/MasterLayout"
 
-
-const Page = () => {
+function DriveLinkContent() {
   return (
-    <>
-      {/* MasterLayout */}
-      <MasterLayout>
-        {/* Breadcrumb */}
-        <Breadcrumb 
-  heading="Google Drive link" 
-  title="Google Drive link" 
-/>
-        {/* EditDoctorLayer  */}
-        <StudentForm />
-      </MasterLayout>
-    </>
-  );
-};
+    <MasterLayout>
+      <Breadcrumb heading="Google Drive link" title="Google Drive link" />
+      <StudentForm />
+    </MasterLayout>
+  )
+}
 
-export default Page;
+export default function DriveLinkPage() {
+  return <RBACWrapper>{() => <DriveLinkContent />}</RBACWrapper>
+}
