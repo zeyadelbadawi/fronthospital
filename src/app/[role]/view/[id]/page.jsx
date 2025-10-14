@@ -1,6 +1,6 @@
-import GenericUserProfile from "@/components/GenericUserProfile"
-import Breadcrumb from "@/components/Breadcrumb"
+import RBACWrapper from "@/components/RBACWrapper"
 import MasterLayout from "@/masterLayout/MasterLayout"
+import ViewPageContent from "./ViewPageContent"
 
 export async function generateMetadata({ params }) {
   const awaitedParams = await params
@@ -11,21 +11,18 @@ export async function generateMetadata({ params }) {
   }
 }
 
-const ViewPage = async ({ params }) => {
+export default async function ViewPage({ params }) {
   const awaitedParams = await params
-  const role = awaitedParams.role // e.g., 'student', 'doctor', 'accountant'
+  const role = awaitedParams.role
   const id = awaitedParams.id
-  const heading = `${role.charAt(0).toUpperCase() + role.slice(1)} Profile`
-  const title = `${role.charAt(0).toUpperCase() + role.slice(1)} Profile`
 
   return (
-    <>
-      <MasterLayout>
-        <Breadcrumb heading={heading} title={title} />
-        <GenericUserProfile role={role} id={id} />
-      </MasterLayout>
-    </>
+    <RBACWrapper>
+      {() => (
+        <MasterLayout>
+          <ViewPageContent role={role} id={id} />
+        </MasterLayout>
+      )}
+    </RBACWrapper>
   )
 }
-
-export default ViewPage
