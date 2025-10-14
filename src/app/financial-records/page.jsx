@@ -5,21 +5,13 @@ import FinancialRecordsMainLayer from "../../components/FinancialRecordsMainLaye
 import Loader from "../../components/Loader"
 import AuthModals from "@/components/AuthModals"
 import { LanguageProvider, useLanguage } from "../../contexts/LanguageContext"
-import { usePatientAuth } from "@/hooks/usePatientAuth"
+import { useRoleBasedAuth } from "@/hooks/useRoleBasedAuth"
+import RBACWrapper from "@/components/RBACWrapper"
 import styles from "../../styles/FinancialRecords.module.css"
-
-export default function FinancialRecordsPage() {
-  return (
-    <LanguageProvider>
-      <FinancialRecordsContent />
-    </LanguageProvider>
-  )
-}
 
 function FinancialRecordsContent() {
   const { language } = useLanguage()
-
-  const { user, loading, loadProfile, handleLogout } = usePatientAuth()
+  const { user, loading, logout } = useRoleBasedAuth()
 
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showSignupModal, setShowSignupModal] = useState(false)
@@ -34,7 +26,7 @@ function FinancialRecordsContent() {
 
   return (
     <div className={`${styles.pageContainer} ${language === "ar" ? styles.rtl : styles.ltr}`}>
-      <Header user={user} loading={false} onLoginClick={() => setShowLoginModal(true)} onLogout={handleLogout} />
+      <Header user={user} loading={false} onLoginClick={() => setShowLoginModal(true)} onLogout={logout} />
 
       <main className={styles.mainContent}>
         {user && user.role === "patient" ? (
@@ -61,8 +53,18 @@ function FinancialRecordsContent() {
         setShowLoginModal={setShowLoginModal}
         showSignupModal={showSignupModal}
         setShowSignupModal={setShowSignupModal}
-        onLoginSuccess={loadProfile}
+        onLoginSuccess={() => window.location.reload()}
       />
     </div>
+  )
+}
+
+export default function FinancialRecordsPage() {
+  return (
+    <LanguageProvider>
+      <RBACWrapper loadingMessage="Loading financial records...">
+        <FinancialRecordsContent />
+      </RBACWrapper>
+    </LanguageProvider>
   )
 }
