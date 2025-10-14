@@ -34,10 +34,8 @@ export default function ErrorPage() {
 
         {/* Action Buttons */}
         <div className={styles.actionButtons}>
-          <button onClick={() => router.push("/")} className={styles.primaryButton}>
-            Go to Homepage
-          </button>
-          <button onClick={() => router.push("/sign-in")} className={styles.secondaryButton}>
+
+          <button onClick={() => router.push("/clientportal")} className={styles.secondaryButton}>
             Sign In
           </button>
         </div>
