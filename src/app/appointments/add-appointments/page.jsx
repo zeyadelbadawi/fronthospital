@@ -1,11 +1,10 @@
 "use client"
 
+import RBACWrapper from "@/components/RBACWrapper"
 import { useState, useEffect } from "react"
 import axiosInstance from "@/helper/axiosSetup"
 import { generateTimeString } from "@/helper/DateTime"
 import styles from "@/styles/add-appointments.module.css"
-import Breadcrumb from "@/components/Breadcrumb";
-import MasterLayout from "@/masterLayout/MasterLayout";
 
 const departments = ["PhysicalTherapy", "ABA", "OccupationalTherapy", "SpecialEducation", "Speech"]
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -24,7 +23,7 @@ const isEndTimeAfterStartTime = (startTime, endTime) => {
   return timeDifference >= 30
 }
 
-export default function AppointmentBooking() {
+function AddAppointmentContent() {
   const [currentSelection, setCurrentSelection] = useState({
     doctor: "",
     department: "",
@@ -48,7 +47,6 @@ export default function AppointmentBooking() {
       const response = await axiosInstance.get(`/appointments/doctors-by-department/${department}`)
       setDoctors(response.data.doctors)
     } catch (error) {
-     
       setDoctors([])
     }
   }
@@ -99,10 +97,7 @@ export default function AppointmentBooking() {
         if (response.status !== 201) {
           showToast("error", "Failed to save appointment: There was an issue saving your appointment.")
         } else {
-          showToast(
-            "success",
-            `Appointment saved successfully! New slot added for ${currentSelection.department}.`,
-          )
+          showToast("success", `Appointment saved successfully! New slot added for ${currentSelection.department}.`)
           setCurrentSelection({
             department: "",
             day: "",
@@ -124,22 +119,13 @@ export default function AppointmentBooking() {
   }
 
   return (
-
-        <>
-      {/* MasterLayout */}
-      <MasterLayout>
-        {/* Breadcrumb */}
-        <Breadcrumb 
-  heading="Add New Appointment" 
-  title="Add New Appointment" 
-/>
     <div className={styles.addAppointmentContainer}>
       {toastMessage.visible && (
         <div className={`${styles.toast} ${styles[toastMessage.type]}`}>{toastMessage.message}</div>
       )}
       <div className={styles.containerWrapper}>
         {/* Header */}
-       
+
         {/* Appointment Selection Form */}
         <div className={styles.appointmentCard}>
           <div className={styles.cardHeader}>
@@ -386,8 +372,13 @@ export default function AppointmentBooking() {
         </div>
       </div>
     </div>
-          </MasterLayout>
-    </>
-  );
-  
+  )
+}
+
+export default function AddAppointmentPage() {
+  return (
+    <RBACWrapper>
+      <AddAppointmentContent />
+    </RBACWrapper>
+  )
 }
