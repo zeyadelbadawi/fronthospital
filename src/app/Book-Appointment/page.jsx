@@ -6,13 +6,13 @@ import Header from "@/components/Header"
 import StudentBooking from "@/components/StudentBooking"
 import AuthModals from "@/components/AuthModals"
 import { useLanguage } from "@/contexts/LanguageContext"
-import { usePatientAuth } from "@/hooks/usePatientAuth"
+import { useRoleBasedAuth } from "@/hooks/useRoleBasedAuth"
+import RBACWrapper from "@/components/RBACWrapper"
 import styles from "./Book-Appointment.module.css"
 
-export default function Page() {
+function BookAppointmentContent() {
   const { language } = useLanguage()
-
-  const { user, loading, loadProfile, handleLogout } = usePatientAuth()
+  const { user, loading, logout } = useRoleBasedAuth()
 
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showSignupModal, setShowSignupModal] = useState(false)
@@ -29,7 +29,7 @@ export default function Page() {
 
   return (
     <div className={`${styles.wizardPage} ${language === "ar" ? styles.rtl : styles.ltr}`}>
-      <Header user={user} loading={loading} onLoginClick={() => setShowLoginModal(true)} onLogout={handleLogout} />
+      <Header user={user} loading={loading} onLoginClick={() => setShowLoginModal(true)} onLogout={logout} />
 
       <div className={styles.wizardContainer}>
         <StudentBooking
@@ -46,8 +46,16 @@ export default function Page() {
         setShowLoginModal={setShowLoginModal}
         showSignupModal={showSignupModal}
         setShowSignupModal={setShowSignupModal}
-        onLoginSuccess={loadProfile}
+        onLoginSuccess={() => window.location.reload()}
       />
     </div>
+  )
+}
+
+export default function Page() {
+  return (
+    <RBACWrapper loadingMessage="Loading appointment booking...">
+      <BookAppointmentContent />
+    </RBACWrapper>
   )
 }
