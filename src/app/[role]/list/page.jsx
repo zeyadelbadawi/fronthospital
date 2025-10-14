@@ -1,31 +1,16 @@
-import GenericUserList from "@/components/GenericUserList"
-import Breadcrumb from "@/components/Breadcrumb"
-import MasterLayout from "@/masterLayout/MasterLayout"
+"use client"
 
-export async function generateMetadata({ params }) {
-  const awaitedParams = await params // Await params
-  const role = awaitedParams.role.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
-  return {
-    title: `Rukn Alwatikon Center - All ${role}s`,
-    description: `List of all ${role}s.`,
-  }
-}
+import { use } from "react"
+import RBACWrapper from "@/components/RBACWrapper"
+import ListPageContent from "./listPageContent"
 
-const ListPage = async ({ params }) => {
-  // Make the component async
-  const awaitedParams = await params // Await params
-  const role = awaitedParams.role // e.g., 'student', 'doctor', 'accountant'
-  const heading = `All ${role.charAt(0).toUpperCase() + role.slice(1)}s`
-  const title = `All ${role.charAt(0).toUpperCase() + role.slice(1)}s`
+export default function ListPage({ params }) {
+  const awaitedParams = use(params)
+  const role = awaitedParams.role
 
   return (
-    <>
-      <MasterLayout>
-        <Breadcrumb heading={heading} title={title} />
-        <GenericUserList role={role} />
-      </MasterLayout>
-    </>
+    <RBACWrapper>
+      <ListPageContent role={role} />
+    </RBACWrapper>
   )
 }
-
-export default ListPage
