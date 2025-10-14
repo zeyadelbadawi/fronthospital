@@ -4,17 +4,18 @@ import { useState } from "react"
 import Header from "@/components/Header"
 import PublicProfilepatient from "@/components/PublicProfilepatient"
 import AuthModals from "@/components/AuthModals"
-import { usePatientAuth } from "@/hooks/usePatientAuth"
+import { useRoleBasedAuth } from "@/hooks/useRoleBasedAuth"
+import RBACWrapper from "@/components/RBACWrapper"
 
-export default function Page() {
-  const { user, loading, loadProfile, handleLogout } = usePatientAuth()
+function ProfileContent() {
+  const { user, loading, logout } = useRoleBasedAuth()
 
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showSignupModal, setShowSignupModal] = useState(false)
 
   return (
     <>
-      <Header user={user} loading={loading} onLoginClick={() => setShowLoginModal(true)} onLogout={handleLogout} />
+      <Header user={user} loading={loading} onLoginClick={() => setShowLoginModal(true)} onLogout={logout} />
 
       <PublicProfilepatient patientID={user?.id} />
 
@@ -23,8 +24,16 @@ export default function Page() {
         setShowLoginModal={setShowLoginModal}
         showSignupModal={showSignupModal}
         setShowSignupModal={setShowSignupModal}
-        onLoginSuccess={loadProfile}
+        onLoginSuccess={() => window.location.reload()}
       />
     </>
+  )
+}
+
+export default function Page() {
+  return (
+    <RBACWrapper loadingMessage="Loading profile...">
+      <ProfileContent />
+    </RBACWrapper>
   )
 }
