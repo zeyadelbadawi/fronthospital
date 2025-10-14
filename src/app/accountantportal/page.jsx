@@ -1,39 +1,37 @@
 "use client"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import dynamic from "next/dynamic"
-import CustomLink from '@/components/CustomLink'
+import CustomLink from "@/components/CustomLink"
 
 import { CreditCard, FileCheck, DollarSign, User, Shield, Eye, EyeOff, Check, X, AlertTriangle } from "lucide-react"
 import AccountantHeader from "../../components/accountant-header"
 import styles from "../../styles/AccountantPortal.module.css"
 import { useAccountantLanguage } from "../../contexts/accountant-language-context"
 import axiosInstance from "@/helper/axiosSetup"
+import RBACWrapper from "@/components/RBACWrapper"
+import { useRoleBasedAuth } from "@/hooks/useRoleBasedAuth"
+
 // Lazy load heavy components
 const AccountantPasswordStrength = dynamic(() => import("../../components/accountant-password-strength"), {
   loading: () => <div className={styles.loadingSkeleton}></div>,
 })
 
-export default function AccountantPortalPage() {
+function AccountantPortalContent() {
   const { language, translations } = useAccountantLanguage()
   const t = translations[language]
   const isRTL = language === "ar"
 
-  // --- Auth & User State ---
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { user, loading, logout } = useRoleBasedAuth()
 
-  // --- Modal Visibility ---
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showSignupModal, setShowSignupModal] = useState(false)
 
-  // --- Login Form State ---
   const [loginEmail, setLoginEmail] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
   const [loginErrors, setLoginErrors] = useState({})
   const [loginLoading, setLoginLoading] = useState(false)
   const [showLoginPassword, setShowLoginPassword] = useState(false)
 
-  // --- Signup Form State ---
   const [signName, setSignName] = useState("")
   const [signEmail, setSignEmail] = useState("")
   const [signPassword, setSignPassword] = useState("")
@@ -44,10 +42,8 @@ export default function AccountantPortalPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordStrength, setPasswordStrength] = useState(0)
 
-  // --- Toast State ---
   const [toast, setToast] = useState(null)
 
-  // --- Memoized Validation Functions ---
   const validateEmail = useCallback((email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return emailRegex.test(email)
@@ -74,7 +70,13 @@ export default function AccountantPortalPage() {
     return name.trim().length >= 2 && /^[a-zA-Z\u0600-\u06FF\s]+$/.test(name)
   }, [])
 
-  // --- Optimized Real-time Validation ---
+  const handleCardClick = useCallback(
+    (href) => () => {
+      // Handle card click logic here
+    },
+    [],
+  )
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       const newErrors = {}
@@ -123,83 +125,11 @@ export default function AccountantPortalPage() {
     return () => clearTimeout(timeoutId)
   }, [signName, signEmail, signPassword, signConfirm, validateName, validateEmail, validatePassword, t])
 
-  // --- Toast Function ---
   const showToast = useCallback((message, type = "success") => {
     setToast({ message, type })
     setTimeout(() => setToast(null), 5000)
   }, [])
 
-  // --- Optimized Profile Loading ---
-  const loadProfile = useCallback(async () => {
-    const token = localStorage.getItem("token")
-    if (!token) {
-      setLoading(false)
-      return
-    }
-
-    try {
-      const res = await axiosInstance.get("/authentication/profile")
-
-      // Store user data in localStorage for other components to use
-      localStorage.setItem("user", JSON.stringify(res.data))
-      setUser(res.data)
-    } catch (err) {
-      console.error("Profile loading error:", err)
-      if (err.response?.status === 403) {
-        try {
-          const r = await axiosInstance.post("/authentication/refresh")
-          localStorage.setItem("token", r.data.accessToken)
-          const retry = await axiosInstance.get("/authentication/profile")
-
-          // Store user data in localStorage
-          localStorage.setItem("user", JSON.stringify(retry.data))
-          setUser(retry.data)
-        } catch (refreshError) {
-          console.error("Refresh failed:", refreshError)
-          localStorage.removeItem("token")
-          localStorage.removeItem("user")
-        }
-      } else {
-        // If profile loading fails, clear everything
-        localStorage.removeItem("token")
-        localStorage.removeItem("user")
-      }
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadProfile()
-  }, [loadProfile])
-
-  // --- Logout Handler ---
-  const handleLogout = useCallback(async () => {
-    try {
-      await axiosInstance.post("/authentication/logout")
-      localStorage.removeItem("token")
-      localStorage.removeItem("user")
-      setUser(null)
-      setShowLoginModal(false)
-      setShowSignupModal(false)
-      showToast(t.messages.logoutSuccess)
-    } catch (err) {
-      console.error("Logout failed:", err)
-    }
-  }, [showToast, t])
-
-  // --- Card click guard ---
-  const handleCardClick = useCallback(
-    (href) => (e) => {
-      if (!user || user.role !== "accountant") {
-        e.preventDefault()
-        setShowLoginModal(true)
-      }
-    },
-    [user],
-  )
-
-  // --- Login submit ---
   const onLogin = useCallback(
     async (e) => {
       e.preventDefault()
@@ -217,22 +147,17 @@ export default function AccountantPortalPage() {
           password: loginPassword,
         })
 
-
         localStorage.setItem("token", res.data.accessToken)
 
-        // Store user data immediately
         if (res.data.user) {
           localStorage.setItem("user", JSON.stringify(res.data.user))
-          setUser(res.data.user)
         }
 
         setShowLoginModal(false)
 
-        // Load fresh profile data
-        await loadProfile()
+        await logout()
         showToast(t.messages.loginSuccess)
 
-        // Reset form
         setLoginEmail("")
         setLoginPassword("")
         setLoginErrors({})
@@ -243,10 +168,9 @@ export default function AccountantPortalPage() {
         setLoginLoading(false)
       }
     },
-    [loginErrors, loginEmail, loginPassword, showToast, loadProfile, t],
+    [loginErrors, loginEmail, loginPassword, showToast, logout, t],
   )
 
-  // --- Signup submit ---
   const onSignup = useCallback(
     async (e) => {
       e.preventDefault()
@@ -269,7 +193,6 @@ export default function AccountantPortalPage() {
         setShowSignupModal(false)
         setShowLoginModal(true)
 
-        // Reset form
         setSignName("")
         setSignEmail("")
         setSignPassword("")
@@ -283,10 +206,9 @@ export default function AccountantPortalPage() {
         setSignupLoading(false)
       }
     },
-    [signupErrors, signName, signEmail, signPassword, showToast, t],
+    [signupErrors, signName, signEmail, signPassword, showToast, logout, t],
   )
 
-  // --- Memoized Static Content ---
   const services = useMemo(
     () => [
       {
@@ -330,21 +252,14 @@ export default function AccountantPortalPage() {
 
   return (
     <div className={`${styles.container} ${isRTL ? styles.rtl : styles.ltr}`}>
-      <AccountantHeader
-        user={user}
-        loading={loading}
-        onLoginClick={() => setShowLoginModal(true)}
-        onLogout={handleLogout}
-      />
+      <AccountantHeader user={user} loading={loading} onLoginClick={() => setShowLoginModal(true)} onLogout={logout} />
 
       <main className={styles.main}>
-        {/* Welcome Section */}
         <div className={styles.welcomeSection}>
           <h1 className={styles.welcomeTitle}>{t.welcome.title}</h1>
           <p className={styles.welcomeSubtitle}>{t.welcome.subtitle}</p>
         </div>
 
-        {/* Financial Guidelines */}
         <div className={styles.guidelinesCard}>
           <div className={styles.guidelinesTitle}>
             <Shield className={styles.guidelinesIcon} />
@@ -357,7 +272,6 @@ export default function AccountantPortalPage() {
           ))}
         </div>
 
-        {/* Services Grid */}
         <div className={styles.servicesGrid}>
           {services.map(({ href, Icon, label, description }, idx) => (
             <CustomLink key={idx} href={href} className={styles.serviceCard} onClick={handleCardClick(href)}>
@@ -369,7 +283,6 @@ export default function AccountantPortalPage() {
         </div>
       </main>
 
-      {/* Login Modal */}
       {showLoginModal && (
         <div className={styles.modal} onClick={() => setShowLoginModal(false)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -483,7 +396,6 @@ export default function AccountantPortalPage() {
         </div>
       )}
 
-      {/* Signup Modal */}
       {showSignupModal && (
         <div className={styles.modal} onClick={() => setShowSignupModal(false)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -656,7 +568,6 @@ export default function AccountantPortalPage() {
         </div>
       )}
 
-      {/* Toast Notification */}
       {toast && (
         <div className={`${styles.toast} ${toast.type === "error" ? styles.toastError : styles.toastSuccess}`}>
           {toast.type === "error" ? <X size={20} /> : <Check size={20} />}
@@ -667,5 +578,13 @@ export default function AccountantPortalPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function AccountantPortalPage() {
+  return (
+    <RBACWrapper loadingMessage="Loading accountant portal...">
+      <AccountantPortalContent />
+    </RBACWrapper>
   )
 }
