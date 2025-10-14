@@ -1,19 +1,24 @@
-import DashBoardLayerEight from "@/components/DashBoardLayerEight";
-import MasterLayout from "@/masterLayout/MasterLayout";
-import { ModelProvider } from "@/contexts/ModelContext";
+"use client"
 
-const Page = () => {
+import DashBoardLayerEight from "@/components/DashBoardLayerEight"
+import MasterLayout from "@/masterLayout/MasterLayout"
+import { ModelProvider } from "@/contexts/ModelContext"
+import RBACWrapper from "@/components/RBACWrapper"
+
+function HomePage() {
   return (
-    <>
-      {/* MasterLayout */}
-      <MasterLayout>
-        <ModelProvider>
-          {/* DashBoardLayerOne */}
-          <DashBoardLayerEight />
-        </ModelProvider>
-      </MasterLayout>
-    </>
-  );
-};
+    <MasterLayout>
+      <ModelProvider>
+        <DashBoardLayerEight />
+      </ModelProvider>
+    </MasterLayout>
+  )
+}
 
-export default Page;
+export default function Page() {
+  return (
+    <RBACWrapper loadingMessage="Loading dashboard...">
+      <HomePage />
+    </RBACWrapper>
+  )
+}
