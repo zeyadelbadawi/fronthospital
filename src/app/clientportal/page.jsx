@@ -1,7 +1,8 @@
 "use client"
-import { useEffect, useState, useCallback, useMemo } from "react"
-import axiosInstance from "../../helper/axiosSetup"
+import RBACWrapper from "@/components/RBACWrapper"
+import { useCallback, useMemo } from "react"
 import CustomLink from "@/components/CustomLink"
+import NProgress from "nprogress"
 import {
   RiCalendarEventLine,
   RiGroupLine,
@@ -14,15 +15,12 @@ import {
 import Header from "../../components/Header"
 import styles from "../../styles/ClientPortal.module.css"
 import { useLanguage } from "../../contexts/LanguageContext"
+import { useState } from "react"
 import AuthModals from "../../components/AuthModals"
 
-export default function ClientPortalPage() {
+function ClientPortalContent({ user, handleLogout }) {
   const { language, translations } = useLanguage()
   const t = translations[language]
-
-  // --- Auth & User State ---
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
 
   // --- Modal Visibility ---
   const [showLoginModal, setShowLoginModal] = useState(false)
@@ -37,56 +35,17 @@ export default function ClientPortalPage() {
     setTimeout(() => setToast(null), 5000)
   }, [])
 
-  // --- Optimized Profile Loading ---
-  const loadProfile = useCallback(async () => {
-    const token = localStorage.getItem("token")
-    if (!token) {
-      setLoading(false)
-      return
-    }
-
-    try {
-      const res = await axiosInstance.get("/authentication/profile")
-      setUser(res.data)
-    } catch (err) {
-      if (err.response?.status === 403) {
-        try {
-          const r = await axiosInstance.post("/authentication/refresh")
-          localStorage.setItem("token", r.data.accessToken)
-          const retry = await axiosInstance.get("/authentication/profile")
-          setUser(retry.data)
-        } catch (refreshError) {
-          localStorage.removeItem("token")
-        }
-      }
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadProfile()
-  }, [loadProfile])
-
-  // --- Logout Handler ---
-  const handleLogout = useCallback(async () => {
-    try {
-      await axiosInstance.post("/authentication/logout")
-      localStorage.removeItem("token")
-      setUser(null)
-      setShowLoginModal(false)
-      setShowSignupModal(false)
-      showToast(t.messages.logoutSuccess)
-    } catch (err) {
-      console.error("Logout failed:", err)
-    }
-  }, [showToast, t])
-
   // --- Card click guard ---
   const handleCardClick = useCallback(
     (href) => (e) => {
       if (!user || user.role !== "patient") {
         e.preventDefault()
+        // Stop nprogress since we're not actually navigating
+        if (typeof window !== "undefined" && window.__doneNProgress) {
+          window.__doneNProgress()
+        } else {
+          NProgress.done()
+        }
         setShowLoginModal(true)
       }
     },
@@ -124,20 +83,9 @@ export default function ClientPortalPage() {
     [t],
   )
 
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner}></div>
-          <p>{t.common.loading}</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className={`${styles.container} ${language === "ar" ? styles.rtl : styles.ltr}`}>
-      <Header user={user} loading={loading} onLoginClick={() => setShowLoginModal(true)} onLogout={handleLogout} />
+      <Header user={user} loading={false} onLoginClick={() => setShowLoginModal(true)} onLogout={handleLogout} />
 
       <main className={styles.main}>
         {/* Welcome Section */}
@@ -175,7 +123,7 @@ export default function ClientPortalPage() {
         showSignupModal={showSignupModal}
         setShowLoginModal={setShowLoginModal}
         setShowSignupModal={setShowSignupModal}
-        onLoginSuccess={loadProfile}
+        onLoginSuccess={() => {}}
         showToast={showToast}
       />
 
@@ -199,5 +147,13 @@ export default function ClientPortalPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function ClientPortalPage() {
+  return (
+    <RBACWrapper allowedRoles={["patient"]} loadingMessage="Loading client portal...">
+      {({ user, handleLogout }) => <ClientPortalContent user={user} handleLogout={handleLogout} />}
+    </RBACWrapper>
   )
 }
