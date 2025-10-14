@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react"
 import dynamic from "next/dynamic"
 import axiosInstance from "@/helper/axiosSetup"
-import CustomLink from '@/components/CustomLink'
+import CustomLink from "@/components/CustomLink"
 import {
   Stethoscope,
   Calendar,
@@ -18,19 +18,19 @@ import {
 import DoctorHeader from "../../components/doctor-header"
 import styles from "../../styles/DoctorPortal.module.css"
 import { useDoctorLanguage } from "../../contexts/doctor-language-context"
+import RBACWrapper from "@/components/RBACWrapper"
+import { useRoleBasedAuth } from "@/hooks/useRoleBasedAuth"
 
 // Lazy load heavy components
 const DoctorPasswordStrength = dynamic(() => import("../../components/doctor-password-strength"), {
   loading: () => <div className={styles.loadingSkeleton}></div>,
 })
 
-export default function DoctorPortalPage() {
+function DoctorPortalContent() {
   const { language, translations } = useDoctorLanguage()
   const t = translations
 
-  // --- Auth & User State ---
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { user, loading, logout } = useRoleBasedAuth()
 
   // --- Modal Visibility ---
   const [showLoginModal, setShowLoginModal] = useState(false)
@@ -162,62 +162,6 @@ export default function DoctorPortalPage() {
     setTimeout(() => setToast(null), 5000)
   }, [])
 
-  // --- Optimized Profile Loading ---
-  const loadProfile = useCallback(async () => {
-    const token = localStorage.getItem("token")
-    if (!token) {
-      setLoading(false)
-      return
-    }
-
-    try {
-      const res = await axiosInstance.get("/authentication/profile")
-      setUser(res.data)
-    } catch (err) {
-      if (err.response?.status === 403) {
-        try {
-          const r = await axiosInstance.post("/authentication/refresh")
-          localStorage.setItem("token", r.data.accessToken)
-          const retry = await axiosInstance.get("/authentication/profile")
-          setUser(retry.data)
-        } catch (refreshError) {
-          localStorage.removeItem("token")
-        }
-      }
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadProfile()
-  }, [loadProfile])
-
-  // --- Logout Handler ---
-  const handleLogout = useCallback(async () => {
-    try {
-      await axiosInstance.post("/authentication/logout")
-      localStorage.removeItem("token")
-      setUser(null)
-      setShowLoginModal(false)
-      setShowSignupModal(false)
-      showToast(t.messages.logoutSuccess)
-    } catch (err) {
-      console.error("Logout failed:", err)
-    }
-  }, [showToast, t])
-
-  // --- Card click guard ---
-  const handleCardClick = useCallback(
-    (href) => (e) => {
-      if (!user || user.role !== "doctor") {
-        e.preventDefault()
-        setShowLoginModal(true)
-      }
-    },
-    [user],
-  )
-
   // --- Login submit ---
   const onLogin = useCallback(
     async (e) => {
@@ -237,9 +181,6 @@ export default function DoctorPortalPage() {
         })
         localStorage.setItem("token", res.data.accessToken)
         setShowLoginModal(false)
-        await loadProfile()
-        showToast(t.messages.loginSuccess)
-
         // Reset form
         setLoginEmail("")
         setLoginPassword("")
@@ -250,7 +191,7 @@ export default function DoctorPortalPage() {
         setLoginLoading(false)
       }
     },
-    [loginErrors, loginEmail, loginPassword, showToast, loadProfile, t],
+    [loginErrors, loginEmail, loginPassword, showToast, t],
   )
 
   // --- Signup submit ---
@@ -341,6 +282,11 @@ export default function DoctorPortalPage() {
     [t],
   )
 
+  const handleCardClick = useCallback((href) => {
+    // Handle card click logic here
+    console.log(`Card clicked with href: ${href}`)
+  }, [])
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -354,12 +300,7 @@ export default function DoctorPortalPage() {
 
   return (
     <div className={styles.container}>
-      <DoctorHeader
-        user={user}
-        loading={loading}
-        onLoginClick={() => setShowLoginModal(true)}
-        onLogout={handleLogout}
-      />
+      <DoctorHeader user={user} loading={loading} onLoginClick={() => setShowLoginModal(true)} onLogout={logout} />
 
       <main className={styles.main}>
         {/* Welcome Section */}
@@ -384,7 +325,7 @@ export default function DoctorPortalPage() {
         {/* Services Grid */}
         <div className={styles.servicesGrid}>
           {services.map(({ href, Icon, label, description }, idx) => (
-            <CustomLink key={idx} href={href} className={styles.serviceCard} onClick={handleCardClick(href)}>
+            <CustomLink key={idx} href={href} className={styles.serviceCard} onClick={() => handleCardClick(href)}>
               <Icon className={styles.serviceIcon} />
               <h3 className={styles.serviceTitle}>{label}</h3>
               <p className={styles.serviceDescription}>{description}</p>
@@ -748,5 +689,13 @@ export default function DoctorPortalPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function DoctorPortalPage() {
+  return (
+    <RBACWrapper loadingMessage="Loading doctor portal...">
+      <DoctorPortalContent />
+    </RBACWrapper>
   )
 }
