@@ -1267,11 +1267,22 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
                           calendarClassName={styles.ruknDatePickerCalendar}
                           dayClassName={(date) => {
                             const day = date.getDay()
+                            const today = new Date()
+                            today.setHours(0, 0, 0, 0)
+                            const isPast = date < today
+
+                            // If it's a past date, return unavailable style (gray)
+                            if (isPast) {
+                              return styles.ruknUnavailableDay
+                            }
+
+                            // If it's Monday to Friday and not past, show as available (pink)
                             if (day >= 1 && day <= 5) {
-                              // Check if it's Monday to Friday
                               return styles.ruknAvailableDay
                             }
+                            // Otherwise (Saturday/Sunday), show as unavailable (gray)
                             return styles.ruknUnavailableDay
+                            // </CHANGE>
                           }}
                           disabled={isLoadingAvailability}
                         />
@@ -1798,6 +1809,26 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
 
                 <div className={styles.ruknPaymentSummary}>
                   <h4>{language === "ar" ? "ملخص الدفع" : "Payment Summary"}</h4>
+                  {selectedDay && (
+                    <div className={styles.ruknPaymentRow}>
+                      <span>{language === "ar" ? "التاريخ المحدد:" : "Selected Date:"}</span>
+                      <span>
+                        {selectedDay.toLocaleDateString(language === "ar" ? "ar-EG" : "en-US", {
+                          weekday: "long",
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  )}
+                  {selectedTime && (
+                    <div className={styles.ruknPaymentRow}>
+                      <span>{language === "ar" ? "الوقت المحدد:" : "Selected Time:"}</span>
+                      <span>{formatTimeToHHMM(selectedTime)}</span>
+                    </div>
+                  )}
+                  {/* </CHANGE> */}
                   {programData.programType === "full_program" ? (
                     <>
                       <div className={styles.ruknPaymentRow}>
