@@ -1,7 +1,7 @@
 "use client"
 import { createContext, useContext, useState } from "react"
 
-const DoctorLanguageContext = createContext()
+export const DoctorLanguageContext = createContext()
 
 export const useDoctorLanguage = () => {
   const context = useContext(DoctorLanguageContext)
@@ -16,6 +16,14 @@ const translations = {
     loading: "Loading...",
     error: "Error",
     success: "Success",
+  },
+  cookies: {
+    title: "We use cookies",
+    message:
+      "We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking 'Accept All', you consent to our use of cookies.",
+    accept: "Accept All",
+    decline: "Decline",
+    learnMore: "Learn More",
   },
   welcome: {
     title: "Welcome to Doctor Portal",
