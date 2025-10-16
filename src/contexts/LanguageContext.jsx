@@ -1,7 +1,7 @@
 "use client"
 import { createContext, useContext, useState, useEffect } from "react"
 
-const LanguageContext = createContext()
+export const LanguageContext = createContext()
 
 export const useLanguage = () => {
   const context = useContext(LanguageContext)
@@ -17,6 +17,14 @@ const translations = {
       loading: "Loading...",
       error: "Error",
       success: "Success",
+    },
+    cookies: {
+      title: "We use cookies",
+      message:
+        "We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking 'Accept All', you consent to our use of cookies.",
+      accept: "Accept All",
+      decline: "Decline",
+      learnMore: "Learn More",
     },
     welcome: {
       title: "Welcome to Your Health Portal",
@@ -346,6 +354,14 @@ const translations = {
       error: "خطأ",
       success: "نجح",
     },
+    cookies: {
+      title: "نستخدم ملفات تعريف الارتباط",
+      message:
+        "نستخدم ملفات تعريف الارتباط لتحسين تجربة التصفح الخاصة بك، وتقديم محتوى مخصص، وتحليل حركة المرور لدينا. بالنقر على 'قبول الكل'، فإنك توافق على استخدامنا لملفات تعريف الارتباط.",
+      accept: "قبول الكل",
+      decline: "رفض",
+      learnMore: "معرفة المزيد",
+    },
     welcome: {
       title: "مرحباً بك في بوابة الصحة الخاصة بك",
       subtitle: "الوصول إلى مواعيدك والسجلات الطبية إدارة رحلتك الصحية بسهولة وثقة",
@@ -668,14 +684,13 @@ const translations = {
 }
 
 export const LanguageProvider = ({ children }) => {
-  const [language, setLanguage] = useState("ar") // Changed default to Arabic
+  const [language, setLanguage] = useState("ar")
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem("language")
     if (savedLanguage && (savedLanguage === "en" || savedLanguage === "ar")) {
       setLanguage(savedLanguage)
     } else {
-      // Set Arabic as default if no saved language
       setLanguage("ar")
       localStorage.setItem("language", "ar")
     }
