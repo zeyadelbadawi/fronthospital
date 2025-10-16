@@ -124,6 +124,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
   // Existing booking states (same as StudentBooking)
   const [selectedDay, setSelectedDay] = useState(null)
   const [selectedTime, setSelectedTime] = useState(null)
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
   const [description, setDescription] = useState("")
   const [evaluationType, setEvaluationType] = useState(null)
   const [plan, setPlan] = useState(null)
@@ -308,6 +309,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
     setBookedSlots([])
     setAvailabilityError("")
     setShowCaseStudyCreation(false)
+    setIsDatePickerOpen(false) // Reset date picker state
   }, [])
 
   // Refresh plan data function
@@ -828,7 +830,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
             })
 
             await sendNotificationToAdminsAndHeadDoctors(
-              "New Appointment Booked (from the center)",
+              "New Appointment Booked",
               `Patient ${selectedPatient?.name} has booked a ${formattedProgramType} appointment on ${formattedDate} at ${programPayload.time}.`,
               "create",
             )
@@ -868,7 +870,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
             })
 
             await sendNotificationToAdminsAndHeadDoctors(
-              "New Appointment Booked (from the center)",
+              "New Appointment Booked",
               `Patient ${selectedPatient?.name} has booked a Full Package Evaluation appointment on ${formattedDate} at ${programPayload.time}.`,
               "create",
             )
@@ -888,7 +890,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
             `Sorry, this time slot is already booked. Please choose a different time.\n\nConflicting appointment: ${errorData.conflictingAppointment?.time || "Unknown time"}`,
           )
           // Go back to the scheduling step
-          setCurrentStep(0)
+          setCurrentStep(2) // Changed from 0 to 2 to go back to scheduling step
           // Refresh availability for the selected date
           if (selectedDay && evaluationType) {
             // Keep evaluationType here for fetching booked slots
@@ -1478,6 +1480,8 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
                             setSelectedTime(null)
                             setValidationErrors((prev) => ({ ...prev, selectedDay: null, selectedTime: null }))
                           }}
+                          onCalendarOpen={() => setIsDatePickerOpen(true)}
+                          onCalendarClose={() => setIsDatePickerOpen(false)}
                           filterDate={filterWeekdays}
                           placeholderText="Choose a date (Fridays & Sundays only)"
                           className={`${styles.ruknDatePicker} ${validationErrors.selectedDay ? styles.error : ""}`}
@@ -1489,9 +1493,20 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
                           calendarClassName={styles.ruknDatePickerCalendar}
                           dayClassName={(date) => {
                             const day = date.getDay()
+                            const today = new Date()
+                            today.setHours(0, 0, 0, 0)
+                            const isPast = date < today
+
+                            // If it's a past date, return unavailable style (gray)
+                            if (isPast) {
+                              return styles.ruknUnavailableDay
+                            }
+
+                            // If it's Sunday or Friday and not past, show as available (pink)
                             if (day === 0 || day === 5) {
                               return styles.ruknAvailableDay
                             }
+                            // Otherwise, show as unavailable (gray)
                             return styles.ruknUnavailableDay
                           }}
                           disabled={isLoadingAvailability}
@@ -1559,7 +1574,10 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
                     </div>
                   </div>
                 </div>
-                <div className={styles.ruknFormGroupdes}>
+                <div
+                  className={styles.ruknFormGroup}
+                  style={{ marginTop: isDatePickerOpen ? "280px" : "0", transition: "margin-top 0.3s ease" }}
+                >
                   <label className={styles.ruknLabel}>Description *</label>
                   <textarea
                     className={`${styles.ruknTextarea} ${validationErrors.description ? styles.error : ""}`}
