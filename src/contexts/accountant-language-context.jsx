@@ -1,7 +1,7 @@
 "use client"
 import { createContext, useContext, useState, useEffect } from "react"
 
-const AccountantLanguageContext = createContext()
+export const AccountantLanguageContext = createContext()
 
 export const useAccountantLanguage = () => {
   const context = useContext(AccountantLanguageContext)
@@ -32,6 +32,14 @@ const translations = {
       date: "Date",
       status: "Status",
       actions: "Actions",
+    },
+    cookies: {
+      title: "We use cookies",
+      message:
+        "We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking 'Accept All', you consent to our use of cookies.",
+      accept: "Accept All",
+      decline: "Decline",
+      learnMore: "Learn More",
     },
     welcome: {
       title: "Financial Management Portal",
@@ -128,6 +136,14 @@ const translations = {
       date: "التاريخ",
       status: "الحالة",
       actions: "الإجراءات",
+    },
+    cookies: {
+      title: "نستخدم ملفات تعريف الارتباط",
+      message:
+        "نستخدم ملفات تعريف الارتباط لتحسين تجربة التصفح الخاصة بك، وتقديم محتوى مخصص، وتحليل حركة المرور لدينا. بالنقر على 'قبول الكل'، فإنك توافق على استخدامنا لملفات تعريف الارتباط.",
+      accept: "قبول الكل",
+      decline: "رفض",
+      learnMore: "معرفة المزيد",
     },
     welcome: {
       title: "بوابة الإدارة المالية",
