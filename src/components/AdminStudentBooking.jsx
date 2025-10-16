@@ -491,12 +491,12 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
     }
   }, [])
 
-  // Enhanced date filtering - only allow Fridays and Sundays
+  // Enhanced date filtering - only allow Monday-Friday
   const filterWeekdays = useCallback((date) => {
     const day = date.getDay()
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    return (day === 0 || day === 5) && date >= today
+    return day >= 1 && day <= 5 && date >= today
   }, [])
 
   // Generate all possible time slots
@@ -1483,7 +1483,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
                           onCalendarOpen={() => setIsDatePickerOpen(true)}
                           onCalendarClose={() => setIsDatePickerOpen(false)}
                           filterDate={filterWeekdays}
-                          placeholderText="Choose a date (Fridays & Sundays only)"
+                          placeholderText="Choose a date (Monday - Friday only)"
                           className={`${styles.ruknDatePicker} ${validationErrors.selectedDay ? styles.error : ""}`}
                           dateFormat="EEEE, MMMM dd, yyyy"
                           minDate={new Date()}
@@ -1502,11 +1502,11 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
                               return styles.ruknUnavailableDay
                             }
 
-                            // If it's Sunday or Friday and not past, show as available (pink)
-                            if (day === 0 || day === 5) {
+                            // If it's Monday-Friday and not past, show as available (pink)
+                            if (day >= 1 && day <= 5) {
                               return styles.ruknAvailableDay
                             }
-                            // Otherwise, show as unavailable (gray)
+                            // Otherwise (Saturday/Sunday), show as unavailable (gray)
                             return styles.ruknUnavailableDay
                           }}
                           disabled={isLoadingAvailability}
@@ -1517,8 +1517,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
                       <span className={styles.ruknErrorText}>{validationErrors.selectedDay}</span>
                     )}
                     <div className={styles.ruknDateNote}>
-                      <Calendar size={16} className={styles.iconInline} /> Appointments available on Fridays and Sundays
-                      only
+                      <Calendar size={16} className={styles.iconInline} /> Appointments available Monday through Friday
                     </div>
                   </div>
 
