@@ -1,13 +1,14 @@
 "use client"
-import CustomLink from '@/components/CustomLink'
+import CustomLink from "@/components/CustomLink"
 import { useState, useRef, useEffect } from "react"
 import { RiGlobalLine, RiArrowDownSLine } from "react-icons/ri"
-import { Bell, CheckCircle, XCircle, Info, AlertCircle, Mail, Calendar, Package } from "lucide-react" // Import Lucide icons
+import { Bell, CheckCircle, XCircle, Info, AlertCircle, Mail, Calendar, Package } from "lucide-react"
 import styles from "../styles/Header.module.css"
 import { useLanguage } from "../contexts/LanguageContext"
 import axiosInstance from "../helper/axiosSetup"
 import useSocket from "@/hooks/useSocket"
 import { formatDistanceToNow } from "date-fns"
+import { ar } from "date-fns/locale"
 import { notificationsIcons } from "@/utils/assignmentUtils"
 
 export default function Header({
@@ -45,6 +46,8 @@ export default function Header({
 
   // Add socket integration for real-time notifications
   useSocket(user?.id, ({ count, notifications }) => {
+    console.log("[v0] Received notifications via socket:", notifications)
+    console.log("[v0] Current language:", language)
     setNotifications(notifications)
     setCount(count)
   })
@@ -65,6 +68,11 @@ export default function Header({
     if (!user?.id) return
     getNotifications()
   }, [user?.id])
+
+  useEffect(() => {
+    console.log("[v0] Language changed to:", language)
+    console.log("[v0] Sample notification:", notifications[0])
+  }, [language])
 
   // Replace handleNotificationClick with dynamic version
   const handleNotificationClick = async (noteId) => {
@@ -191,10 +199,24 @@ export default function Header({
                           {!notification.isRead && <span className={styles.unreadDot} />}
                           {getNotificationIcon(notification.type)}
                           <div className={styles.notificationContent}>
-                            <p className={styles.notificationMessage}>{notification.message}</p>
+                            <p className={styles.notificationMessage}>
+                              {(() => {
+                                const msg =
+                                  language === "ar"
+                                    ? notification.messageAr || notification.message
+                                    : notification.message
+                                console.log("[v0] Displaying notification:", {
+                                  language,
+                                  hasArabic: !!notification.messageAr,
+                                  message: msg,
+                                })
+                                return msg
+                              })()}
+                            </p>
                             <span className={styles.notificationTimestamp}>
                               {formatDistanceToNow(new Date(notification.createdAt), {
                                 addSuffix: true,
+                                locale: language === "ar" ? ar : undefined,
                               })}
                             </span>
                           </div>
@@ -222,7 +244,11 @@ export default function Header({
 
               {dropdownOpen && (
                 <div className={styles.dropdownMenu}>
-                  <CustomLink href="/student-calendar" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                  <CustomLink
+                    href="/student-calendar"
+                    className={styles.dropdownItem}
+                    onClick={() => setDropdownOpen(false)}
+                  >
                     {language === "ar" ? "مواعيدي" : "My Appointments"}
                   </CustomLink>
                   <CustomLink href="/profile" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
