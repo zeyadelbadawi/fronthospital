@@ -96,6 +96,7 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
   // </CHANGE>
 
   const [doctorIds, setDoctorIds] = useState([])
+  const [adminHeadDoctorIds, setAdminHeadDoctorIds] = useState({ adminIds: [], headDoctorIds: [] })
 
   const getDoctorIds = async () => {
     try {
@@ -108,8 +109,22 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
       setDoctorIds([])
     }
   }
+
+  const getAdminHeadDoctorIds = async () => {
+    try {
+      const axiosInstance = await getAxiosInstance()
+      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/notification/admin-headdoctor-ids`)
+      const { adminIds, headDoctorIds } = response?.data
+      setAdminHeadDoctorIds({ adminIds, headDoctorIds })
+    } catch (error) {
+      console.error("Error fetching admin and head doctor IDs:", error)
+      setAdminHeadDoctorIds({ adminIds: [], headDoctorIds: [] })
+    }
+  }
+
   useEffect(() => {
     getDoctorIds()
+    getAdminHeadDoctorIds()
   }, [])
 
   // Check localStorage for interactive guide status on mount
@@ -631,6 +646,39 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
   }
   // </CHANGE>
 
+  const sendNotificationToAdminsAndHeadDoctors = async (title, message, type) => {
+    try {
+      const axiosInstance = await getAxiosInstance()
+      const allRecipientIds = [...adminHeadDoctorIds.adminIds, ...adminHeadDoctorIds.headDoctorIds]
+
+      if (allRecipientIds.length === 0) return
+
+      // Send to admins
+      if (adminHeadDoctorIds.adminIds.length > 0) {
+        await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}/notification/send`, {
+          receiverIds: adminHeadDoctorIds.adminIds,
+          rule: "Admin",
+          title,
+          message,
+          type,
+        })
+      }
+
+      // Send to head doctors
+      if (adminHeadDoctorIds.headDoctorIds.length > 0) {
+        await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}/notification/send`, {
+          receiverIds: adminHeadDoctorIds.headDoctorIds,
+          rule: "HeadDoctor",
+          title,
+          message,
+          type,
+        })
+      }
+    } catch (error) {
+      console.error("Error sending notifications to admins and head doctors:", error)
+    }
+  }
+
   const handlePayment = useCallback(async () => {
     if (isProcessingPayment) return
     setIsProcessingPayment(true)
@@ -794,6 +842,12 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
               })
               // </CHANGE>
 
+              await sendNotificationToAdminsAndHeadDoctors(
+                "New Appointment Booked",
+                `Patient ${patientName} has booked a ${programTypeFormatted} appointment on ${formattedDate} at ${programPayload.time}.`,
+                "create",
+              )
+
               if (doctorIds.length > 0) {
                 await sendNotification({
                   isList: true,
@@ -869,6 +923,19 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
             type: "create",
           })
 
+          await sendNotificationToAdminsAndHeadDoctors(
+            "New Appointment Booked",
+            `Patient ${patientName} has booked a ${programTypeFormatted} appointment on ${formattedDate} at ${programPayload.time}.`,
+            "create",
+          )
+
+          const paymentMethodText = paymentMethod === "bank_transfer" ? "Bank Transfer" : "Pay at Center"
+          await sendNotificationToAdminsAndHeadDoctors(
+            `${paymentMethodText} Payment Selected`,
+            `Patient ${patientName} will pay via ${paymentMethodText} for ${programTypeFormatted} appointment on ${formattedDate} at ${programPayload.time}.`,
+            "pending",
+          )
+
           // Send additional notification for bank transfer about pending payment
           if (paymentMethod === "bank_transfer") {
             await sendNotification({
@@ -882,7 +949,6 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
               type: "update",
             })
           }
-          // </CHANGE>
 
           if (doctorIds.length > 0) {
             await sendNotification({
@@ -952,6 +1018,7 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
     paymentMethod, // Added paymentMethod to dependencies
     transferScreenshot, // Added transferScreenshot to dependencies
     doctorIds,
+    adminHeadDoctorIds,
   ])
 
   const steps = useMemo(
