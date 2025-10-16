@@ -648,7 +648,6 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
         setIsProcessingPayment(false)
         return
       }
-      // </CHANGE>
 
       // Derive programType here, as it's needed for both verification and the main payload
       let programTypeForPayment = programData.programType // Use the programType from programData state
@@ -702,7 +701,6 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
           return
         }
       }
-      // </CHANGE>
 
       const programPayload = {
         ...programData,
@@ -729,7 +727,6 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
                 ? "MIXED"
                 : "ONLINE", // Added BANK_TRANSFER payment method
         transferScreenshot: screenshotPath,
-        // </CHANGE>
       }
 
       const response = await axiosInstance.post("/authentication/saveProgram", programPayload)
@@ -765,29 +762,42 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
 
               // Reset form fields after successful payment
               resetFormFields()
+
+              // Format date correctly (add 1 day to fix timezone issue)
+              const bookingDate = new Date(programPayload.date)
+              const formattedDate = bookingDate.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+              const formattedDateAr = bookingDate.toLocaleDateString("ar-EG", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+
+              const programTypeFormatted = programPayload.programType
+                .replace(/_/g, " ")
+                .split(" ")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")
+
               await sendNotification({
                 isList: false,
-                title: `Booking New Appointment`,
-                message: `You have booked a new appointment in ${programPayload.programType
-                  .replace(/_/g, " ")
-                  .split(" ")
-                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                  .join(" ")} at date: ${
-                  new Date(programPayload.date).toISOString().split("T")[0]
-                } and time: ${programPayload.time}`,
+                title: `Booking Confirmed`,
+                titleAr: `تم تأكيد الحجز`,
+                message: `You have booked a new appointment in ${programTypeFormatted} on ${formattedDate} at ${programPayload.time}.`,
+                messageAr: `لقد حجزت موعداً جديداً في ${programTypeFormatted} بتاريخ ${formattedDateAr} في الساعة ${programPayload.time}.`,
                 receiverId: patientId,
                 rule: "Patient",
                 type: "create",
               })
+              // </CHANGE>
 
               if (doctorIds.length > 0) {
                 await sendNotification({
                   isList: true,
-                  title: `New ${programPayload.programType
-                    .replace(/_/g, " ")
-                    .split(" ")
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(" ")} Created`,
+                  title: `New ${programTypeFormatted} Created`,
                   message: `Create a new program to student: ${patientName}`,
                   receiverIds: doctorIds,
                   rule: "Doctor",
@@ -795,19 +805,6 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
                 })
               }
 
-              // send user email in token
-              //  await sendEmail({
-              //   to: `${patientEmail}`,
-              //   filePath: "",
-              //   subject: "Booking New Appointment",
-              //   text: `We have created a new appointment in ${programPayload.programType
-              //     .replace(/_/g, " ")
-              //     .split(" ")
-              //     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              //     .join(" ")} for you, on date: ${
-              //     new Date(programPayload.date).toISOString().split("T")[0]
-              //   } and time: ${programPayload.time}`,
-              // });
               setCurrentStep(4) // Move to complete step
             }
           } else if (programTypeForPayment === "full_program") {
@@ -841,29 +838,56 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
           }
 
           resetFormFields()
+
+          const bookingDate = new Date(programPayload.date)
+          const formattedDate = bookingDate.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
+          const formattedDateAr = bookingDate.toLocaleDateString("ar-EG", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
+
+          const programTypeFormatted = programPayload.programType
+            .replace(/_/g, " ")
+            .split(" ")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ")
+
+          // Send booking confirmation notification
           await sendNotification({
             isList: false,
-            title: `Booking New Appointment`,
-            message: `You have booked a new appointment in ${programPayload.programType
-              .replace(/_/g, " ")
-              .split(" ")
-              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(" ")} at date: ${
-              new Date(programPayload.date).toISOString().split("T")[0]
-            } and time: ${programPayload.time}. Payment is pending ${paymentMethod === "bank_transfer" ? "bank transfer confirmation" : "cash payment"}.`,
+            title: `Booking Confirmed`,
+            titleAr: `تم تأكيد الحجز`,
+            message: `You have booked a new appointment in ${programTypeFormatted} on ${formattedDate} at ${programPayload.time}.`,
+            messageAr: `لقد حجزت موعداً جديداً في ${programTypeFormatted} بتاريخ ${formattedDateAr} في الساعة ${programPayload.time}.`,
             receiverId: patientId,
             rule: "Patient",
             type: "create",
           })
 
+          // Send additional notification for bank transfer about pending payment
+          if (paymentMethod === "bank_transfer") {
+            await sendNotification({
+              isList: false,
+              title: `Payment Pending`,
+              titleAr: `الدفع قيد الانتظار`,
+              message: `Your payment is pending verification. We will confirm your bank transfer within 24 hours. Your appointment will be confirmed once we receive your payment.`,
+              messageAr: `دفعتك قيد التحقق. سنقوم بتأكيد تحويلك البنكي خلال 24 ساعة. سيتم تأكيد موعدك بمجرد استلامنا لدفعتك.`,
+              receiverId: patientId,
+              rule: "Patient",
+              type: "update",
+            })
+          }
+          // </CHANGE>
+
           if (doctorIds.length > 0) {
             await sendNotification({
               isList: true,
-              title: `New ${programPayload.programType
-                .replace(/_/g, " ")
-                .split(" ")
-                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(" ")} Created`,
+              title: `New ${programTypeFormatted} Created`,
               message: `Create a new program to student: ${patientName} - Payment pending (${paymentMethod === "bank_transfer" ? "Bank Transfer" : "Cash"})`,
               receiverIds: doctorIds,
               rule: "Doctor",
@@ -872,7 +896,6 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
           }
 
           setCurrentStep(4)
-          // </CHANGE>
         }
       }
     } catch (error) {
@@ -928,6 +951,7 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
     resetFormFields, // Add resetFormFields to dependencies
     paymentMethod, // Added paymentMethod to dependencies
     transferScreenshot, // Added transferScreenshot to dependencies
+    doctorIds,
   ])
 
   const steps = useMemo(
