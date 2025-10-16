@@ -7,6 +7,7 @@ import { Download, Save, Printer, AlertCircle, RefreshCw, Lightbulb } from "luci
 import docxStyles from "../styles/SyncfusionDocxCase2.module.css" // Import new CSS module
 import { toast } from "react-toastify"
 import { useLanguage } from "@/contexts/LanguageContext" // Import language context
+import { sendNotification } from "@/helper/notification-helper"
 
 // 1. استقبل الـ prop الجديدة في تعريف المكون
 export default function SyncfusionDocx({ userData, planEndpoint, email, onDocumentSaved, readOnly = false }) {
@@ -51,6 +52,8 @@ export default function SyncfusionDocx({ userData, planEndpoint, email, onDocume
           printSuccess: "🖨️ تم فتح نافذة الطباعة",
           emailWarning: "⚠️ تم حفظ المستند بنجاح، لكن فشل في إرسال البريد الإلكتروني.",
           notificationWarning: "⚠️ تم حفظ المستند بنجاح، لكن فشل في إرسال الإشعار.",
+          caseStudyCreated: "✅ تم إنشاء ملف دراسة الحالة بنجاح!",
+          caseStudyUpdated: "✅ تم تحديث ملف دراسة الحالة بنجاح!",
         }
       : {
           saving: "🔄 Saving document...",
@@ -61,6 +64,8 @@ export default function SyncfusionDocx({ userData, planEndpoint, email, onDocume
           printSuccess: "🖨️ Print dialog opened",
           emailWarning: "⚠️ Document saved successfully, but failed to send email.",
           notificationWarning: "⚠️ Document saved successfully, but failed to send notification.",
+          caseStudyCreated: "✅ Your case study has been created successfully!",
+          caseStudyUpdated: "✅ Your case study has been updated successfully!",
         }
   }
 
@@ -162,8 +167,9 @@ export default function SyncfusionDocx({ userData, planEndpoint, email, onDocume
     if (documentEditorContainerRef.current && userData.filePath && documentReady) {
       try {
         documentEditorContainerRef.current.documentEditor.open(userData.filePath)
-        // Set read-only mode if prop is true
-        documentEditorContainerRef.current.documentEditor.isReadOnly = readOnly
+        if (readOnly) {
+          documentEditorContainerRef.current.documentEditor.isReadOnly = true
+        }
         setIsDocumentLoading(false) // Document is loaded and ready
       } catch (error) {
         console.error("Error loading document:", error)
@@ -218,8 +224,11 @@ export default function SyncfusionDocx({ userData, planEndpoint, email, onDocume
           // Dismiss loading toast
           toast.dismiss(loadingToastId)
 
-          // Show success toast with enhanced styling
-          toast.success(messages.saveSuccess, {
+          const isFirstTimeSave = response.data.isFirstTimeSave
+
+          // Show appropriate success toast based on operation type
+          const successMessage = isFirstTimeSave ? messages.caseStudyCreated : messages.caseStudyUpdated
+          toast.success(successMessage, {
             position: "top-right",
             autoClose: 4000,
             hideProgressBar: false,
@@ -231,8 +240,12 @@ export default function SyncfusionDocx({ userData, planEndpoint, email, onDocume
             progressClassName: "custom-success-toast-progress",
           })
 
-          // Send notifications and email
-          await Promise.all([sendNotification(), sendEmail(response.data.filePath)])
+          // Send notification with appropriate message based on operation type
+          await sendCaseStudyNotification(isFirstTimeSave)
+          // Send email (if needed)
+          if (email) {
+            await sendEmail(response.data.filePath)
+          }
 
           if (onDocumentSaved) {
             // تحقق مما إذا كانت الدالة موجودة قبل استدعائها
@@ -282,28 +295,42 @@ export default function SyncfusionDocx({ userData, planEndpoint, email, onDocume
     }
   }
 
-  const sendNotification = async () => {
+  const sendCaseStudyNotification = async (isFirstTimeSave) => {
     const messages = getToastMessages()
 
     try {
-      let response
-      if (userData.isList) {
-        response = await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}/notification/send`, {
-          receiverIds: userData.doctorIds,
-          rule: userData.rule,
-          title: userData.title,
-          message: userData.message,
-        })
-      } else {
-        // Send the form data to your server
-        response = await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}/notification/send`, {
-          receiverId: userData.patientId,
-          rule: userData.rule,
-          title: userData.title,
-          message: userData.message,
-        })
-      }
+      // Prepare bilingual notification message
+      const notificationTitle =
+        language === "ar"
+          ? isFirstTimeSave
+            ? "إنشاء ملف دراسة الحالة"
+            : "تحديث ملف دراسة الحالة"
+          : isFirstTimeSave
+            ? "Case Study Created"
+            : "Case Study Updated"
+
+      const notificationMessage =
+        language === "ar"
+          ? isFirstTimeSave
+            ? "تم إنشاء ملف دراسة الحالة الخاص بك بنجاح. يمكنك الآن المتابعة لحجز موعدك."
+            : "تم تحديث ملف دراسة الحالة الخاص بك بنجاح."
+          : isFirstTimeSave
+            ? "Your case study has been created successfully. You can now proceed to book your appointment."
+            : "Your case study has been updated successfully."
+
+      // Send notification to patient
+      await sendNotification({
+        isList: false,
+        receiverId: userData.patientId,
+        rule: "Patient",
+        title: notificationTitle,
+        message: notificationMessage,
+        type: isFirstTimeSave ? "create" : "update",
+      })
+
+      console.log(`Case study notification sent: ${isFirstTimeSave ? "Created" : "Updated"}`)
     } catch (error) {
+      console.error("Error sending case study notification:", error)
       // Show notification error toast (optional, non-blocking)
       toast.warning(messages.notificationWarning, {
         position: "top-right",
@@ -414,7 +441,6 @@ export default function SyncfusionDocx({ userData, planEndpoint, email, onDocume
           enableToolbar={!readOnly} // Disable toolbar if readOnly
           ref={documentEditorContainerRef}
           autoResizeOnVisibilityChange={true}
-          restrictEditing={readOnly} // Restrict editing if readOnly
           locale="en-US"
           serviceUrl={process.env.NEXT_PUBLIC_SYNCFUSION_SERVICE_URL}
           // documentChange={handleDocumentChange} // Not needed for read-only
