@@ -31,7 +31,7 @@ import {
   UserPlus,
   ArrowLeft,
 } from "lucide-react"
-import { sendNotification, sendEmail } from "@/helper/notification-helper";
+import { sendNotification } from "@/helper/notification-helper"
 
 // Dynamic imports for heavy components
 const DatePicker = dynamic(() => import("react-datepicker"), {
@@ -78,24 +78,36 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
   const [showNewPatientModal, setShowNewPatientModal] = useState(false)
   const [showCaseStudyCreation, setShowCaseStudyCreation] = useState(false)
 
-  const [doctorIds, setDoctorIds] = useState([]);
+  const [doctorIds, setDoctorIds] = useState([])
+  const [adminHeadDoctorIds, setAdminHeadDoctorIds] = useState({ adminIds: [], headDoctorIds: [] })
 
   const getDoctorIds = async () => {
     try {
-            const axiosInstance = await getAxiosInstance()
-      const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/notification/doctor-ids`
-      );
-      const doctors = response?.data;
-      setDoctorIds(doctors);
+      const axiosInstance = await getAxiosInstance()
+      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/notification/doctor-ids`)
+      const doctors = response?.data
+      setDoctorIds(doctors)
     } catch (error) {
-      console.error("Error fetching doctor IDs:", error);
-      setDoctorIds([]);
+      console.error("Error fetching doctor IDs:", error)
+      setDoctorIds([])
     }
-  };
+  }
+
+  const getAdminHeadDoctorIds = async () => {
+    try {
+      const axiosInstance = await getAxiosInstance()
+      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/notification/admin-headdoctor-ids`)
+      setAdminHeadDoctorIds(response.data)
+    } catch (error) {
+      console.error("Error fetching admin and head doctor IDs:", error)
+      setAdminHeadDoctorIds({ adminIds: [], headDoctorIds: [] })
+    }
+  }
+
   useEffect(() => {
-    getDoctorIds();
-  }, []);
+    getDoctorIds()
+    getAdminHeadDoctorIds()
+  }, [])
 
   // New Patient Form State
   const [newPatientForm, setNewPatientForm] = useState({
@@ -185,7 +197,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
         ),
         price: 100,
       },
-        {
+      {
         value: "Psychotherapy",
         label: (
           <>
@@ -515,7 +527,6 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
         const formattedTime = formatTimeToHHMM(selectedTime)
 
         const formattedDate = selectedDay.toISOString()
-    
 
         if (!formattedTime) {
           console.error("verifyAvailabilityBeforePayment: formattedTime is null or invalid. Aborting API call.")
@@ -665,8 +676,43 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
     selectedPatient?.id,
   ])
 
+  const sendNotificationToAdminsAndHeadDoctors = useCallback(
+    async (title, message, type = "create") => {
+      try {
+        const { adminIds, headDoctorIds } = adminHeadDoctorIds
+
+        // Send to all admins
+        if (adminIds.length > 0) {
+          await sendNotification({
+            isList: true,
+            title,
+            message,
+            receiverIds: adminIds,
+            rule: "Admin",
+            type,
+          })
+        }
+
+        // Send to all head doctors
+        if (headDoctorIds.length > 0) {
+          await sendNotification({
+            isList: true,
+            title,
+            message,
+            receiverIds: headDoctorIds,
+            rule: "HeadDoctor",
+            type,
+          })
+        }
+      } catch (error) {
+        console.error("Error sending notifications to admins and head doctors:", error)
+      }
+    },
+    [adminHeadDoctorIds],
+  ) // Depend only on adminHeadDoctorIds
+
   // Handle payment function (MODIFIED for admin - pending status)
-    const handlePayment = useCallback(async () => {
+  const handlePayment = useCallback(async () => {
     if (isProcessingPayment) return
     setIsProcessingPayment(true)
     setAssignmentError("")
@@ -680,9 +726,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
       // Verify availability before proceeding with payment
       const isAvailable = await verifyAvailabilityBeforePayment(programTypeForPayment) // Pass the derived programType
       if (!isAvailable) {
-        alert(
-             "Sorry, this time slot is no longer available. Please choose a different time.",
-        )
+        alert("Sorry, this time slot is no longer available. Please choose a different time.")
         setCurrentStep(1) // Go back to the scheduling step
         return
       }
@@ -700,7 +744,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
       const formattedTime = formatTimeToHHMM(selectedTime)
       const programPayload = {
         ...programData,
-          patientId: selectedPatient?.id,
+        patientId: selectedPatient?.id,
         programKind: selectedServices.map((service) => service.value),
         programType: programTypeForPayment, // Use programTypeForPayment here
         time: formattedTime,
@@ -715,14 +759,14 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
         const programId = response.data.program._id
         if (programTypeForPayment === "single_session" || programTypeForPayment === "school_evaluation") {
           const moneyResponse = await axiosInstance.post("/authentication/saveMoneyRecord", {
-          patientId: selectedPatient?.id,
+            patientId: selectedPatient?.id,
             programId,
             price: totalAmount, // Full amount but pending
             status: "completed", // Changed from "completed" to "pending"
             invoiceId: `INV-${Math.random().toString(36).substring(2, 15)}`,
             programType: programTypeForPayment, // Use programTypeForPayment here
-            comment: `Initial payment for ${programTypeForPayment} - Student: ${ selectedPatient?.name}`, // Use programTypeForPayment here
-          patientName: selectedPatient?.name,
+            comment: `Initial payment for ${programTypeForPayment} - Student: ${selectedPatient?.name}`, // Use programTypeForPayment here
+            patientName: selectedPatient?.name,
           })
           if (moneyResponse.status === 200) {
             if (programTypeForPayment === "school_evaluation") {
@@ -741,70 +785,97 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
             // Reset form fields after successful payment
             resetFormFields()
 
-  await sendNotification({
-            isList: false,
-            title: `Booking New Appointment`,
-            message: `We have created a new appointment in ${programPayload.programType
-              .replace(/_/g, " ")
-              .split(" ")
-              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(" ")} for you, on date: ${
-              new Date(programPayload.date).toISOString().split("T")[0]
-            } and time: ${programPayload.time}`,
-            receiverId: selectedPatient?.id,
-            rule: "Patient",
-            type: "create",
-          });
-
-          if (doctorIds.length > 0) {
             await sendNotification({
-              isList: true,
-              title: `New ${programPayload.programType
+              isList: false,
+              title: `Booking New Appointment`,
+              message: `We have created a new appointment in ${programPayload.programType
                 .replace(/_/g, " ")
                 .split(" ")
                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(" ")} Created`,
-              message: `Create a new program to student: ${selectedPatient?.name}`,
-              receiverIds: doctorIds,
-              rule: "Doctor",
+                .join(" ")} for you, on date: ${
+                new Date(programPayload.date).toISOString().split("T")[0]
+              } and time: ${programPayload.time}`,
+              receiverId: selectedPatient?.id,
+              rule: "Patient",
               type: "create",
-            });
-          }
+            })
 
-          // await sendEmail({
-          //   to: `${selectedPatient?.email}`,
-          //   filePath: "",
-          //   subject: "Booking New Appointment",
-          //   text: `We have booked a new appointment in ${programPayload.programType
-          //     .replace(/_/g, " ")
-          //     .split(" ")
-          //     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          //     .join(" ")} for you at date: ${
-          //     new Date(programPayload.date).toISOString().split("T")[0]
-          //   } and time: ${programPayload.time}`,
-          // });
+            if (doctorIds.length > 0) {
+              await sendNotification({
+                isList: true,
+                title: `New ${programPayload.programType
+                  .replace(/_/g, " ")
+                  .split(" ")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ")} Created`,
+                message: `Create a new program to student: ${selectedPatient?.name}`,
+                receiverIds: doctorIds,
+                rule: "Doctor",
+                type: "create",
+              })
+            }
+
+            const formattedProgramType = programPayload.programType
+              .replace(/_/g, " ")
+              .split(" ")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")
+            const formattedDate = new Date(programPayload.date).toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+
+            await sendNotificationToAdminsAndHeadDoctors(
+              "New Appointment Booked (from the center)",
+              `Patient ${selectedPatient?.name} has booked a ${formattedProgramType} appointment on ${formattedDate} at ${programPayload.time}.`,
+              "create",
+            )
+
+            // await sendEmail({
+            //   to: `${selectedPatient?.email}`,
+            //   filePath: "",
+            //   subject: "Booking New Appointment",
+            //   text: `We have booked a new appointment in ${programPayload.programType
+            //     .replace(/_/g, " ")
+            //     .split(" ")
+            //     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            //     .join(" ")} for you at date: ${
+            //     new Date(programPayload.date).toISOString().split("T")[0]
+            //   } and time: ${programPayload.time}`,
+            // });
 
             setCurrentStep(5) // Move to complete step
           }
-        } 
-        else if (programTypeForPayment === "full_program"){
-
+        } else if (programTypeForPayment === "full_program") {
           const moneyResponse = await axiosInstance.post("/authentication/saveMoneyRecord", {
-          patientId: selectedPatient?.id,
+            patientId: selectedPatient?.id,
             programId,
             price: initialPayment, // Full amount but pending
             status: "completed", // Changed from "completed" to "pending"
             invoiceId: `INV-${Math.random().toString(36).substring(2, 15)}`,
             programType: programTypeForPayment, // Use programTypeForPayment here
-            comment: `Initial 20% fees payment for ${programTypeForPayment} - Student: ${ selectedPatient?.name}`, // Use programTypeForPayment here
-          patientName: selectedPatient?.name,
+            comment: `Initial 20% fees payment for ${programTypeForPayment} - Student: ${selectedPatient?.name}`, // Use programTypeForPayment here
+            patientName: selectedPatient?.name,
           })
           if (moneyResponse.status === 200) {
-              setCurrentStep(5) // Move to complete step
-                          resetFormFields()
+            const formattedDate = new Date(programPayload.date).toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
 
+            await sendNotificationToAdminsAndHeadDoctors(
+              "New Appointment Booked (from the center)",
+              `Patient ${selectedPatient?.name} has booked a Full Package Evaluation appointment on ${formattedDate} at ${programPayload.time}.`,
+              "create",
+            )
+
+            setCurrentStep(5) // Move to complete step
+            resetFormFields()
           }
-        
         }
       }
     } catch (error) {
@@ -814,8 +885,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
         const errorData = error.response.data
         if (errorData.error === "APPOINTMENT_CONFLICT" || errorData.error === "DUPLICATE_APPOINTMENT") {
           alert(
-
-          `Sorry, this time slot is already booked. Please choose a different time.\n\nConflicting appointment: ${errorData.conflictingAppointment?.time || "Unknown time"}`,
+            `Sorry, this time slot is already booked. Please choose a different time.\n\nConflicting appointment: ${errorData.conflictingAppointment?.time || "Unknown time"}`,
           )
           // Go back to the scheduling step
           setCurrentStep(0)
@@ -845,7 +915,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
     totalPrice,
     formatTimeToHHMM,
     selectedTime,
-     selectedPatient?.id,
+    selectedPatient?.id,
     selectedServices,
     selectedPatient?.name,
     createPatientSchoolAssignment,
@@ -856,6 +926,8 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
     fetchBookedSlots,
     verifyAvailabilityBeforePayment, // Keep verifyAvailabilityBeforePayment in dependencies
     resetFormFields, // Add resetFormFields to dependencies
+    adminHeadDoctorIds,
+    sendNotificationToAdminsAndHeadDoctors,
   ])
 
   // Steps configuration (UPDATED with 6 steps)
