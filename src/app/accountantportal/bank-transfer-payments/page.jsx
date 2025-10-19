@@ -5,6 +5,7 @@ import { useAccountantLanguage } from "../../../contexts/accountant-language-con
 import axiosInstance from "@/helper/axiosSetup"
 import styles from "./bank-transfer-payments.module.css"
 import { Check, X, Calendar, Clock, User, DollarSign, AlertCircle, Building2, FileText, ImageIcon } from "lucide-react"
+import BankTransferAccessControl from "./access-control"
 
 export default function BankTransferPaymentsPage() {
   const { language } = useAccountantLanguage()
@@ -190,155 +191,161 @@ export default function BankTransferPaymentsPage() {
   }
 
   return (
-    <div className={styles.pageContainer}>
-      <AccountantHeader
-        user={user}
-        loading={loading}
-        onLoginClick={() => {
-          window.location.href = "/accountantportal"
-        }}
-        onLogout={handleLogout}
-      />
+    <>
+      <BankTransferAccessControl />
 
-      <div className={styles.contentContainer}>
-        <div className={styles.header}>
-          <div className={styles.headerIcon}>
-            <Building2 size={32} />
+      <div className={styles.pageContainer}>
+        <AccountantHeader
+          user={user}
+          loading={loading}
+          onLoginClick={() => {
+            window.location.href = "/accountantportal"
+          }}
+          onLogout={handleLogout}
+        />
+
+        <div className={styles.contentContainer}>
+          <div className={styles.header}>
+            <div className={styles.headerIcon}>
+              <Building2 size={32} />
+            </div>
+            <div className={styles.headerText}>
+              <h1 className={styles.title}>
+                {language === "ar" ? "التحويلات البنكية المعلقة" : "Pending Bank Transfers"}
+              </h1>
+              <p className={styles.subtitle}>
+                {language === "ar"
+                  ? "إدارة وتأكيد التحويلات البنكية للمرضى"
+                  : "Manage and confirm patient bank transfers"}
+              </p>
+            </div>
           </div>
-          <div className={styles.headerText}>
-            <h1 className={styles.title}>
-              {language === "ar" ? "التحويلات البنكية المعلقة" : "Pending Bank Transfers"}
-            </h1>
-            <p className={styles.subtitle}>
-              {language === "ar"
-                ? "إدارة وتأكيد التحويلات البنكية للمرضى"
-                : "Manage and confirm patient bank transfers"}
-            </p>
-          </div>
+
+          {isLoadingPayments ? (
+            <div className={styles.loadingContainer}>
+              <div className={styles.spinner}></div>
+              <p>{language === "ar" ? "جارٍ التحميل..." : "Loading..."}</p>
+            </div>
+          ) : bankTransferPayments.length === 0 ? (
+            <div className={styles.emptyState}>
+              <AlertCircle size={48} className={styles.emptyIcon} />
+              <h3>{language === "ar" ? "لا توجد تحويلات معلقة" : "No Pending Transfers"}</h3>
+              <p>
+                {language === "ar" ? "جميع التحويلات البنكية تم تأكيدها" : "All bank transfers have been confirmed"}
+              </p>
+            </div>
+          ) : (
+            <div className={styles.tableContainer}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>{language === "ar" ? "اسم المريض" : "Patient Name"}</th>
+                    <th>{language === "ar" ? "نوع البرنامج" : "Program Type"}</th>
+                    <th>{language === "ar" ? "التاريخ" : "Date"}</th>
+                    <th>{language === "ar" ? "الوقت" : "Time"}</th>
+                    <th>{language === "ar" ? "المبلغ" : "Amount"}</th>
+                    <th>{language === "ar" ? "الوصف" : "Description"}</th>
+                    <th>{language === "ar" ? "إيصال التحويل" : "Transfer Receipt"}</th>
+                    <th>{language === "ar" ? "الإجراءات" : "Actions"}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bankTransferPayments.map((payment) => (
+                    <tr key={payment.programId}>
+                      <td>
+                        <div className={styles.patientCell}>
+                          <User size={18} />
+                          <span>{payment.patientName}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={styles.programTypeBadge}>{getProgramTypeLabel(payment.programType)}</span>
+                      </td>
+                      <td>
+                        <div className={styles.dateCell}>
+                          <Calendar size={16} />
+                          <span>{formatDate(payment.date)}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className={styles.timeCell}>
+                          <Clock size={16} />
+                          <span>{payment.time}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className={styles.amountCell}>
+                          <DollarSign size={16} />
+                          <span className={styles.amount}>{payment.amount} AED</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className={styles.descriptionCell}>
+                          <FileText size={16} />
+                          <span className={styles.description}>{payment.description || "N/A"}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <button
+                          onClick={() => handleViewScreenshot(payment.transferScreenshot)}
+                          className={styles.viewScreenshotButton}
+                          disabled={!payment.transferScreenshot}
+                          title={language === "ar" ? "عرض الإيصال" : "View Receipt"}
+                        >
+                          <ImageIcon size={18} />
+                          {language === "ar" ? "عرض" : "View"}
+                        </button>
+                      </td>
+                      <td>
+                        <div className={styles.actionsCell}>
+                          <button
+                            onClick={() => handleConfirmPayment(payment)}
+                            disabled={processingPaymentId === payment.programId}
+                            className={`${styles.actionButton} ${styles.confirmButton}`}
+                            title={language === "ar" ? "تأكيد التحويل" : "Confirm Transfer"}
+                          >
+                            <Check size={18} />
+                            {language === "ar" ? "تأكيد" : "Confirm"}
+                          </button>
+                          <button
+                            onClick={() => handleCancelAppointment(payment)}
+                            disabled={processingPaymentId === payment.programId}
+                            className={`${styles.actionButton} ${styles.cancelButton}`}
+                            title={language === "ar" ? "إلغاء الموعد" : "Cancel Appointment"}
+                          >
+                            <X size={18} />
+                            {language === "ar" ? "إلغاء" : "Cancel"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
-        {isLoadingPayments ? (
-          <div className={styles.loadingContainer}>
-            <div className={styles.spinner}></div>
-            <p>{language === "ar" ? "جارٍ التحميل..." : "Loading..."}</p>
-          </div>
-        ) : bankTransferPayments.length === 0 ? (
-          <div className={styles.emptyState}>
-            <AlertCircle size={48} className={styles.emptyIcon} />
-            <h3>{language === "ar" ? "لا توجد تحويلات معلقة" : "No Pending Transfers"}</h3>
-            <p>{language === "ar" ? "جميع التحويلات البنكية تم تأكيدها" : "All bank transfers have been confirmed"}</p>
-          </div>
-        ) : (
-          <div className={styles.tableContainer}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>{language === "ar" ? "اسم المريض" : "Patient Name"}</th>
-                  <th>{language === "ar" ? "نوع البرنامج" : "Program Type"}</th>
-                  <th>{language === "ar" ? "التاريخ" : "Date"}</th>
-                  <th>{language === "ar" ? "الوقت" : "Time"}</th>
-                  <th>{language === "ar" ? "المبلغ" : "Amount"}</th>
-                  <th>{language === "ar" ? "الوصف" : "Description"}</th>
-                  <th>{language === "ar" ? "إيصال التحويل" : "Transfer Receipt"}</th>
-                  <th>{language === "ar" ? "الإجراءات" : "Actions"}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bankTransferPayments.map((payment) => (
-                  <tr key={payment.programId}>
-                    <td>
-                      <div className={styles.patientCell}>
-                        <User size={18} />
-                        <span>{payment.patientName}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span className={styles.programTypeBadge}>{getProgramTypeLabel(payment.programType)}</span>
-                    </td>
-                    <td>
-                      <div className={styles.dateCell}>
-                        <Calendar size={16} />
-                        <span>{formatDate(payment.date)}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className={styles.timeCell}>
-                        <Clock size={16} />
-                        <span>{payment.time}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className={styles.amountCell}>
-                        <DollarSign size={16} />
-                        <span className={styles.amount}>{payment.amount} AED</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className={styles.descriptionCell}>
-                        <FileText size={16} />
-                        <span className={styles.description}>{payment.description || "N/A"}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <button
-                        onClick={() => handleViewScreenshot(payment.transferScreenshot)}
-                        className={styles.viewScreenshotButton}
-                        disabled={!payment.transferScreenshot}
-                        title={language === "ar" ? "عرض الإيصال" : "View Receipt"}
-                      >
-                        <ImageIcon size={18} />
-                        {language === "ar" ? "عرض" : "View"}
-                      </button>
-                    </td>
-                    <td>
-                      <div className={styles.actionsCell}>
-                        <button
-                          onClick={() => handleConfirmPayment(payment)}
-                          disabled={processingPaymentId === payment.programId}
-                          className={`${styles.actionButton} ${styles.confirmButton}`}
-                          title={language === "ar" ? "تأكيد التحويل" : "Confirm Transfer"}
-                        >
-                          <Check size={18} />
-                          {language === "ar" ? "تأكيد" : "Confirm"}
-                        </button>
-                        <button
-                          onClick={() => handleCancelAppointment(payment)}
-                          disabled={processingPaymentId === payment.programId}
-                          className={`${styles.actionButton} ${styles.cancelButton}`}
-                          title={language === "ar" ? "إلغاء الموعد" : "Cancel Appointment"}
-                        >
-                          <X size={18} />
-                          {language === "ar" ? "إلغاء" : "Cancel"}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {showModal && selectedScreenshot && (
+          <div className={styles.modalOverlay} onClick={handleCloseModal}>
+            <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+              <button className={styles.modalCloseButton} onClick={handleCloseModal}>
+                <X size={24} />
+              </button>
+              <div className={styles.modalImageContainer}>
+                <img
+                  src={selectedScreenshot || "/placeholder.svg"}
+                  alt="Bank Transfer Screenshot"
+                  className={styles.modalImage}
+                />
+              </div>
+              <div className={styles.modalFooter}>
+                <p>{language === "ar" ? "إيصال التحويل البنكي" : "Bank Transfer Receipt"}</p>
+              </div>
+            </div>
           </div>
         )}
       </div>
-
-      {showModal && selectedScreenshot && (
-        <div className={styles.modalOverlay} onClick={handleCloseModal}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.modalCloseButton} onClick={handleCloseModal}>
-              <X size={24} />
-            </button>
-            <div className={styles.modalImageContainer}>
-              <img
-                src={selectedScreenshot || "/placeholder.svg"}
-                alt="Bank Transfer Screenshot"
-                className={styles.modalImage}
-              />
-            </div>
-            <div className={styles.modalFooter}>
-              <p>{language === "ar" ? "إيصال التحويل البنكي" : "Bank Transfer Receipt"}</p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </>
   )
 }
