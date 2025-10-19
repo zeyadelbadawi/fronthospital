@@ -19,6 +19,7 @@ import {
 import styles from "../styles/accountant-appointments.module.css"
 import axiosInstance from "@/helper/axiosSetup"
 import { useAccountantLanguage } from "../contexts/accountant-language-context"
+import { sendNotification } from "@/helper/notification-helper"
 
 export function AccountantAppointments() {
   const { language } = useAccountantLanguage()
@@ -441,6 +442,14 @@ export function AccountantAppointments() {
           response.data.programDescription,
           selectedAppointment.patientName,
         )
+
+        await sendPaymentNotification(
+          selectedAppointment.patientid,
+          selectedAppointment.patientName,
+          paymentMethod,
+          checkDetails,
+        )
+
         alert(translations.messages.paymentSuccess)
         setShowPaymentModal(false)
         setSelectedAppointment(null)
@@ -451,6 +460,54 @@ export function AccountantAppointments() {
       alert(translations.messages.paymentError + (error.response?.data?.message || error.message))
     } finally {
       setProcessing(false)
+    }
+  }
+
+  const sendPaymentNotification = async (patientId, patientName, paymentMethod, checkDetails) => {
+    try {
+      if (paymentMethod === "cash") {
+        // Cash payment - program is fully paid
+        const notificationTitle = language === "ar" ? "تم تأكيد الدفع النقدي" : "Cash Payment Confirmed"
+        const notificationMessage =
+          language === "ar"
+            ? `تم تأكيد دفع برنامجك بالكامل بنجاح. مبروك! يمكنك الآن البدء في برنامجك الكامل.`
+            : `Your full program payment has been confirmed successfully. Congratulations! You can now start your full program.`
+
+        await sendNotification({
+          isList: false,
+          receiverId: patientId,
+          rule: "Patient",
+          title: notificationTitle,
+          titleAr: "تم تأكيد الدفع النقدي",
+          message: notificationMessage,
+          messageAr: `تم تأكيد دفع برنامجك بالكامل بنجاح. مبروك! يمكنك الآن البدء في برنامجك الكامل.`,
+          type: "confirmed",
+        })
+      } else if (paymentMethod === "installment") {
+        // Installment payment - program started with checks to be paid
+        const numberOfChecks = checkDetails.filter((check) => check.amount && check.amount > 0).length
+        const notificationTitle = language === "ar" ? "تم بدء البرنامج" : "Program Started"
+        const notificationMessage =
+          language === "ar"
+            ? `تم بدء برنامجك بنجاح! لديك ${numberOfChecks} شيك${numberOfChecks > 1 ? "ات" : ""} يجب دفعها. تاريخ الاستحقاق الأول: ${checkDetails[0]?.dueDate || "قريباً"}`
+            : `Your program has been started successfully! You have ${numberOfChecks} check${numberOfChecks > 1 ? "s" : ""} to pay. First due date: ${checkDetails[0]?.dueDate || "Soon"}`
+
+        await sendNotification({
+          isList: false,
+          receiverId: patientId,
+          rule: "Patient",
+          title: notificationTitle,
+          titleAr: "تم بدء البرنامج",
+          message: notificationMessage,
+          messageAr: `تم بدء برنامجك بنجاح! لديك ${numberOfChecks} شيك${numberOfChecks > 1 ? "ات" : ""} يجب دفعها. تاريخ الاستحقاق الأول: ${checkDetails[0]?.dueDate || "قريباً"}`,
+          type: "confirmed",
+        })
+      }
+
+      console.log("[v0] Payment notification sent successfully to patient:", patientId)
+    } catch (error) {
+      console.error("[v0] Error sending payment notification:", error)
+      // Don't throw error - payment was successful, notification failure shouldn't block the flow
     }
   }
 
@@ -847,8 +904,8 @@ export function AccountantAppointments() {
                         {translations.modals.addCheck}
                       </button>
                       <div className={styles.totalAmount}>
-                        {translations.modals.total}: {getTotalCheckAmount()} {language === "ar" ? "درهم امراتي" : "AED"} (
-                        {translations.modals.min}: 4,000 {language === "ar" ? "درهم امراتي" : "AED"})
+                        {translations.modals.total}: {getTotalCheckAmount()} {language === "ar" ? "درهم امراتي" : "AED"}{" "}
+                        ({translations.modals.min}: 4,000 {language === "ar" ? "درهم امراتي" : "AED"})
                       </div>
                     </div>
                   </div>
