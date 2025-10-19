@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import styles from "../styles/close-quarter-form.module.css"
 import axiosInstance from "@/helper/axiosSetup"
+import { sendNotification } from "@/helper/notification-helper"
+import { getCurrentUserId } from "@/app/full-program/utils/auth-utils"
 import { CalendarCheck, TriangleAlert, X } from "lucide-react"
 
 // Department configuration
@@ -35,7 +37,7 @@ const DEPARTMENT_CONFIG = {
     displayName: "Special Education",
     endpoint: "SpecialEducation",
   },
-    Psychotherapy: {
+  Psychotherapy: {
     name: "Psychotherapy",
     displayName: "Psychotherapy",
     endpoint: "Psychotherapy",
@@ -85,10 +87,71 @@ const GenericCloseQuarterForm = ({
     },
   })
 
-
   const handleClose = () => {
     if (onClose) {
       onClose()
+    }
+  }
+
+  const sendQuarterClosedNotification = async (patientId, quarterNumber, yearNumber, docType, departmentName) => {
+    try {
+      const docTypeLabel = docType === "exam" ? "Exam" : "Plan"
+      const docTypeLower = docType === "exam" ? "exam" : "plan"
+      const docTypeArabic = docType === "exam" ? "اختبار" : "خطه"
+
+      await sendNotification({
+        isList: false,
+        receiverId: patientId,
+        rule: "Patient",
+        title: `Your ${docTypeLabel} is Ready`,
+        titleAr: `${docTypeLabel} الخاص بك جاهز`,
+        message: `Your ${docTypeLower} of ${departmentName} for quarter ${quarterNumber} of year ${yearNumber} is now ready and you can view it in your profile`,
+        messageAr: `${docTypeArabic} الخاص بك في قسم ${departmentName} للربع ${quarterNumber} للسنة ${yearNumber} جاهز الآن ويمكنك عرضه في ملفك الشخصي`,
+        type: "successfully",
+      })
+    } catch (error) {
+      console.error("Failed to send notification:", error)
+      // Don't throw error - notification failure shouldn't block quarter closing
+    }
+  }
+
+  const sendAdminHeadDoctorNotification = async (
+    doctorName,
+    patientName,
+    quarterNumber,
+    yearNumber,
+    docType,
+    departmentName,
+  ) => {
+    try {
+      const docTypeLabel = docType === "exam" ? "Exam" : "Plan"
+      const docTypeLower = docType === "exam" ? "exam" : "plan"
+      const docTypeArabic = docType === "exam" ? "اختبار" : "خطه"
+
+      // Fetch all admin and head doctor IDs
+      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/notification/admin-headdoctor-ids`)
+      const { adminIds, headDoctorIds } = response.data
+      const allReceiverIds = [...adminIds, ...headDoctorIds]
+
+      if (allReceiverIds.length === 0) {
+        console.warn("No admins or head doctors found to notify")
+        return
+      }
+
+      // Send bulk notification to all admins and head doctors
+      await sendNotification({
+        isList: true,
+        receiverIds: allReceiverIds,
+        rule: "Admin", // Using Admin as the rule for both admins and head doctors
+        title: `${docTypeLabel} Closed`,
+        titleAr: `تم إغلاق ${docTypeLabel}`,
+        message: `Dr ${doctorName} closed the ${docTypeLower} of ${departmentName} for Student ${patientName} for quarter ${quarterNumber} of year ${yearNumber}`,
+        messageAr: `د. ${doctorName} أغلق ${docTypeArabic} قسم ${departmentName} للطالب ${patientName} للربع ${quarterNumber} من السنة ${yearNumber}`,
+        type: "update",
+      })
+    } catch (error) {
+      console.error("Failed to send admin/head doctor notification:", error)
+      // Don't throw error - notification failure shouldn't block quarter closing
     }
   }
 
@@ -110,6 +173,58 @@ const GenericCloseQuarterForm = ({
       if (response.status !== 200) {
         throw new Error(response.data?.message || `Failed to close quarter and generate next ${type}`)
       }
+
+      const doctorId = getCurrentUserId()
+      let doctorName = "Doctor"
+      let patientName = "Patient"
+
+      try {
+        // Fetch doctor info
+        const doctorResponse = await axiosInstance.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/authentication/doctor/${doctorId}`,
+        )
+        const doctor = doctorResponse.data
+        doctorName =
+          doctor.fullName ||
+          (doctor.firstName && doctor.lastName ? `${doctor.firstName} ${doctor.lastName}` : null) ||
+          doctor.firstName ||
+          doctor.lastName ||
+          doctor.name ||
+          doctor.username ||
+          "Doctor"
+      } catch (err) {
+        console.warn("Could not fetch doctor name:", err)
+      }
+
+      try {
+        // Fetch patient info
+        const patientResponse = await axiosInstance.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/authentication/patient/${data.patientId}`,
+        )
+        const patient = patientResponse.data
+        patientName =
+          patient.name ||
+          (patient.firstName && patient.lastName ? `${patient.firstName} ${patient.lastName}` : null) ||
+          patient.firstName ||
+          patient.lastName ||
+          patient.username ||
+          "Patient"
+      } catch (err) {
+        console.warn("Could not fetch patient name:", err)
+      }
+
+      // Send notification to patient
+      await sendQuarterClosedNotification(data.patientId, data.quarterOfYear, data.year, type, config.displayName)
+
+      // Send notification to all admins and head doctors
+      await sendAdminHeadDoctorNotification(
+        doctorName,
+        patientName,
+        data.quarterOfYear,
+        data.year,
+        type,
+        config.displayName,
+      )
 
       if (onSuccess) onSuccess(data)
       alert(`Quarter Closed: Quarter ${data.quarterOfYear}/${data.year} closed successfully!`)
