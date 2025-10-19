@@ -5,6 +5,10 @@ import Breadcrumb from "@/components/Breadcrumb"
 import MasterLayout from "@/masterLayout/MasterLayout"
 
 function AddPageContent({ role }) {
+  if (!role) {
+    return <div>Loading...</div>
+  }
+
   const heading = `Add ${role.charAt(0).toUpperCase() + role.slice(1)}`
   const title = `Add ${role.charAt(0).toUpperCase() + role.slice(1)}`
 
@@ -16,8 +20,9 @@ function AddPageContent({ role }) {
   )
 }
 
-export default function AddPageClientWrapper({ params }) {
-  const role = params.role
+export default async function AddPageClientWrapper({ params }) {
+  const awaitedParams = await params
+  const role = awaitedParams.role
 
   return <RBACWrapper>{() => <AddPageContent role={role} />}</RBACWrapper>
 }
