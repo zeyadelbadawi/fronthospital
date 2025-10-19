@@ -1,5 +1,5 @@
 "use client"
-import CustomLink from '@/components/CustomLink'
+import CustomLink from "@/components/CustomLink"
 import { useState, useRef, useEffect } from "react"
 import { ChevronDown, Bell, CheckCircle, XCircle, Info, AlertCircle, Mail, Calendar, Package } from "lucide-react"
 import styles from "../styles/DoctorHeader.module.css"
@@ -24,21 +24,26 @@ export default function DoctorHeader({
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0) // Renamed from 'count' for clarity
 
-  // Debug: Log user object to see what's available
-
-
   // Use useSocket hook for real-time updates
-  useSocket(user?.id, ({ count, notifications: newNotifications }) => {
-    setNotifications(newNotifications || [])
-    setUnreadCount(count || 0)
+  useSocket(user?.id, (data) => {
+    console.log("[v0] Socket notification received:", data)
+    if (data && data.notifications) {
+      setNotifications(data.notifications || [])
+      setUnreadCount(data.count || 0)
+    }
   })
 
   // Function to fetch notifications from the backend
   const getNotifications = async () => {
     try {
-      if (!user?.id) return // Ensure user ID is available
+      if (!user?.id) {
+        console.log("[v0] No user ID available, skipping notification fetch")
+        return // Ensure user ID is available
+      }
+      console.log("[v0] Fetching notifications for user:", user?.id)
       const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/notification/byId/${user?.id}`)
       const fetchedNotifications = response.data.notifications || []
+      console.log("[v0] Fetched notifications:", fetchedNotifications)
       setNotifications(fetchedNotifications)
       setUnreadCount(fetchedNotifications.filter((notif) => !notif.isRead).length)
     } catch (error) {
@@ -207,7 +212,11 @@ export default function DoctorHeader({
 
               {dropdownOpen && (
                 <div className={styles.dropdownMenu}>
-                  <CustomLink href="/calendar-main" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                  <CustomLink
+                    href="/calendar-main"
+                    className={styles.dropdownItem}
+                    onClick={() => setDropdownOpen(false)}
+                  >
                     weekly schedule
                   </CustomLink>
                   <CustomLink
