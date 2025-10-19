@@ -73,7 +73,6 @@ export const ROUTES_CONFIG = {
     "/accountantportal/full-program-payment",
     "/accountantportal/profile-accountant",
     "/accountantportal/cash-payments",
-    "/accountantportal/bank-transfer-payments",
   ],
 
   // Patient role - access to booking and personal information
