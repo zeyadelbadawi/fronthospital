@@ -8,7 +8,16 @@ import styles from "./styles/loading.module.css"
 import { useRoleBasedAuth } from "@/hooks/useRoleBasedAuth"
 
 function CalendarContent() {
-  const { user, logout } = useRoleBasedAuth()
+  const { user, loading, logout } = useRoleBasedAuth()
+
+  if (loading || !user) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <p>Loading calendar...</p>
+      </div>
+    )
+  }
 
   // Render for doctor role
   if (user.role === "doctor") {
