@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import styles from "../styles/doctor-appointments.module.css"
 import axiosInstance from "@/helper/axiosSetup"
+import { sendNotification } from "@/helper/notification-helper"
 
 export function DoctorAppointments() {
   const [appointments, setAppointments] = useState([])
@@ -200,6 +201,39 @@ export function DoctorAppointments() {
       const response = await axiosInstance.put(`/full/fullprogram/${appointmentId}`, {
         status: "active",
       })
+
+      const appointmentToUpdate = appointments.find((app) => app._id === appointmentId)
+      if (appointmentToUpdate) {
+        try {
+          const accountantIdsResponse = await axiosInstance.get("/notification/accountant-ids")
+          const accountantIdsList = accountantIdsResponse.data
+
+          console.log("[v0] Accountant IDs fetched:", accountantIdsList)
+
+          if (accountantIdsList && accountantIdsList.length > 0) {
+            console.log("[v0] Sending notification to accountants:", accountantIdsList)
+
+            await sendNotification({
+              isList: true,
+              receiverIds: accountantIdsList,
+              rule: "Accountant",
+              title: "Patient Ready for Payment",
+              titleAr: "المريض جاهز للدفع",
+              message: `${appointmentToUpdate.patientName} has finished their evaluation session and is ready for payment. You will find their record in the Full Program Payment page.`,
+              messageAr: `${appointmentToUpdate.patientName} انتهى من جلسة التقييم وجاهز للدفع. ستجد سجله في صفحة دفع البرنامج الكامل.`,
+              type: "payment_ready",
+            })
+
+            console.log("[v0] Notification sent successfully to accountants")
+          } else {
+            console.log("[v0] No accountants found to notify")
+          }
+        } catch (notificationError) {
+          console.error("[v0] Error sending notification to accountants:", notificationError)
+          // Don't fail the appointment marking if notification fails
+        }
+      }
+
       setAppointments(appointments.map((app) => (app._id === appointmentId ? { ...app, status: "active" } : app)))
       alert("Appointment marked as active! Student can now proceed to payment.")
     } catch (error) {
