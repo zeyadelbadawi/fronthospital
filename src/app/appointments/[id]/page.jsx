@@ -10,6 +10,7 @@ import Breadcrumb from "@/components/Breadcrumb"
 import MasterLayout from "@/masterLayout/MasterLayout"
 import PatientAssignmentWarningModal from "@/components/PatientAssignmentWarningModal"
 import toastStyles from "@/styles/toast.module.css" // Import toast styles
+import AppointmentAccessControl from "./access-control"
 
 export default function StudentsAppointmentDepartment({ params }) {
   const [studentsByDepartment, setStudentsByDepartment] = useState({})
@@ -203,275 +204,281 @@ export default function StudentsAppointmentDepartment({ params }) {
   const endIndex2 = startIndex2 + 10
   const paginatedStudentsAppointment = filteredStudentsAppointment.slice(startIndex2, endIndex2)
 
-  return loading ? (
-    <div className={styles.appointmentDetailContainer}>
-      <Loader text="Loading appointment details..." />
-    </div>
-  ) : (
-    <>
-      {/* Toast Notification */}
-      {toastMessage.visible && (
-        <div className={`${toastStyles.toast} ${toastStyles[toastMessage.type]}`}>{toastMessage.message}</div>
-      )}
-
-      {/* MasterLayout */}
-      <MasterLayout>
-        {/* Breadcrumb */}
-        <Breadcrumb heading="Students Appointment Management" title="Students Appointment Management" />
+  return (
+    <AppointmentAccessControl>
+      {loading ? (
         <div className={styles.appointmentDetailContainer}>
-          {/* Header Section */}
-          <div className={styles.headerSection}>
-            <div className={styles.headerContent}>
-              <div className={styles.titleSection}>
-                <h1 className={styles.pageTitle}>Students Appointment Management</h1>
-                <div className={styles.appointmentInfoCard}>
-                  <div className={styles.appointmentInfoContent}>
-                    <p className={styles.pageSubTitle}>Appointment Details:</p>
-
-                    <div className={styles.infoItem}>
-                      <Users className={`${styles.headerIconSvg} ${styles.ziadIconSvg}`} />
-                      <span className={styles.infoTextMuted}>
-                        <span className={styles.ziad}>Doctor Name:</span> {currentAppointment?.doctor?.username}
-                      </span>
-                    </div>
-                    <div className={styles.infoItem}>
-                      <Calendar className={`${styles.headerIconSvg} ${styles.ziadIconSvg}`} />
-                      <span className={styles.infoTextMuted}>
-                        <span className={styles.ziad}>Appointment Day: </span> {currentAppointment?.day}
-                      </span>
-                    </div>
-                    <div className={styles.infoItem}>
-                      <FileText className={`${styles.headerIconSvg} ${styles.ziadIconSvg}`} />
-                      <span className={styles.infoTextMuted}>
-                        <span className={styles.ziad}>Department: </span> {currentAppointment?.department}
-                      </span>
-                    </div>
-                    <div className={styles.infoItem}>
-                      <Timer className={`${styles.headerIconSvg} ${styles.ziadIconSvg}`} />
-                      <span className={styles.infoTextMuted}>
-                        {" "}
-                        <span className={styles.ziad}>Appointment time: </span>{" "}
-                        {` From ${convertUTCTo12Hour(currentAppointment?.start_time)} To ${convertUTCTo12Hour(
-                          currentAppointment?.end_time,
-                        )}`}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className={styles.mainContent}>
-            {/* Available Students Table */}
-            <div className={styles.studentCard}>
-              <div className={styles.cardHeader}>
-                <div className={`${styles.headerIcon} ${styles.primaryIcon}`}>
-                  <Users className={`${styles.headerIconSvg} ${styles.primaryIconSvg}`} />
-                </div>
-                <div className={styles.headerText}>
-                  <h5 className={styles.cardTitle}>Available Students</h5>
-                  <p className={styles.cardSubtitle}>
-                    Dr. {currentAppointment?.doctor?.username}'s Students in {currentAppointment?.department}
-                  </p>
-                </div>
-              </div>
-              <div className={styles.cardBody}>
-                <div className={styles.tableContainer}>
-                  <table className={styles.studentsTable}>
-                    <thead className={styles.tableHeader}>
-                      <tr>
-                        <th className={styles.centerHeader}>#</th>
-                        <th>Student Name</th>
-                        <th className={styles.centerHeader}>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loading ? (
-                        <tr>
-                          <td colSpan={3} className={styles.loadingRow}>
-                            <div className={styles.loadingContent}>
-                              <div className={styles.loadingSpinner}></div>
-                              <span className={styles.loadingText}>Loading...</span>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : paginatedStudentsByDepartment.length === 0 ? (
-                        <tr>
-                          <td colSpan={3} className={styles.emptyRow}>
-                            No available students found.
-                          </td>
-                        </tr>
-                      ) : (
-                        paginatedStudentsByDepartment.map((student, index) => (
-                          <tr key={student.patient._id} className={styles.tableRow}>
-                            <td className={styles.indexCell}>{startIndex1 + index + 1}</td>
-                            <td className={styles.studentCell}>
-                              <div className={styles.studentInfo}>
-                                <div className={`${styles.studentAvatar} ${styles.primaryAvatar}`}>
-                                  <span className={`${styles.avatarText} ${styles.primaryAvatarText}`}>
-                                    {student.patient.name.charAt(0).toUpperCase()}
-                                  </span>
-                                </div>
-                                <span className={styles.studentName}>{student.patient.name}</span>
-                              </div>
-                            </td>
-                            <td className={styles.actionCell}>
-                              <button
-                                type="button"
-                                className={`${styles.actionButton} ${styles.addButton}`}
-                                onClick={() =>
-                                  onAddStudent({
-                                    department: currentAppointment.department,
-                                    appointmentId: id,
-                                    patientId: student.patient._id,
-                                  })
-                                }
-                                disabled={buttonLoading}
-                              >
-                                {buttonLoading ? (
-                                  <div className={styles.loadingSpinner}></div>
-                                ) : (
-                                  <Plus className={styles.actionIcon} />
-                                )}
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-                {/* Pagination */}
-                <div className={styles.paginationContainer}>
-                  <small className={styles.paginationInfo}>
-                    Showing {startIndex1 + 1} to {Math.min(endIndex1, filteredStudentsByDepartment.length)} of{" "}
-                    {filteredStudentsByDepartment.length} entries
-                  </small>
-                  <div className={styles.paginationList}>
-                    {Array.from({ length: totalPages1 }, (_, i) => (
-                      <button
-                        key={i}
-                        className={`${styles.paginationButton} ${currentPage1 === i + 1 ? styles.paginationActive : ""}`}
-                        onClick={() => setCurrentPage1(i + 1)}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Appointed Students Table */}
-            <div className={styles.studentCard}>
-              <div className={styles.cardHeader}>
-                <div className={`${styles.headerIcon} ${styles.successIcon}`}>
-                  <CalendarCheck className={`${styles.headerIconSvg} ${styles.successIconSvg}`} />
-                </div>
-                <div className={styles.headerText}>
-                  <h5 className={styles.cardTitle}>Appointed Students</h5>
-                  <p className={styles.cardSubtitle}>Students with appointments in {currentAppointment?.department}</p>
-                </div>
-              </div>
-              <div className={styles.cardBody}>
-                <div className={styles.tableContainer}>
-                  <table className={styles.studentsTable}>
-                    <thead className={styles.tableHeader}>
-                      <tr>
-                        <th className={styles.centerHeader}>#</th>
-                        <th>Student Name</th>
-                        <th className={styles.centerHeader}>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loading ? (
-                        <tr>
-                          <td colSpan={3} className={styles.loadingRow}>
-                            <div className={styles.loadingContent}>
-                              <div className={`${styles.loadingSpinner} ${styles.loadingSpinnerSuccess}`}></div>
-                              <span className={styles.loadingText}>Loading...</span>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : paginatedStudentsAppointment.length === 0 ? (
-                        <tr>
-                          <td colSpan={3} className={styles.emptyRow}>
-                            No appointed students found.
-                          </td>
-                        </tr>
-                      ) : (
-                        paginatedStudentsAppointment.map((student, index) => (
-                          <tr key={student._id} className={styles.tableRow}>
-                            <td className={styles.indexCell}>{startIndex2 + index + 1}</td>
-                            <td className={styles.studentCell}>
-                              <div className={styles.studentInfo}>
-                                <div className={`${styles.studentAvatar} ${styles.successAvatar}`}>
-                                  <span className={`${styles.avatarText} ${styles.successAvatarText}`}>
-                                    {student.patientId.name.charAt(0).toUpperCase()}
-                                  </span>
-                                </div>
-                                <span className={styles.studentName}>{student.patientId.name}</span>
-                              </div>
-                            </td>
-                            <td className={styles.actionCell}>
-                              <button
-                                type="button"
-                                className={`${styles.actionButton} ${styles.removeButton}`}
-                                onClick={() => onDeleteStudent(student._id)}
-                                disabled={buttonLoading}
-                              >
-                                {buttonLoading ? (
-                                  <div className={styles.loadingSpinner}></div>
-                                ) : (
-                                  <Trash2 className={styles.actionIcon} />
-                                )}
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-                {/* Pagination */}
-                <div className={styles.paginationContainer}>
-                  <small className={styles.paginationInfo}>
-                    Showing {startIndex2 + 1} to {Math.min(endIndex2, filteredStudentsAppointment.length)} of{" "}
-                    {filteredStudentsAppointment.length} entries
-                  </small>
-                  <div className={styles.paginationList}>
-                    {Array.from({ length: totalPages2 }, (_, i) => (
-                      <button
-                        key={i}
-                        className={`${styles.paginationButton} ${currentPage2 === i + 1 ? styles.paginationActive : ""}`}
-                        onClick={() => setCurrentPage2(i + 1)}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Loader text="Loading appointment details..." />
         </div>
-        {/* Warning Modal - Updated to handle multiple appointments */}
-        <PatientAssignmentWarningModal
-          show={showWarningModal}
-          onClose={handleWarningModalClose}
-          onProceed={handleProceedWithAssignment}
-          patientName={
-            pendingAssignment
-              ? paginatedStudentsByDepartment.find((s) => s.patient._id === pendingAssignment.patientId)?.patient
-                  ?.name || "Unknown Student"
-              : ""
-          }
-          existingAppointments={conflictDetails?.existingAppointments || []}
-          totalConflicts={conflictDetails?.totalConflicts || 0}
-        />
-      </MasterLayout>
-    </>
+      ) : (
+        <>
+          {/* Toast Notification */}
+          {toastMessage.visible && (
+            <div className={`${toastStyles.toast} ${toastStyles[toastMessage.type]}`}>{toastMessage.message}</div>
+          )}
+
+          {/* MasterLayout */}
+          <MasterLayout>
+            {/* Breadcrumb */}
+            <Breadcrumb heading="Students Appointment Management" title="Students Appointment Management" />
+            <div className={styles.appointmentDetailContainer}>
+              {/* Header Section */}
+              <div className={styles.headerSection}>
+                <div className={styles.headerContent}>
+                  <div className={styles.titleSection}>
+                    <h1 className={styles.pageTitle}>Students Appointment Management</h1>
+                    <div className={styles.appointmentInfoCard}>
+                      <div className={styles.appointmentInfoContent}>
+                        <p className={styles.pageSubTitle}>Appointment Details:</p>
+
+                        <div className={styles.infoItem}>
+                          <Users className={`${styles.headerIconSvg} ${styles.ziadIconSvg}`} />
+                          <span className={styles.infoTextMuted}>
+                            <span className={styles.ziad}>Doctor Name:</span> {currentAppointment?.doctor?.username}
+                          </span>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <Calendar className={`${styles.headerIconSvg} ${styles.ziadIconSvg}`} />
+                          <span className={styles.infoTextMuted}>
+                            <span className={styles.ziad}>Appointment Day: </span> {currentAppointment?.day}
+                          </span>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <FileText className={`${styles.headerIconSvg} ${styles.ziadIconSvg}`} />
+                          <span className={styles.infoTextMuted}>
+                            <span className={styles.ziad}>Department: </span> {currentAppointment?.department}
+                          </span>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <Timer className={`${styles.headerIconSvg} ${styles.ziadIconSvg}`} />
+                          <span className={styles.infoTextMuted}>
+                            {" "}
+                            <span className={styles.ziad}>Appointment time: </span>{" "}
+                            {` From ${convertUTCTo12Hour(currentAppointment?.start_time)} To ${convertUTCTo12Hour(
+                              currentAppointment?.end_time,
+                            )}`}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Main Content */}
+              <div className={styles.mainContent}>
+                {/* Available Students Table */}
+                <div className={styles.studentCard}>
+                  <div className={styles.cardHeader}>
+                    <div className={`${styles.headerIcon} ${styles.primaryIcon}`}>
+                      <Users className={`${styles.headerIconSvg} ${styles.primaryIconSvg}`} />
+                    </div>
+                    <div className={styles.headerText}>
+                      <h5 className={styles.cardTitle}>Available Students</h5>
+                      <p className={styles.cardSubtitle}>
+                        Dr. {currentAppointment?.doctor?.username}'s Students in {currentAppointment?.department}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.cardBody}>
+                    <div className={styles.tableContainer}>
+                      <table className={styles.studentsTable}>
+                        <thead className={styles.tableHeader}>
+                          <tr>
+                            <th className={styles.centerHeader}>#</th>
+                            <th>Student Name</th>
+                            <th className={styles.centerHeader}>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {loading ? (
+                            <tr>
+                              <td colSpan={3} className={styles.loadingRow}>
+                                <div className={styles.loadingContent}>
+                                  <div className={styles.loadingSpinner}></div>
+                                  <span className={styles.loadingText}>Loading...</span>
+                                </div>
+                              </td>
+                            </tr>
+                          ) : paginatedStudentsByDepartment.length === 0 ? (
+                            <tr>
+                              <td colSpan={3} className={styles.emptyRow}>
+                                No available students found.
+                              </td>
+                            </tr>
+                          ) : (
+                            paginatedStudentsByDepartment.map((student, index) => (
+                              <tr key={student.patient._id} className={styles.tableRow}>
+                                <td className={styles.indexCell}>{startIndex1 + index + 1}</td>
+                                <td className={styles.studentCell}>
+                                  <div className={styles.studentInfo}>
+                                    <div className={`${styles.studentAvatar} ${styles.primaryAvatar}`}>
+                                      <span className={`${styles.avatarText} ${styles.primaryAvatarText}`}>
+                                        {student.patient.name.charAt(0).toUpperCase()}
+                                      </span>
+                                    </div>
+                                    <span className={styles.studentName}>{student.patient.name}</span>
+                                  </div>
+                                </td>
+                                <td className={styles.actionCell}>
+                                  <button
+                                    type="button"
+                                    className={`${styles.actionButton} ${styles.addButton}`}
+                                    onClick={() =>
+                                      onAddStudent({
+                                        department: currentAppointment.department,
+                                        appointmentId: id,
+                                        patientId: student.patient._id,
+                                      })
+                                    }
+                                    disabled={buttonLoading}
+                                  >
+                                    {buttonLoading ? (
+                                      <div className={styles.loadingSpinner}></div>
+                                    ) : (
+                                      <Plus className={styles.actionIcon} />
+                                    )}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                    {/* Pagination */}
+                    <div className={styles.paginationContainer}>
+                      <small className={styles.paginationInfo}>
+                        Showing {startIndex1 + 1} to {Math.min(endIndex1, filteredStudentsByDepartment.length)} of{" "}
+                        {filteredStudentsByDepartment.length} entries
+                      </small>
+                      <div className={styles.paginationList}>
+                        {Array.from({ length: totalPages1 }, (_, i) => (
+                          <button
+                            key={i}
+                            className={`${styles.paginationButton} ${currentPage1 === i + 1 ? styles.paginationActive : ""}`}
+                            onClick={() => setCurrentPage1(i + 1)}
+                          >
+                            {i + 1}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Appointed Students Table */}
+                <div className={styles.studentCard}>
+                  <div className={styles.cardHeader}>
+                    <div className={`${styles.headerIcon} ${styles.successIcon}`}>
+                      <CalendarCheck className={`${styles.headerIconSvg} ${styles.successIconSvg}`} />
+                    </div>
+                    <div className={styles.headerText}>
+                      <h5 className={styles.cardTitle}>Appointed Students</h5>
+                      <p className={styles.cardSubtitle}>
+                        Students with appointments in {currentAppointment?.department}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.cardBody}>
+                    <div className={styles.tableContainer}>
+                      <table className={styles.studentsTable}>
+                        <thead className={styles.tableHeader}>
+                          <tr>
+                            <th className={styles.centerHeader}>#</th>
+                            <th>Student Name</th>
+                            <th className={styles.centerHeader}>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {loading ? (
+                            <tr>
+                              <td colSpan={3} className={styles.loadingRow}>
+                                <div className={styles.loadingContent}>
+                                  <div className={`${styles.loadingSpinner} ${styles.loadingSpinnerSuccess}`}></div>
+                                  <span className={styles.loadingText}>Loading...</span>
+                                </div>
+                              </td>
+                            </tr>
+                          ) : paginatedStudentsAppointment.length === 0 ? (
+                            <tr>
+                              <td colSpan={3} className={styles.emptyRow}>
+                                No appointed students found.
+                              </td>
+                            </tr>
+                          ) : (
+                            paginatedStudentsAppointment.map((student, index) => (
+                              <tr key={student._id} className={styles.tableRow}>
+                                <td className={styles.indexCell}>{startIndex2 + index + 1}</td>
+                                <td className={styles.studentCell}>
+                                  <div className={styles.studentInfo}>
+                                    <div className={`${styles.studentAvatar} ${styles.successAvatar}`}>
+                                      <span className={`${styles.avatarText} ${styles.successAvatarText}`}>
+                                        {student.patientId.name.charAt(0).toUpperCase()}
+                                      </span>
+                                    </div>
+                                    <span className={styles.studentName}>{student.patientId.name}</span>
+                                  </div>
+                                </td>
+                                <td className={styles.actionCell}>
+                                  <button
+                                    type="button"
+                                    className={`${styles.actionButton} ${styles.removeButton}`}
+                                    onClick={() => onDeleteStudent(student._id)}
+                                    disabled={buttonLoading}
+                                  >
+                                    {buttonLoading ? (
+                                      <div className={styles.loadingSpinner}></div>
+                                    ) : (
+                                      <Trash2 className={styles.actionIcon} />
+                                    )}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                    {/* Pagination */}
+                    <div className={styles.paginationContainer}>
+                      <small className={styles.paginationInfo}>
+                        Showing {startIndex2 + 1} to {Math.min(endIndex2, filteredStudentsAppointment.length)} of{" "}
+                        {filteredStudentsAppointment.length} entries
+                      </small>
+                      <div className={styles.paginationList}>
+                        {Array.from({ length: totalPages2 }, (_, i) => (
+                          <button
+                            key={i}
+                            className={`${styles.paginationButton} ${currentPage2 === i + 1 ? styles.paginationActive : ""}`}
+                            onClick={() => setCurrentPage2(i + 1)}
+                          >
+                            {i + 1}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Warning Modal - Updated to handle multiple appointments */}
+            <PatientAssignmentWarningModal
+              show={showWarningModal}
+              onClose={handleWarningModalClose}
+              onProceed={handleProceedWithAssignment}
+              patientName={
+                pendingAssignment
+                  ? paginatedStudentsByDepartment.find((s) => s.patient._id === pendingAssignment.patientId)?.patient
+                      ?.name || "Unknown Student"
+                  : ""
+              }
+              existingAppointments={conflictDetails?.existingAppointments || []}
+              totalConflicts={conflictDetails?.totalConflicts || 0}
+            />
+          </MasterLayout>
+        </>
+      )}
+    </AppointmentAccessControl>
   )
 }
