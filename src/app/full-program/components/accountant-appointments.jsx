@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import styles from "../styles/accountant-appointments.module.css"
 import axiosInstance from "@/helper/axiosSetup"
+import { sendNotification } from "@/helper/notification-helper"
 
 export function AccountantAppointments() {
   const [appointments, setAppointments] = useState([])
@@ -206,6 +207,52 @@ export function AccountantAppointments() {
     return errors
   }
 
+  const sendPaymentNotification = async (appointment, paymentMethod) => {
+    try {
+      const patientId = appointment.patientid
+      const checkCount = paymentMethod === "installment" ? checkDetails.length : 0
+      const firstCheckDueDate = paymentMethod === "installment" ? checkDetails[0]?.dueDate : null
+
+      if (paymentMethod === "cash") {
+        // Notify patient that program is fully paid
+        await sendNotification({
+          isList: false,
+          receiverId: patientId,
+          rule: "Patient",
+          title: "Program Payment Confirmed",
+          titleAr: "تم تأكيد دفع البرنامج",
+          message:
+            "Your full program payment has been confirmed successfully. Congratulations! You can now start your program immediately.",
+          messageAr: "تم تأكيد دفع البرنامج الكامل بنجاح. تهانينا! يمكنك الآن بدء برنامجك على الفور.",
+          type: "confirmed",
+        })
+      } else if (paymentMethod === "installment") {
+        // Notify patient that program started with check details
+        const dueDateFormatted = firstCheckDueDate
+          ? new Date(firstCheckDueDate).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+          : "TBD"
+
+        await sendNotification({
+          isList: false,
+          receiverId: patientId,
+          rule: "Patient",
+          title: "Program Started - Installment Payment",
+          titleAr: "بدء البرنامج - الدفع بالتقسيط",
+          message: `Your program has started successfully! You have ${checkCount} checks to pay. First check due date: ${dueDateFormatted}. Please ensure timely payment.`,
+          messageAr: `تم بدء برنامجك بنجاح! لديك ${checkCount} شيكات يجب دفعها. تاريخ استحقاق الشيك الأول: ${dueDateFormatted}. يرجى التأكد من الدفع في الوقت المناسب.`,
+          type: "confirmed",
+        })
+      }
+    } catch (error) {
+      console.error("Error sending payment notification:", error)
+      // Don't throw error - payment should succeed even if notification fails
+    }
+  }
+
   const handleCompletePayment = async () => {
     if (!selectedAppointment) return
     // Validate installment details if needed
@@ -229,6 +276,8 @@ export function AccountantAppointments() {
       }
       const response = await axiosInstance.post("/authentication/completeFullProgramPayment", paymentData)
       if (response.status === 200) {
+        await sendPaymentNotification(selectedAppointment, paymentMethod)
+
         // Assign to departments if the payment is successful, regardless of the payment method
         await assignToAllDepartments(
           response.data.patientId,
@@ -257,7 +306,6 @@ export function AccountantAppointments() {
       { endpoint: "/physicalTherapy/assign-to-physical", name: "Physical Therapy" },
       { endpoint: "/OccupationalTherapy/assign-to-Occupational", name: "Occupational Therapy" },
       { endpoint: "/Psychotherapy/assign-to-Psychotherapy", name: "Psychotherapy" },
-
     ]
 
     const assignmentResults = {
