@@ -174,10 +174,14 @@ export function AppointmentsManagement() {
         alert("Appointment cancelled successfully!")
         await sendNotification({
           isList: false,
-          title: `Single session appointment cancelled`,
-          message: `Your session has been cancelled on date : ${
+          title: `Single Session Appointment Cancelled`,
+          titleAr: `تم إلغاء موعد الجلسة الفردية`,
+          message: `Your single session appointment scheduled for ${
             appointment?.date?.split("T")[0]
-          } and time: ${appointment.time}`,
+          } at ${appointment.time} has been cancelled. Please contact our customer support team to know the reason for cancellation.`,
+          messageAr: `تم إلغاء موعد جلستك الفردية المجدول في ${
+            appointment?.date?.split("T")[0]
+          } الساعة ${appointment.time}. يرجى التواصل مع فريق دعم العملاء لدينا لمعرفة سبب الإلغاء.`,
           receiverId: appointment.patientid._id,
           rule: "Patient",
           type: "delete",
@@ -216,12 +220,25 @@ export function AppointmentsManagement() {
 
       if (response.status === 200) {
         alert("Appointment rescheduled successfully!")
-        setRescheduleModal({ open: false, appointment: null })
+        const formattedNewDate = rescheduleForm.newDate
+          ? new Date(rescheduleForm.newDate).toLocaleDateString("en-US", {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          : "TBD"
 
         await sendNotification({
           isList: false,
-          title: `Single session appointment rescheduled`,
-          message: `Your session has been rescheduled to date:  ${rescheduleForm.newDate} and time:  ${rescheduleForm.newTime}`,
+          title: `Single Session Appointment Rescheduled`,
+          titleAr: `تم إعادة جدولة موعد الجلسة الفردية`,
+          message: `Your single session appointment has been rescheduled to ${formattedNewDate} at ${rescheduleForm.newTime}. Your previous appointment was scheduled for ${
+            appointment?.date?.split("T")[0]
+          } at ${appointment.time}.`,
+          messageAr: `تم إعادة جدولة موعد جلستك الفردية إلى ${formattedNewDate} الساعة ${rescheduleForm.newTime}. كان موعدك السابق مجدول في ${
+            appointment?.date?.split("T")[0]
+          } الساعة ${appointment.time}.`,
           receiverId: appointment.patientid._id,
           rule: "Patient",
           type: "reschedule",
@@ -240,6 +257,7 @@ export function AppointmentsManagement() {
           subject: "Appointment Rescheduled",
           html: emailHtml,
         })
+        setRescheduleModal({ open: false, appointment: null })
         fetchAppointments()
       }
     } catch (error) {
