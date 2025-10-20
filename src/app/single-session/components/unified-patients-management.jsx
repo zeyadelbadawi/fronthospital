@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import axiosInstance from "@/helper/axiosSetup"
 import { useContentStore } from "../store/content-store"
+import { sendNotification } from "@/helper/notification-helper"
 import UnifiedPlanEditor from "./unified-plan-editor"
 import styles from "../styles/speech-upcoming-appointments.module.css"
 
@@ -101,6 +102,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   const [completionNotes, setCompletionNotes] = useState("")
   const [showPlanEditor, setShowPlanEditor] = useState(false)
   const [selectedPatientId, setSelectedPatientId] = useState(null)
+  const [adminHeadDoctorIds, setAdminHeadDoctorIds] = useState([])
 
   const setActiveContent = useContentStore((state) => state.setActiveContent)
 
@@ -108,12 +110,20 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   const config = THERAPY_CONFIGS[therapyType]
 
   useEffect(() => {
-    if (!config) {
-      console.error(`Invalid therapy type: ${therapyType}`)
-      return
-    }
+    getAdminHeadDoctorIds()
     fetchPatients()
-  }, [currentPage, search, statusFilter, therapyType])
+  }, [therapyType, currentPage, search, statusFilter])
+
+  const getAdminHeadDoctorIds = async () => {
+    try {
+      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/notification/admin-headdoctor-ids`)
+      const allIds = [...(response.data.adminIds || []), ...(response.data.headDoctorIds || [])]
+      console.log("[v0] Admin and Head Doctor IDs fetched:", allIds)
+      setAdminHeadDoctorIds(allIds)
+    } catch (error) {
+      console.error("Error fetching admin and head doctor IDs:", error)
+    }
+  }
 
   const fetchPatients = async () => {
     setLoading(true)
@@ -164,6 +174,37 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
     setViewModal({ open: true, patient })
   }
 
+  const sendNotificationToAdminsAndHeadDoctors = async (doctorName, departmentName, patientName) => {
+    try {
+      const allRecipientIds = [...adminHeadDoctorIds]
+
+      console.log("[v0] Sending notification to admins. Recipient IDs:", allRecipientIds)
+
+      if (allRecipientIds.length === 0) {
+        console.warn("[v0] No admin or head doctor IDs found")
+        return
+      }
+
+      const title = `Plan Completed - ${departmentName}`
+      const titleAr = `تم إكمال الخطة - ${departmentName}`
+      const message = `Doctor ${doctorName} has completed the ${departmentName.toLowerCase()} plan for patient ${patientName} in the single session program.`
+      const messageAr = `الدكتور ${doctorName} أكمل خطة ${departmentName} للمريض ${patientName} في برنامج الجلسة الواحدة.`
+
+      const response = await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}/notification/send`, {
+        receiverIds: allRecipientIds,
+        rule: "Admin",
+        title,
+        titleAr,
+        message,
+        messageAr,
+        type: "successfully",
+      })
+      console.log("[v0] Notification sent successfully:", response.data)
+    } catch (error) {
+      console.error("[v0] Error sending notifications to admins and head doctors:", error)
+    }
+  }
+
   const handleCompleteAssignment = async () => {
     if (!completeModal.assignment) return
 
@@ -175,6 +216,29 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
 
       if (response.status === 200) {
         alert("Assignment completed successfully!")
+
+        const patientId = completeModal.assignment.patient?._id
+        const patientName = completeModal.assignment.patient?.name || "Patient"
+        const departmentName = config.title.replace(" Students", "")
+
+        const doctorName =
+          completeModal.assignment.doctor?.name || completeModal.assignment.doctor?.username || "Doctor"
+
+        if (patientId) {
+          await sendNotification({
+            isList: false,
+            receiverId: patientId,
+            title: `${departmentName} Plan Ready`,
+            titleAr: `خطة ${departmentName} جاهزة`,
+            message: `Your ${departmentName.toLowerCase()} plan is now ready! You can view it in your profile under ${departmentName}.`,
+            messageAr: `خطتك في ${departmentName} جاهزة الآن! يمكنك عرضها في ملفك الشخصي تحت ${departmentName}.`,
+            rule: "Patient",
+            type: "successfully",
+          })
+        }
+
+        await sendNotificationToAdminsAndHeadDoctors(doctorName, departmentName, patientName)
+
         setCompleteModal({ open: false, assignment: null })
         setCompletionNotes("")
         fetchPatients()
