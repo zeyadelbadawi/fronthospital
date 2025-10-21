@@ -3,6 +3,7 @@ import { SidebarInset, useSidebar } from "./ui/sidebar"
 import { useContentStore } from "../store/content-store"
 import { AppointmentsManagement } from "./appointments"
 import UnifiedPatientsManagement from "./unified-patients-management"
+import { AppointmentAssignmentManager } from "./appointment-assignment-manager"
 import { useEffect } from "react"
 import styles from "../styles/main-content.module.css"
 
@@ -24,6 +25,10 @@ export function MainContent() {
     }
 
     const { department, type, therapyType } = activeContent
+
+    if (department === "appointments" && type === "manage-assignments") {
+      return <AppointmentAssignmentManager />
+    }
 
     // Handle appointments
     if (department === "appointments" && type === "appointments") {
