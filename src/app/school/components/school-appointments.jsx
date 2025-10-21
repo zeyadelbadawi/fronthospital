@@ -29,6 +29,7 @@ import { ConfirmationModal } from "./confirmation-modal"
 import { LoadingOverlay } from "./loading-overlay"
 import styles from "../styles/school-appointments.module.css"
 import { useContentStore } from "../store/content-store"
+import { getCurrentUser } from "../utils/auth-utils"
 
 export function SchoolAppointments() {
   // State management
@@ -152,9 +153,16 @@ export function SchoolAppointments() {
     if (!selectedProgram?.unicValue) return
 
     try {
+      const currentUser = getCurrentUser()
+      const isDoctorRole = currentUser?.role === "doctor"
+      const doctorId = isDoctorRole ? currentUser?._id : null
+
       // Use optimized endpoint that returns appointments with stats
       const response = await axiosInstance.get(
         `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs-with-appointments/${selectedProgram.unicValue}`,
+        {
+          params: isDoctorRole ? { doctorId } : {}, // Pass doctorId if user is a doctor
+        },
       )
 
       const appointmentsData = response.data.appointments || []
