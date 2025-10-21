@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
-import { User, Calendar, ClipboardCheck, ChevronDown, ChevronRight, LogOut } from "lucide-react"
+import { User, Calendar, ClipboardCheck, ChevronDown, ChevronRight, Users } from "lucide-react"
 import { useContentStore } from "../store/content-store"
 import { isAuthenticated, getCurrentUser, logout } from "../utils/auth-utils"
 import styles from "../styles/sidebar.module.css"
@@ -11,6 +11,13 @@ const departments = [
     name: "School Evaluation Appointments Management",
     icon: Calendar,
     items: [{ id: "Up-appointments", name: "All Appointments", type: "appointments" }],
+  },
+  {
+    id: "school-assign",
+    name: "Doctor Assignment",
+    icon: Users,
+    items: [{ id: "assign-doctors", name: "Assign Doctors to Appointments", type: "assign-doctors" }],
+    roles: ["admin", "headdoctor"], // Only show for admin and head doctor
   },
   {
     id: "school-p",
@@ -89,6 +96,10 @@ export function AppSidebar() {
       {/* Navigation */}
       <nav className={styles.sidebarNav}>
         {departments.map((department) => {
+          if (department.roles && !department.roles.includes(user?.role)) {
+            return null
+          }
+
           const isOpen = openSections.includes(department.id)
           return (
             <div key={department.id} className={styles.navSection}>
@@ -116,6 +127,8 @@ export function AppSidebar() {
                           <User className={styles.navIcon} />
                         ) : item.type === "appointments" ? (
                           <Calendar className={styles.navIcon} />
+                        ) : item.type === "assign-doctors" ? (
+                          <Users className={styles.navIcon} />
                         ) : (
                           <ClipboardCheck className={styles.navIcon} />
                         )}
