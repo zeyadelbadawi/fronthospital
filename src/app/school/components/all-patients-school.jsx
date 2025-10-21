@@ -1,9 +1,23 @@
 "use client"
 import { useState, useEffect } from "react"
-import { Search, ClipboardList, ClipboardCheck, Brain, Calendar, User, X, Hash, FileText } from "lucide-react"
+import {
+  Search,
+  ClipboardList,
+  ClipboardCheck,
+  Brain,
+  Calendar,
+  User,
+  X,
+  Hash,
+  FileText,
+  MoreVertical,
+  Edit2,
+  Lock,
+} from "lucide-react"
 import axiosInstance from "@/helper/axiosSetup"
 import { useContentStore } from "../store/content-store"
 import PatientSchoolPlanEditor from "./patient-school-plan-editor"
+import SheetUploadModal from "./sheet-upload-modal"
 import styles from "../styles/speech-upcoming-appointments.module.css"
 
 const AllPatientsSchool = () => {
@@ -14,6 +28,10 @@ const AllPatientsSchool = () => {
   const [totalPrograms, setTotalPrograms] = useState(0)
   const [loading, setLoading] = useState(false)
   const [selectedProgram, setSelectedProgram] = useState(null)
+  const [uploadModalOpen, setUploadModalOpen] = useState(false)
+  const [selectedProgramForUpload, setSelectedProgramForUpload] = useState(null)
+  const [actionMenuOpen, setActionMenuOpen] = useState(null)
+  const [lockingProgramId, setLockingProgramId] = useState(null)
   const setActiveContent = useContentStore((state) => state.setActiveContent)
 
   useEffect(() => {
@@ -70,6 +88,12 @@ const AllPatientsSchool = () => {
       return
     }
 
+    if (!program.planExists) {
+      setSelectedProgramForUpload(program)
+      setUploadModalOpen(true)
+      return
+    }
+
     // Set the selected program to open the plan editor component
     setSelectedProgram({
       patientId: program.patientId,
@@ -78,10 +102,125 @@ const AllPatientsSchool = () => {
     })
   }
 
+  const handleUploadModalClose = () => {
+    setUploadModalOpen(false)
+    setSelectedProgramForUpload(null)
+  }
+
+  const handleUploadSuccess = async () => {
+    console.log("[v0] Upload success callback triggered")
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+
+    console.log("[v0] Fetching programs after upload...")
+    setLoading(true)
+
+    try {
+      const response = await axiosInstance.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs-optimized?page=${currentPage}&search=${search}&limit=10`,
+      )
+
+      console.log("[v0] Response received:", response.data)
+
+      const programsData = response.data.programs || response.data || []
+      const allPrograms = Array.isArray(programsData) ? programsData : []
+
+      console.log(
+        "[v0] All programs:",
+        allPrograms.map((p) => ({
+          name: p.patientName,
+          planExists: p.planExists,
+          patientId: p.patientId,
+          unicValue: p.unicValue,
+        })),
+      )
+
+      const paidPrograms = allPrograms.filter((program) => {
+        return program.paymentStatus === "FULLY_PAID"
+      })
+
+      setPrograms(paidPrograms)
+      setTotalPages(response.data.totalPages || 1)
+      setTotalPrograms(paidPrograms.length)
+
+      console.log("[v0] Programs updated successfully")
+    } catch (error) {
+      console.error("[v0] Error refreshing programs:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleBackFromPlanEditor = () => {
     setSelectedProgram(null)
     // Refresh the programs list
     fetchSchoolPrograms()
+  }
+
+  const handleChangeSheet = (program) => {
+    setSelectedProgramForUpload(program)
+    setUploadModalOpen(true)
+    setActionMenuOpen(null)
+  }
+
+  const handleMarkAsDone = async (program) => {
+    try {
+      setLockingProgramId(`${program.patientId}-${program.unicValue}`)
+      console.log("[v0] Marking sheet as done for:", program.patientId)
+
+      const response = await axiosInstance.patch(
+        `${process.env.NEXT_PUBLIC_API_URL}/school/lock-plan/${program.patientId}/${program.unicValue}`,
+      )
+
+      console.log("[v0] Sheet locked successfully:", response.data)
+
+      await new Promise((resolve) => setTimeout(resolve, 2500))
+
+      // Refresh the programs list
+      await fetchSchoolPrograms()
+      setActionMenuOpen(null)
+      setLockingProgramId(null)
+
+      // Show success message
+      const toast = document.createElement("div")
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 1000;
+        font-weight: 500;
+      `
+      toast.textContent = "Sheet marked as done and locked successfully!"
+      document.body.appendChild(toast)
+
+      setTimeout(() => {
+        document.body.removeChild(toast)
+      }, 4000)
+    } catch (error) {
+      console.error("[v0] Error marking sheet as done:", error)
+      setLockingProgramId(null)
+      const toast = document.createElement("div")
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #ef4444;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 1000;
+        font-weight: 500;
+      `
+      toast.textContent = "Error marking sheet as done"
+      document.body.appendChild(toast)
+
+      setTimeout(() => {
+        document.body.removeChild(toast)
+      }, 4000)
+    }
   }
 
   const showErrorMessage = (message) => {
@@ -184,6 +323,15 @@ const AllPatientsSchool = () => {
 
   return (
     <div className={styles.upcomingContainer}>
+      <SheetUploadModal
+        isOpen={uploadModalOpen}
+        onClose={handleUploadModalClose}
+        patientId={selectedProgramForUpload?.patientId}
+        unicValue={selectedProgramForUpload?.unicValue}
+        patientName={selectedProgramForUpload?.patientName}
+        onUploadSuccess={handleUploadSuccess}
+      />
+
       <div className={styles.upcomingCard}>
         <div className={styles.cardHeader}>
           <div className={styles.headerContent}>
@@ -303,30 +451,22 @@ const AllPatientsSchool = () => {
                         Sheet
                       </div>
                     </th>
+                    <th>
+                      <div className={styles.headerCell}>
+                        <Calendar className={styles.headerIcon} />
+                        Last Updated
+                      </div>
+                    </th>
                     <th className={styles.textCenter}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {programs.map((program, index) => {
                     const isCompleted = isProgramCompleted(program)
+                    const isLocked = program.isLocked
                     const programYear = getProgramYear(program)
-
-                    // Calculate sequential number (reverse order so first created = 1)
                     const sequentialNumber = totalPrograms - (startIndex + index)
-
-                    // Determine button text and title based on sheet status
-                    let actionButtonText = ""
-                    let actionButtonTitle = ""
-                    if (isCompleted) {
-                      actionButtonText = "View Plan"
-                      actionButtonTitle = "View School Evaluation Sheet"
-                    } else if (program.planExists) {
-                      actionButtonText = "Edit Sheet"
-                      actionButtonTitle = "Edit School Evaluation Sheet"
-                    } else {
-                      actionButtonText = "Create Sheet"
-                      actionButtonTitle = "Create School Evaluation Sheet"
-                    }
+                    const isCurrentlyLocking = lockingProgramId === `${program.patientId}-${program.unicValue}`
 
                     return (
                       <tr key={`${program.patientId}-${program.unicValue}` || index} className={styles.tableRow}>
@@ -357,15 +497,22 @@ const AllPatientsSchool = () => {
                             className={`${styles.planBadge} ${
                               isCompleted
                                 ? styles.planCompleted
-                                : program.planExists
-                                  ? styles.planExists
-                                  : styles.planMissing
+                                : isLocked
+                                  ? styles.planFinished
+                                  : program.planExists
+                                    ? styles.planExists
+                                    : styles.planMissing
                             }`}
                           >
                             {isCompleted ? (
                               <>
                                 <ClipboardCheck className={styles.planIcon} />
                                 Completed
+                              </>
+                            ) : isLocked ? (
+                              <>
+                                <Lock className={styles.planIcon} />
+                                Sheet Finished
                               </>
                             ) : program.planExists ? (
                               <>
@@ -380,17 +527,66 @@ const AllPatientsSchool = () => {
                             )}
                           </span>
                         </td>
+                        <td className={styles.lastUpdatedCell}>
+                          <span className={styles.lastUpdatedText}>
+                            {program.updatedAt ? formatDate(program.updatedAt) : "N/A"}
+                          </span>
+                        </td>
                         <td className={styles.actionsCell}>
                           <div className={styles.actionButtons}>
-                            <button
-                              onClick={() => handleViewPlan(program)}
-                              className={getActionButtonClass(isCompleted, program.planExists)}
-                              title={actionButtonTitle}
-                              disabled={!program.patientId || !program.unicValue}
-                            >
-                              <ClipboardList className={styles.actionIcon} />
-                              <span className={styles.actionText}>{actionButtonText}</span>
-                            </button>
+                            {isCurrentlyLocking ? (
+                              <div className={styles.lockingIndicator}>
+                                <div className={styles.miniSpinner}></div>
+                                <span className={styles.lockingText}>Locking...</span>
+                              </div>
+                            ) : isLocked ? (
+                              <div className={styles.finishedBadge}>
+                                <Lock className={styles.lockIcon} />
+                                <span>Sheet Finished</span>
+                              </div>
+                            ) : (
+                              program.planExists &&
+                              !isCompleted && (
+                                <div className={styles.actionMenuContainer}>
+                                  <button
+                                    onClick={() => setActionMenuOpen(actionMenuOpen === index ? null : index)}
+                                    className={styles.menuButton}
+                                    title="Sheet Actions"
+                                  >
+                                    <MoreVertical className={styles.actionIcon} />
+                                  </button>
+                                  {actionMenuOpen === index && (
+                                    <div className={styles.actionDropdown}>
+                                      <button
+                                        onClick={() => handleChangeSheet(program)}
+                                        className={styles.dropdownItem}
+                                      >
+                                        <Edit2 className={styles.dropdownIcon} />
+                                        <span>Change/Replace Sheet</span>
+                                      </button>
+                                      <button
+                                        onClick={() => handleMarkAsDone(program)}
+                                        className={`${styles.dropdownItem} ${styles.lockItem}`}
+                                      >
+                                        <Lock className={styles.dropdownIcon} />
+                                        <span>Mark as Done</span>
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            )}
+                            {!program.planExists && (
+                              <button
+                                onClick={() => handleViewPlan(program)}
+                                className={`${styles.actionButton} ${styles.createButton}`}
+                                title="Create School Evaluation Sheet"
+                                disabled={!program.patientId || !program.unicValue}
+                              >
+                                <ClipboardList className={styles.actionIcon} />
+                                <span className={styles.actionText}>Create Sheet</span>
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
