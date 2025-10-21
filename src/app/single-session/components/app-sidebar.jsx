@@ -12,6 +12,7 @@ import {
   GraduationCap,
   MessageSquare,
   Sparkle,
+  Settings,
 } from "lucide-react"
 import { useContentStore } from "../store/content-store"
 import { isAuthenticated, getCurrentUser, isDoctor } from "../utils/auth-utils"
@@ -23,8 +24,11 @@ const departments = [
     id: "appointments",
     name: "Single Sessions Appointments",
     icon: Calendar,
-    items: [{ id: "speech-appointments", name: "All Appointments", type: "appointments" }],
-    alwaysShow: true, // Always show appointments regardless of department
+    items: [
+      { id: "speech-appointments", name: "All Appointments", type: "appointments" },
+      { id: "manage-assignments", name: "Manage Assignments", type: "manage-assignments", adminOnly: true },
+    ],
+    alwaysShow: true,
   },
   {
     id: "physical-therapy",
@@ -35,14 +39,12 @@ const departments = [
       { id: "physical-therapy-patients", name: "All Students", type: "patients", therapyType: "physical-therapy" },
     ],
   },
-   {
+  {
     id: "Psychotherapy",
     name: "Psychotherapy Students",
     icon: Sparkle,
     departmentName: "Psychotherapy",
-    items: [
-      { id: "Psychotherapy-patients", name: "All Students", type: "patients", therapyType: "Psychotherapy" },
-    ],
+    items: [{ id: "Psychotherapy-patients", name: "All Students", type: "patients", therapyType: "Psychotherapy" }],
   },
   {
     id: "aba",
@@ -88,6 +90,7 @@ export function AppSidebar() {
   const [user, setUser] = useState(null)
   const [doctorDepartments, setDoctorDepartments] = useState([])
   const [loadingDepartments, setLoadingDepartments] = useState(false)
+  const [singleSessionAssignedDepartments, setSingleSessionAssignedDepartments] = useState([])
   const setActiveContent = useContentStore((state) => state.setActiveContent)
   const [activeItem, setActiveItem] = useState(null)
 
@@ -98,6 +101,7 @@ export function AppSidebar() {
       // If user is a doctor, fetch their assigned departments
       if (currentUser?.role === "doctor") {
         fetchDoctorDepartments(currentUser.id)
+        fetchSingleSessionAssignments(currentUser.id)
       }
     }
   }, [])
@@ -135,6 +139,24 @@ export function AppSidebar() {
     }
   }
 
+  const fetchSingleSessionAssignments = async (doctorId) => {
+    try {
+      const response = await axiosInstance.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/single-session-appointment-assignment/doctor/${doctorId}`,
+      )
+
+      const assignments = response.data.assignments || []
+
+      // Extract unique departments from single session assignments
+      const departments = [...new Set(assignments.map((assignment) => assignment.department))]
+
+      setSingleSessionAssignedDepartments(departments)
+    } catch (error) {
+      console.error("Error fetching single session assignments:", error)
+      setSingleSessionAssignedDepartments([])
+    }
+  }
+
   // Helper function to check if doctor is assigned to a department
   const isDoctorAssignedToDepartment = (departmentName) => {
     if (!isDoctor()) return true // Non-doctors see all
@@ -145,8 +167,7 @@ export function AppSidebar() {
       ABA: ["ABA", "Applied Behavior Analysis", "Behavioral Analysis"],
       Speech: ["Speech", "speech", "Speech Therapy", "Speech-Language Pathology"],
       PT: ["PT", "Physical Therapy", "physicalTherapy", "Physiotherapy"],
-            Psychotherapy: ["Psychotherapy", "psychotherapy", "Psycho therapy"],
-
+      Psychotherapy: ["Psychotherapy", "psychotherapy", "Psycho therapy"],
       OT: ["OT", "Occupational Therapy", "OccupationalTherapy"],
       "Special Education": ["Special Education", "SpecialEducation", "Special Ed", "SPED"],
     }
@@ -160,6 +181,27 @@ export function AppSidebar() {
         ),
       ) || false
     )
+  }
+
+  const hasSingleSessionAssignment = (departmentName) => {
+    if (!isDoctor()) return true // Non-doctors see all
+
+    // Map department names to match database values
+    const departmentMap = {
+      "physical-therapy": "physical_therapy",
+      speech: "speech",
+      aba: "ABA",
+      Psychotherapy: "Psychotherapy",
+      "occupational-therapy": "occupational_therapy",
+      "special-education": "special_education",
+    }
+
+    const dbDepartment = departmentMap[departmentName]
+    return singleSessionAssignedDepartments.includes(dbDepartment)
+  }
+
+  const isAdminOrHeadDoctor = () => {
+    return user?.role === "admin" || user?.role === "head_doctor"
   }
 
   const toggleSection = (sectionId) => {
@@ -202,9 +244,9 @@ export function AppSidebar() {
       return true
     }
 
-    // For doctors, check department assignments
+    // For doctors, check both regular department assignments and single session assignments
     if (isDoctor() && department.departmentName) {
-      return isDoctorAssignedToDepartment(department.departmentName)
+      return isDoctorAssignedToDepartment(department.departmentName) || hasSingleSessionAssignment(department.id)
     }
 
     // For non-doctors, show all departments
@@ -224,7 +266,9 @@ export function AppSidebar() {
               <p className={styles.userRole}>{user.role} Dashboard</p>
               {isDoctor() && (
                 <p className={styles.userDepartments}>
-                  {loadingDepartments ? "Loading..." : `Assigned to ${doctorDepartments.length} Departments`}
+                  {loadingDepartments
+                    ? "Loading..."
+                    : `Assigned to ${doctorDepartments.length + singleSessionAssignedDepartments.length} Departments`}
                 </p>
               )}
             </div>
@@ -258,22 +302,30 @@ export function AppSidebar() {
               </button>
               {isOpen && (
                 <div className={styles.sectionItems}>
-                  {department.items.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => handleItemClick(department.id, item.type, item.id, item.therapyType)}
-                      className={`${styles.navItem} ${styles.subNavItem} ${activeItem === item.id ? styles.active : ""}`}
-                    >
-                      {item.type === "assign-patient" ? (
-                        <User className={styles.navIcon} />
-                      ) : item.type === "appointments" ? (
-                        <Calendar className={styles.navIcon} />
-                      ) : (
-                        <ClipboardCheck className={styles.navIcon} />
-                      )}
-                      <span className={styles.navLabel}>{item.name}</span>
-                    </button>
-                  ))}
+                  {department.items.map((item) => {
+                    if (item.adminOnly && !isAdminOrHeadDoctor()) {
+                      return null
+                    }
+
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => handleItemClick(department.id, item.type, item.id, item.therapyType)}
+                        className={`${styles.navItem} ${styles.subNavItem} ${activeItem === item.id ? styles.active : ""}`}
+                      >
+                        {item.type === "assign-patient" ? (
+                          <User className={styles.navIcon} />
+                        ) : item.type === "appointments" ? (
+                          <Calendar className={styles.navIcon} />
+                        ) : item.type === "manage-assignments" ? (
+                          <Settings className={styles.navIcon} />
+                        ) : (
+                          <ClipboardCheck className={styles.navIcon} />
+                        )}
+                        <span className={styles.navLabel}>{item.name}</span>
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </div>
