@@ -118,7 +118,10 @@ export function SchoolAppointments() {
   const fetchSchoolProgramsOptimized = useCallback(async () => {
     setLoading(true)
     try {
-      // Use the new optimized endpoint that returns programs with status in single query
+      const currentUser = getCurrentUser()
+      console.log("[v0] SchoolAppointments - Current user:", currentUser)
+      console.log("[v0] SchoolAppointments - User role:", currentUser?.role)
+
       const response = await axiosInstance.get(
         `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs-optimized`,
         {
@@ -126,9 +129,13 @@ export function SchoolAppointments() {
             page: currentPage,
             search: search,
             limit: 100,
+            ...(currentUser?.role === "doctor" && { doctorId: currentUser?.id }),
           },
         },
       )
+
+      console.log("[v0] SchoolAppointments - API Response:", response.data)
+      console.log("[v0] SchoolAppointments - Programs count:", response.data.programs?.length)
 
       const programs = response.data.programs || []
 
@@ -137,10 +144,12 @@ export function SchoolAppointments() {
         return program.paymentStatus === "FULLY_PAID"
       })
 
+      console.log("[v0] SchoolAppointments - Paid programs:", paidPrograms.length)
+
       setSchoolPrograms(paidPrograms)
       setTotalPages(response.data.totalPages || 1)
     } catch (error) {
-      console.error("Error fetching optimized school programs:", error)
+      console.error("[v0] SchoolAppointments - Error fetching optimized school programs:", error)
       showToast("Failed to load school programs. Please try again.", "error")
       setSchoolPrograms([])
     } finally {
