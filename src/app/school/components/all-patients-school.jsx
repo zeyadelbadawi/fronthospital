@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import axiosInstance from "@/helper/axiosSetup"
 import { useContentStore } from "../store/content-store"
+import { getCurrentUser } from "../utils/auth-utils"
 import PatientSchoolPlanEditor from "./patient-school-plan-editor"
 import SheetUploadModal from "./sheet-upload-modal"
 import styles from "../styles/speech-upcoming-appointments.module.css"
@@ -41,24 +42,55 @@ const AllPatientsSchool = () => {
   const fetchSchoolPrograms = async () => {
     setLoading(true)
     try {
-      const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs-optimized?page=${currentPage}&search=${search}&limit=10`,
-      )
+      const currentUser = getCurrentUser()
+      console.log("[v0] Current user:", currentUser)
+      console.log("[v0] User role:", currentUser?.role)
+      console.log("[v0] User ID:", currentUser?.id)
+
+      const isDoctorRole = currentUser?.role === "doctor"
+      const doctorId = isDoctorRole ? currentUser?.id : null
+
+      console.log("[v0] Is doctor role:", isDoctorRole)
+      console.log("[v0] Doctor ID being passed:", doctorId)
+
+      const params = new URLSearchParams({
+        page: currentPage,
+        search: search,
+        limit: 10,
+      })
+
+      // Add doctorId to params if user is a doctor
+      if (isDoctorRole && doctorId) {
+        params.append("doctorId", doctorId)
+        console.log("[v0] Added doctorId to params")
+      }
+
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs-optimized?${params}`
+      console.log("[v0] API URL:", apiUrl)
+
+      const response = await axiosInstance.get(apiUrl)
+
+      console.log("[v0] API Response:", response.data)
+      console.log("[v0] Programs count:", response.data.programs?.length)
 
       // Handle both array and object responses
       const programsData = response.data.programs || response.data || []
       const allPrograms = Array.isArray(programsData) ? programsData : []
+
+      console.log("[v0] All programs after filtering:", allPrograms.length)
 
       const paidPrograms = allPrograms.filter((program) => {
         // Only show if payment is fully paid (either online or cash confirmed by accountant)
         return program.paymentStatus === "FULLY_PAID"
       })
 
+      console.log("[v0] Paid programs:", paidPrograms.length)
+
       setPrograms(paidPrograms)
       setTotalPages(response.data.totalPages || 1)
       setTotalPrograms(paidPrograms.length)
     } catch (error) {
-      console.error("Error fetching school programs:", error)
+      console.error("[v0] Error fetching school programs:", error)
       setPrograms([])
       setTotalPages(1)
       setTotalPrograms(0)
