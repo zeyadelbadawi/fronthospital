@@ -245,17 +245,7 @@ export function SchoolAppointmentsAssignment() {
         <form onSubmit={handleSearch} style={{ marginBottom: "24px" }}>
           <div style={{ display: "flex", gap: "12px" }}>
             <div style={{ flex: 1, position: "relative" }}>
-              <Search
-                style={{
-                  position: "absolute",
-                  left: "12px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  width: "20px",
-                  height: "20px",
-                  color: "#6b7280",
-                }}
-              />
+              
               <input
                 type="text"
                 placeholder="Search by Student name..."
