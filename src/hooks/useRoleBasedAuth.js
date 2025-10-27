@@ -75,10 +75,29 @@ export function useRoleBasedAuth() {
   const checkAuthorization = useCallback(async () => {
     const userData = await loadProfile()
 
+    const isClientSubdomain = typeof window !== "undefined" && window.location.hostname.startsWith("client.")
+
     // If this is a login route and user is logged in, redirect to dashboard
     if (userData && isLoginRoute(pathname)) {
       const dashboardRoute = getDashboardRoute(userData.role)
       router.replace(dashboardRoute)
+      setIsAuthorized(false)
+      return
+    }
+
+    if (userData?.role === "patient" && isClientSubdomain) {
+      setIsAuthorized(true)
+      return
+    }
+
+    if (userData?.role === "patient" && !isClientSubdomain) {
+      if (typeof window !== "undefined") {
+        const protocol = window.location.protocol
+        const hostname = window.location.hostname
+        const port = window.location.port ? `:${window.location.port}` : ""
+        const clientPortalUrl = `${protocol}//client.${hostname}${port}${pathname}`
+        window.location.href = clientPortalUrl
+      }
       setIsAuthorized(false)
       return
     }
