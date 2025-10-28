@@ -1,54 +1,71 @@
-import axios from 'axios';
+import axios from "axios"
 
 // Create an Axios instance
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,  // Ensure your API URL is correct
-  withCredentials: true,  // Allow cookies (if you're using cookies for authentication)
-});
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  withCredentials: true,
+})
 
 // Add a request interceptor to include the Authorization token
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Get token from localStorage or cookies
-    const token = localStorage.getItem('token');  // Or use cookies if you're storing the token in cookies
+    // Get token from localStorage
+    // Note: In production, consider using httpOnly cookies for better security
+    const token = localStorage.getItem("token")
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+      config.headers["Authorization"] = `Bearer ${token}`
     }
-    return config;
+    return config
   },
   (error) => {
-    return Promise.reject(error);
-  }
-);
+    return Promise.reject(error)
+  },
+)
 
 // Add a response interceptor to handle 401 errors (Expired token)
 axiosInstance.interceptors.response.use(
-  (response) => response,  // Return the response directly if it's valid
+  (response) => response,
   async (error) => {
     // If the error is a 401 (Unauthorized), handle token refresh
     if (error.response && error.response.status === 401) {
       try {
         // Attempt to refresh the token
-        const refreshResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/authentication/refresh`, {}, {
-          withCredentials: true,  // Include cookies for refresh token
-        });
+        const refreshResponse = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/authentication/refresh`,
+          {},
+          {
+            withCredentials: true,
+          },
+        )
 
         // Get the new token from the response and store it
-        const newToken = refreshResponse.data.token;
-        localStorage.setItem('token', newToken);
+        const newToken = refreshResponse.data.token || refreshResponse.data.accessToken
+        localStorage.setItem("token", newToken)
 
         // Retry the failed request with the new token
-        error.config.headers['Authorization'] = `Bearer ${newToken}`;
-        return axios(error.config);
+        error.config.headers["Authorization"] = `Bearer ${newToken}`
+        return axios(error.config)
       } catch (refreshError) {
-        // If refreshing the token fails, redirect to login
-        console.error('Token refresh failed:', refreshError);
-        window.location.href = '/login';  // Or any other redirection for unauthorized users
+        // If refreshing the token fails, clear storage and redirect to appropriate page
+        console.error("Token refresh failed:", refreshError)
+        localStorage.removeItem("token")
+        localStorage.removeItem("user")
+
+        if (typeof window !== "undefined") {
+          const hostname = window.location.hostname
+          const isStaffSubdomain = hostname.startsWith("stuff.")
+
+          if (isStaffSubdomain) {
+            window.location.href = "/sign-in"
+          } else {
+            window.location.href = "/clientportal"
+          }
+        }
       }
     }
 
-    return Promise.reject(error);  // Return the original error if not 401
-  }
-);
+    return Promise.reject(error)
+  },
+)
 
-export default axiosInstance;
+export default axiosInstance

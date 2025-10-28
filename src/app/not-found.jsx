@@ -2,13 +2,17 @@
 
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { isStaffSubdomain } from "@/utils/subdomain-utils"
 import styles from "@/styles/error-page.module.css"
 
-export default function ErrorPage() {
+export default function NotFoundPage() {
   const router = useRouter()
+  const onStaffSubdomain = isStaffSubdomain()
+
+  const redirectPath = onStaffSubdomain ? "/" : "/clientportal"
+  const redirectLabel = onStaffSubdomain ? "Go to Staff Dashboard" : "Go to Client Portal"
 
   return (
-
     <div className={styles.container}>
       <div className={styles.content}>
         {/* Logo Section */}
@@ -30,12 +34,21 @@ export default function ErrorPage() {
           <div className={styles.errorCode}>404</div>
           <h1 className={styles.errorTitle}>Page Not Found</h1>
           <p className={styles.errorMessage}>Sorry, the page you are looking for doesn't exist.</p>
+          <p className={styles.errorSubMessage}>
+            {onStaffSubdomain
+              ? "This page is not available in the staff portal."
+              : "This page is not available in the client portal."}
+          </p>
         </div>
 
         {/* Action Buttons */}
         <div className={styles.actionButtons}>
-          <button onClick={() => router.push("/")} className={styles.primaryButton}>
-            Go to Homepage
+          <button onClick={() => router.push(redirectPath)} className={styles.primaryButton}>
+            {redirectLabel}
+          </button>
+
+          <button onClick={() => router.back()} className={styles.secondaryButton}>
+            Go Back
           </button>
         </div>
 
@@ -47,6 +60,5 @@ export default function ErrorPage() {
         </div>
       </div>
     </div>
- 
   )
 }

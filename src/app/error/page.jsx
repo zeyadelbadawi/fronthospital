@@ -2,10 +2,20 @@
 
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { isStaffSubdomain } from "@/utils/subdomain-utils"
 import styles from "./styles/error-page.module.css"
 
 export default function ErrorPage() {
   const router = useRouter()
+  const onStaffSubdomain = isStaffSubdomain()
+
+  const errorTitle = onStaffSubdomain ? "Access Denied - Staff Portal" : "Access Denied - Client Portal"
+  const errorMessage = onStaffSubdomain
+    ? "You don't have permission to access this resource. This page is restricted to authorized medical professionals only."
+    : "You don't have permission to access this resource. Please sign in to your account to continue."
+
+  const redirectPath = onStaffSubdomain ? "/sign-in" : "/clientportal"
+  const redirectLabel = onStaffSubdomain ? "Go to Staff Sign In" : "Go to Client Portal"
 
   return (
     <div className={styles.container}>
@@ -27,16 +37,23 @@ export default function ErrorPage() {
         {/* Error Content */}
         <div className={styles.errorContent}>
           <div className={styles.errorCode}>403</div>
-          <h1 className={styles.errorTitle}>Access Denied</h1>
-          <p className={styles.errorMessage}>You don't have permission to access this resource.</p>
-          <p className={styles.errorSubMessage}>This page is restricted to authorized medical professionals only.</p>
+          <h1 className={styles.errorTitle}>{errorTitle}</h1>
+          <p className={styles.errorMessage}>{errorMessage}</p>
+          <p className={styles.errorSubMessage}>
+            {onStaffSubdomain
+              ? "If you believe this is an error, please contact your administrator."
+              : "If you don't have an account, please create one to get started."}
+          </p>
         </div>
 
         {/* Action Buttons */}
         <div className={styles.actionButtons}>
+          <button onClick={() => router.push(redirectPath)} className={styles.primaryButton}>
+            {redirectLabel}
+          </button>
 
-          <button onClick={() => router.push("/clientportal")} className={styles.secondaryButton}>
-            Sign In
+          <button onClick={() => router.back()} className={styles.secondaryButton}>
+            Go Back
           </button>
         </div>
 

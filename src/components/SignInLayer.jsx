@@ -4,6 +4,7 @@ import CustomLink from "@/components/CustomLink"
 import { useRouter } from "next/navigation"
 import axios from "axios"
 import axiosInstance from "@/helper/axiosSetup"
+import { isStaffSubdomain, redirectToCorrectDomain } from "@/utils/subdomain-utils"
 import { AlertTriangle, ShieldCheck, Stethoscope, Wallet, Mail, Lock, EyeOff, Eye, LogIn, Shield } from "lucide-react"
 import styles from "@/styles/sign-in.module.css"
 
@@ -22,6 +23,14 @@ const SignInLayer = () => {
 
   useEffect(() => {
     const checkExistingAuth = async () => {
+      const onStaffSubdomain = isStaffSubdomain()
+
+      // Sign-in page should only be accessible on staff subdomain
+      if (!onStaffSubdomain) {
+        router.push("/clientportal")
+        return
+      }
+
       const token = localStorage.getItem("token")
       if (!token) {
         setCheckingAuth(false)
@@ -32,7 +41,6 @@ const SignInLayer = () => {
         const response = await axiosInstance.get("/authentication/profile")
         const userRole = response.data.role
 
-        // Redirect based on role
         if (userRole === "admin" || userRole === "HeadDoctor") {
           router.push("/")
         } else if (userRole === "doctor") {
@@ -40,7 +48,8 @@ const SignInLayer = () => {
         } else if (userRole === "accountant") {
           router.push("/accountantportal")
         } else if (userRole === "patient") {
-          router.push("/clientportal")
+          // Patient should not be on staff subdomain
+          redirectToCorrectDomain("patient", "/clientportal")
         } else {
           // Unknown role, clear token and allow login
           localStorage.removeItem("token")
@@ -80,15 +89,6 @@ const SignInLayer = () => {
       checkLockout()
     }
   }, [email])
-
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
-
-  const sanitizeInput = (input) => {
-    return input.replace(/[<>]/g, "").trim()
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -144,7 +144,9 @@ const SignInLayer = () => {
       } else if (role === "accountant") {
         router.push("/accountantportal")
       } else if (role === "patient") {
-        router.push("/clientportal")
+        // Patient should not be signing in on staff subdomain
+        // Redirect to main domain
+        redirectToCorrectDomain("patient", "/clientportal")
       } else {
         router.push("/")
       }
@@ -175,6 +177,15 @@ const SignInLayer = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  const sanitizeInput = (input) => {
+    return input.replace(/[<>]/g, "").trim()
   }
 
   if (checkingAuth) {

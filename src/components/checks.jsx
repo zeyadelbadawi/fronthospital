@@ -161,7 +161,7 @@ const PaymentEdit = ({ language = "en" }) => {
       bank: "البنك",
       daysUntilDue: "أيام حتى الاستحقاق",
       actions: "الإجراءات",
-      viewDetails: "عرض التفاصيل",
+      viewDetails: "عر�� التفاصيل",
       updateStatus: "تحديث الحالة",
       editCheck: "تعديل الشيك",
       deleteCheck: "حذف الشيك",

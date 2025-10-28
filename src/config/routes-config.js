@@ -1,3 +1,5 @@
+import { isStaffSubdomain } from "@/utils/subdomain-utils"
+
 // Role-based access control configuration
 // Defines which routes each role can access and where to redirect unauthorized users
 
@@ -87,6 +89,51 @@ export const ROUTES_CONFIG = {
   ],
 }
 
+export const STAFF_ROUTES = [
+  "/",
+  "/accountantportal",
+  "/accountantportal/Payment-Transactions",
+  "/accountantportal/checks",
+  "/accountantportal/full-program-payment",
+  "/accountantportal/profile-accountant",
+  "/accountantportal/cash-payments",
+  "/accountantportal/bank-transfer-payments",
+  "/full-program",
+  "/single-session",
+  "/school",
+  "/doctorportal",
+  "/doctorportal/profile-doctor",
+  "/calendar-main",
+  "/Admin-Book-Appointment",
+  "/full-program-appointments",
+  "/appointments/add-appointments",
+  "/appointments",
+  "/student/list",
+  "/student/add",
+  "/student/edit",
+  "/student/view",
+  "/doctor/list",
+  "/doctor/add",
+  "/doctor/edit",
+  "/accountant/list",
+  "/accountant/add",
+  "/accountant/edit",
+  "/Payment-Transactions",
+  "/checks",
+  "/drive-link",
+  "/sign-in",
+]
+
+export const CLIENT_ROUTES = [
+  "/clientportal",
+  "/Book-Appointment",
+  "/profile",
+  "/financial-records",
+  "/student-calendar",
+  "/clientportal/forgot-password",
+  "/clientportal/reset-password",
+]
+
 // Redirect destinations for unauthorized access
 export const REDIRECT_CONFIG = {
   unauthenticated: "/error", // Non-logged users trying to access protected routes
@@ -110,12 +157,14 @@ export const DASHBOARD_ROUTES = {
 }
 
 /**
- * Check if a route is allowed for a specific role
+ * Check if a route is allowed for a specific role on current domain
  * @param {string} pathname - Current route pathname
  * @param {string} role - User role
  * @returns {boolean} - Whether the route is allowed
  */
 export function isRouteAllowed(pathname, role) {
+  const onStaffSubdomain = isStaffSubdomain()
+
   // Public routes are always allowed
   if (ROUTES_CONFIG.public.includes(pathname)) {
     return true
@@ -123,6 +172,23 @@ export function isRouteAllowed(pathname, role) {
 
   // If no role (unauthenticated), only public routes allowed
   if (!role) {
+    return false
+  }
+
+  if (!onStaffSubdomain && STAFF_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"))) {
+    return false
+  }
+
+  if (onStaffSubdomain && CLIENT_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"))) {
+    return false
+  }
+
+  if (onStaffSubdomain && role === "patient") {
+    return false
+  }
+
+  const staffRoles = ["admin", "HeadDoctor", "doctor", "accountant"]
+  if (!onStaffSubdomain && staffRoles.includes(role)) {
     return false
   }
 
@@ -135,7 +201,6 @@ export function isRouteAllowed(pathname, role) {
 
   // Check for dynamic routes (e.g., /appointments/123, /student/edit/456)
   return allowedRoutes.some((route) => {
-    // Check if pathname starts with the route (for dynamic segments)
     if (pathname.startsWith(route + "/")) {
       return true
     }

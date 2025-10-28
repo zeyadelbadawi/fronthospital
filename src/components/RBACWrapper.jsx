@@ -7,6 +7,7 @@ import styles from "@/styles/RBACWrapper.module.css"
  * RBAC Wrapper Component
  * Wraps pages that need role-based access control
  * Shows loading state and prevents rendering until authorization is confirmed
+ * Includes subdomain validation
  *
  * @param {Object} props
  * @param {React.ReactNode|Function} props.children - Page content to render if authorized (can be a render prop function)

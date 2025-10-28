@@ -1,198 +1,234 @@
-# Subdomain Separation Setup Guide
+# Subdomain-Based Routing Implementation Guide
 
 ## Overview
-This guide explains how to set up and test the subdomain separation for your client portal. The client portal will be accessible at `client.localhost:3000` while the main application remains at `localhost:3000`.
+This document outlines the complete subdomain-based routing system implemented for separating staff and client portals into different domains.
 
-## Local Development Setup
+## Architecture
 
-### Step 1: Update Your Hosts File
+### Domain Structure
+- **Main Domain**: `localhost:3000` (development) or `yourdomain.com` (production)
+  - Client/Patient portal
+  - Public pages: `/clientportal`, `/clientportal/forgot-password`, `/clientportal/reset-password`
+  
+- **Staff Subdomain**: `stuff.localhost:3000` (development) or `stuff.yourdomain.com` (production)
+  - Admin, HeadDoctor, Doctor, Accountant portals
+  - Public page: `/sign-in`
 
-#### Windows (C:\Windows\System32\drivers\etc\hosts)
-Add the following lines:
+## Files Created/Modified
+
+### New Files Created
+
+#### 1. `/utils/subdomain-utils.js`
+Core utility functions for subdomain detection and domain management:
+- `getSubdomain()` - Extract subdomain from hostname
+- `isStaffSubdomain()` - Check if on staff subdomain
+- `isMainDomain()` - Check if on main domain
+- `getCorrectDomainForRole(role)` - Get correct domain for a role
+- `redirectToCorrectDomain(role, pathname)` - Redirect user to correct domain
+- `isStaffRoute(pathname)` - Check if route is staff-only
+- `isClientRoute(pathname)` - Check if route is client-only
+- `isPublicRoute(pathname)` - Check if route is public
+- `validateRouteAccess(pathname, role)` - Validate route access with detailed reasons
+
+#### 2. `/middleware.js`
+Next.js middleware for server-side subdomain routing validation:
+- Prevents staff routes from being accessed on main domain
+- Prevents client routes from being accessed on staff subdomain
+- Enforces sign-in page location on staff subdomain only
+
+### Modified Files
+
+#### 1. `/config/routes-config.js`
+- Added `STAFF_ROUTES` array - All staff-only routes
+- Added `CLIENT_ROUTES` array - All client-only routes
+- Updated `isRouteAllowed()` function to check domain-route matching
+- Added domain validation logic
+
+#### 2. `/hooks/useRoleBasedAuth.js`
+- Integrated subdomain detection
+- Added `validateRouteAccess()` checks
+- Implemented domain-based redirects
+- Added logic to redirect users to correct domain based on role
+- Updated logout to redirect to correct sign-in page
+
+#### 3. `/components/RBACWrapper.jsx`
+- No changes needed (works with updated auth hook)
+
+#### 4. `/app/error/page.jsx`
+- Added domain-aware error messages
+- Different messages for staff vs. client portals
+- Domain-specific redirect buttons
+
+#### 5. `/app/not-found.jsx`
+- Added domain-aware 404 messages
+- Domain-specific redirect logic
+
+#### 6. `/components/SignInLayer.jsx`
+- Added subdomain validation on mount
+- Prevents non-staff users from accessing sign-in page
+- Redirects authenticated users to correct dashboard
+- Validates subdomain before allowing sign-in
+
+#### 7. `/app/page.jsx`
+- Added root path redirect logic
+- Main domain root (`/`) redirects to `/clientportal`
+- Staff subdomain root (`/`) shows admin dashboard
+
+#### 8. `/helper/axiosSetup.js`
+- Enhanced token refresh logic
+- Added domain-aware redirect on token failure
+- Improved error handling
+
+## Routing Logic
+
+### Access Control Flow
+
 \`\`\`
+User visits URL
+    ↓
+Middleware checks domain-route match
+    ↓
+useRoleBasedAuth hook validates access
+    ↓
+validateRouteAccess() checks:
+    1. Is route public?
+    2. Is user authenticated?
+    3. Does domain match route type?
+    4. Does role match domain?
+    5. Is user authorized for this route?
+    ↓
+If valid → Render page
+If invalid → Redirect appropriately
+\`\`\`
+
+### Redirect Scenarios
+
+#### Unauthenticated Users
+- On `stuff.localhost:3000` accessing protected route → `/error` (access denied)
+- On `localhost:3000` accessing protected route → `/error` (access denied)
+- Exception: `/sign-in` on staff subdomain and `/clientportal` on main domain are public
+
+#### Cross-Domain Access
+- Staff route on main domain → `/not-found`
+- Client route on staff subdomain → `/not-found`
+
+#### Role-Domain Mismatch
+- Patient on staff subdomain → Redirect to `localhost:3000/clientportal`
+- Staff role on main domain → Redirect to `stuff.localhost:3000/{dashboard}`
+
+#### Sign-In Page
+- Accessing `/sign-in` on main domain → Redirect to `/clientportal`
+- Authenticated user on `/sign-in` → Redirect to dashboard
+
+## Security Features
+
+### Token Management
+- Tokens stored in localStorage (can be upgraded to httpOnly cookies)
+- Automatic token refresh on 401 errors
+- Token cleared on refresh failure
+- Domain-aware redirect on token expiration
+
+### Input Validation
+- Email validation in sign-in form
+- Password length validation
+- Input sanitization (XSS prevention)
+
+### Account Lockout
+- 5 failed login attempts trigger 15-minute lockout
+- Lockout data stored per email address
+- Lockout timer countdown displayed to user
+
+### Domain Enforcement
+- Middleware validates domain-route matching
+- Client-side validation in auth hook
+- Prevents unauthorized domain access
+
+## Development vs. Production
+
+### Development Setup
+\`\`\`
+Main Domain: localhost:3000
+Staff Subdomain: stuff.localhost:3000
+
+Note: For local development with subdomains, add to /etc/hosts:
 127.0.0.1 localhost
-127.0.0.1 client.localhost
+127.0.0.1 stuff.localhost
 \`\`\`
 
-#### macOS/Linux (/etc/hosts)
-Add the following lines:
+### Production Setup
 \`\`\`
-127.0.0.1 localhost
-127.0.0.1 client.localhost
-\`\`\`
+Main Domain: yourdomain.com
+Staff Subdomain: stuff.yourdomain.com
 
-### Step 2: Update Backend Environment Variables
-
-In your `backend-project/.env` file, update the ALLOWED_ORIGINS:
-
-\`\`\`env
-ALLOWED_ORIGINS=http://localhost:3000,http://client.localhost:3000,http://localhost:3001,http://client.localhost:3001
+DNS Configuration:
+- yourdomain.com → Your app server
+- stuff.yourdomain.com → Same app server (wildcard or explicit)
 \`\`\`
 
-For production, add your domain and subdomain:
-\`\`\`env
-ALLOWED_ORIGINS=https://yourdomain.com,https://client.yourdomain.com
-\`\`\`
+## Testing Checklist
 
-### Step 3: Start Your Application
+### Staff Subdomain Tests
+- [ ] Access `/sign-in` on `stuff.localhost:3000` → Works
+- [ ] Access `/sign-in` on `localhost:3000` → Redirects to `/clientportal`
+- [ ] Access `/school` on `stuff.localhost:3000` as admin → Works
+- [ ] Access `/school` on `localhost:3000` → Shows 404
+- [ ] Access `/clientportal` on `stuff.localhost:3000` → Shows 404
+- [ ] Unauthenticated access to `/school` on `stuff.localhost:3000` → Redirects to `/error`
+- [ ] Patient login on `stuff.localhost:3000` → Redirects to `localhost:3000/clientportal`
 
-1. Start the backend server:
-\`\`\`bash
-cd backend-project
-npm start
-# Server runs on http://localhost:8070
-\`\`\`
+### Main Domain Tests
+- [ ] Access `/clientportal` on `localhost:3000` → Works
+- [ ] Access `/clientportal` on `stuff.localhost:3000` → Shows 404
+- [ ] Access `/school` on `localhost:3000` → Shows 404
+- [ ] Unauthenticated access to `/profile` on `localhost:3000` → Redirects to `/error`
+- [ ] Root path `/` on `localhost:3000` → Redirects to `/clientportal`
+- [ ] Root path `/` on `stuff.localhost:3000` → Shows admin dashboard
 
-2. Start the frontend development server:
-\`\`\`bash
-npm run dev
-# Frontend runs on http://localhost:3000
-\`\`\`
+### Authentication Tests
+- [ ] Login as admin → Redirects to `/` on `stuff.localhost:3000`
+- [ ] Login as doctor → Redirects to `/doctorportal` on `stuff.localhost:3000`
+- [ ] Login as accountant → Redirects to `/accountantportal` on `stuff.localhost:3000`
+- [ ] Logout from staff portal → Redirects to `/sign-in`
+- [ ] Logout from client portal → Redirects to `/clientportal`
+- [ ] Token expiration → Redirects to appropriate sign-in page
 
-## Testing the Subdomain Separation
-
-### Test 1: Main Domain Access
-1. Navigate to `http://localhost:3000`
-2. You should see the main website
-3. Click on "Client Portal" or navigate to `/clientportal`
-4. You should be redirected to `http://client.localhost:3000/`
-
-### Test 2: Client Subdomain Direct Access
-1. Navigate to `http://client.localhost:3000/`
-2. You should see the client portal homepage
-3. All client portal pages should be accessible:
-   - `http://client.localhost:3000/` (home)
-   - `http://client.localhost:3000/book-appointment`
-   - `http://client.localhost:3000/profile`
-   - `http://client.localhost:3000/financial-records`
-
-### Test 3: Authentication Flow
-1. Go to `http://localhost:3000/sign-in`
-2. Select "Patient" role
-3. Enter patient credentials
-4. You should be redirected to `http://client.localhost:3000/`
-5. Verify you're on the client subdomain
-
-### Test 4: RBAC Protection
-1. Try accessing `http://client.localhost:3000/` without logging in
-2. You should be redirected to the login page
-3. Log in as a patient
-4. You should have access to all client portal pages
-5. Log in as a doctor/admin/accountant
-6. You should be redirected to their respective portals
-
-### Test 5: Cross-Subdomain Navigation
-1. Log in as a patient on `http://client.localhost:3000/`
-2. Try navigating to `http://localhost:3000/` (main domain)
-3. You should be automatically redirected back to `http://client.localhost:3000/`
-
-### Test 6: Logout Flow
-1. Log in as a patient on the client portal
-2. Click logout
-3. You should be redirected to `http://localhost:3000/sign-in`
-4. Verify the token is cleared from localStorage
-
-## Production Deployment
-
-### DNS Configuration
-1. Create a CNAME record for your subdomain:
-   - Subdomain: `client`
-   - Points to: `yourdomain.com`
-
-2. Or use A records pointing to your server IP:
-   - `yourdomain.com` → Your Server IP
-   - `client.yourdomain.com` → Your Server IP
+## Configuration Notes
 
 ### Environment Variables
-Update your production environment variables:
-
-**Frontend (.env.production)**
-\`\`\`env
-NEXT_PUBLIC_API_URL=https://api.yourdomain.com
+Ensure these are set in your `.env.local`:
+\`\`\`
+NEXT_PUBLIC_API_URL=http://localhost:5000
 \`\`\`
 
-**Backend (.env.production)**
-\`\`\`env
-ALLOWED_ORIGINS=https://yourdomain.com,https://client.yourdomain.com
-\`\`\`
+### Next.js Configuration
+The middleware is configured to run on all routes except static files and images.
 
-### SSL/TLS Certificates
-Ensure your SSL certificate covers both domains:
-- `yourdomain.com`
-- `*.yourdomain.com` (wildcard) or `client.yourdomain.com` (specific)
-
-## Architecture Overview
-
-### Middleware Flow
-1. Request comes in with host header
-2. Middleware detects subdomain from host
-3. If subdomain is "client", request is rewritten to `/client` path
-4. Next.js routes to appropriate layout and pages
-
-### Authentication Flow
-1. Patient logs in on main domain
-2. SignInLayer detects patient role
-3. Redirects to `client.{hostname}:{port}`
-4. useRoleBasedAuth hook verifies subdomain
-5. Patient is granted access to client portal
-
-### RBAC Protection
-1. All client portal pages wrapped with RBACWrapper
-2. RBACWrapper uses useRoleBasedAuth hook
-3. Hook checks user role and subdomain
-4. Non-patient users redirected to their portals
-5. Unauthenticated users redirected to login
+### Browser Cookies
+For production, consider upgrading token storage to httpOnly cookies for enhanced security.
 
 ## Troubleshooting
 
-### Issue: Can't access client.localhost
-**Solution:** Verify hosts file is updated correctly and restart your browser
-
-### Issue: CORS errors in console
-**Solution:** Check backend ALLOWED_ORIGINS environment variable includes client subdomain
-
-### Issue: Redirects not working
-**Solution:** Clear browser cache and localStorage, restart dev server
-
-### Issue: Middleware not detecting subdomain
-**Solution:** Verify middleware.ts is in the root directory and Next.js is restarted
-
-### Issue: Token not persisting across subdomains
-**Solution:** Ensure cookies are set with domain: `.localhost` for local dev
-
-## File Structure
-
+### Issue: Subdomain not working in development
+**Solution**: Add entries to `/etc/hosts`:
 \`\`\`
-app/
-├── client/
-│   ├── layout.tsx (Client portal layout)
-│   ├── page.jsx (Client portal home)
-│   ├── book-appointment/
-│   │   └── page.jsx
-│   ├── profile/
-│   │   └── page.jsx
-│   ├── financial-records/
-│   │   └── page.jsx
-│   ├── forgot-password/
-│   │   └── page.jsx
-│   └── reset-password/
-│       └── page.jsx
-├── layout.jsx (Main layout)
-├── page.jsx (Main home)
-└── ... (other main domain pages)
-
-middleware.ts (Subdomain detection)
+127.0.0.1 localhost
+127.0.0.1 stuff.localhost
 \`\`\`
 
-## Key Files Modified
+### Issue: Middleware not triggering
+**Solution**: Ensure `middleware.js` is in the root directory and properly configured.
 
-1. **middleware.ts** - Subdomain detection and routing
-2. **app/client/layout.tsx** - Client portal layout
-3. **app/client/** - Client portal pages
-4. **components/SignInLayer.jsx** - Patient redirect to subdomain
-5. **hooks/useRoleBasedAuth.js** - Subdomain-aware auth
-6. **backend-project/config/cors.js** - CORS configuration
+### Issue: Token not persisting across redirects
+**Solution**: Check localStorage is not being cleared. Verify token is being stored correctly.
 
-## Support
+### Issue: Infinite redirect loop
+**Solution**: Check that `validateRouteAccess()` is not returning conflicting results. Review auth hook logic.
 
-For issues or questions, refer to the implementation details in the code comments or contact your development team.
+## Future Enhancements
+
+1. **HttpOnly Cookies**: Upgrade token storage to httpOnly cookies for better security
+2. **CSRF Protection**: Add CSRF token validation
+3. **Rate Limiting**: Implement rate limiting on sign-in attempts
+4. **Audit Logging**: Log all domain access attempts
+5. **Multi-Factor Authentication**: Add MFA for staff accounts
+6. **Session Management**: Implement session timeout and refresh

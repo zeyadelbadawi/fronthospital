@@ -3,11 +3,17 @@
 import { useState, useEffect, useCallback } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import axiosInstance from "@/helper/axiosSetup"
-import { isRouteAllowed, getRedirectPath, isLoginRoute, getDashboardRoute } from "@/config/routes-config"
+import { getRedirectPath, isLoginRoute, getDashboardRoute } from "@/config/routes-config"
+import {
+  isStaffSubdomain,
+  redirectToCorrectDomain,
+  getErrorPageUrl,
+  validateRouteAccess,
+} from "@/utils/subdomain-utils"
 
 /**
  * Universal authentication and authorization hook
- * Handles token validation, refresh, role checking, and redirects
+ * Handles token validation, refresh, role checking, redirects, and subdomain routing
  *
  * @returns {Object} - { user, loading, isAuthorized, logout }
  */
@@ -74,8 +80,7 @@ export function useRoleBasedAuth() {
    */
   const checkAuthorization = useCallback(async () => {
     const userData = await loadProfile()
-
-    const isClientSubdomain = typeof window !== "undefined" && window.location.hostname.startsWith("client.")
+    const onStaffSubdomain = isStaffSubdomain()
 
     // If this is a login route and user is logged in, redirect to dashboard
     if (userData && isLoginRoute(pathname)) {
@@ -85,34 +90,45 @@ export function useRoleBasedAuth() {
       return
     }
 
-    if (userData?.role === "patient" && isClientSubdomain) {
-      setIsAuthorized(true)
-      return
-    }
+    const validation = validateRouteAccess(pathname, userData?.role)
 
-    if (userData?.role === "patient" && !isClientSubdomain) {
-      if (typeof window !== "undefined") {
-        const protocol = window.location.protocol
-        const hostname = window.location.hostname
-        const port = window.location.port ? `:${window.location.port}` : ""
-        const clientPortalUrl = `${protocol}//client.${hostname}${port}${pathname}`
-        window.location.href = clientPortalUrl
+    if (!validation.isValid) {
+      if (validation.reason === "not_authenticated") {
+        // Unauthenticated user trying to access protected route
+        router.replace(getErrorPageUrl())
+        setIsAuthorized(false)
+        return
       }
-      setIsAuthorized(false)
-      return
-    }
 
-    // Check if route is allowed for user's role
-    const allowed = isRouteAllowed(pathname, userData?.role)
+      if (validation.reason === "patient_on_staff_domain") {
+        // Patient trying to access staff subdomain
+        redirectToCorrectDomain("patient", "/clientportal")
+        setIsAuthorized(false)
+        return
+      }
 
-    if (!allowed) {
-      // Redirect to appropriate page
+      if (validation.reason === "staff_on_main_domain") {
+        // Staff trying to access main domain
+        redirectToCorrectDomain(userData?.role, getDashboardRoute(userData?.role))
+        setIsAuthorized(false)
+        return
+      }
+
+      if (validation.reason === "client_route_on_staff_domain" || validation.reason === "staff_route_on_main_domain") {
+        // Cross-domain route access attempt
+        router.replace("/not-found")
+        setIsAuthorized(false)
+        return
+      }
+
+      // Generic unauthorized access
       const redirectPath = getRedirectPath(userData?.role)
       router.replace(redirectPath)
       setIsAuthorized(false)
-    } else {
-      setIsAuthorized(true)
+      return
     }
+
+    setIsAuthorized(true)
   }, [pathname, router, loadProfile])
 
   /**
@@ -127,7 +143,12 @@ export function useRoleBasedAuth() {
       localStorage.removeItem("token")
       localStorage.removeItem("user")
       setUser(null)
-      router.push("/sign-in")
+
+      if (isStaffSubdomain()) {
+        router.push("/sign-in")
+      } else {
+        router.push("/clientportal")
+      }
     }
   }, [router])
 
