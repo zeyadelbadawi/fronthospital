@@ -1,4 +1,5 @@
 import { isStaffSubdomain } from "@/utils/subdomain-utils"
+import { DOMAIN_ROUTES } from "@/config/domain-routes"
 
 // Role-based access control configuration
 // Defines which routes each role can access and where to redirect unauthorized users
@@ -89,50 +90,8 @@ export const ROUTES_CONFIG = {
   ],
 }
 
-export const STAFF_ROUTES = [
-  "/",
-  "/accountantportal",
-  "/accountantportal/Payment-Transactions",
-  "/accountantportal/checks",
-  "/accountantportal/full-program-payment",
-  "/accountantportal/profile-accountant",
-  "/accountantportal/cash-payments",
-  "/accountantportal/bank-transfer-payments",
-  "/full-program",
-  "/single-session",
-  "/school",
-  "/doctorportal",
-  "/doctorportal/profile-doctor",
-  "/calendar-main",
-  "/Admin-Book-Appointment",
-  "/full-program-appointments",
-  "/appointments/add-appointments",
-  "/appointments",
-  "/student/list",
-  "/student/add",
-  "/student/edit",
-  "/student/view",
-  "/doctor/list",
-  "/doctor/add",
-  "/doctor/edit",
-  "/accountant/list",
-  "/accountant/add",
-  "/accountant/edit",
-  "/Payment-Transactions",
-  "/checks",
-  "/drive-link",
-  "/sign-in",
-]
-
-export const CLIENT_ROUTES = [
-  "/clientportal",
-  "/Book-Appointment",
-  "/profile",
-  "/financial-records",
-  "/student-calendar",
-  "/clientportal/forgot-password",
-  "/clientportal/reset-password",
-]
+export const STAFF_ROUTES = DOMAIN_ROUTES.staff
+export const CLIENT_ROUTES = DOMAIN_ROUTES.client
 
 // Redirect destinations for unauthorized access
 export const REDIRECT_CONFIG = {
@@ -165,8 +124,18 @@ export const DASHBOARD_ROUTES = {
 export function isRouteAllowed(pathname, role) {
   const onStaffSubdomain = isStaffSubdomain()
 
-  // Public routes are always allowed
-  if (ROUTES_CONFIG.public.includes(pathname)) {
+  // On staff subdomain: /sign-in is public
+  if (onStaffSubdomain && pathname === "/sign-in") {
+    return true
+  }
+
+  // On main domain: /clientportal and password routes are public
+  if (
+    !onStaffSubdomain &&
+    (pathname === "/clientportal" ||
+      pathname === "/clientportal/forgot-password" ||
+      pathname === "/clientportal/reset-password")
+  ) {
     return true
   }
 
@@ -175,11 +144,11 @@ export function isRouteAllowed(pathname, role) {
     return false
   }
 
-  if (!onStaffSubdomain && STAFF_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"))) {
+  if (onStaffSubdomain && CLIENT_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"))) {
     return false
   }
 
-  if (onStaffSubdomain && CLIENT_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"))) {
+  if (!onStaffSubdomain && STAFF_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"))) {
     return false
   }
 

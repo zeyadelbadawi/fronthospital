@@ -16,7 +16,6 @@ import styles from "@/styles/RBACWrapper.module.css"
 export default function RBACWrapper({ children, loadingMessage = "Loading..." }) {
   const { user, loading, isAuthorized, logout } = useRoleBasedAuth()
 
-  // Show loading state while checking authorization
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
@@ -26,7 +25,7 @@ export default function RBACWrapper({ children, loadingMessage = "Loading..." })
     )
   }
 
-  // Don't render anything if not authorized (redirect happens in hook)
+  // The redirect happens in the hook, so we just return null here
   if (!isAuthorized) {
     return null
   }

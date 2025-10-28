@@ -2,12 +2,19 @@
 
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
 import { isStaffSubdomain } from "@/utils/subdomain-utils"
 import styles from "./styles/error-page.module.css"
 
 export default function ErrorPage() {
   const router = useRouter()
-  const onStaffSubdomain = isStaffSubdomain()
+  const [isClient, setIsClient] = useState(false)
+  const [onStaffSubdomain, setOnStaffSubdomain] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+    setOnStaffSubdomain(isStaffSubdomain())
+  }, [])
 
   const errorTitle = onStaffSubdomain ? "Access Denied - Staff Portal" : "Access Denied - Client Portal"
   const errorMessage = onStaffSubdomain

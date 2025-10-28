@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { isStaffSubdomain } from "@/utils/subdomain-utils"
@@ -7,10 +8,20 @@ import styles from "@/styles/error-page.module.css"
 
 export default function NotFoundPage() {
   const router = useRouter()
-  const onStaffSubdomain = isStaffSubdomain()
+  const [onStaffSubdomain, setOnStaffSubdomain] = useState(false)
+  const [isClient, setIsClient] = useState(false)
 
-  const redirectPath = onStaffSubdomain ? "/" : "/clientportal"
-  const redirectLabel = onStaffSubdomain ? "Go to Staff Dashboard" : "Go to Client Portal"
+  useEffect(() => {
+    setIsClient(true)
+    setOnStaffSubdomain(isStaffSubdomain())
+  }, [])
+
+  const redirectPath = isClient && onStaffSubdomain ? "/" : "/clientportal"
+  const redirectLabel = isClient && onStaffSubdomain ? "Go to Staff Dashboard" : "Go to Client Portal"
+  const subMessage =
+    isClient && onStaffSubdomain
+      ? "This page is not available in the staff portal."
+      : "This page is not available in the client portal."
 
   return (
     <div className={styles.container}>
@@ -34,11 +45,7 @@ export default function NotFoundPage() {
           <div className={styles.errorCode}>404</div>
           <h1 className={styles.errorTitle}>Page Not Found</h1>
           <p className={styles.errorMessage}>Sorry, the page you are looking for doesn't exist.</p>
-          <p className={styles.errorSubMessage}>
-            {onStaffSubdomain
-              ? "This page is not available in the staff portal."
-              : "This page is not available in the client portal."}
-          </p>
+          <p className={styles.errorSubMessage}>{subMessage}</p>
         </div>
 
         {/* Action Buttons */}

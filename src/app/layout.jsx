@@ -6,6 +6,8 @@ import { ToastContainer } from "react-toastify"
 import { LoadingProvider } from "@/contexts/LoadingContext"
 import LoadingSpinner from "@/components/LoadingSpinner"
 import NProgressBar from "@/components/NProgressBar"
+import { SessionProvider } from "@/contexts/SessionContext"
+import SessionTimeoutWarning from "@/components/SessionTimeoutWarning"
 import "@/styles/nprogress.css"
 
 registerLicense(process.env.NEXT_PUBLIC_SYNCFUSION_LICENSE_KEY)
@@ -30,8 +32,11 @@ export default function RootLayout({ children }) {
         <CookieConsentProvider>
           <LanguageProvider>
             <LoadingProvider>
-              <LoadingSpinner />
-              {children}
+              <SessionProvider>
+                <LoadingSpinner />
+                <SessionTimeoutWarning />
+                {children}
+              </SessionProvider>
             </LoadingProvider>
             <ToastContainer
               position="top-right"

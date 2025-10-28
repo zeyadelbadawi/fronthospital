@@ -56,7 +56,23 @@ const MasterLayout = ({ children }) => {
       Cookies.remove("refreshToken")
       setUser(null)
       setLoading(true)
-      window.location.href = "/sign-in"
+
+      const isStaffSubdomain = typeof window !== "undefined" && window.location.hostname.startsWith("stuff.")
+      const redirectUrl = isStaffSubdomain
+        ? "http://stuff.localhost:3000/sign-in"
+        : "http://localhost:3000/clientportal"
+
+      // For production, use the actual domain
+      if (typeof window !== "undefined" && !window.location.hostname.includes("localhost")) {
+        const domain = window.location.hostname
+        const isStaff = domain.startsWith("stuff.")
+        const baseDomain = isStaff ? domain : domain
+        const protocol = window.location.protocol
+        const redirectUrl = isStaff ? `${protocol}//${domain}/sign-in` : `${protocol}//${domain}/clientportal`
+        window.location.href = redirectUrl
+      } else {
+        window.location.href = redirectUrl
+      }
     } catch (error) {
       console.error("Logout failed:", error)
     }
@@ -598,8 +614,8 @@ const MasterLayout = ({ children }) => {
                           <h6 className={`${styles.textLg} ${styles.fwSemibold} ${styles.mb2}`}>
                             {userName || "Loading..."}
                           </h6>
-                          <span className={` ${styles.fwLarg} ${styles.textMd}`}>
-                            <b className={` ${styles.fwLarg} ${styles.textSm}`}>Role:</b> {userRole || "Loading..."}
+                          <span className={`${styles.fwLarg} ${styles.textMd}`}>
+                            <b className={`${styles.fwLarg} ${styles.textSm}`}>Role:</b> {userRole || "Loading..."}
                           </span>
                         </div>
                         <button
