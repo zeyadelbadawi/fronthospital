@@ -1049,8 +1049,8 @@ export function AccountantAppointments() {
                   <span>
                     {selectedAppointment.subscriptionEndDate
                       ? new Date(selectedAppointment.subscriptionEndDate).toLocaleDateString(
-                          language === "ar" ? "ar-EG" : "en-US",
-                        )
+                        language === "ar" ? "ar-EG" : "en-US",
+                      )
                       : "N/A"}
                   </span>
                 </div>
