@@ -187,6 +187,9 @@ const GenericUserProfile = ({ role, id }) => {
           currentConfig.fields.secondary.forEach((field) => {
             initialFormData[field] = userData[field] || ""
           })
+          if (role === "student" && userData.driveLink) {
+            initialFormData.driveLink = userData.driveLink
+          }
 
           setFormData(initialFormData)
           setLoading(false)
