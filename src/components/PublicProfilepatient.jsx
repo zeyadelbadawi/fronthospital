@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import axios from "axios"
 import { jwtDecode } from "jwt-decode"
 import { toast, ToastContainer } from "react-toastify"
@@ -210,43 +210,30 @@ const PublicProfilepatient = ({ patientID }) => {
                     <span className={styles.infoValue}>{phone}</span>
                   </li>
 
-                  <li className={styles.infoItem}>
-                    <span className={styles.infoLabel}>
-                      <Calendar className={styles.infoLabelIcon} />
-                      {t?.profile?.dateOfBirth || "Date of Birth"}
-                    </span>
-                    <span className={`${styles.infoValue} ${!dateOfBirth ? styles.notProvided : ""}`}>
-                      {dateOfBirth || t?.profile?.notProvided || "Not provided"}
-                    </span>
-                  </li>
-                  <li className={styles.infoItem}>
-                    <span className={styles.infoLabel}>
-                      <MapPin className={styles.infoLabelIcon} />
-                      {t?.profile?.address || "Address"}
-                    </span>
-                    <span className={`${styles.infoValue} ${!address ? styles.notProvided : ""}`}>
-                      {address || t?.profile?.notProvided || "Not provided"}
-                    </span>
-                  </li>
+
                   {/* NEW: Google Drive Link */}
-                  {patient.driveLink && (
-                    <li className={styles.infoItem}>
-                      <span className={styles.infoLabel}>
-                        <Link className={styles.infoLabelIcon} />
-                        Google Drive
-                      </span>
-                      <span className={styles.infoValue}>
-                        <a
-                          href={patient.driveLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={styles.driveLink} // Apply a specific style for the link
+                  <li className={styles.infoItem}>
+                    <span className={styles.infoLabel}>
+                      <Link className={styles.infoLabelIcon} />
+                      Google Drive
+                    </span>
+                    <span className={styles.infoValue}>
+                      {patient.driveLink ? (
+                        <button
+                          onClick={() => window.open(patient.driveLink, '_blank', 'noopener,noreferrer')}
+                          className={styles.driveButton}
+                          type="button"
                         >
-                          {patient.driveLink}
-                        </a>
-                      </span>
-                    </li>
-                  )}
+                          <Link className={styles.driveLinkIcon} />
+                          {t?.profile?.openDriveFolder || "Open Drive Folder"}
+                        </button>
+                      ) : (
+                        <span className={styles.noMediaPlaceholder}>
+                          {t?.profile?.noMediaYet || "No media available yet"}
+                        </span>
+                      )}
+                    </span>
+                  </li>
                 </ul>
               </div>
             </div>

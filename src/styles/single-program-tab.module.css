@@ -64,6 +64,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -288,19 +289,33 @@
   margin-bottom: 0.75rem;
 }
 
+/* Improved spacing and layout for department tags */
 .departmentTags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 8px;
+  /* Updated from 0.5rem */
+  margin-top: 12px;
+  /* Added */
 }
 
 .departmentTag {
-  padding: 0.25rem 0.5rem;
+  padding: 6px 12px;
+  /* Updated from 0.25rem 0.5rem */
   border-radius: var(--border-radius-sm);
-  font-size: 0.75rem;
+  font-size: 12px;
+  /* Updated from 0.75rem */
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.025em;
+  transition: all var(--transition-fast);
+  /* Added */
+}
+
+.departmentTag:hover {
+  /* Added */
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Program Stats */
@@ -743,18 +758,23 @@
   color: var(--gray-500);
 }
 
-/* Payment Badge Styles */
+/* Improved spacing for payment badge container */
 .paymentBadgeContainer {
-  margin-top: 8px;
+  margin-top: 12px;
+  /* Updated from 8px */
+  margin-bottom: 12px;
+  /* Added */
 }
 
 .paymentBadge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
+  padding: 6px 12px;
+  /* Updated from 4px 10px */
   border-radius: 12px;
-  font-size: 12px;
+  font-size: 13px;
+  /* Updated from 12px */
   font-weight: 500;
 }
 
@@ -889,6 +909,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -902,15 +923,19 @@
 .programCard:nth-child(1) {
   animation-delay: 0.1s;
 }
+
 .programCard:nth-child(2) {
   animation-delay: 0.2s;
 }
+
 .programCard:nth-child(3) {
   animation-delay: 0.3s;
 }
+
 .programCard:nth-child(4) {
   animation-delay: 0.4s;
 }
+
 .programCard:nth-child(5) {
   animation-delay: 0.5s;
 }

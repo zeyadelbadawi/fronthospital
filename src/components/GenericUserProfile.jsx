@@ -1,27 +1,8 @@
 "use client"
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import axiosInstance from "@/helper/axiosSetup"
-import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  Edit3,
-  Lock,
-  Eye,
-  EyeOff,
-  Save,
-  X,
-  Stethoscope,
-  Calculator,
-  Users,
-  GraduationCap,
-  BookOpen,
-  FileText,
-  Shield,
-} from "lucide-react"
+import { User, Mail, Phone, MapPin, Calendar, Edit3, Lock, Eye, EyeOff, Save, X, Stethoscope, Calculator, Users, GraduationCap, BookOpen, FileText, Shield, Link } from 'lucide-react'
 import styles from "../styles/profile-view.module.css"
 import FullProgramTab from "./FullProgramTab"
 import SchoolTab from "./SchoolTab"
@@ -223,11 +204,12 @@ const GenericUserProfile = ({ role, id }) => {
     if (!id || !isStudent) return
     setFullProgramLoading(true)
     try {
-      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/full/patient/${id}`)
+      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/authentication/patient-full-programs/${id}`)
       setFullProgramData(response.data)
+      setFullProgramError(null)
     } catch (error) {
       console.error("Error fetching full program data:", error)
-      setFullProgramError(error)
+      setFullProgramError("Failed to load full program data. Please try again.")
       setFullProgramData([])
     } finally {
       setFullProgramLoading(false)
@@ -427,20 +409,24 @@ const GenericUserProfile = ({ role, id }) => {
                   <>
                     <li className={styles.infoItem}>
                       <span className={styles.infoLabel}>
-                        <Calendar className={styles.infoLabelIcon} />
-                        Date of Birth
+                        <Link className={styles.infoLabelIcon} />
+                        Google Drive
                       </span>
-                      <span className={`${styles.infoValue} ${!formData.dateOfBirth ? styles.notProvided : ""}`}>
-                        {formData.dateOfBirth || "Not provided"}
-                      </span>
-                    </li>
-                    <li className={styles.infoItem}>
-                      <span className={styles.infoLabel}>
-                        <MapPin className={styles.infoLabelIcon} />
-                        Address
-                      </span>
-                      <span className={`${styles.infoValue} ${!formData.address ? styles.notProvided : ""}`}>
-                        {formData.address || "Not provided"}
+                      <span className={styles.infoValue}>
+                        {formData.driveLink ? (
+                          <button
+                            onClick={() => window.open(formData.driveLink, '_blank', 'noopener,noreferrer')}
+                            className={styles.driveButton}
+                            type="button"
+                          >
+                            <Link className={styles.driveLinkIcon} />
+                            {formData?.openDriveFolder || "Open Drive Folder"}
+                          </button>
+                        ) : (
+                          <span className={styles.noMediaPlaceholder}>
+                            {formData?.noMediaYet || "No media available yet"}
+                          </span>
+                        )}
                       </span>
                     </li>
                   </>

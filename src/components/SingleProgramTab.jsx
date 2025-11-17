@@ -2,28 +2,7 @@
 
 import { useState, useEffect } from "react"
 import axios from "axios"
-import {
-  ChevronDown,
-  ChevronRight,
-  Calendar,
-  FileText,
-  Download,
-  Eye,
-  AlertCircle,
-  Loader2,
-  ArrowLeft,
-  Clock,
-  CheckCircle,
-  XCircle,
-  PlayCircle,
-  User,
-  Activity,
-  Briefcase,
-  CreditCard,
-  Banknote,
-  DollarSign,
-  Building2,
-} from "lucide-react"
+import { ChevronDown, ChevronRight, Calendar, FileText, Download, Eye, AlertCircle, Loader2, ArrowLeft, Clock, CheckCircle, XCircle, PlayCircle, User, Activity, Briefcase, CreditCard, Banknote, DollarSign, Building2 } from 'lucide-react'
 import styles from "../styles/single-program-tab.module.css"
 import PatientDocumentViewer from "./PatientDocumentViewer"
 
@@ -67,6 +46,23 @@ export default function SingleProgramTab({ patientId, language, translations: t 
       color: "#ef4444",
       route: "SpecialEducationS",
     },
+  }
+
+  const getDepartmentDisplayName = (deptName) => {
+    switch (deptName) {
+      case "ABA":
+        return t?.profile?.abaTherapy || "Applied Behavior Analysis"
+      case "speech":
+        return t?.profile?.speechTherapy || "Speech Therapy"
+      case "physical_therapy":
+        return t?.profile?.physicalTherapy || "Physical Therapy"
+      case "occupational_therapy":
+        return t?.profile?.occupationalTherapy || "Occupational Therapy"
+      case "special_education":
+        return t?.profile?.specialEducation || "Special Education"
+      default:
+        return deptName
+    }
   }
 
   useEffect(() => {
@@ -153,7 +149,7 @@ export default function SingleProgramTab({ patientId, language, translations: t 
       setSinglePrograms(sortedPrograms)
     } catch (error) {
       console.error("Error fetching single programs:", error)
-      setError("Failed to load single programs. Please try again.")
+      setError(t?.profile?.failedToLoadPrograms || "Failed to load single programs. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -203,16 +199,35 @@ export default function SingleProgramTab({ patientId, language, translations: t 
     })
   }
 
+  const toArabicNumerals = (str) => {
+    const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٣', '٨', '٩']
+    return str.toString().replace(/\d/g, (digit) => arabicNumerals[digit])
+  }
+
   const formatDate = (dateString) => {
     try {
       const date = new Date(dateString)
+
+      if (language === "ar") {
+        const arabicMonths = [
+          "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+          "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
+        ]
+        const day = date.getDate()
+        const month = arabicMonths[date.getMonth()]
+        const year = date.getFullYear()
+        // Convert numerals to Arabic-Indic
+        return `${toArabicNumerals(day)} ${month} ${toArabicNumerals(year)}`
+      }
+
+      // English formatting
       return date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
       })
     } catch (error) {
-      return "Invalid Date"
+      return t?.profile?.invalidDate || "Invalid Date"
     }
   }
 
@@ -222,15 +237,16 @@ export default function SingleProgramTab({ patientId, language, translations: t 
         const [hours, minutes] = timeString.split(":")
         const date = new Date()
         date.setHours(Number.parseInt(hours, 10), Number.parseInt(minutes, 10), 0, 0)
-        return date.toLocaleTimeString("en-US", {
+        const locale = language === "ar" ? "ar-SA" : "en-US"
+        return date.toLocaleTimeString(locale, {
           hour: "numeric",
           minute: "2-digit",
           hour12: true,
         })
       }
-      return timeString || "No time"
+      return timeString || (t?.profile?.noTime || "No time")
     } catch (error) {
-      return "Invalid Time"
+      return t?.profile?.invalidTime || "Invalid Time"
     }
   }
 
@@ -395,7 +411,7 @@ export default function SingleProgramTab({ patientId, language, translations: t 
         <AlertCircle className={styles.errorIcon} />
         <p className={styles.errorText}>{error}</p>
         <button onClick={fetchSinglePrograms} className={styles.retryButton}>
-          Try Again
+          {t?.profile?.tryAgain || "Try Again"}
         </button>
       </div>
     )
@@ -408,7 +424,7 @@ export default function SingleProgramTab({ patientId, language, translations: t 
         <div className={styles.documentViewerHeader}>
           <button onClick={handleBackToFiles} className={styles.backButton}>
             <ArrowLeft size={20} />
-            Back to Programs
+            {t?.profile?.backToPrograms || "Back to Programs"}
           </button>
           <div className={styles.documentInfo}>
             <FileText size={20} className={styles.documentIcon} />
@@ -430,7 +446,7 @@ export default function SingleProgramTab({ patientId, language, translations: t 
       <div className={styles.emptyContainer}>
         <Calendar className={styles.emptyIcon} />
         <h3 className={styles.emptyTitle}>{t?.profile?.noPrograms}</h3>
-        <p className={styles.emptyText}>You don't have any single program appointments yet.</p>
+        <p className={styles.emptyText}>{t?.profile?.noSingleProgramsYet || "You don't have any single program appointments yet."}</p>
       </div>
     )
   }
@@ -472,7 +488,7 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                         className={styles.departmentTag}
                         style={{ backgroundColor: dept.color + "20", color: dept.color }}
                       >
-                        {dept.displayName}
+                        {getDepartmentDisplayName(dept.name)}
                       </span>
                     ))}
                   </div>
@@ -485,7 +501,7 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                 </div>
                 <div className={`${styles.statBadge} ${styles.departmentsBadge}`}>
                   <span className={styles.statNumber}>{program.departments.length}</span>
-                  <span className={styles.statLabel}>departments</span>
+                  <span className={styles.statLabel}>{t?.profile?.departmentsCount || "departments"}</span>
                 </div>
               </div>
             </div>
@@ -495,7 +511,7 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                 <div className={styles.departmentsSection}>
                   <div className={styles.sectionHeader}>
                     <Briefcase className={styles.sectionIcon} />
-                    <h5 className={styles.sectionTitle}>Departments ({program.departments.length})</h5>
+                    <h5 className={styles.sectionTitle}>{t?.profile?.departments || "Departments"} ({program.departments.length})</h5>
                   </div>
 
                   {program.departments.map((department) => (
@@ -510,16 +526,16 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                           <ChevronRight className={styles.smallChevron} />
                         )}
                         <department.icon className={styles.departmentIcon} style={{ color: department.color }} />
-                        <span className={styles.departmentName}>{department.displayName}</span>
+                        <span className={styles.departmentName}>{getDepartmentDisplayName(department.name)}</span>
                         <div className={styles.departmentStatus}>
                           {department.assignment ? (
                             <span
                               className={`${styles.statusBadge} ${styles[department.assignment.status + "Status"]}`}
                             >
-                              {department.assignment.status}
+                              {getStatusText(department.assignment.status)}
                             </span>
                           ) : (
-                            <span className={`${styles.statusBadge} ${styles.notAssignedStatus}`}>Not Assigned</span>
+                            <span className={`${styles.statusBadge} ${styles.notAssignedStatus}`}>{t?.profile?.notAssigned || "Not Assigned"}</span>
                           )}
                         </div>
                       </div>
@@ -529,27 +545,27 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                           {/* Assignment Details */}
                           {department.assignment && (
                             <div className={styles.assignmentSection}>
-                              <h6 className={styles.subsectionTitle}>Assignment Details</h6>
+                              <h6 className={styles.subsectionTitle}>{t?.profile?.assignmentDetails || "Assignment Details"}</h6>
                               <div className={styles.assignmentDetails}>
                                 <div className={styles.detailRow}>
                                   <span className={styles.detailLabel}>{t.profile.status}:</span>
-                                  <span className={styles.detailValue}>{department.assignment.status}</span>
+                                  <span className={styles.detailValue}>{getStatusText(department.assignment.status)}</span>
                                 </div>
                                 {department.assignment.sessionNumber && (
                                   <div className={styles.detailRow}>
-                                    <span className={styles.detailLabel}>Session:</span>
+                                    <span className={styles.detailLabel}>{t?.profile?.session || "Session"}:</span>
                                     <span className={styles.detailValue}>#{department.assignment.sessionNumber}</span>
                                   </div>
                                 )}
                                 <div className={styles.detailRow}>
-                                  <span className={styles.detailLabel}>Assigned Date:</span>
+                                  <span className={styles.detailLabel}>{t?.profile?.assignedDate || "Assigned Date"}:</span>
                                   <span className={styles.detailValue}>
                                     {formatDate(department.assignment.assignedDate)}
                                   </span>
                                 </div>
                                 {department.assignment.completedAt && (
                                   <div className={styles.detailRow}>
-                                    <span className={styles.detailLabel}>Completed:</span>
+                                    <span className={styles.detailLabel}>{t?.profile?.completedAt || "Completed:"}:</span>
                                     <span className={styles.detailValue}>
                                       {formatDate(department.assignment.completedAt)}
                                     </span>
@@ -557,7 +573,7 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                                 )}
                                 {department.assignment.notes && (
                                   <div className={styles.detailRow}>
-                                    <span className={styles.detailLabel}>Notes:</span>
+                                    <span className={styles.detailLabel}>{t?.profile?.notes || "Notes"}:</span>
                                     <span className={styles.detailValue}>{department.assignment.notes}</span>
                                   </div>
                                 )}
@@ -568,7 +584,7 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                           {/* Treatment Plan */}
                           {department.plan && (
                             <div className={styles.planSection}>
-                              <h6 className={styles.subsectionTitle}>Treatment Plan</h6>
+                              <h6 className={styles.subsectionTitle}>{t?.profile?.treatmentPlan || "Treatment Plan"}</h6>
                               <div className={styles.planDetails}>
                                 <div className={styles.planInfo}>
                                   <FileText className={styles.planIcon} />
@@ -577,7 +593,7 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                                       {department.plan.title || `${department.displayName} Plan`}
                                     </span>
                                     <span className={styles.planDate}>
-                                      Last updated:{" "}
+                                      {t?.profile?.lastUpdated || "Last updated"}:{" "}
                                       {formatDate(department.plan.lastModified || department.plan.createdAt)}
                                     </span>
                                   </div>
@@ -593,7 +609,7 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                                   <button
                                     className={styles.downloadButton}
                                     onClick={() => handleFileDownload(department.plan, department.name)}
-                                    title="Download Document"
+                                    title={t?.profile?.downloadDocument || "Download Document"}
                                   >
                                     <Download size={16} />
                                   </button>
@@ -611,14 +627,14 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                           {!department.assignment && (
                             <div className={styles.noDataMessage}>
                               <AlertCircle className={styles.noDataIcon} />
-                              <span className={styles.noDataText}>No assignment found for this department</span>
+                              <span className={styles.noDataText}>{t?.profile?.noAssignmentFound || "No assignment found for this department"}</span>
                             </div>
                           )}
 
                           {!department.plan && (
                             <div className={styles.noDataMessage}>
                               <FileText className={styles.noDataIcon} />
-                              <span className={styles.noDataText}>No treatment plan available yet</span>
+                              <span className={styles.noDataText}>{t?.profile?.noTreatmentPlanAvailable || "No treatment plan available yet"}</span>
                             </div>
                           )}
                         </div>

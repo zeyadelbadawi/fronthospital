@@ -268,19 +268,26 @@
 /* Form Styles */
 .form {
   display: grid;
-  gap: 1.4rem;
+  gap: 1.75rem;
+  /* Increased gap between form rows */
+  max-width: 100%;
+  /* Ensure form doesn't overflow */
+  padding: 0.7rem;
+  /* Add padding around the form */
 }
 
 .formRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.4rem;
+  gap: 1.75rem;
+  /* Increased horizontal gap between columns */
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.525rem;
+  gap: 0.7rem;
+  /* Increased gap between label and input */
 }
 
 .formGroup.fullWidth {
@@ -312,7 +319,8 @@
 .formInput,
 .formTextarea {
   width: 100%;
-  padding: 0.7rem 0.875rem;
+  padding: 0.875rem 1.05rem;
+  /* Increased padding for better spacing */
   border: 1.4px solid #e2e8f0;
   border-radius: 0.525rem;
   font-size: 0.7rem;
@@ -320,6 +328,8 @@
   background: white;
   font-weight: 500;
   box-shadow: 0 0.7px 2.1px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  /* Ensure padding doesn't cause overflow */
 }
 
 .formInput:focus,
@@ -338,12 +348,15 @@
 
 .formTextarea {
   resize: vertical;
-  min-height: 84px;
+  min-height: 105px;
+  /* Increased minimum height for textarea */
   font-family: inherit;
 }
 
 .passwordContainer {
   position: relative;
+  width: 100%;
+  /* Ensure container respects width */
 }
 
 .passwordToggle {
@@ -374,9 +387,12 @@
 .formActions {
   display: flex;
   justify-content: center;
-  gap: 1.05rem;
-  margin-top: 1.4rem;
-  padding-top: 1.4rem;
+  gap: 1.4rem;
+  /* Increased gap between buttons */
+  margin-top: 1.75rem;
+  /* Increased top margin */
+  padding-top: 1.75rem;
+  /* Increased top padding */
   border-top: 1.4px solid #e5e7eb;
 }
 
@@ -456,10 +472,102 @@
   animation: spin 1s linear infinite;
 }
 
+/* Adding drive button styles for clickable link */
+.driveButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.525rem;
+  padding: 0.525rem 1.05rem;
+  background: linear-gradient(135deg, #3f3f87, #cc2889);
+  color: white;
+  border: none;
+  border-radius: 0.525rem;
+  font-size: 0.6125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2.8px 5.6px rgba(63, 63, 135, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.driveButton:hover {
+  transform: translateY(-1.4px);
+  box-shadow: 0 4.2px 8.4px rgba(63, 63, 135, 0.3);
+  background: linear-gradient(135deg, #4a4a9e, #d63299);
+}
+
+.driveButton:active {
+  transform: translateY(0);
+}
+
+.driveButton:focus {
+  outline: 1.4px solid #3f3f87;
+  outline-offset: 1.4px;
+}
+
+.driveLinkIcon {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+/* Added placeholder styling for no media message */
+.noMediaPlaceholder {
+  color: #9ca3af;
+  font-style: italic;
+  font-size: 0.6125rem;
+  opacity: 0.85;
+}
+
+/* RTL/LTR Support */
+:global(.rtl) {
+  direction: rtl;
+  text-align: right;
+}
+
+:global(.ltr) {
+  direction: ltr;
+  text-align: left;
+}
+
+/* RTL-specific adjustments for flex containers */
+:global(.rtl) .formLabel,
+:global(.rtl) .infoLabel,
+:global(.rtl) .tabButton,
+:global(.rtl) .profileBadge {
+  flex-direction: row-reverse;
+}
+
+/* RTL adjustments for password toggle button */
+:global(.rtl) .passwordToggle {
+  right: auto;
+  left: 0.7rem;
+}
+
+/* RTL adjustments for icons to appear on correct side */
+:global(.rtl) .labelIcon,
+:global(.rtl) .infoLabelIcon,
+:global(.rtl) .tabIcon,
+:global(.rtl) .buttonIcon,
+:global(.rtl) .driveLinkIcon {
+  margin-left: 0.35rem;
+  margin-right: 0;
+}
+
+:global(.ltr) .labelIcon,
+:global(.ltr) .infoLabelIcon,
+:global(.ltr) .tabIcon,
+:global(.ltr) .buttonIcon,
+:global(.ltr) .driveLinkIcon {
+  margin-right: 0.35rem;
+  margin-left: 0;
+}
+
 @keyframes spin {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -520,6 +628,7 @@
 }
 
 @media (max-width: 480px) {
+
   .contentHeader,
   .tabContent {
     padding: 0.7rem;
@@ -551,6 +660,7 @@
     opacity: 0;
     transform: translateY(21px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -561,6 +671,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }

@@ -18,11 +18,9 @@ export default async function ViewPage({ params }) {
 
   return (
     <RBACWrapper>
-      {() => (
-        <MasterLayout>
-          <ViewPageContent role={role} id={id} />
-        </MasterLayout>
-      )}
+      <MasterLayout>
+        <ViewPageContent role={role} id={id} />
+      </MasterLayout>
     </RBACWrapper>
   )
 }

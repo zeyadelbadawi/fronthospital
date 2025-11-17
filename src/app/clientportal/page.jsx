@@ -29,10 +29,21 @@ function ClientPortalContent({ user, handleLogout }) {
   // --- Toast State ---
   const [toast, setToast] = useState(null)
 
+  // --- Refresh Trigger State ---
+  const [refreshKey, setRefreshKey] = useState(0)
+
   // --- Toast Function ---
   const showToast = useCallback((message, type = "success") => {
     setToast({ message, type })
     setTimeout(() => setToast(null), 5000)
+  }, [])
+
+  // --- Refresh Auth State After Login ---
+  const handleLoginSuccess = useCallback(() => {
+    // Trigger a re-render by updating the refresh key
+    setRefreshKey((prev) => prev + 1)
+    // Force page reload to refresh user context
+    window.location.reload()
   }, [])
 
   // --- Card click guard ---
@@ -123,7 +134,7 @@ function ClientPortalContent({ user, handleLogout }) {
         showSignupModal={showSignupModal}
         setShowLoginModal={setShowLoginModal}
         setShowSignupModal={setShowSignupModal}
-        onLoginSuccess={() => {}}
+        onLoginSuccess={handleLoginSuccess}
         showToast={showToast}
       />
 

@@ -345,7 +345,31 @@ const translations = {
       invalidTime: "Invalid Time", // Added for time formatting error
       noTime: "No time", // Added for missing time
       failedToDownload: "Failed to download file. Please try again.", // Added for download error
-      schoolProgram: "School Program", // Added for school program title
+      schoolProgram: "School Program", // Added translation for school program title
+      openDriveFolder: "Open Drive Folder", // Added translation for drive link button
+      noMediaYet: "No media available yet", // Added translation for no media placeholder
+      failedToLoadPrograms: "Failed to load single programs. Please try again.",
+      abaTherapy: "ABA",
+      speechTherapy: "Speech Therapy",
+      physicalTherapy: "Physical Therapy",
+      occupationalTherapy: "Occupational Therapy",
+      specialEducation: "Special Education",
+      paidOnline: "Paid Online",
+      paidAtCenter: "Paid at Center",
+      paidViaBankTransfer: "Paid via Bank Transfer",
+      bankTransferPending: "Bank Transfer Pending",
+      bankTransferRejected: "Bank Transfer Rejected",
+      pendingOnlinePayment: "Pending Online Payment",
+      pendingPaymentAtCenter: "Pending Payment at Center",
+      paidOnlineViaWebsite: "Paid online via website",
+      paidCashAtCenter: "Paid cash at center",
+      paidViaBankTransferConfirmed: "Paid via bank transfer (Confirmed)",
+      bankTransferPendingMessage: "Your bank transfer is being reviewed. We will notify you once confirmed.",
+      bankTransferRejectedMessage: "Your bank transfer payment was rejected. Please contact support.",
+      waitingForOnlinePayment: "Waiting for online payment",
+      paymentDueAtCenter: "Payment due when client arrives at center",
+      completedAt: "Completed:",
+      departmentsCount: "departments",
     },
   },
   ar: {
@@ -679,6 +703,30 @@ const translations = {
       noTime: "لا يوجد وقت",
       failedToDownload: "فشل تنزيل الملف. يرجى المحاولة مرة أخرى.",
       schoolProgram: "البرنامج المدرسي",
+      openDriveFolder: "افتح مجلد Drive", // Added Arabic translation for drive link button
+      noMediaYet: "لا توجد وسائط متاحة بعد", // Added Arabic translation for no media placeholder
+      failedToLoadPrograms: "فشل تحميل البرامج الفردية. يرجى المحاولة مرة أخرى.",
+      abaTherapy: "ABA",
+      speechTherapy: "علاج النطق",
+      physicalTherapy: "العلاج الطبيعي",
+      occupationalTherapy: "العلاج الوظيفي",
+      specialEducation: "التربية الخاصة",
+      paidOnline: "مدفوع عبر الإنترنت",
+      paidAtCenter: "مدفوع في المركز",
+      paidViaBankTransfer: "مدفوع عبر التحويل البنكي",
+      bankTransferPending: "التحويل البنكي قيد المراجعة",
+      bankTransferRejected: "التحويل البنكي مرفوض",
+      pendingOnlinePayment: "دفع إلكتروني معلق",
+      pendingPaymentAtCenter: "دفع معلق في المركز",
+      paidOnlineViaWebsite: "مدفوع عبر الإنترنت عبر الموقع",
+      paidCashAtCenter: "مدفوع نقداً في المركز",
+      paidViaBankTransferConfirmed: "مدفوع عبر التحويل البنكي (مؤكد)",
+      bankTransferPendingMessage: "يتم مراجعة تحويلك البنكي. سنخطرك بمجرد التأكيد.",
+      bankTransferRejectedMessage: "تم رفض دفعتك عبر التحويل البنكي. يرجى الاتصال بالدعم.",
+      waitingForOnlinePayment: "في انتظار الدفع عبر الإنترنت",
+      paymentDueAtCenter: "الدفع مستحق عند وصول العميل إلى المركز",
+      completedAt: "مكتمل:",
+      departmentsCount: "أقسام",
     },
   },
 }

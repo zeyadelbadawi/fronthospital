@@ -1,28 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import {
-  Search,
-  Calendar,
-  Clock,
-  Check,
-  User,
-  CalendarDays,
-  Filter,
-  Users,
-  Eye,
-  Trash2,
-  X,
-  AlertCircle,
-  CheckCircle,
-  XCircle,
-  CalendarIcon,
-  ClockIcon,
-  Phone,
-  Mail,
-} from "lucide-react"
+import { Search, Calendar, Clock, Check, User, CalendarDays, Filter, Users, Eye, Trash2, X, AlertCircle, CheckCircle, XCircle, CalendarIcon, ClockIcon, Phone, Mail } from 'lucide-react'
 
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import axiosInstance from "@/helper/axiosSetup"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
@@ -33,6 +14,7 @@ import {
   generateAppointmentRescheduleEmail,
   generateAppointmentCompletionEmail,
 } from "@/components/email-templates/AppointmentEmailTemplate"
+import { getCurrentUser, getCurrentUserId, isDoctor } from "../utils/auth-utils"
 
 export function AppointmentsManagement() {
   const [appointments, setAppointments] = useState([])
@@ -44,6 +26,10 @@ export function AppointmentsManagement() {
   const [selectedDepartment, setSelectedDepartment] = useState("")
   const [dateFilter, setDateFilter] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
+
+  const [doctorAssignments, setDoctorAssignments] = useState([])
+
+  const [userIsDoctor, setUserIsDoctor] = useState(false)
 
   // Modal states
   const [viewModal, setViewModal] = useState({ open: false, appointment: null })
@@ -87,6 +73,28 @@ export function AppointmentsManagement() {
   ]
 
   useEffect(() => {
+    const fetchDoctorAssignments = async () => {
+      const isDoctorRole = isDoctor()
+      setUserIsDoctor(isDoctorRole)
+      const doctorId = getCurrentUserId()
+
+      if (isDoctorRole && doctorId) {
+        try {
+          const response = await axiosInstance.get(
+            `${process.env.NEXT_PUBLIC_API_URL}/single-session-appointment-assignment/doctor/${doctorId}`,
+          )
+          setDoctorAssignments(response.data.assignments || [])
+        } catch (error) {
+          console.error("Error fetching doctor assignments:", error)
+          setDoctorAssignments([])
+        }
+      }
+    }
+
+    fetchDoctorAssignments()
+  }, [])
+
+  useEffect(() => {
     fetchAppointments()
   }, [currentPage, search, selectedDepartment])
 
@@ -115,7 +123,21 @@ export function AppointmentsManagement() {
         return appointment.paymentStatus === "FULLY_PAID"
       })
 
-      setAppointments(paidAppointments)
+      const userIsDoctor = isDoctor()
+      if (userIsDoctor && doctorAssignments.length > 0) {
+        // Get list of appointment IDs that the doctor is assigned to
+        const assignedAppointmentIds = doctorAssignments.map((assignment) => assignment.appointmentId?._id)
+
+        // Filter to only show appointments the doctor is assigned to
+        const doctorFilteredAppointments = paidAppointments.filter((appointment) =>
+          assignedAppointmentIds.includes(appointment._id),
+        )
+
+        setAppointments(doctorFilteredAppointments)
+      } else {
+        setAppointments(paidAppointments)
+      }
+
       setTotalPages(response.data.totalPages || 1)
     } catch (error) {
       console.error("Error fetching appointments:", error)
@@ -124,6 +146,12 @@ export function AppointmentsManagement() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (doctorAssignments.length >= 0) {
+      fetchAppointments()
+    }
+  }, [doctorAssignments])
 
   const applyFilters = () => {
     let filtered = [...appointments]
@@ -176,12 +204,10 @@ export function AppointmentsManagement() {
           isList: false,
           title: `Single Session Appointment Cancelled`,
           titleAr: `تم إلغاء موعد الجلسة الفردية`,
-          message: `Your single session appointment scheduled for ${
-            appointment?.date?.split("T")[0]
-          } at ${appointment.time} has been cancelled. Please contact our customer support team to know the reason for cancellation.`,
-          messageAr: `تم إلغاء موعد جلستك الفردية المجدول في ${
-            appointment?.date?.split("T")[0]
-          } الساعة ${appointment.time}. يرجى التواصل مع فريق دعم العملاء لدينا لمعرفة سبب الإلغاء.`,
+          message: `Your single session appointment scheduled for ${appointment?.date?.split("T")[0]
+            } at ${appointment.time} has been cancelled. Please contact our customer support team to know the reason for cancellation.`,
+          messageAr: `تم إلغاء موعد جلستك الفردية المجدول في ${appointment?.date?.split("T")[0]
+            } الساعة ${appointment.time}. يرجى التواصل مع فريق دعم العملاء لدينا لمعرفة سبب الإلغاء.`,
           receiverId: appointment.patientid._id,
           rule: "Patient",
           type: "delete",
@@ -222,23 +248,21 @@ export function AppointmentsManagement() {
         alert("Appointment rescheduled successfully!")
         const formattedNewDate = rescheduleForm.newDate
           ? new Date(rescheduleForm.newDate).toLocaleDateString("en-US", {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
           : "TBD"
 
         await sendNotification({
           isList: false,
           title: `Single Session Appointment Rescheduled`,
           titleAr: `تم إعادة جدولة موعد الجلسة الفردية`,
-          message: `Your single session appointment has been rescheduled to ${formattedNewDate} at ${rescheduleForm.newTime}. Your previous appointment was scheduled for ${
-            appointment?.date?.split("T")[0]
-          } at ${appointment.time}.`,
-          messageAr: `تم إعادة جدولة موعد جلستك الفردية إلى ${formattedNewDate} الساعة ${rescheduleForm.newTime}. كان موعدك السابق مجدول في ${
-            appointment?.date?.split("T")[0]
-          } الساعة ${appointment.time}.`,
+          message: `Your single session appointment has been rescheduled to ${formattedNewDate} at ${rescheduleForm.newTime}. Your previous appointment was scheduled for ${appointment?.date?.split("T")[0]
+            } at ${appointment.time}.`,
+          messageAr: `تم إعادة جدولة موعد جلستك الفردية إلى ${formattedNewDate} الساعة ${rescheduleForm.newTime}. كان موعدك السابق مجدول في ${appointment?.date?.split("T")[0]
+            } الساعة ${appointment.time}.`,
           receiverId: appointment.patientid._id,
           rule: "Patient",
           type: "reschedule",
@@ -278,9 +302,8 @@ export function AppointmentsManagement() {
         await sendNotification({
           isList: false,
           title: `Single session appointment Completed`,
-          message: `Your session has been marked as completed on date: ${
-            appointment?.date?.split("T")[0]
-          } and time: ${appointment?.time}`,
+          message: `Your session has been marked as completed on date: ${appointment?.date?.split("T")[0]
+            } and time: ${appointment?.time}`,
           receiverId: appointment.patientid._id,
           rule: "Patient",
           type: "successfully",
@@ -517,7 +540,7 @@ export function AppointmentsManagement() {
                         Status
                       </div>
                     </th>
-                    <th className={styles.textCenter}>Actions</th>
+                    {!userIsDoctor && <th className={styles.textCenter}>Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -576,8 +599,7 @@ export function AppointmentsManagement() {
                         </td>
                         <td className={styles.typeCell}>
                           <span
-                            className={`${styles.typeBadge} ${
-                              status.color === "green"
+                            className={`${styles.typeBadge} ${status.color === "green"
                                 ? "completed"
                                 : status.color === "red"
                                   ? "assessment"
@@ -586,7 +608,7 @@ export function AppointmentsManagement() {
                                     : status.color === "gray"
                                       ? "pending"
                                       : "active"
-                            }`}
+                              }`}
                           >
                             {status.color === "green" ? (
                               <CheckCircle className={styles.statusIcon} />
@@ -598,56 +620,58 @@ export function AppointmentsManagement() {
                             {status.label}
                           </span>
                         </td>
-                        <td className={styles.actionsCell}>
-                          {status.status === "upcoming" || status.status === "rescheduled" ? (
-                            <div className={styles.actionButtons}>
-                              <button
-                                onClick={() => handleViewAppointment(appointment._id)}
-                                className={`${styles.actionButton} ${styles.viewButton}`}
-                                title="View Details"
-                              >
-                                <Eye className={styles.actionIcon} />
-                              </button>
-                              {status.status === "upcoming" && (
+                        {!userIsDoctor && (
+                          <td className={styles.actionsCell}>
+                            {status.status === "upcoming" || status.status === "rescheduled" ? (
+                              <div className={styles.actionButtons}>
                                 <button
-                                  onClick={() => setRescheduleModal({ open: true, appointment })}
-                                  className={`${styles.actionButton} ${styles.rescheduleButton}`}
-                                  title="Reschedule"
+                                  onClick={() => handleViewAppointment(appointment._id)}
+                                  className={`${styles.actionButton} ${styles.viewButton}`}
+                                  title="View Details"
                                 >
-                                  <CalendarIcon className={styles.actionIcon} />
+                                  <Eye className={styles.actionIcon} />
                                 </button>
-                              )}
-                              {status.status !== "completed" && status.status !== "cancelled" && (
-                                <>
+                                {status.status === "upcoming" && (
                                   <button
-                                    onClick={() => handleCompleteAppointment(appointment._id, appointment)}
-                                    className={`${styles.actionButton} ${styles.completeButton}`}
-                                    title="Mark as Completed"
+                                    onClick={() => setRescheduleModal({ open: true, appointment })}
+                                    className={`${styles.actionButton} ${styles.rescheduleButton}`}
+                                    title="Reschedule"
                                   >
-                                    <Check className={styles.actionIcon} />
+                                    <CalendarIcon className={styles.actionIcon} />
                                   </button>
-                                  <button
-                                    onClick={() => setDeleteModal({ open: true, appointment })}
-                                    className={`${styles.actionButton} ${styles.deleteButton}`}
-                                    title="Cancel Appointment"
-                                  >
-                                    <Trash2 className={styles.actionIcon} />
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          ) : (
-                            <div className={styles.actionButtons}>
-                              <button
-                                onClick={() => handleViewAppointment(appointment._id)}
-                                className={`${styles.actionButton} ${styles.viewButton}`}
-                                title="View Details"
-                              >
-                                <Eye className={styles.actionIcon} />
-                              </button>
-                            </div>
-                          )}
-                        </td>
+                                )}
+                                {status.status !== "completed" && status.status !== "cancelled" && (
+                                  <>
+                                    <button
+                                      onClick={() => handleCompleteAppointment(appointment._id, appointment)}
+                                      className={`${styles.actionButton} ${styles.completeButton}`}
+                                      title="Mark as Completed"
+                                    >
+                                      <Check className={styles.actionIcon} />
+                                    </button>
+                                    <button
+                                      onClick={() => setDeleteModal({ open: true, appointment })}
+                                      className={`${styles.actionButton} ${styles.deleteButton}`}
+                                      title="Cancel Appointment"
+                                    >
+                                      <Trash2 className={styles.actionIcon} />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            ) : (
+                              <div className={styles.actionButtons}>
+                                <button
+                                  onClick={() => handleViewAppointment(appointment._id)}
+                                  className={`${styles.actionButton} ${styles.viewButton}`}
+                                  title="View Details"
+                                >
+                                  <Eye className={styles.actionIcon} />
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        )}
                       </tr>
                     )
                   })}

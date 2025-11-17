@@ -1,29 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import {
-  Search,
-  ClipboardList,
-  Users,
-  Brain,
-  Calendar,
-  Phone,
-  Mail,
-  User,
-  X,
-  CheckCircle,
-  AlertCircle,
-  ChevronLeft,
-  Filter,
-  Clock,
-  CheckSquare,
-  XCircle,
-} from "lucide-react"
+import { Search, ClipboardList, Users, Brain, Calendar, Phone, Mail, User, X, CheckCircle, AlertCircle, ChevronLeft, Filter, Clock, CheckSquare, XCircle } from 'lucide-react'
 import axiosInstance from "@/helper/axiosSetup"
 import { useContentStore } from "../store/content-store"
 import { sendNotification } from "@/helper/notification-helper"
 import UnifiedPlanEditor from "./unified-plan-editor"
 import styles from "../styles/speech-upcoming-appointments.module.css"
+import { getCurrentUserId, isDoctor } from "../utils/auth-utils"
 
 // Configuration for different therapy types
 const THERAPY_CONFIGS = {
@@ -90,6 +74,18 @@ const THERAPY_CONFIGS = {
   },
 }
 
+const getDepartmentNameForAssignment = (therapyType) => {
+  const mapping = {
+    aba: "ABA",
+    speech: "Speech",
+    "physical-therapy": "PhysicalTherapy",
+    Psychotherapy: "Psychotherapy",
+    "occupational-therapy": "OccupationalTherapy",
+    "special-education": "SpecialEducation",
+  }
+  return mapping[therapyType] || therapyType
+}
+
 const UnifiedPatientsManagement = ({ therapyType }) => {
   const [assignments, setAssignments] = useState([])
   const [search, setSearch] = useState("")
@@ -103,6 +99,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   const [showPlanEditor, setShowPlanEditor] = useState(false)
   const [selectedPatientId, setSelectedPatientId] = useState(null)
   const [adminHeadDoctorIds, setAdminHeadDoctorIds] = useState([])
+  const [doctorAssignments, setDoctorAssignments] = useState([])
 
   const setActiveContent = useContentStore((state) => state.setActiveContent)
 
@@ -111,8 +108,48 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
 
   useEffect(() => {
     getAdminHeadDoctorIds()
-    fetchPatients()
+    if (isDoctor()) {
+      fetchDoctorAssignments()
+    } else {
+      fetchPatients()
+    }
   }, [therapyType, currentPage, search, statusFilter])
+
+  useEffect(() => {
+    if (isDoctor() && doctorAssignments.length >= 0) {
+      fetchPatients()
+    }
+  }, [doctorAssignments])
+
+  const fetchDoctorAssignments = async () => {
+    try {
+      const doctorId = getCurrentUserId()
+      if (!doctorId) return
+
+      const response = await axiosInstance.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/single-session-appointment-assignment/doctor/${doctorId}`,
+      )
+
+      const currentDepartment = getDepartmentNameForAssignment(therapyType)
+      console.log("[v0] Therapy Type:", therapyType)
+      console.log("[v0] Mapped Department Name:", currentDepartment)
+      console.log("[v0] All Doctor Assignments:", response.data.assignments)
+
+      const filteredByDepartment = (response.data.assignments || []).filter(
+        (assignment) => {
+          console.log("[v0] Checking assignment department:", assignment.department, "against", currentDepartment)
+          // Case-insensitive comparison to handle inconsistent database casing
+          return assignment.department?.toLowerCase() === currentDepartment.toLowerCase()
+        }
+      )
+
+      console.log("[v0] Filtered Assignments for this department:", filteredByDepartment)
+      setDoctorAssignments(filteredByDepartment)
+    } catch (error) {
+      console.error("Error fetching doctor assignments:", error)
+      setDoctorAssignments([])
+    }
+  }
 
   const getAdminHeadDoctorIds = async () => {
     try {
@@ -139,14 +176,32 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
       const assignmentsData = Array.isArray(response.data) ? response.data : response.data.assignments || []
 
       const paidAssignments = assignmentsData.filter((assignment) => {
-        // Check if programId exists and has payment status
         if (!assignment.programId) return false
-
-        // Only show if payment is fully paid (either online or cash confirmed by accountant)
         return assignment.programId.paymentStatus === "FULLY_PAID"
       })
 
-      setAssignments(paidAssignments)
+      let filteredAssignments = paidAssignments
+      if (isDoctor() && doctorAssignments.length > 0) {
+        console.log("[v0] Is Doctor: true")
+        console.log("[v0] Doctor Assignments Count:", doctorAssignments.length)
+
+        const doctorAppointmentIds = doctorAssignments.map((da) => {
+          // appointmentId can be a populated object with _id, or just a string ID
+          return da.appointmentId?._id || da.appointmentId
+        })
+        console.log("[v0] Doctor Appointment IDs:", doctorAppointmentIds)
+
+        filteredAssignments = paidAssignments.filter((assignment) => {
+          const appointmentId = assignment.programId?._id || assignment.programId
+          console.log("[v0] Checking appointment:", appointmentId, "in", doctorAppointmentIds)
+          return doctorAppointmentIds.includes(appointmentId)
+        })
+        console.log("[v0] Filtered Assignments after doctor filter:", filteredAssignments.length)
+      } else {
+        console.log("[v0] Is Doctor:", isDoctor(), "| Doctor Assignments Length:", doctorAssignments.length)
+      }
+
+      setAssignments(filteredAssignments)
       setTotalPages(response.data.totalPages || 1)
     } catch (error) {
       console.error(`Error fetching ${config.title}:`, error)
@@ -176,22 +231,19 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
 
   const sendNotificationToAdminsAndHeadDoctors = async (doctorName, departmentName, patientName) => {
     try {
-      const allRecipientIds = [...adminHeadDoctorIds]
-
-      console.log("[v0] Sending notification to admins. Recipient IDs:", allRecipientIds)
-
-      if (allRecipientIds.length === 0) {
+      if (adminHeadDoctorIds.length === 0) {
         console.warn("[v0] No admin or head doctor IDs found")
         return
       }
 
       const title = `Plan Completed - ${departmentName}`
       const titleAr = `تم إكمال الخطة - ${departmentName}`
-      const message = `Doctor ${doctorName} has completed the ${departmentName.toLowerCase()} plan for patient ${patientName} in the single session program.`
-      const messageAr = `الدكتور ${doctorName} أكمل خطة ${departmentName} للمريض ${patientName} في برنامج الجلسة الواحدة.`
+      const message = `Doctor ${doctorName} has completed the ${departmentName} plan in Single Session for patient ${patientName}.`
+      const messageAr = `الدكتور ${doctorName} أكمل خطة ${departmentName} في الجلسة الواحدة للمريض ${patientName}.`
 
-      const response = await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}/notification/send`, {
-        receiverIds: allRecipientIds,
+      await sendNotification({
+        isList: true,
+        receiverIds: adminHeadDoctorIds,
         rule: "Admin",
         title,
         titleAr,
@@ -199,7 +251,8 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
         messageAr,
         type: "successfully",
       })
-      console.log("[v0] Notification sent successfully:", response.data)
+
+      console.log("[v0] Notification sent to admins and head doctors successfully")
     } catch (error) {
       console.error("[v0] Error sending notifications to admins and head doctors:", error)
     }
@@ -215,12 +268,9 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
       )
 
       if (response.status === 200) {
-        alert("Assignment completed successfully!")
-
         const patientId = completeModal.assignment.patient?._id
         const patientName = completeModal.assignment.patient?.name || "Patient"
         const departmentName = config.title.replace(" Students", "")
-
         const doctorName =
           completeModal.assignment.doctor?.name || completeModal.assignment.doctor?.username || "Doctor"
 
@@ -228,17 +278,19 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
           await sendNotification({
             isList: false,
             receiverId: patientId,
-            title: `${departmentName} Plan Ready`,
-            titleAr: `خطة ${departmentName} جاهزة`,
-            message: `Your ${departmentName.toLowerCase()} plan is now ready! You can view it in your profile under ${departmentName}.`,
-            messageAr: `خطتك في ${departmentName} جاهزة الآن! يمكنك عرضها في ملفك الشخصي تحت ${departmentName}.`,
+            title: `${departmentName} Plan Completed`,
+            titleAr: `اكتملت خطة ${departmentName}`,
+            message: `Your ${departmentName} plan in Single Session is now complete! You can view it in your profile page.`,
+            messageAr: `خطتك في ${departmentName} في الجلسة الواحدة مكتملة الآن! يمكنك عرضها في صفحة ملفك الشخصي.`,
             rule: "Patient",
             type: "successfully",
           })
+          console.log("[v0] Notification sent to patient successfully")
         }
 
         await sendNotificationToAdminsAndHeadDoctors(doctorName, departmentName, patientName)
 
+        alert("Assignment completed successfully!")
         setCompleteModal({ open: false, assignment: null })
         setCompletionNotes("")
         fetchPatients()
@@ -304,7 +356,6 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
     })
   }
 
-  // Show plan editor if requested
   if (showPlanEditor && selectedPatientId) {
     return (
       <UnifiedPlanEditor patientId={selectedPatientId} therapyType={therapyType} onBack={handleBackFromPlanEditor} />
@@ -534,7 +585,6 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
         <div>Invalid therapy type configuration</div>
       )}
 
-      {/* View Patient Modal */}
       {viewModal.open && viewModal.patient && (
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
@@ -597,16 +647,12 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
         </div>
       )}
 
-      {/* Complete Assignment Modal */}
       {completeModal.open && (
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
               <h3>Complete {config.modalTitle}</h3>
-              <button
-                onClick={() => setCompleteModal({ open: false, assignment: null })}
-                className={styles.closeButton}
-              >
+              <button onClick={() => setCompleteModal({ open: false, assignment: null })} className={styles.closeButton}>
                 <X size={20} />
               </button>
             </div>
@@ -631,10 +677,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
               </div>
 
               <div className={styles.modalActions}>
-                <button
-                  onClick={() => setCompleteModal({ open: false, assignment: null })}
-                  className={styles.cancelButton}
-                >
+                <button onClick={() => setCompleteModal({ open: false, assignment: null })} className={styles.cancelButton}>
                   Cancel
                 </button>
                 <button onClick={handleCompleteAssignment} className={styles.completeActionButton}>
