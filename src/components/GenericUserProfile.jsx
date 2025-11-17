@@ -220,16 +220,22 @@ const GenericUserProfile = ({ role, id }) => {
     if (!id || !isStudent) return
     setSchoolLoading(true)
     try {
-      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/school/patient/${id}`)
-      setSchoolData(response.data)
+      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs/by-patient/${id}`)
+      setSchoolData(response.data.appointments || response.data)
+      setSchoolError(null)
     } catch (error) {
       console.error("Error fetching school data:", error)
-      setSchoolError(error)
+      setSchoolError(
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to load school data. Please try again."
+      )
       setSchoolData([])
     } finally {
       setSchoolLoading(false)
     }
   }
+
 
   // Load data when switching to specific tabs
   useEffect(() => {

@@ -291,6 +291,10 @@ export function getRoleRoutes(role) {
       "/drive-link",
       "/accountantportal/cash-payments",
       "/accountantportal/bank-transfer-payments",
+      "/doctor/view", // Added doctor view route
+      "/accountant/view",
+
+
     ],
     HeadDoctor: [
       "/",
@@ -311,6 +315,9 @@ export function getRoleRoutes(role) {
       "/drive-link",
       "/accountantportal/cash-payments",
       "/accountantportal/bank-transfer-payments",
+      "/doctor/view", // Added doctor view route
+      "/accountant/view",
+
     ],
     doctor: [
       "/full-program",
