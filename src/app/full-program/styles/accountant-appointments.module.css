@@ -19,13 +19,12 @@
 
 /* Header Styles */
 .cardHeader {
-background: linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%
-);   color: white;
+  background: linear-gradient(135deg,
+      #2977ba 0%,
+      #3f3f87 25%,
+      #cc2889 60%,
+      #2977ba 100%);
+  color: white;
   padding: 2.5rem;
   position: relative;
   overflow: hidden;
@@ -219,6 +218,7 @@ background: linear-gradient(
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -448,17 +448,16 @@ background: linear-gradient(
 }
 
 .paymentButton {
-background: linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%
-);   color: white;
+  background: linear-gradient(135deg,
+      #2977ba 0%,
+      #3f3f87 25%,
+      #cc2889 60%,
+      #2977ba 100%);
+  color: white;
 }
 
 .paymentButton:hover:not(:disabled) {
-    background: linear-gradient(135deg, #2047b4 0%, #168cc3 100%);
+  background: linear-gradient(135deg, #2047b4 0%, #168cc3 100%);
 }
 
 .actionIcon {
@@ -510,13 +509,12 @@ background: linear-gradient(
 }
 
 .paginationButton.active {
-background: linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%
-);   color: white;
+  background: linear-gradient(135deg,
+      #2977ba 0%,
+      #3f3f87 25%,
+      #cc2889 60%,
+      #2977ba 100%);
+  color: white;
   border-color: #1e3a8a;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
@@ -542,6 +540,7 @@ background: linear-gradient(
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -564,6 +563,7 @@ background: linear-gradient(
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -645,8 +645,7 @@ background: linear-gradient(
   right: 0;
   width: 100px;
   height: 100px;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(14,165,233,0.1)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>')
-    no-repeat center;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(14,165,233,0.1)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>') no-repeat center;
   opacity: 0.1;
 }
 
@@ -1284,6 +1283,7 @@ background: linear-gradient(
 }
 
 @media (max-width: 480px) {
+
   .cardHeader,
   .cardBody {
     padding: 1rem;
@@ -1319,6 +1319,7 @@ background: linear-gradient(
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1326,10 +1327,12 @@ background: linear-gradient(
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.8;
   }
@@ -1381,4 +1384,16 @@ background: linear-gradient(
   margin-left: 0.5rem;
 }
 
+.departmentsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
 
+.departmentBadge {
+  background: #eef3ff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+}

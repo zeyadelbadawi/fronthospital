@@ -1,23 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
-import {
-  Home,
-  Users,
-  Brain,
-  MessageSquare,
-  Activity,
-  Palette,
-  BookOpen,
-  Settings,
-  ChevronDown,
-  ChevronRight,
-  User,
-  Shield,
-  Calendar,
-  DollarSign,
-  FileText,
-  Sparkle,
-} from "lucide-react"
+import { Home, Users, Brain, MessageSquare, Activity, Palette, BookOpen, Settings, ChevronDown, ChevronRight, User, Shield, Calendar, DollarSign, FileText, Sparkle } from 'lucide-react'
 import { isAuthenticated, getCurrentUser } from "../utils/auth-utils"
 import axiosInstance from "@/helper/axiosSetup"
 import styles from "../styles/sidebar.module.css"
@@ -33,6 +16,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
     pt: false,
     ot: false,
     se: false,
+    Psychotherapy: false,
   })
 
   useEffect(() => {
@@ -157,6 +141,13 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "accountant-appointments",
           roles: ["admin", "accountant"],
         },
+        {
+          id: "edit-departments",
+          label: "Edit Patient Departments",
+          icon: Settings,
+          content: "edit-departments",
+          roles: ["admin", "headdoctor"],
+        },
       ],
     },
     {
@@ -189,7 +180,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "doctor-plan-aba",
           roles: ["doctor"],
         },
-       
+
         {
           id: "admin-assign-aba",
           label: "Assign Student to Doctor",
@@ -197,7 +188,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "admin-assign-aba",
           roles: ["admin"],
         },
-       
+
       ],
     },
     {
@@ -238,7 +229,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "admin-assign-speech",
           roles: ["admin"],
         },
-        
+
       ],
     },
     {
@@ -279,13 +270,13 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "admin-assign-physical-therapy",
           roles: ["admin"],
         },
-       
+
       ],
     },
     {
       id: "Psychotherapy",
       title: "Psychotherapy",
-      icon:   Sparkle,
+      icon: Sparkle,
       expandable: true,
       expanded: expandedSections.Psychotherapy,
       roles: ["admin", "doctor"],
@@ -305,7 +296,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "assign-patients-Psychotherapy",
           roles: ["doctor"],
         },
-     
+
 
         {
           id: "admin-assign-Psychotherapy",
@@ -314,7 +305,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "admin-assign-Psychotherapy",
           roles: ["admin"],
         },
-       
+
       ],
     },
     {
@@ -355,7 +346,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "admin-assign-occupational-therapy",
           roles: ["admin"],
         },
-       
+
       ],
     },
     {
@@ -396,7 +387,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "admin-assign-special-education",
           roles: ["admin"],
         },
-       
+
       ],
     },
   ]
@@ -471,9 +462,8 @@ const AppSidebarUpdated = ({ onContentChange }) => {
                         <button
                           key={item.id}
                           onClick={() => handleItemClick(item.id, item.content)}
-                          className={`${styles.navItem} ${styles.subNavItem} ${
-                            activeItem === item.id ? styles.active : ""
-                          }`}
+                          className={`${styles.navItem} ${styles.subNavItem} ${activeItem === item.id ? styles.active : ""
+                            }`}
                         >
                           <item.icon className={styles.navIcon} />
                           <span className={styles.navLabel}>{item.label}</span>
@@ -503,7 +493,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
       </nav>
 
       {/* Footer */}
-      
+
     </div>
   )
 }

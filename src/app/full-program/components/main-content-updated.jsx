@@ -2,20 +2,7 @@
 import { useState, useEffect } from "react"
 import axiosInstance from "@/helper/axiosSetup"
 import { getCurrentUser } from "../utils/auth-utils"
-import {
-  User,
-  Shield,
-  Heart,
-  Users,
-  Brain,
-  MessageSquare,
-  Activity,
-  Palette,
-  BookOpen,
-  RefreshCw,
-  AlertCircle,
-  Sparkle,
-} from "lucide-react"
+import { User, Shield, Heart, Users, Brain, MessageSquare, Activity, Palette, BookOpen, RefreshCw, AlertCircle, Sparkle } from 'lucide-react'
 import AccessControl from "./access-control"
 import {
   AssignPatientsABADoctor,
@@ -31,9 +18,10 @@ import DoctorPlan from "./DoctorPlan"
 import styles from "../styles/speech-upcoming-appointments.module.css"
 import { DoctorAppointments } from "./doctor-appointments"
 import { AccountantAppointments } from "./accountant-appointments"
-import { usePathname } from "next/navigation"
+import { usePathname } from 'next/navigation'
 import GenericPlanView from "./generic-plan-view"
 import GenericExamView from "./generic-exam-view"
+import { EditDepartments } from "./edit-departments" // Added import
 
 // Added onNavigateContent as a new prop
 const MainContentUpdated = ({
@@ -408,15 +396,15 @@ const MainContentUpdated = ({
       title:
         dept.name === "PT"
           ? "Physical Therapy"
-          :dept.name === "Psychotherapy"
-          ? "Psychotherapy"
-          : dept.name === "OT"
-            ? "Occupational Therapy"
-            : dept.name === "ABA"
-              ? "ABA Department"
-              : dept.name === "Speech"
-                ? "Speech Therapy"
-                : dept.name,
+          : dept.name === "Psychotherapy"
+            ? "Psychotherapy"
+            : dept.name === "OT"
+              ? "Occupational Therapy"
+              : dept.name === "ABA"
+                ? "ABA Department"
+                : dept.name === "Speech"
+                  ? "Speech Therapy"
+                  : dept.name,
       description: descriptionMap[dept.name] || `${dept.name} department services`,
       icon: iconMap[dept.name] || BookOpen,
       color: colorMap[dept.name] || "blue",
@@ -580,6 +568,9 @@ const MainContentUpdated = ({
     switch (activeContent) {
       case "dashboard": // This case is now handled by the if-else if block above, so it can be removed or return null
         return null // Should not be reached if the logic above is correct.
+
+      case "edit-departments":
+        return <EditDepartments />
 
       case "all-patients":
         return (
@@ -799,7 +790,7 @@ const MainContentUpdated = ({
         return (
           <AccessControl allowedRoles={["doctor"]}>
             {(() => {
-          
+
               if (user?.role !== "doctor") {
                 return (
                   <div className={styles.upcomingContainer}>
@@ -1037,7 +1028,7 @@ const MainContentUpdated = ({
         return (
           <AccessControl allowedRoles={["doctor"]}>
             {(() => {
-          
+
               if (user?.role !== "doctor") {
                 return (
                   <div className={styles.upcomingContainer}>
@@ -1279,7 +1270,7 @@ const MainContentUpdated = ({
         return (
           <AccessControl allowedRoles={["doctor"]}>
             {(() => {
-           
+
               if (user?.role !== "doctor") {
                 return (
                   <div className={styles.upcomingContainer}>
@@ -1347,7 +1338,7 @@ const MainContentUpdated = ({
 
 
 
-            case "all-patients-Psychotherapy":
+      case "all-patients-Psychotherapy":
         return (
           <AccessControl allowedRoles={["admin"]}>
             <AllPatients contentType="all-patients-Psychotherapy" />
@@ -1522,7 +1513,7 @@ const MainContentUpdated = ({
           )
         }
 
-      
+
 
 
       case "all-patients-occupational-therapy":
@@ -1633,9 +1624,9 @@ const MainContentUpdated = ({
         }
 
       case "occupational-exam-editor": // NEW CASE FOR Occupational EXAM EDITOR
-        
+
         const hasAccessOccupationalExam = doctorDepartment?.some((dept) => dept.name === "OccupationalTherapy")
-       
+
         if (user?.role !== "doctor") {
           return (
             <div className={styles.upcomingContainer}>
@@ -1713,7 +1704,7 @@ const MainContentUpdated = ({
         return (
           <AccessControl allowedRoles={["doctor"]}>
             {(() => {
-         
+
               if (user?.role !== "doctor") {
                 return (
                   <div className={styles.upcomingContainer}>
@@ -1955,7 +1946,7 @@ const MainContentUpdated = ({
         return (
           <AccessControl allowedRoles={["doctor"]}>
             {(() => {
-            
+
               if (user?.role !== "doctor") {
                 return (
                   <div className={styles.upcomingContainer}>

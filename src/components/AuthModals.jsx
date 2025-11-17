@@ -301,10 +301,10 @@ export default function AuthModals({
         return
       }
 
-      if (!captchaToken) {
-        showToast("Please complete the CAPTCHA verification", "error")
-        return
-      }
+      // if (!captchaToken) {
+      //   showToast("Please complete the CAPTCHA verification", "error")
+      //   return
+      // }
 
       setSignupLoading(true)
 
@@ -380,13 +380,12 @@ export default function AuthModals({
                   <div className={styles.inputWrapper}>
                     <input
                       type="email"
-                      className={`${styles.input} ${
-                        loginErrors.email
-                          ? styles.inputError
-                          : loginEmail && !loginErrors.email
-                            ? styles.inputSuccess
-                            : ""
-                      }`}
+                      className={`${styles.input} ${loginErrors.email
+                        ? styles.inputError
+                        : loginEmail && !loginErrors.email
+                          ? styles.inputSuccess
+                          : ""
+                        }`}
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                       required
@@ -412,13 +411,12 @@ export default function AuthModals({
                   <div className={styles.inputWrapper}>
                     <input
                       type={showLoginPassword ? "text" : "password"}
-                      className={`${styles.input} ${
-                        loginErrors.password
-                          ? styles.inputError
-                          : loginPassword && !loginErrors.password
-                            ? styles.inputSuccess
-                            : ""
-                      }`}
+                      className={`${styles.input} ${loginErrors.password
+                        ? styles.inputError
+                        : loginPassword && !loginErrors.password
+                          ? styles.inputSuccess
+                          : ""
+                        }`}
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       required
@@ -520,9 +518,8 @@ export default function AuthModals({
                   <label className={styles.label}>{t.auth.fullName}</label>
                   <input
                     type="text"
-                    className={`${styles.input} ${
-                      signupErrors.name ? styles.inputError : signName && !signupErrors.name ? styles.inputSuccess : ""
-                    }`}
+                    className={`${styles.input} ${signupErrors.name ? styles.inputError : signName && !signupErrors.name ? styles.inputSuccess : ""
+                      }`}
                     value={signName}
                     onChange={(e) => setSignName(e.target.value)}
                     required
@@ -547,13 +544,12 @@ export default function AuthModals({
                   <label className={styles.label}>{t.auth.email}</label>
                   <input
                     type="email"
-                    className={`${styles.input} ${
-                      signupErrors.email
-                        ? styles.inputError
-                        : signEmail && !signupErrors.email && emailAvailable === true
-                          ? styles.inputSuccess
-                          : ""
-                    }`}
+                    className={`${styles.input} ${signupErrors.email
+                      ? styles.inputError
+                      : signEmail && !signupErrors.email && emailAvailable === true
+                        ? styles.inputSuccess
+                        : ""
+                      }`}
                     value={signEmail}
                     onChange={(e) => setSignEmail(e.target.value)}
                     required
@@ -581,13 +577,12 @@ export default function AuthModals({
                     defaultCountry="AE"
                     value={signPhone}
                     onChange={setSignPhone}
-                    className={`${styles.phoneInput} ${
-                      signupErrors.phone
-                        ? styles.inputError
-                        : signPhone && !signupErrors.phone && phoneAvailable === true
-                          ? styles.inputSuccess
-                          : ""
-                    }`}
+                    className={`${styles.phoneInput} ${signupErrors.phone
+                      ? styles.inputError
+                      : signPhone && !signupErrors.phone && phoneAvailable === true
+                        ? styles.inputSuccess
+                        : ""
+                      }`}
                     placeholder="Enter phone number"
                   />
                   {phoneCheckLoading && <div className={styles.loadingText}>Checking availability...</div>}
@@ -624,13 +619,12 @@ export default function AuthModals({
                   <div className={styles.inputWrapper}>
                     <input
                       type={showSignPassword ? "text" : "password"}
-                      className={`${styles.input} ${
-                        signupErrors.password
-                          ? styles.inputError
-                          : signPassword && !signupErrors.password
-                            ? styles.inputSuccess
-                            : ""
-                      }`}
+                      className={`${styles.input} ${signupErrors.password
+                        ? styles.inputError
+                        : signPassword && !signupErrors.password
+                          ? styles.inputSuccess
+                          : ""
+                        }`}
                       value={signPassword}
                       onChange={(e) => setSignPassword(e.target.value)}
                       required
@@ -669,13 +663,12 @@ export default function AuthModals({
                   <div className={styles.inputWrapper}>
                     <input
                       type={showConfirmPassword ? "text" : "password"}
-                      className={`${styles.input} ${
-                        signupErrors.confirmPassword
-                          ? styles.inputError
-                          : signConfirm && !signupErrors.confirmPassword
-                            ? styles.inputSuccess
-                            : ""
-                      }`}
+                      className={`${styles.input} ${signupErrors.confirmPassword
+                        ? styles.inputError
+                        : signConfirm && !signupErrors.confirmPassword
+                          ? styles.inputSuccess
+                          : ""
+                        }`}
                       value={signConfirm}
                       onChange={(e) => setSignConfirm(e.target.value)}
                       required
@@ -731,13 +724,13 @@ export default function AuthModals({
                   </label>
                 </div>
 
-                <div className={styles.captchaContainer}>
+                {/* <div className={styles.captchaContainer}>
                   <ReCAPTCHA
                     sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
                     onChange={(token) => setCaptchaToken(token)}
                     onExpired={() => setCaptchaToken(null)}
                   />
-                </div>
+                </div> */}
 
                 <button
                   type="submit"
@@ -747,7 +740,7 @@ export default function AuthModals({
                     Object.keys(signupErrors).length > 0 ||
                     !signGender ||
                     !termsAccepted ||
-                    !captchaToken ||
+                    // !captchaToken ||
                     emailAvailable === false ||
                     phoneAvailable === false ||
                     usernameAvailable === false

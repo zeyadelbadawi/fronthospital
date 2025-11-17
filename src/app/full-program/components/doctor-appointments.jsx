@@ -1,19 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import {
-  Search,
-  Calendar,
-  Clock,
-  User,
-  FileText,
-  X,
-  Save,
-  CheckCircle,
-  XCircle,
-  RotateCcw,
-  DollarSign,
-} from "lucide-react"
+import { Search, Calendar, Clock, User, FileText, X, Save, CheckCircle, XCircle, RotateCcw, DollarSign } from 'lucide-react'
 import styles from "../styles/doctor-appointments.module.css"
 import axiosInstance from "@/helper/axiosSetup"
 import { sendNotification } from "@/helper/notification-helper"
@@ -34,6 +22,7 @@ export function DoctorAppointments() {
   const [showRescheduleModal, setShowRescheduleModal] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [showViewModal, setShowViewModal] = useState(false)
+  const [showDepartmentModal, setShowDepartmentModal] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [rescheduleData, setRescheduleData] = useState({
     date: "",
@@ -41,6 +30,25 @@ export function DoctorAppointments() {
     reason: "",
   })
   const [saving, setSaving] = useState(false)
+
+  const [selectedDepartments, setSelectedDepartments] = useState({
+    ABA: true,
+    Speech: true,
+    SpecialEducation: true,
+    PhysicalTherapy: true,
+    OccupationalTherapy: true,
+    Psychotherapy: false,
+  })
+  const [doctorNotes, setDoctorNotes] = useState("")
+
+  const departmentsList = [
+    { id: "ABA", label: "ABA (Applied Behavior Analysis)" },
+    { id: "Speech", label: "Speech Therapy" },
+    { id: "SpecialEducation", label: "Special Education" },
+    { id: "PhysicalTherapy", label: "Physical Therapy" },
+    { id: "OccupationalTherapy", label: "Occupational Therapy" },
+    { id: "Psychotherapy", label: "Psychotherapy", disabled: true },
+  ]
 
   useEffect(() => {
     fetchAllAppointments()
@@ -147,6 +155,7 @@ export function DoctorAppointments() {
   const handlePageChange = (page) => {
     setCurrentPage(page)
   }
+  const isAnyDepartmentSelected = Object.values(selectedDepartments).some((v) => v === true);
 
   const parseAppointmentDateTime = (date, time) => {
     if (!date || !time) {
@@ -196,46 +205,89 @@ export function DoctorAppointments() {
   }
 
   const handleMarkAsActive = async (appointmentId) => {
+    const appointment = appointments.find((app) => app._id === appointmentId)
+    if (appointment) {
+      setSelectedAppointment(appointment)
+      // Initialize with existing selected departments or defaults
+      if (appointment.selectedDepartments && appointment.selectedDepartments.length > 0) {
+        const deptMap = {}
+        departmentsList.forEach((dept) => {
+          deptMap[dept.id] = appointment.selectedDepartments.includes(dept.id)
+        })
+        setSelectedDepartments(deptMap)
+      } else {
+        // Set defaults if no existing departments are found
+        setSelectedDepartments({
+          ABA: true,
+          Speech: true,
+          SpecialEducation: true,
+          PhysicalTherapy: true,
+          OccupationalTherapy: true,
+          Psychotherapy: false,
+        })
+      }
+      setDoctorNotes(appointment.doctorNotes || "")
+      setShowDepartmentModal(true)
+    }
+  }
+
+  const handleDepartmentSelectionConfirm = async () => {
+    if (!selectedAppointment) return
+
     try {
       setSaving(true)
-      const response = await axiosInstance.put(`/full/fullprogram/${appointmentId}`, {
+      const selectedDeptArray = Object.keys(selectedDepartments).filter((dept) => selectedDepartments[dept])
+
+      // Save department selection to backend
+      const response = await axiosInstance.put(`/full/fullprogram/${selectedAppointment._id}`, {
         status: "active",
+        selectedDepartments: selectedDeptArray,
+        doctorNotes: doctorNotes,
       })
 
-      const appointmentToUpdate = appointments.find((app) => app._id === appointmentId)
-      if (appointmentToUpdate) {
-        try {
-          const accountantIdsResponse = await axiosInstance.get("/notification/accountant-ids")
-          const accountantIdsList = accountantIdsResponse.data
+      // Update local appointments state
+      setAppointments(
+        appointments.map((app) =>
+          app._id === selectedAppointment._id
+            ? {
+              ...app,
+              status: "active",
+              selectedDepartments: selectedDeptArray,
+              doctorNotes: doctorNotes,
+            }
+            : app,
+        ),
+      )
 
-          console.log("[v0] Accountant IDs fetched:", accountantIdsList)
+      // Notify accountants
+      try {
+        const accountantIdsResponse = await axiosInstance.get("/notification/accountant-ids")
+        const accountantIdsList = accountantIdsResponse.data
 
-          if (accountantIdsList && accountantIdsList.length > 0) {
-            console.log("[v0] Sending notification to accountants:", accountantIdsList)
+        if (accountantIdsList && accountantIdsList.length > 0) {
+          const departmentNames = selectedDeptArray
+            .map((d) => departmentsList.find((dept) => dept.id === d)?.label)
+            .filter(Boolean) // Filter out any undefined labels
+            .join(", ")
 
-            await sendNotification({
-              isList: true,
-              receiverIds: accountantIdsList,
-              rule: "Accountant",
-              title: "Patient Ready for Payment",
-              titleAr: "المريض جاهز للدفع",
-              message: `${appointmentToUpdate.patientName} has finished their evaluation session and is ready for payment. You will find their record in the Full Program Payment page.`,
-              messageAr: `${appointmentToUpdate.patientName} انتهى من جلسة التقييم وجاهز للدفع. ستجد سجله في صفحة دفع البرنامج الكامل.`,
-              type: "payment_ready",
-            })
-
-            console.log("[v0] Notification sent successfully to accountants")
-          } else {
-            console.log("[v0] No accountants found to notify")
-          }
-        } catch (notificationError) {
-          console.error("[v0] Error sending notification to accountants:", notificationError)
-          // Don't fail the appointment marking if notification fails
+          await sendNotification({
+            isList: true,
+            receiverIds: accountantIdsList,
+            rule: "Accountant",
+            title: "Patient Ready for Payment",
+            titleAr: "المريض جاهز للدفع",
+            message: `${selectedAppointment.patientName} has finished their evaluation session and is ready for payment. Assigned departments: ${departmentNames}. You will find their record in the Full Program Payment page.`,
+            messageAr: `${selectedAppointment.patientName} انتهى من جلسة التقييم وجاهز للدفع. الأقسام المخصصة: ${departmentNames}. ستجد سجله في صفحة دفع البرنامج الكامل.`,
+            type: "payment_ready",
+          })
         }
+      } catch (notificationError) {
+        console.error("Error sending notification to accountants:", notificationError)
       }
 
-      setAppointments(appointments.map((app) => (app._id === appointmentId ? { ...app, status: "active" } : app)))
-      alert("Appointment marked as active! Student can now proceed to payment.")
+      alert("Appointment marked as active with selected departments!")
+      setShowDepartmentModal(false)
+      setSelectedAppointment(null)
     } catch (error) {
       console.error("Error marking appointment as active:", error)
       alert("Error marking appointment as active")
@@ -320,8 +372,18 @@ export function DoctorAppointments() {
     setShowRescheduleModal(false)
     setShowCancelModal(false)
     setShowViewModal(false)
+    setShowDepartmentModal(false)
     setSelectedAppointment(null)
     setRescheduleData({ date: "", time: "", reason: "" })
+    setSelectedDepartments({
+      ABA: true,
+      Speech: true,
+      SpecialEducation: true,
+      PhysicalTherapy: true,
+      OccupationalTherapy: true,
+      Psychotherapy: false,
+    })
+    setDoctorNotes("")
   }
 
   const getActionButtons = (appointment) => {
@@ -497,7 +559,7 @@ export function DoctorAppointments() {
               <p className={styles.pageSubtitle}>Manage all Student appointments and track payment status</p>
             </div>
             <div className={styles.headerActions}>
-              <form onSubmit={handleSearch} className={styles.searchForm}>
+              <form onSubmit={(e) => { e.preventDefault(); filterAppointments() }} className={styles.searchForm}>
                 <div className={styles.searchInputContainer}>
                   <input
                     type="text"
@@ -720,9 +782,9 @@ export function DoctorAppointments() {
                           <h3>No appointments found</h3>
                           <p>
                             {search ||
-                            filterStatus !== "all" ||
-                            filterTimeframe !== "all" ||
-                            filterPaymentStatus !== "all"
+                              filterStatus !== "all" ||
+                              filterTimeframe !== "all" ||
+                              filterPaymentStatus !== "all"
                               ? "Try adjusting your search or filters"
                               : "No appointments are scheduled at this time"}
                           </p>
@@ -844,6 +906,82 @@ export function DoctorAppointments() {
               <button onClick={handleConfirmCancel} className={styles.deleteConfirmButton} disabled={saving}>
                 <XCircle className={styles.buttonIcon} />
                 {saving ? "Cancelling..." : "Cancel Appointment"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Department Selection Modal */}
+      {showDepartmentModal && selectedAppointment && (
+        <div className={styles.modalOverlay} onClick={closeModals}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Select Departments</h3>
+              <p className={styles.modalSubtitle}>
+                Student Name: {selectedAppointment.patientName || `Student-${selectedAppointment.patientid}`}
+              </p>
+              <button onClick={closeModals} className={styles.closeButton}>
+                <X className={styles.closeIcon} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.departmentSelectionSection}>
+                <h4 className={styles.sectionTitle}>Did the patient finish their evaluation session?</h4>
+                <p className={styles.sectionDescription}>
+                  If yes, please select which departments this patient should be assigned to based on their evaluation
+                  results.
+                </p>
+                <br></br>
+
+                <div className={styles.departmentsList}>
+                  {departmentsList.map((dept) => (
+                    <label key={dept.id} className={`${styles.departmentItem} ${dept.disabled ? styles.disabled : ""}`}>
+                      <input
+                        type="checkbox"
+                        checked={selectedDepartments[dept.id] || false}
+                        onChange={(e) =>
+                          setSelectedDepartments({
+                            ...selectedDepartments,
+                            [dept.id]: e.target.checked,
+                          })
+                        }
+                        disabled={dept.disabled}
+                      />
+                      <div className={styles.departmentContent}>
+                        <span className={styles.departmentLabel}>{dept.label}</span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+
+                <div className={styles.formGroup} style={{ marginTop: "1.5rem" }}>
+                  <label className={styles.formLabel}>Doctor Notes (Optional)</label>
+                  <textarea
+                    value={doctorNotes}
+                    onChange={(e) => setDoctorNotes(e.target.value)}
+                    className={styles.formTextarea}
+                    rows={3}
+                    placeholder="Add any notes about the department selection or patient condition..."
+                  />
+                </div>
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button onClick={closeModals} className={styles.cancelButton} disabled={saving}>
+                Cancel
+              </button>
+              <button
+                onClick={handleDepartmentSelectionConfirm}
+                className={styles.saveButton}
+                disabled={saving || !isAnyDepartmentSelected}
+                style={{
+                  opacity: saving || !isAnyDepartmentSelected ? 0.5 : 1,
+                  cursor: saving || !isAnyDepartmentSelected ? "not-allowed" : "pointer"
+                }}
+              >
+                <CheckCircle className={styles.buttonIcon} />
+                {saving ? "Saving..." : "Confirm Selection"}
               </button>
             </div>
           </div>

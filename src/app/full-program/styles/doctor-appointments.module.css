@@ -21,13 +21,12 @@
 
 /* Header Styles */
 .cardHeader {
-background: linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%
-);   color: white;
+  background: linear-gradient(135deg,
+      #2977ba 0%,
+      #3f3f87 25%,
+      #cc2889 60%,
+      #2977ba 100%);
+  color: white;
   padding: 2.5rem;
   position: relative;
   overflow: hidden;
@@ -172,13 +171,12 @@ background: linear-gradient(
 }
 
 .filterSelect option {
-background: linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%
-);   color: white;
+  background: linear-gradient(135deg,
+      #2977ba 0%,
+      #3f3f87 25%,
+      #cc2889 60%,
+      #2977ba 100%);
+  color: white;
 }
 
 .clearFiltersButton {
@@ -288,6 +286,7 @@ background: linear-gradient(
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -631,19 +630,17 @@ background: linear-gradient(
 }
 
 .paginationButton.active {
-background: linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%
-);   color: white;
-  border-color:  linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%);
+  background: linear-gradient(135deg,
+      #2977ba 0%,
+      #3f3f87 25%,
+      #cc2889 60%,
+      #2977ba 100%);
+  color: white;
+  border-color: linear-gradient(135deg,
+      #2977ba 0%,
+      #3f3f87 25%,
+      #cc2889 60%,
+      #2977ba 100%);
 
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
@@ -957,6 +954,7 @@ background: linear-gradient(
 }
 
 @media (max-width: 480px) {
+
   .cardHeader,
   .cardBody {
     padding: 1rem;
@@ -986,6 +984,7 @@ background: linear-gradient(
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -996,6 +995,7 @@ background: linear-gradient(
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -1023,4 +1023,21 @@ background: linear-gradient(
 .searchInput:focus {
   outline: 2px solid #059669;
   outline-offset: 2px;
+}
+
+.departmentItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* space between checkbox and text */
+  margin-bottom: 10px;
+}
+
+.departmentItem input[type="checkbox"] {
+  margin: 0;
+}
+
+.departmentContent {
+  display: flex;
+  align-items: center;
 }

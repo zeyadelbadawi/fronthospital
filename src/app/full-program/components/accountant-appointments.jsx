@@ -1,21 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import {
-  Search,
-  Calendar,
-  Clock,
-  User,
-  FileText,
-  DollarSign,
-  CreditCard,
-  CheckCircle,
-  AlertCircle,
-  Eye,
-  X,
-  Plus,
-  Minus,
-} from "lucide-react"
+import { Search, Calendar, Clock, User, FileText, DollarSign, CreditCard, CheckCircle, AlertCircle, Eye, X, Plus, Minus } from 'lucide-react'
 import styles from "../styles/accountant-appointments.module.css"
 import axiosInstance from "@/helper/axiosSetup"
 import { sendNotification } from "@/helper/notification-helper"
@@ -207,11 +193,24 @@ export function AccountantAppointments() {
     return errors
   }
 
-  const sendPaymentNotification = async (appointment, paymentMethod) => {
+  const sendPaymentNotification = async (appointment, paymentMethod, programDescription) => {
     try {
       const patientId = appointment.patientid
       const checkCount = paymentMethod === "installment" ? checkDetails.length : 0
       const firstCheckDueDate = paymentMethod === "installment" ? checkDetails[0]?.dueDate : null
+
+      const departmentLabels = {
+        ABA: "ABA",
+        Speech: "Speech Therapy",
+        SpecialEducation: "Special Education",
+        PhysicalTherapy: "Physical Therapy",
+        OccupationalTherapy: "Occupational Therapy",
+        Psychotherapy: "Psychotherapy",
+      }
+
+      const assignedDepartments = appointment.selectedDepartments && appointment.selectedDepartments.length > 0
+        ? appointment.selectedDepartments.map(d => departmentLabels[d]).join(", ")
+        : "All available departments"
 
       if (paymentMethod === "cash") {
         // Notify patient that program is fully paid
@@ -222,18 +221,18 @@ export function AccountantAppointments() {
           title: "Program Payment Confirmed",
           titleAr: "تم تأكيد دفع البرنامج",
           message:
-            "Your full program payment has been confirmed successfully. Congratulations! You can now start your program immediately.",
-          messageAr: "تم تأكيد دفع البرنامج الكامل بنجاح. تهانينا! يمكنك الآن بدء برنامجك على الفور.",
+            `Your full program payment has been confirmed successfully. You have been assigned to: ${assignedDepartments}. Congratulations! You can now start your program immediately.`,
+          messageAr: `تم تأكيد دفع البرنامج الكامل بنجاح. تم تعيينك في: ${assignedDepartments}. تهانينا! يمكنك الآن بدء برنامجك على الفور.`,
           type: "confirmed",
         })
       } else if (paymentMethod === "installment") {
         // Notify patient that program started with check details
         const dueDateFormatted = firstCheckDueDate
           ? new Date(firstCheckDueDate).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
           : "TBD"
 
         await sendNotification({
@@ -242,19 +241,19 @@ export function AccountantAppointments() {
           rule: "Patient",
           title: "Program Started - Installment Payment",
           titleAr: "بدء البرنامج - الدفع بالتقسيط",
-          message: `Your program has started successfully! You have ${checkCount} checks to pay. First check due date: ${dueDateFormatted}. Please ensure timely payment.`,
-          messageAr: `تم بدء برنامجك بنجاح! لديك ${checkCount} شيكات يجب دفعها. تاريخ استحقاق الشيك الأول: ${dueDateFormatted}. يرجى التأكد من الدفع في الوقت المناسب.`,
+          message: `Your program has started successfully! You have been assigned to: ${assignedDepartments}. You have ${checkCount} checks to pay. First check due date: ${dueDateFormatted}. Please ensure timely payment.`,
+          messageAr: `تم بدء برنامجك بنجاح! تم تعيينك في: ${assignedDepartments}. لديك ${checkCount} شيكات يجب دفعها. تاريخ استحقاق الشيك الأول: ${dueDateFormatted}. يرجى التأكد من الدفع في الوقت المناسب.`,
           type: "confirmed",
         })
       }
     } catch (error) {
       console.error("Error sending payment notification:", error)
-      // Don't throw error - payment should succeed even if notification fails
     }
   }
 
   const handleCompletePayment = async () => {
     if (!selectedAppointment) return
+
     // Validate installment details if needed
     if (paymentMethod === "installment") {
       const validationErrors = validateCheckDetails()
@@ -263,6 +262,7 @@ export function AccountantAppointments() {
         return
       }
     }
+
     setProcessing(true)
     try {
       const totalCheckAmount = getTotalCheckAmount()
@@ -273,18 +273,21 @@ export function AccountantAppointments() {
         patientId: selectedAppointment.patientid,
         patientName: selectedAppointment.patientName,
         checkDetails: paymentMethod === "installment" ? checkDetails : null,
+        selectedDepartments: selectedAppointment.selectedDepartments || [],
       }
+
       const response = await axiosInstance.post("/authentication/completeFullProgramPayment", paymentData)
       if (response.status === 200) {
-        await sendPaymentNotification(selectedAppointment, paymentMethod)
+        await sendPaymentNotification(selectedAppointment, paymentMethod, response.data.programDescription)
 
         // Assign to departments if the payment is successful, regardless of the payment method
-        await assignToAllDepartments(
+        await assignToDepartments(
           response.data.patientId,
           response.data.programDescription,
           selectedAppointment.patientName,
+          selectedAppointment.selectedDepartments,
         )
-        alert("Payment completed successfully! Student has been assigned to all departments.")
+        alert("Payment completed successfully! Student has been assigned to selected departments.")
         setShowPaymentModal(false)
         setSelectedAppointment(null)
         fetchActiveAppointments() // Refresh the list
@@ -297,16 +300,16 @@ export function AccountantAppointments() {
     }
   }
 
-  // Add this new function to handle assignments to all 5 departments
-  const assignToAllDepartments = async (patientId, description, patientName) => {
-    const departments = [
-      { endpoint: "/aba/assign-to-ABA", name: "ABA" },
-      { endpoint: "/speech/assign-to-Speech", name: "Speech" },
-      { endpoint: "/SpecialEducation/assign-to-Special-Education", name: "Special Education" },
-      { endpoint: "/physicalTherapy/assign-to-physical", name: "Physical Therapy" },
-      { endpoint: "/OccupationalTherapy/assign-to-Occupational", name: "Occupational Therapy" },
-      { endpoint: "/Psychotherapy/assign-to-Psychotherapy", name: "Psychotherapy" },
-    ]
+  const assignToDepartments = async (patientId, description, patientName, selectedDepartments) => {
+    // Map departments to their API endpoints
+    const departmentEndpoints = {
+      ABA: { endpoint: "/aba/assign-to-ABA", name: "ABA" },
+      Speech: { endpoint: "/speech/assign-to-Speech", name: "Speech" },
+      SpecialEducation: { endpoint: "/SpecialEducation/assign-to-Special-Education", name: "Special Education" },
+      PhysicalTherapy: { endpoint: "/physicalTherapy/assign-to-physical", name: "Physical Therapy" },
+      OccupationalTherapy: { endpoint: "/OccupationalTherapy/assign-to-Occupational", name: "Occupational Therapy" },
+      Psychotherapy: { endpoint: "/Psychotherapy/assign-to-Psychotherapy", name: "Psychotherapy" },
+    }
 
     const assignmentResults = {
       totalAssigned: 0,
@@ -314,7 +317,13 @@ export function AccountantAppointments() {
       details: [],
     }
 
-    for (const dept of departments) {
+    // Only assign to selected departments
+    const deptsToAssign = selectedDepartments && selectedDepartments.length > 0 ? selectedDepartments : ["ABA", "Speech", "SpecialEducation", "PhysicalTherapy", "OccupationalTherapy"]
+
+    for (const deptId of deptsToAssign) {
+      const dept = departmentEndpoints[deptId]
+      if (!dept) continue
+
       try {
         const assignmentData = {
           patientId: patientId,
@@ -339,9 +348,11 @@ export function AccountantAppointments() {
         console.error(`Error assigning to ${dept.name}:`, error)
       }
     }
+
     if (assignmentResults.totalFailed > 0) {
       console.warn(`${assignmentResults.totalFailed} department assignments failed`)
     }
+
     return assignmentResults
   }
 
@@ -373,6 +384,31 @@ export function AccountantAppointments() {
     pending: appointments.filter((app) => app.paymentStatus === "PENDING").length,
     partial: appointments.filter((app) => app.paymentStatus === "PARTIALLY_PAID").length,
     completed: appointments.filter((app) => app.paymentStatus === "FULLY_PAID").length,
+  }
+
+  const getDepartmentsDisplay = (appointment) => {
+    if (!appointment.selectedDepartments || appointment.selectedDepartments.length === 0) {
+      return <span className={styles.noDepartments}>No departments selected</span>
+    }
+
+    const departmentLabels = {
+      ABA: "ABA",
+      Speech: "Speech",
+      SpecialEducation: "Special Education",
+      PhysicalTherapy: "Physical Therapy",
+      OccupationalTherapy: "Occupational Therapy",
+      Psychotherapy: "Psychotherapy",
+    }
+
+    return (
+      <div className={styles.departmentsList}>
+        {appointment.selectedDepartments.map((dept) => (
+          <span key={dept} className={styles.departmentBadge}>
+            {departmentLabels[dept] || dept}
+          </span>
+        ))}
+      </div>
+    )
   }
 
   return (
@@ -521,6 +557,7 @@ export function AccountantAppointments() {
                         Remaining
                       </div>
                     </th>
+                    <th>Assigned Departments</th>
                     <th className={styles.textCenter}>Actions</th>
                   </tr>
                 </thead>
@@ -561,6 +598,9 @@ export function AccountantAppointments() {
                             {appointment.paymentStatus === "FULLY_PAID" ? "0" : getRemainingAmount(appointment)} AED
                           </span>
                         </td>
+                        <td className={styles.departmentsCell}>
+                          {getDepartmentsDisplay(appointment)}
+                        </td>
                         <td className={styles.actionsCell}>
                           <div className={styles.actionButtons}>
                             <button
@@ -586,7 +626,7 @@ export function AccountantAppointments() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="7" className={styles.noData}>
+                      <td colSpan="8" className={styles.noData}>
                         <div className={styles.emptyState}>
                           <DollarSign className={styles.emptyIcon} />
                           <h3>No appointments found</h3>
@@ -823,6 +863,10 @@ export function AccountantAppointments() {
                       ? new Date(selectedAppointment.subscriptionEndDate).toLocaleDateString()
                       : "N/A"}
                   </span>
+                </div>
+                <div className={styles.detailItem}>
+                  <label>Assigned Departments:</label>
+                  {getDepartmentsDisplay(selectedAppointment)}
                 </div>
               </div>
             </div>
