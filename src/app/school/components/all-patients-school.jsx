@@ -1,19 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
-import {
-  Search,
-  ClipboardList,
-  ClipboardCheck,
-  Brain,
-  Calendar,
-  User,
-  X,
-  Hash,
-  FileText,
-  MoreVertical,
-  Edit2,
-  Lock,
-} from "lucide-react"
+import { Search, ClipboardList, ClipboardCheck, Brain, Calendar, User, X, Hash, FileText, MoreVertical, Edit2, Lock } from 'lucide-react'
 import axiosInstance from "@/helper/axiosSetup"
 import { useContentStore } from "../store/content-store"
 import { getCurrentUser } from "../utils/auth-utils"
@@ -59,7 +46,6 @@ const AllPatientsSchool = () => {
         limit: 10,
       })
 
-      // Add doctorId to params if user is a doctor
       if (isDoctorRole && doctorId) {
         params.append("doctorId", doctorId)
         console.log("[v0] Added doctorId to params")
@@ -147,8 +133,22 @@ const AllPatientsSchool = () => {
     setLoading(true)
 
     try {
+      const currentUser = getCurrentUser()
+      const isDoctorRole = currentUser?.role === "doctor"
+      const doctorId = isDoctorRole ? currentUser?.id : null
+
+      const params = new URLSearchParams({
+        page: currentPage,
+        search: search,
+        limit: 10,
+      })
+
+      if (isDoctorRole && doctorId) {
+        params.append("doctorId", doctorId)
+      }
+
       const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs-optimized?page=${currentPage}&search=${search}&limit=10`,
+        `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs-optimized?${params}`,
       )
 
       console.log("[v0] Response received:", response.data)

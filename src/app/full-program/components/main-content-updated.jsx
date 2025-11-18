@@ -885,7 +885,7 @@ const MainContentUpdated = ({
         )
 
       case "speech-plan-editor":
-        const hasAccessSpeech = doctorDepartment?.some((dept) => dept.name === "speech")
+        const hasAccessSpeech = doctorDepartment?.some((dept) => dept.name?.toLowerCase() === "speech")
 
         if (user?.role !== "doctor") {
           return (
@@ -954,8 +954,8 @@ const MainContentUpdated = ({
           )
         }
 
-      case "speech-exam-editor": // NEW CASE FOR speech EXAM EDITOR
-        const hasAccessSpeechExam = doctorDepartment?.some((dept) => dept.name === "speech")
+      case "speech-exam-editor":
+        const hasAccessSpeechExam = doctorDepartment?.some((dept) => dept.name?.toLowerCase() === "speech")
 
         if (user?.role !== "doctor") {
           return (

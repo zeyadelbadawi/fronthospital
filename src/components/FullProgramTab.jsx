@@ -1,28 +1,7 @@
 "use client"
 import { useEffect, useState, useRef } from "react"
 import axios from "axios"
-import {
-  ChevronDown,
-  ChevronRight,
-  Calendar,
-  FolderOpen,
-  FileText,
-  Download,
-  Eye,
-  AlertCircle,
-  Loader2,
-  ArrowLeft,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  PlayCircle,
-  StopCircle,
-  CreditCard,
-  Banknote,
-  DollarSign,
-  Building2,
-} from "lucide-react"
+import { ChevronDown, ChevronRight, Calendar, FolderOpen, FileText, Download, Eye, AlertCircle, Loader2, ArrowLeft, Clock, CheckCircle, XCircle, AlertTriangle, PlayCircle, StopCircle, CreditCard, Banknote, DollarSign, Building2, Hourglass } from 'lucide-react'
 import styles from "../styles/full-program-tab.module.css"
 import PatientDocumentViewer from "./PatientDocumentViewer"
 
@@ -44,6 +23,7 @@ const FullProgramTab = ({
   const [viewingDocument, setViewingDocument] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedYear, setSelectedYear] = useState("")
+  const [hasActiveProgramsWithNoClosed, setHasActiveProgramsWithNoClosed] = useState(false)
   const documentViewerRef = useRef(null)
 
   // Department mapping
@@ -64,6 +44,7 @@ const FullProgramTab = ({
   const fetchFullProgramData = async () => {
     setLoading(true)
     setError(null)
+    setHasActiveProgramsWithNoClosed(false)
 
     try {
       const appointmentsResponse = await axios.get(
@@ -91,16 +72,19 @@ const FullProgramTab = ({
                     ),
                   ])
 
-                  const plans = Array.isArray(plansResponse.data.plans)
+                  let plans = Array.isArray(plansResponse.data.plans)
                     ? plansResponse.data.plans
                     : plansResponse.data.plans
                       ? [plansResponse.data.plans]
                       : []
-                  const exams = Array.isArray(examsResponse.data.exams)
+                  let exams = Array.isArray(examsResponse.data.exams)
                     ? examsResponse.data.exams
                     : examsResponse.data.exams
                       ? [examsResponse.data.exams]
                       : []
+
+                  plans = plans.filter(plan => plan.isClosed === true)
+                  exams = exams.filter(exam => exam.isClosed === true)
 
                   return {
                     department: dept.name,
@@ -123,6 +107,12 @@ const FullProgramTab = ({
             )
 
             const departmentsWithFiles = departmentFiles.filter((dept) => dept.totalFiles > 0)
+
+            const hasClosedContent = departmentsWithFiles.length > 0
+
+            if (!hasClosedContent) {
+              setHasActiveProgramsWithNoClosed(true)
+            }
 
             return {
               ...appointment,
@@ -752,7 +742,7 @@ const FullProgramTab = ({
           </div>
         </div>
 
-        {expandedAppointments.has(appointment._id) && (
+        {expandedAppointments.has(appointment._id) && appointment.departments.length > 0 && (
           <div className={styles.appointmentContent}>
             {appointment.departments.map((dept) => (
               <div key={dept.departmentKey} className={styles.departmentSection}>
@@ -983,6 +973,19 @@ const FullProgramTab = ({
             ))}
           </div>
         )}
+
+        {expandedAppointments.has(appointment._id) && appointment.departments.length === 0 && (
+          <div className={styles.underReviewMessage}>
+            <Hourglass className={styles.underReviewIcon} />
+            <div className={styles.underReviewContent}>
+              <h5>Plans and Exams Under Review</h5>
+              <p>
+                Your plans and exams are currently being reviewed and finalized by your healthcare team. They will be
+                available here once they are completed and approved. Thank you for your patience!
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -1069,7 +1072,7 @@ const FullProgramTab = ({
           </div>
         </div>
 
-        {expandedAppointments.has(appointment._id) && (
+        {expandedAppointments.has(appointment._id) && appointment.departments.length > 0 && (
           <div className={styles.appointmentContent}>
             {appointment.departments.map((dept) => (
               <div key={dept.departmentKey} className={styles.departmentSection}>
@@ -1298,6 +1301,16 @@ const FullProgramTab = ({
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {expandedAppointments.has(appointment._id) && appointment.departments.length === 0 && (
+          <div className={styles.underReviewMessage}>
+            <Hourglass className={styles.underReviewIcon} />
+            <div className={styles.underReviewContent}>
+              <h5>No Records Available</h5>
+              <p>This program has ended and no completed plans or exams are available to display.</p>
+            </div>
           </div>
         )}
       </div>

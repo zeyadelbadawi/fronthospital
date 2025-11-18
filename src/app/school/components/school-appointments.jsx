@@ -1,28 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import {
-  Search,
-  Plus,
-  Calendar,
-  Clock,
-  Check,
-  X,
-  User,
-  CalendarDays,
-  Edit3,
-  CheckCircle,
-  ArrowLeft,
-  Save,
-  AlertCircle,
-  Users,
-  Activity,
-  Mail,
-  Phone,
-  AlertTriangle,
-  Hash,
-  ClipboardCheck,
-} from "lucide-react"
+import { Search, Plus, Calendar, Clock, Check, X, User, CalendarDays, Edit3, CheckCircle, ArrowLeft, Save, AlertCircle, Users, Activity, Mail, Phone, AlertTriangle, Hash, ClipboardCheck } from 'lucide-react'
 import axiosInstance from "@/helper/axiosSetup"
 import { useToast } from "./toast"
 import { ConfirmationModal } from "./confirmation-modal"
@@ -74,6 +53,22 @@ export function SchoolAppointments() {
   })
 
   const { showToast, ToastContainer } = useToast()
+
+  // CHANGE: Moved checkPreviousAppointments BEFORE handleAddAppointment to fix hoisting issue
+  const checkPreviousAppointments = useCallback(() => {
+    if (appointments.length === 0) {
+      return { hasIncomplete: false, lastIncompleteIndex: -1 }
+    }
+
+    // Find the last incomplete appointment
+    for (let i = appointments.length - 1; i >= 0; i--) {
+      if (appointments[i].status !== "completed") {
+        return { hasIncomplete: true, lastIncompleteIndex: i }
+      }
+    }
+
+    return { hasIncomplete: false, lastIncompleteIndex: -1 }
+  }, [appointments])
 
   // OPTIMIZED: Memoized stats calculation using server data
   const stats = useMemo(() => {
@@ -266,9 +261,35 @@ export function SchoolAppointments() {
     setEditFormData({ date: "", time: "", description: "" })
   }, [])
 
+  const checkSheetStatus = async (unicValue, patientId) => {
+    try {
+      const response = await axiosInstance.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/school/plan/${patientId}/${unicValue}`,
+      )
+      return {
+        exists: !!response.data?.filePath || !!response.data?.fileName,
+        isLocked: response.data?.isLocked || false,
+        plan: response.data,
+      }
+    } catch (error) {
+      console.error("Error checking sheet status:", error)
+      return {
+        exists: false,
+        isLocked: false,
+        plan: null,
+      }
+    }
+  }
+
   const handleAddAppointment = useCallback(async () => {
     if (appointmentStats.isCompleted) {
       showToast("Cannot add appointments. This program has been completed.", "warning")
+      return
+    }
+
+    const { hasIncomplete } = checkPreviousAppointments() // Destructure hasIncomplete only
+    if (hasIncomplete) {
+      showToast("You have to complete the previous appointment to create a new one", "error")
       return
     }
 
@@ -317,6 +338,7 @@ export function SchoolAppointments() {
     fetchProgramAppointmentsOptimized,
     showToast,
     extractPatientId,
+    checkPreviousAppointments, // Include checkPreviousAppointments here
   ])
 
   const handleEditClick = useCallback((appointment) => {
@@ -463,7 +485,6 @@ export function SchoolAppointments() {
     }
   }, [lastAppointmentWarning.appointmentId, showToast, handleBackToList])
 
-  // OPTIMIZED: Complete all appointments using server stats
   const handleCompleteAllAppointments = useCallback(() => {
     if (appointmentStats.total === 0) {
       showToast("No appointments to complete", "warning")
@@ -475,42 +496,94 @@ export function SchoolAppointments() {
       return
     }
 
-    setConfirmModal({
-      isOpen: true,
-      title: "Complete All Appointments",
-      message: `Are you sure you want to mark all ${appointmentStats.remaining} incomplete appointments as complete? This will also prevent adding new appointments.`,
-      type: "warning",
-      onConfirm: async () => {
-        setSaving(true)
-        try {
-          const patientId = extractPatientId(selectedProgram)
+    setSaving(true)
+    const patientId = extractPatientId(selectedProgram)
 
-          if (!patientId) {
-            throw new Error("Patient ID not found in program data")
-          }
+    checkSheetStatus(selectedProgram.unicValue, patientId)
+      .then((sheetStatus) => {
+        setSaving(false)
 
-          // Complete all appointments in the program
-          const response = await axiosInstance.patch(
-            `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs/complete-all/${selectedProgram.unicValue}`,
-          )
-
-          if (response.status === 200) {
-            // Update PatientSchoolAssignment
-            await axiosInstance.patch(`${process.env.NEXT_PUBLIC_API_URL}/school/complete-assignment/${patientId}`)
-
-            await fetchProgramAppointmentsOptimized()
-            showToast("All appointments marked as complete!", "success")
-          }
-        } catch (error) {
-          console.error("Error completing all appointments:", error)
-          const errorMessage = error.response?.data?.message || error.message
-          showToast(`Failed to complete all appointments: ${errorMessage}`, "error")
-        } finally {
-          setSaving(false)
-          setConfirmModal({ ...confirmModal, isOpen: false })
+        if (!sheetStatus.exists) {
+          showToast("You can't complete the appointment without uploaded sheet for it", "error")
+          return
         }
-      },
-    })
+
+        // If sheet exists but is not locked, show confirmation modal
+        if (!sheetStatus.isLocked) {
+          setConfirmModal({
+            isOpen: true,
+            title: "Lock and Complete All Appointments",
+            message:
+              "The sheet for this appointment is not locked yet. If you complete all appointments, the sheet will be closed and sent to the student without the ability to edit it again. Do you want to proceed?",
+            type: "warning",
+            onConfirm: async () => {
+              setSaving(true)
+              try {
+                // Lock the sheet first
+                await axiosInstance.patch(
+                  `${process.env.NEXT_PUBLIC_API_URL}/school/lock-plan/${patientId}/${selectedProgram.unicValue}`,
+                )
+
+                // Then complete all appointments
+                const response = await axiosInstance.patch(
+                  `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs/complete-all/${selectedProgram.unicValue}`,
+                )
+
+                if (response.status === 200) {
+                  // Update PatientSchoolAssignment
+                  await axiosInstance.patch(`${process.env.NEXT_PUBLIC_API_URL}/school/complete-assignment/${patientId}`)
+
+                  await fetchProgramAppointmentsOptimized()
+                  showToast("All appointments marked as complete and sheet locked!", "success")
+                }
+              } catch (error) {
+                console.error("Error completing all appointments:", error)
+                const errorMessage = error.response?.data?.message || error.message
+                showToast(`Failed to complete all appointments: ${errorMessage}`, "error")
+              } finally {
+                setSaving(false)
+                setConfirmModal({ ...confirmModal, isOpen: false })
+              }
+            },
+          })
+        } else {
+          // Sheet is already locked, just complete all appointments
+          setConfirmModal({
+            isOpen: true,
+            title: "Complete All Appointments",
+            message: `Are you sure you want to mark all ${appointmentStats.remaining} incomplete appointments as complete?`,
+            type: "success",
+            onConfirm: async () => {
+              setSaving(true)
+              try {
+                const response = await axiosInstance.patch(
+                  `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs/complete-all/${selectedProgram.unicValue}`,
+                )
+
+                if (response.status === 200) {
+                  // Update PatientSchoolAssignment
+                  await axiosInstance.patch(`${process.env.NEXT_PUBLIC_API_URL}/school/complete-assignment/${patientId}`)
+
+                  await fetchProgramAppointmentsOptimized()
+                  showToast("All appointments marked as complete!", "success")
+                }
+              } catch (error) {
+                console.error("Error completing all appointments:", error)
+                const errorMessage = error.response?.data?.message || error.message
+                showToast(`Failed to complete all appointments: ${errorMessage}`, "error")
+              } finally {
+                setSaving(false)
+                setConfirmModal({ ...confirmModal, isOpen: false })
+              }
+            },
+          })
+        }
+      })
+      .catch((error) => {
+        setSaving(false)
+        console.error("Error checking sheet status:", error)
+        showToast("Error checking sheet status. Please try again.", "error")
+      })
   }, [appointmentStats, selectedProgram, fetchProgramAppointmentsOptimized, showToast, confirmModal, extractPatientId])
 
   const handleSearch = useCallback((e) => {
