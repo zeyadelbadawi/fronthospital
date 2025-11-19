@@ -2,7 +2,28 @@
 
 import { useState, useEffect } from "react"
 import axios from "axios"
-import { ChevronDown, ChevronRight, Calendar, FileText, Download, Eye, AlertCircle, Loader2, ArrowLeft, Clock, CheckCircle, XCircle, PlayCircle, User, Activity, Briefcase, CreditCard, Banknote, DollarSign, Building2 } from 'lucide-react'
+import {
+  ChevronDown,
+  ChevronRight,
+  Calendar,
+  FileText,
+  Download,
+  Eye,
+  AlertCircle,
+  Loader2,
+  ArrowLeft,
+  Clock,
+  CheckCircle,
+  XCircle,
+  PlayCircle,
+  User,
+  Activity,
+  Briefcase,
+  CreditCard,
+  Banknote,
+  DollarSign,
+  Building2,
+} from "lucide-react"
 import styles from "../styles/single-program-tab.module.css"
 import PatientDocumentViewer from "./PatientDocumentViewer"
 
@@ -109,11 +130,13 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                     .catch(() => ({ data: null })),
                 ])
 
+                const planToShow = assignmentRes.data && assignmentRes.data.status === "completed" ? planRes.data : null
+
                 return {
                   name: dept,
                   displayName: deptConfig.name,
                   assignment: assignmentRes.data,
-                  plan: planRes.data,
+                  plan: planToShow, // Only show plan if assignment is completed
                   icon: deptConfig.icon,
                   color: deptConfig.color,
                 }
@@ -200,7 +223,7 @@ export default function SingleProgramTab({ patientId, language, translations: t 
   }
 
   const toArabicNumerals = (str) => {
-    const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٣', '٨', '٩']
+    const arabicNumerals = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٣", "٨", "٩"]
     return str.toString().replace(/\d/g, (digit) => arabicNumerals[digit])
   }
 
@@ -210,8 +233,18 @@ export default function SingleProgramTab({ patientId, language, translations: t 
 
       if (language === "ar") {
         const arabicMonths = [
-          "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
-          "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
+          "يناير",
+          "فبراير",
+          "مارس",
+          "أبريل",
+          "مايو",
+          "يونيو",
+          "يوليو",
+          "أغسطس",
+          "سبتمبر",
+          "أكتوبر",
+          "نوفمبر",
+          "ديسمبر",
         ]
         const day = date.getDate()
         const month = arabicMonths[date.getMonth()]
@@ -244,7 +277,7 @@ export default function SingleProgramTab({ patientId, language, translations: t 
           hour12: true,
         })
       }
-      return timeString || (t?.profile?.noTime || "No time")
+      return timeString || t?.profile?.noTime || "No time"
     } catch (error) {
       return t?.profile?.invalidTime || "Invalid Time"
     }
@@ -446,7 +479,9 @@ export default function SingleProgramTab({ patientId, language, translations: t 
       <div className={styles.emptyContainer}>
         <Calendar className={styles.emptyIcon} />
         <h3 className={styles.emptyTitle}>{t?.profile?.noPrograms}</h3>
-        <p className={styles.emptyText}>{t?.profile?.noSingleProgramsYet || "You don't have any single program appointments yet."}</p>
+        <p className={styles.emptyText}>
+          {t?.profile?.noSingleProgramsYet || "You don't have any single program appointments yet."}
+        </p>
       </div>
     )
   }
@@ -511,7 +546,9 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                 <div className={styles.departmentsSection}>
                   <div className={styles.sectionHeader}>
                     <Briefcase className={styles.sectionIcon} />
-                    <h5 className={styles.sectionTitle}>{t?.profile?.departments || "Departments"} ({program.departments.length})</h5>
+                    <h5 className={styles.sectionTitle}>
+                      {t?.profile?.departments || "Departments"} ({program.departments.length})
+                    </h5>
                   </div>
 
                   {program.departments.map((department) => (
@@ -535,7 +572,9 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                               {getStatusText(department.assignment.status)}
                             </span>
                           ) : (
-                            <span className={`${styles.statusBadge} ${styles.notAssignedStatus}`}>{t?.profile?.notAssigned || "Not Assigned"}</span>
+                            <span className={`${styles.statusBadge} ${styles.notAssignedStatus}`}>
+                              {t?.profile?.notAssigned || "Not Assigned"}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -545,11 +584,15 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                           {/* Assignment Details */}
                           {department.assignment && (
                             <div className={styles.assignmentSection}>
-                              <h6 className={styles.subsectionTitle}>{t?.profile?.assignmentDetails || "Assignment Details"}</h6>
+                              <h6 className={styles.subsectionTitle}>
+                                {t?.profile?.assignmentDetails || "Assignment Details"}
+                              </h6>
                               <div className={styles.assignmentDetails}>
                                 <div className={styles.detailRow}>
                                   <span className={styles.detailLabel}>{t.profile.status}:</span>
-                                  <span className={styles.detailValue}>{getStatusText(department.assignment.status)}</span>
+                                  <span className={styles.detailValue}>
+                                    {getStatusText(department.assignment.status)}
+                                  </span>
                                 </div>
                                 {department.assignment.sessionNumber && (
                                   <div className={styles.detailRow}>
@@ -558,14 +601,18 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                                   </div>
                                 )}
                                 <div className={styles.detailRow}>
-                                  <span className={styles.detailLabel}>{t?.profile?.assignedDate || "Assigned Date"}:</span>
+                                  <span className={styles.detailLabel}>
+                                    {t?.profile?.assignedDate || "Assigned Date"}:
+                                  </span>
                                   <span className={styles.detailValue}>
                                     {formatDate(department.assignment.assignedDate)}
                                   </span>
                                 </div>
                                 {department.assignment.completedAt && (
                                   <div className={styles.detailRow}>
-                                    <span className={styles.detailLabel}>{t?.profile?.completedAt || "Completed:"}:</span>
+                                    <span className={styles.detailLabel}>
+                                      {t?.profile?.completedAt || "Completed:"}:
+                                    </span>
                                     <span className={styles.detailValue}>
                                       {formatDate(department.assignment.completedAt)}
                                     </span>
@@ -584,7 +631,9 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                           {/* Treatment Plan */}
                           {department.plan && (
                             <div className={styles.planSection}>
-                              <h6 className={styles.subsectionTitle}>{t?.profile?.treatmentPlan || "Treatment Plan"}</h6>
+                              <h6 className={styles.subsectionTitle}>
+                                {t?.profile?.treatmentPlan || "Treatment Plan"}
+                              </h6>
                               <div className={styles.planDetails}>
                                 <div className={styles.planInfo}>
                                   <FileText className={styles.planIcon} />
@@ -627,14 +676,18 @@ export default function SingleProgramTab({ patientId, language, translations: t 
                           {!department.assignment && (
                             <div className={styles.noDataMessage}>
                               <AlertCircle className={styles.noDataIcon} />
-                              <span className={styles.noDataText}>{t?.profile?.noAssignmentFound || "No assignment found for this department"}</span>
+                              <span className={styles.noDataText}>
+                                {t?.profile?.noAssignmentFound || "No assignment found for this department"}
+                              </span>
                             </div>
                           )}
 
                           {!department.plan && (
                             <div className={styles.noDataMessage}>
                               <FileText className={styles.noDataIcon} />
-                              <span className={styles.noDataText}>{t?.profile?.noTreatmentPlanAvailable || "No treatment plan available yet"}</span>
+                              <span className={styles.noDataText}>
+                                {t?.profile?.noTreatmentPlanAvailable || "No treatment plan available yet"}
+                              </span>
                             </div>
                           )}
                         </div>
