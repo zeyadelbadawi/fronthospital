@@ -1,7 +1,24 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, ClipboardList, Users, Brain, Calendar, Phone, Mail, User, X, CheckCircle, AlertCircle, ChevronLeft, Filter, Clock, CheckSquare, XCircle } from 'lucide-react'
+import {
+  Search,
+  ClipboardList,
+  Users,
+  Brain,
+  Calendar,
+  Phone,
+  Mail,
+  User,
+  X,
+  CheckCircle,
+  AlertCircle,
+  ChevronLeft,
+  Filter,
+  Clock,
+  CheckSquare,
+  XCircle,
+} from "lucide-react"
 import axiosInstance from "@/helper/axiosSetup"
 import { useContentStore } from "../store/content-store"
 import { sendNotification } from "@/helper/notification-helper"
@@ -100,6 +117,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   const [selectedPatientId, setSelectedPatientId] = useState(null)
   const [adminHeadDoctorIds, setAdminHeadDoctorIds] = useState([])
   const [doctorAssignments, setDoctorAssignments] = useState([])
+  const [errorModal, setErrorModal] = useState({ open: false, message: "" })
 
   const setActiveContent = useContentStore((state) => state.setActiveContent)
 
@@ -135,13 +153,11 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
       console.log("[v0] Mapped Department Name:", currentDepartment)
       console.log("[v0] All Doctor Assignments:", response.data.assignments)
 
-      const filteredByDepartment = (response.data.assignments || []).filter(
-        (assignment) => {
-          console.log("[v0] Checking assignment department:", assignment.department, "against", currentDepartment)
-          // Case-insensitive comparison to handle inconsistent database casing
-          return assignment.department?.toLowerCase() === currentDepartment.toLowerCase()
-        }
-      )
+      const filteredByDepartment = (response.data.assignments || []).filter((assignment) => {
+        console.log("[v0] Checking assignment department:", assignment.department, "against", currentDepartment)
+        // Case-insensitive comparison to handle inconsistent database casing
+        return assignment.department?.toLowerCase() === currentDepartment.toLowerCase()
+      })
 
       console.log("[v0] Filtered Assignments for this department:", filteredByDepartment)
       setDoctorAssignments(filteredByDepartment)
@@ -256,6 +272,69 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
     } catch (error) {
       console.error("[v0] Error sending notifications to admins and head doctors:", error)
     }
+  }
+
+  const checkPatientPlan = async (patientId) => {
+    try {
+      const departmentEndpoint = {
+        aba: "/abaS",
+        speech: "/speechS",
+        "physical-therapy": "/physicalTherapyS",
+        Psychotherapy: "/PsychotherapyS",
+        "occupational-therapy": "/OccupationalTherapyS",
+        "special-education": "/SpecialEducationS",
+      }
+
+      const endpoint = departmentEndpoint[therapyType]
+      if (!endpoint) {
+        return { hasPlan: false, error: "Invalid therapy type" }
+      }
+
+      const response = await axiosInstance.get(
+        `${process.env.NEXT_PUBLIC_API_URL}${endpoint}/plan-details/${patientId}`,
+      )
+
+      // Check if plan exists and has a file
+      if (response.status === 200 && response.data && response.data.filePath) {
+        return { hasPlan: true }
+      }
+
+      return { hasPlan: false }
+    } catch (error) {
+      // If 404 or any error, it means no plan exists
+      if (error.response?.status === 404) {
+        return { hasPlan: false }
+      }
+      console.error("Error checking patient plan:", error)
+      return { hasPlan: false, error: error.message }
+    }
+  }
+
+  const handleCompleteClick = async (assignment) => {
+    const patientId = assignment.patient?._id
+
+    if (!patientId) {
+      setErrorModal({
+        open: true,
+        message: "Patient information is missing. Cannot complete assignment.",
+      })
+      return
+    }
+
+    // Check if patient has a plan
+    const planCheck = await checkPatientPlan(patientId)
+
+    if (!planCheck.hasPlan) {
+      setErrorModal({
+        open: true,
+        message:
+          "This patient does not have a plan yet. Please create or update the plan before marking the appointment as complete. Once completed, you will not be able to update the plan again.",
+      })
+      return
+    }
+
+    // If plan exists, open the complete modal
+    setCompleteModal({ open: true, assignment })
   }
 
   const handleCompleteAssignment = async () => {
@@ -544,7 +623,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
                             )}
                             {assignment.status === "active" && (
                               <button
-                                onClick={() => setCompleteModal({ open: true, assignment })}
+                                onClick={() => handleCompleteClick(assignment)}
                                 className={`${styles.actionButton} ${styles.completeButton}`}
                                 title="Mark as Completed"
                               >
@@ -652,7 +731,10 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
               <h3>Complete {config.modalTitle}</h3>
-              <button onClick={() => setCompleteModal({ open: false, assignment: null })} className={styles.closeButton}>
+              <button
+                onClick={() => setCompleteModal({ open: false, assignment: null })}
+                className={styles.closeButton}
+              >
                 <X size={20} />
               </button>
             </div>
@@ -677,12 +759,40 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
               </div>
 
               <div className={styles.modalActions}>
-                <button onClick={() => setCompleteModal({ open: false, assignment: null })} className={styles.cancelButton}>
+                <button
+                  onClick={() => setCompleteModal({ open: false, assignment: null })}
+                  className={styles.cancelButton}
+                >
                   Cancel
                 </button>
                 <button onClick={handleCompleteAssignment} className={styles.completeActionButton}>
                   <CheckCircle size={16} />
                   Mark as Completed
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {errorModal.open && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h3>Cannot Complete Appointment</h3>
+              <button onClick={() => setErrorModal({ open: false, message: "" })} className={styles.closeButton}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className={styles.modalContent}>
+              <div className={styles.confirmationMessage}>
+                <AlertCircle className={styles.confirmIcon} style={{ color: "#ef4444" }} />
+                <p>{errorModal.message}</p>
+              </div>
+
+              <div className={styles.modalActions}>
+                <button onClick={() => setErrorModal({ open: false, message: "" })} className={styles.cancelButton}>
+                  Close
                 </button>
               </div>
             </div>
