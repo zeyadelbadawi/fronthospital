@@ -1,0 +1,283 @@
+.overlay {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    pointer-events: none;
+    padding: 1rem;
+    animation: slideUp 0.4s ease-out;
+  }
+  
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .banner {
+    pointer-events: auto;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(10px);
+  }
+  
+  .closeButton {
+    position: absolute;
+    top: 1rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+  
+  .ltr .closeButton {
+    right: 1rem;
+  }
+  
+  .rtl .closeButton {
+    left: 1rem;
+  }
+  
+  .closeButton:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #495057;
+  }
+  
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  
+  .iconWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+  
+  .icon {
+    color: white;
+  }
+  
+  .textContent {
+    flex: 1;
+  }
+  
+  .title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #212529;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.3;
+  }
+  
+  .message {
+    font-size: 0.9375rem;
+    color: #495057;
+    margin: 0;
+    line-height: 1.6;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  
+  .acceptButton,
+  .declineButton {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .acceptButton {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+  
+  .acceptButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+  }
+  
+  .acceptButton:active {
+    transform: translateY(0);
+  }
+  
+  .declineButton {
+    background: white;
+    color: #495057;
+    border: 2px solid #dee2e6;
+  }
+  
+  .declineButton:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+  }
+  
+  .declineButton:active {
+    background: #e9ecef;
+  }
+  
+  /* RTL Support */
+  .rtl .textContent {
+    text-align: right;
+  }
+  
+  .ltr .textContent {
+    text-align: left;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .overlay {
+      padding: 0.75rem;
+    }
+  
+    .banner {
+      padding: 1.25rem;
+      border-radius: 12px;
+    }
+  
+    .content {
+      gap: 1rem;
+    }
+  
+    .iconWrapper {
+      width: 48px;
+      height: 48px;
+    }
+  
+    .icon {
+      width: 28px;
+      height: 28px;
+    }
+  
+    .title {
+      font-size: 1.125rem;
+    }
+  
+    .message {
+      font-size: 0.875rem;
+    }
+  
+    .actions {
+      flex-direction: column;
+    }
+  
+    .acceptButton,
+    .declineButton {
+      width: 100%;
+      min-width: unset;
+    }
+  
+    .closeButton {
+      top: 0.75rem;
+    }
+  
+    .ltr .closeButton {
+      right: 0.75rem;
+    }
+  
+    .rtl .closeButton {
+      left: 0.75rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .banner {
+      padding: 1rem;
+    }
+  
+    .title {
+      font-size: 1rem;
+    }
+  
+    .message {
+      font-size: 0.8125rem;
+    }
+  
+    .acceptButton,
+    .declineButton {
+      padding: 0.625rem 1.25rem;
+      font-size: 0.875rem;
+    }
+  }
+  
+  /* Tablet landscape */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .banner {
+      max-width: 700px;
+    }
+  }
+  
+  /* Large desktop */
+  @media (min-width: 1440px) {
+    .banner {
+      max-width: 650px;
+    }
+  }
+  
+  /* Accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .overlay {
+      animation: none;
+    }
+  
+    .acceptButton,
+    .declineButton,
+    .closeButton {
+      transition: none;
+    }
+  
+    .acceptButton:hover {
+      transform: none;
+    }
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .banner {
+      border: 2px solid #000;
+    }
+  
+    .acceptButton {
+      border: 2px solid #000;
+    }
+  }
+  

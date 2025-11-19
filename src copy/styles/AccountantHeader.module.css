@@ -1,0 +1,526 @@
+.header {
+  background: linear-gradient(135deg, #fefefe 0%, #f1f5f9 100%);
+  border-bottom: 2px solid #cc288a;
+  padding: 0.4rem 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 3px 12px rgba(204, 40, 138, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+}
+
+.rtl {
+  direction: rtl;
+}
+
+.ltr {
+  direction: ltr;
+}
+
+.logoContainer {
+  margin-right: 10px;
+  margin-left: 10px;
+
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  padding: 0.2rem;
+  border-radius: 6px;
+}
+
+.logoContainer:hover {
+  transform: scale(1.05);
+  background: rgba(204, 40, 138, 0.05);
+}
+
+.logo {
+  height: 100px;
+  width: auto;
+  filter: drop-shadow(0 1px 4px rgba(204, 40, 138, 0.2));
+}
+
+.titleContainer {
+  flex: 1;
+  text-align: center;
+  margin: 0 1rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #3f3f86;
+  margin: 0;
+  background: linear-gradient(135deg, #cc288a 0%, #3f3f86 50%, #2977ba 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 1px 2px rgba(204, 40, 138, 0.1);
+  letter-spacing: -0.2px;
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+}
+
+.languageButton {
+  background: rgba(204, 40, 138, 0.1);
+  color: #cc288a;
+  border: 1px solid #cc288a;
+  padding: 0.7rem 1.1rem;
+
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 1.0rem;
+}
+
+.languageButton:hover {
+  background: #cc288a;
+  color: #fefefe;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(204, 40, 138, 0.25);
+}
+
+.loginButton {
+  background: linear-gradient(135deg, #cc288a 0%, #3f3f86 100%);
+  color: #fefefe;
+  border: none;
+  padding: 0.7rem 1.1rem;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(204, 40, 138, 0.25);
+  font-size: 1.0rem;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.loginButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(204, 40, 138, 0.35);
+  background: linear-gradient(135deg, #3f3f86 0%, #2977ba 100%);
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdownButton {
+  background: linear-gradient(135deg, #3f3f86 0%, #cc288a 100%);
+  color: #fefefe;
+  border: none;
+  padding: 0.7rem 1.1rem;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(63, 63, 134, 0.25);
+}
+
+.dropdownButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(63, 63, 134, 0.35);
+  background: linear-gradient(135deg, #cc288a 0%, #2977ba 100%);
+}
+
+.accountantInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.rtl .accountantInfo {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.accountantName {
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #fefefe;
+  margin-bottom: 4px;
+}
+
+.accountantRole {
+  font-size: 0.55rem;
+  opacity: 0.9;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #fefefe;
+}
+
+.chevronIcon {
+  transition: transform 0.3s ease;
+  color: #fefefe;
+  width: 12px;
+  height: 12px;
+}
+
+.dropdownButton:hover .chevronIcon {
+  transform: rotate(180deg);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #fefefe;
+  border-radius: 10px;
+  box-shadow: 0 15px 30px rgba(204, 40, 138, 0.15), 0 0 0 1px rgba(204, 40, 138, 0.1);
+  min-width: 160px;
+  margin-top: 0.4rem;
+  overflow: hidden;
+  z-index: 1000;
+  backdrop-filter: blur(12px);
+  animation: dropdownSlideIn 0.3s ease-out;
+}
+
+.rtl .dropdownMenu {
+  right: auto;
+  left: 0;
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  text-decoration: none;
+  color: #3f3f86;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.rtl .dropdownItem {
+  text-align: right;
+}
+
+.dropdownItem:hover {
+  background: linear-gradient(135deg, rgba(204, 40, 138, 0.1) 0%, rgba(63, 63, 134, 0.1) 100%);
+  color: #3f3f86;
+  transform: translateX(3px);
+}
+
+.rtl .dropdownItem:hover {
+  transform: translateX(-3px);
+}
+
+.dropdownDivider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(204, 40, 138, 0.3) 50%, transparent 100%);
+  margin: 0.4rem 0;
+}
+
+.logoutItem {
+  color: #cc288a;
+  font-weight: 700;
+}
+
+.logoutItem:hover {
+  background: linear-gradient(135deg, rgba(204, 40, 138, 0.15) 0%, rgba(204, 40, 138, 0.2) 100%);
+  color: #cc288a;
+}
+
+/* Added notification bell styles */
+.notificationDropdown {
+  position: relative;
+  margin-right: 0.5rem;
+}
+
+.notificationButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3f3f86;
+  transition: color 0.2s ease;
+}
+
+.notificationButton:hover {
+  color: #cc288a;
+}
+
+.bellIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.notificationCount {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  background-color: #cc288a;
+  color: white;
+  border-radius: 50%;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: bold;
+  min-width: 20px;
+  text-align: center;
+  line-height: 1;
+  transform: translate(25%, -25%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.notificationDropdownMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #fefefe;
+  border-radius: 10px;
+  box-shadow: 0 15px 30px rgba(204, 40, 138, 0.15), 0 0 0 1px rgba(204, 40, 138, 0.1);
+  min-width: 300px;
+  max-width: 350px;
+  margin-top: 0.5rem;
+  overflow: hidden;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(12px);
+}
+
+.rtl .notificationDropdownMenu {
+  right: auto;
+  left: 0;
+}
+
+.notificationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+}
+
+.notificationTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #3f3f86;
+  margin: 0;
+}
+
+.markAllReadButton {
+  background: none;
+  border: none;
+  color: #cc288a;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.markAllReadButton:hover {
+  color: #3f3f86;
+  text-decoration: underline;
+}
+
+.notificationList {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+.notificationList::-webkit-scrollbar {
+  width: 8px;
+}
+
+.notificationList::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.notificationList::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.notificationList::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.notificationItem {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.notificationItem:last-child {
+  border-bottom: none;
+}
+
+.notificationItem:hover {
+  background-color: #f8fafc;
+}
+
+.unreadNotification {
+  background-color: #fff7f7;
+  font-weight: 500;
+}
+
+.unreadNotification:hover {
+  background-color: #ffebeb;
+}
+
+.unreadDot {
+  position: absolute;
+  top: 50%;
+  left: 0.5rem;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background-color: #cc288a;
+  border-radius: 50%;
+}
+
+.rtl .unreadDot {
+  left: auto;
+  right: 0.5rem;
+}
+
+.notificationItemIcon {
+  width: 20px;
+  height: 20px;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+  color: #3f3f86;
+}
+
+.rtl .notificationItemIcon {
+  margin-right: 0;
+  margin-left: 0.75rem;
+}
+
+.successIcon {
+  color: #22c55e;
+}
+
+.errorIcon {
+  color: #ef4444;
+}
+
+.infoIcon {
+  color: #3b82f6;
+}
+
+.warningIcon {
+  color: #f59e0b;
+}
+
+.notificationContent {
+  flex-grow: 1;
+}
+
+.notificationMessage {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #374151;
+  line-height: 1.4;
+}
+
+.notificationTimestamp {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.noNotifications {
+  padding: 1rem;
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0.6rem;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .titleContainer {
+    margin: 0;
+  }
+
+  .title {
+    font-size: 1rem;
+  }
+
+  .logo {
+    height: 40px;
+  }
+
+  .userSection {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .accountantInfo {
+    align-items: center;
+    text-align: center;
+  }
+
+  .dropdownMenu {
+    right: 50%;
+    transform: translateX(50%);
+    min-width: 180px;
+  }
+
+  .rtl .dropdownMenu {
+    right: 50%;
+    left: auto;
+    transform: translateX(50%);
+  }
+
+  .notificationDropdownMenu {
+    min-width: unset;
+    width: calc(100% - 2rem);
+    left: 1rem;
+    right: 1rem;
+  }
+
+  .rtl .notificationDropdownMenu {
+    left: 1rem;
+    right: 1rem;
+  }
+}

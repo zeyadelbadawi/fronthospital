@@ -1,7 +1,21 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, User, Clock, Calendar, Brain, AlertCircle, Hash, Save, Loader2, Mail, Phone, FileText, ClipboardList } from 'lucide-react'
+import {
+  ArrowLeft,
+  User,
+  Clock,
+  Calendar,
+  Brain,
+  AlertCircle,
+  Hash,
+  Save,
+  Loader2,
+  Mail,
+  Phone,
+  FileText,
+  ClipboardList,
+} from "lucide-react"
 import axiosInstance from "@/helper/axiosSetup"
 import SyncfusionDocx2 from "@/components/SyncfusionDocx2"
 import { useContentStore } from "../store/content-store"
@@ -90,7 +104,6 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
     filePath: "",
     fileName: "",
     planContent: "",
-    hasExistingPlan: false, // Add flag to track if patient has an existing plan
   })
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -100,7 +113,6 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
     upcomingSessions: 0,
     lastUpdated: null,
   })
-  const [planDataReady, setPlanDataReady] = useState(false)
 
   const setActiveContent = useContentStore((state) => state.setActiveContent)
 
@@ -133,37 +145,25 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
   }
 
   const fetchExistingPlan = async () => {
-    setPlanDataReady(false)
     try {
       const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}${config.apiEndpoint}/${patientId}`)
-
-      const hasExistingPlan = !!response.data && !!response.data.filePath
-
-      if (hasExistingPlan) {
-        setPlan({
-          ...response.data,
-          hasExistingPlan: true,
-        })
-      } else {
-        setPlan({
-          title: config.title,
-          filePath: "",
-          fileName: "",
-          planContent: "",
-          hasExistingPlan: false,
-        })
+      const planData = response.data || {
+        title: config.title,
+        filePath: "",
+        fileName: "",
+        planContent: "",
       }
+
+      setPlan(planData)
     } catch (error) {
       console.error("Error fetching plan data:", error)
+      // Don't show error for missing plan as it's expected for new programs
       setPlan({
         title: config.title,
         filePath: "",
         fileName: "",
         planContent: "",
-        hasExistingPlan: false,
       })
-    } finally {
-      setPlanDataReady(true)
     }
   }
 
@@ -242,7 +242,7 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
       formData.append("document", documentContent, fileName)
       formData.append("patientId", patientId)
 
-
+ 
 
       // Send the form data to server
       const response = await axiosInstance.post(
@@ -445,7 +445,7 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
                   <span className={styles.studentInfoValue}>{patient.name}</span>
                 </div>
               </div>
-
+             
               {patient.email && (
                 <div className={styles.studentInfoItem}>
                   <Mail className={styles.studentInfoIcon} />
@@ -476,38 +476,30 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
                   </span>
                 </div>
               </div>
-
+        
             </div>
           </div>
 
-
+          
         </div>
 
         {/* Main Content */}
         <div className={styles.planBody}>
           <div className={styles.documentSection}>
             <div className={styles.documentContainer}>
-              {planDataReady && (
-                <SyncfusionDocx2
-                  userData={{
-                    docxId: plan._id,
-                    patientId,
-                    filePath: plan.hasExistingPlan
-                      ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${config.uploadPath}/${plan.filePath}`
-                      : `${process.env.NEXT_PUBLIC_API_URL}/uploads/${config.uploadPath}/${config.defaultFileName}`,
-                    fileName: plan.hasExistingPlan ? plan.fileName : config.defaultFileName,
-                    docxName: `${therapyType}-plan-${patient.name}-${new Date().getTime()}`,
-                  }}
-                  planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}${config.uploadEndpoint}/${patientId}`}
-                  onContentChange={handlePlanContentChange}
-                />
-              )}
-              {!planDataReady && (
-                <div className={styles.loadingContainer}>
-                  <div className={styles.loadingSpinner}></div>
-                  <p className={styles.loadingText}>Loading plan...</p>
-                </div>
-              )}
+              <SyncfusionDocx2
+                userData={{
+                  docxId: plan._id,
+                  patientId,
+                  filePath: `${process.env.NEXT_PUBLIC_API_URL}/uploads/${config.uploadPath}/${
+                    plan.filePath || config.defaultFileName
+                  }`,
+                  fileName: plan.fileName || config.defaultFileName,
+                  docxName: `${therapyType}-plan-${patient.name}-${new Date().getTime()}`,
+                }}
+                planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}${config.uploadEndpoint}/${patientId}`}
+                onContentChange={handlePlanContentChange}
+              />
             </div>
 
             {plan.lastModified && (

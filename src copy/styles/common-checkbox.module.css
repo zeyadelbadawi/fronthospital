@@ -1,0 +1,67 @@
+/* Common Checkbox Group Styles (extracted from AddDoctorLayer) */
+
+.simpleCheckboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.simpleCheckboxItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.simpleCheckboxItem:hover {
+  background-color: #f8fafc;
+}
+
+.simpleCheckboxItem.selected {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.1);
+}
+
+.simpleCheckboxItem input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+.simpleCheckboxItem span {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.simpleCheckboxItem.selected span {
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.simpleCheckboxGroup::-webkit-scrollbar {
+  width: 6px;
+}
+
+.simpleCheckboxGroup::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.simpleCheckboxGroup::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}

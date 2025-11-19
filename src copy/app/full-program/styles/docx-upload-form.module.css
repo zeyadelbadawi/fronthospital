@@ -1,0 +1,670 @@
+/* General Form Container Styling */
+.uploadFormContainer {
+  padding: 25px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  max-width: 750px;
+  margin: 30px auto;
+  font-family: "Inter", sans-serif;
+  border: 1px solid #e0e0e0;
+  position: relative;
+}
+
+/* Form Header with Close Button */
+.formHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f1f3f4;
+}
+
+.formTitle {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.closeButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.closeButton:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.closeButton:hover::before {
+  left: 100%;
+}
+
+.closeButton:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.closeButton:disabled {
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(156, 163, 175, 0.3);
+}
+
+.closeButton:disabled::before {
+  display: none;
+}
+
+/* Form Layout */
+.uploadForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formRow {
+  margin-bottom: 15px;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.requiredIndicator {
+  color: #e74c3c; /* A slightly softer red */
+  margin-left: 4px;
+}
+
+/* File Drop Area */
+.fileDropArea {
+  border: 2px dashed #d1d5db; /* Light gray border */
+  border-radius: 10px;
+  padding: 35px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #f9fafb; /* Light background */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+}
+
+.fileDropArea:hover {
+  border-color: #3b82f6; /* Blue on hover */
+  background-color: #eff6ff; /* Lighter blue background */
+}
+
+.fileDropArea.invalid {
+  border-color: #ef4444; /* Red for invalid */
+  background-color: #fef2f2; /* Light red background */
+}
+
+.fileDropArea.hasFile {
+  border-style: solid;
+  border-color: #22c55e; /* Green for file present */
+  background-color: #f0fdf4; /* Light green background */
+}
+
+.uploadIcon {
+  width: 52px;
+  height: 52px;
+  color: #6b7280; /* Gray icon */
+  margin-bottom: 12px;
+}
+
+.dropText {
+  font-size: 1.05em;
+  color: #4b5563; /* Darker gray text */
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.maxSize {
+  font-size: 0.85em;
+  color: #9ca3af; /* Lighter gray text */
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.filePreview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.05em;
+  color: #333;
+  padding: 12px 15px;
+  border-radius: 8px;
+  background-color: #e5e7eb; /* Light gray preview background */
+  width: 100%;
+  justify-content: space-between;
+  font-weight: 500;
+}
+
+.fileIcon {
+  width: 26px;
+  height: 26px;
+  color: #3b82f6; /* Blue icon */
+}
+
+.removeFileButton {
+  background: none;
+  border: none;
+  color: #ef4444; /* Red remove button */
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.removeFileButton:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Form Inputs and Selects */
+.formInput,
+.formSelect {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1em;
+  color: #374151; /* Darker text */
+  background-color: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.formInput:focus,
+.formSelect:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); /* Blue focus ring */
+}
+
+.formInput[readOnly] {
+  background-color: #e5e7eb; /* Lighter gray for read-only */
+  cursor: not-allowed;
+}
+
+.formSelect.invalid {
+  border-color: #ef4444;
+}
+
+.errorMessage {
+  color: #ef4444;
+  font-size: 0.875em;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+.formText {
+  font-size: 0.875em;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+/* Buttons */
+.buttonGroup {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.submitButton,
+.secondaryButton,
+.cancelButton {
+  flex: 1; /* Allow buttons to grow */
+  min-width: 180px; /* Minimum width for buttons */
+  padding: 14px 25px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.05em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.submitButton {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.submitButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.submitButton:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.submitButton:disabled {
+  background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(147, 197, 253, 0.3);
+}
+
+.cancelButton {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+.cancelButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(107, 114, 128, 0.4);
+}
+
+.cancelButton:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.cancelButton:disabled {
+  background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(209, 213, 219, 0.3);
+}
+
+.secondaryButton {
+  background-color: #6b7280; /* Gray secondary */
+  color: white;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background-color: #4b5563; /* Darker gray on hover */
+  transform: translateY(-1px);
+}
+
+.secondaryButton:disabled {
+  background-color: #d1d5db; /* Lighter gray when disabled */
+  cursor: not-allowed;
+}
+
+/* Spinner for loading state */
+.spinner-border {
+  display: inline-block;
+  width: 1.2rem;
+  height: 1.2rem;
+  vertical-align: -0.125em;
+  border: 0.18em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  -webkit-animation: .75s linear infinite spinner-border;
+  animation: .75s linear infinite spinner-border;
+}
+
+@keyframes spinner-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Success Message */
+.successMessage {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #16a34a; /* Dark green text */
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 20px;
+  text-align: center;
+  font-weight: 600;
+  border: 1px solid #bbf7d0;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
+}
+
+/* Existing Documents View Styling */
+.existingDocumentsContainer {
+  padding: 25px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  max-width: 750px;
+  margin: 30px auto;
+  font-family: "Inter", sans-serif;
+  border: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  height: 550px; /* Fixed height */
+}
+
+.existingDocumentsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.existingDocumentsHeader h2 {
+  margin: 0;
+  color: #1f2937; /* Darker heading */
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex-grow: 1; /* Allow title to take space */
+  overflow: hidden; /* Hide overflow */
+  text-overflow: ellipsis; /* Add ellipsis for long text */
+  white-space: nowrap; /* Prevent wrapping */
+}
+
+.existingDocumentsHeader h2 span {
+  word-break: break-all; /* Allow long IDs to break */
+  white-space: normal; /* Override nowrap for the ID part */
+}
+
+.backButton {
+  background-color: #6b7280;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95em;
+  font-weight: 600;
+  transition: background-color 0.3s ease, transform 0.1s ease;
+  flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+.backButton:hover {
+  background-color: #4b5563;
+  transform: translateY(-1px);
+}
+
+.documentList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1; /* Allow list to take available space */
+  overflow-y: auto; /* Make it scrollable vertically */
+  overflow-x: hidden; /* Hide horizontal scrollbar */
+  padding-right: 10px; /* Space for scrollbar */
+}
+
+.documentList::-webkit-scrollbar {
+  width: 8px;
+}
+
+.documentList::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.documentList::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.documentList::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.documentItem {
+  display: flex;
+  flex-direction: column; /* Stack info and actions on small screens */
+  gap: 15px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  background-color: #f9fafb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.documentItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 768px) {
+  .documentItem {
+    flex-direction: row; /* Row layout on larger screens */
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.documentInfo {
+  flex-grow: 1;
+}
+
+.documentInfo h3 {
+  margin: 0 0 8px 0;
+  color: #3b82f6;
+  font-size: 1.15em;
+  font-weight: 600;
+}
+
+.documentInfo p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+.documentActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap; /* Allow buttons to wrap */
+  justify-content: flex-end; /* Align buttons to the right on larger screens */
+}
+
+.actionButton {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 600;
+  transition: background-color 0.2s, transform 0.1s ease;
+}
+
+.replaceButton {
+  background-color: #22c55e; /* Green */
+  color: white;
+}
+
+.replaceButton:hover {
+  background-color: #16a34a; /* Darker green */
+  transform: translateY(-1px);
+}
+
+.deleteButton {
+  background-color: #ef4444; /* Red */
+  color: white;
+}
+
+.deleteButton:hover {
+  background-color: #dc2626; /* Darker red */
+  transform: translateY(-1px);
+}
+
+.loadingMessage,
+.errorMessageView {
+  text-align: center;
+  padding: 30px;
+  color: #6b7280;
+  font-size: 1.1em;
+  font-weight: 500;
+}
+
+.errorMessageView {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* Replace File Specific Styles */
+.replaceFileInput {
+  display: none;
+}
+
+.replaceFileButton {
+  background-color: #3b82f6;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 600;
+  transition: background-color 0.2s, transform 0.1s ease;
+}
+
+.replaceFileButton:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.replaceFileButton:disabled {
+  background-color: #93c5fd;
+  cursor: not-allowed;
+}
+
+.replaceFileName {
+  margin-left: 10px;
+  font-style: italic;
+  color: #6b7280;
+  font-size: 0.9em;
+}
+
+.replaceFileActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.replaceFileCancel {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 500;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.replaceFileCancel:hover {
+  color: #dc2626;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .formHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .formTitle {
+    font-size: 1.25rem;
+  }
+
+  .closeButton {
+    align-self: flex-end;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+  }
+
+  .submitButton,
+  .cancelButton {
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .uploadFormContainer {
+    margin: 15px;
+    padding: 20px;
+  }
+
+  .formTitle {
+    font-size: 1.1rem;
+  }
+
+  .closeButton {
+    width: 35px;
+    height: 35px;
+    top: 15px;
+    right: 15px;
+  }
+}

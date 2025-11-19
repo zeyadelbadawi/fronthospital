@@ -1,0 +1,997 @@
+/* Professional Calendar Design - Matching PDF Layout */
+.calendarContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  font-family: "Arial", "Tahoma", sans-serif;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.rtl {
+  direction: rtl;
+}
+
+.ltr {
+  direction: ltr;
+}
+
+/* Professional Header - Matching PDF */
+.professionalHeader {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-bottom: 4px solid #2e4a87;
+  box-shadow: 0 4px 12px rgba(46, 74, 135, 0.15);
+  padding: 0;
+  margin: 0;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 40px;
+  border-bottom: 2px solid #e91e63;
+}
+
+.logoSection {
+  flex-shrink: 0;
+}
+
+.logo {
+  height: 80px;
+  width: auto;
+  object-fit: contain;
+}
+
+.centerInfo {
+  flex: 1;
+  text-align: center;
+  margin: 0 20px;
+}
+
+.centerName {
+  font-size: 24px;
+  font-weight: 900;
+  color: #2e4a87;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.centerSubtitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e91e63;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.contactInfo {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 8px;
+}
+
+.phone {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2e4a87;
+  background: linear-gradient(135deg, #e91e63, #00bcd4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.website {
+  font-size: 14px;
+  font-weight: 600;
+  color: #00bcd4;
+  text-transform: uppercase;
+}
+
+.headerBottom {
+  margin-top: 1px;
+  background: linear-gradient(135deg, #2e4a87 0%, #e91e63 100%);
+  color: white;
+  padding: 31px 40px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.scheduleTitle {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  color: white;
+  text-align: center;
+}
+
+.studentInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.studentLabel {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.studentName {
+  font-weight: 800;
+  font-size: 16px;
+  color: #ffd700;
+}
+
+/* Calendar Body */
+.calendarBody {
+  padding: 60px 40px;
+  flex: 1;
+  min-height: calc(100vh - 200px); /* Adjust based on header/footer height */
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+}
+
+.emptyStateIcon {
+  font-size: 64px;
+  color: #e91e63;
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+
+.emptyStateTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2e4a87;
+  margin-bottom: 16px;
+}
+
+.emptyStateText {
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+  color: #6c757d;
+}
+
+/* Table Styles - Professional PDF Layout */
+.tableContainer {
+  overflow-x: auto;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(46, 74, 135, 0.15);
+  border: 2px solid #2e4a87;
+  background: white;
+}
+
+.scheduleTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: 14px;
+}
+
+.tableHeader {
+  background: linear-gradient(135deg, #2e4a87 0%, #e91e63 100%);
+}
+
+.dayHeaderCell,
+.departmentHeaderCell {
+  padding: 16px 12px;
+  text-align: center;
+  font-weight: 800;
+  color: white;
+  border-right: 2px solid rgba(255, 255, 255, 0.3);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.dayHeaderCell {
+  background: linear-gradient(135deg, #2e4a87 0%, #1e3a77 100%);
+  min-width: 120px;
+}
+
+.departmentHeaderCell:last-child {
+  border-right: none;
+}
+
+.departmentHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.departmentBadge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.departmentIcon {
+  font-size: 16px;
+  color: white;
+}
+
+.departmentName {
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.tableRow {
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.tableRow:hover {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.dayCell {
+  padding: 20px 16px;
+  text-align: center;
+  font-weight: 800;
+  color: #2e4a87;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-right: 2px solid #2e4a87;
+  font-size: 14px;
+  min-width: 120px;
+  vertical-align: middle;
+}
+
+.dayName {
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.appointmentCell {
+  padding: 8px;
+  text-align: center;
+  position: relative;
+  height: 100px;
+  vertical-align: middle;
+  border-right: 1px solid #dee2e6;
+  transition: all 0.3s ease;
+  min-width: 140px;
+}
+
+.appointmentCell:last-child {
+  border-right: none;
+}
+
+.appointmentCell.hasAppointments {
+  cursor: pointer;
+}
+
+.appointmentCell.hasAppointments:hover {
+  background: rgba(46, 74, 135, 0.05);
+  transform: scale(1.02);
+}
+
+.appointmentCardContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.appointmentCard {
+  border: none;
+  border-radius: 8px;
+  height: 100%;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.appointmentCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.appointmentCardBody {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  color: white;
+}
+
+.appointmentItem {
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.appointmentItem:last-child {
+  margin-bottom: 0;
+}
+
+.appointmentTime {
+  font-size: 15px;
+  font-weight: 800;
+  margin-bottom: 4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.appointmentDoctor {
+  font-size: 15px;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+/* Professional Footer */
+.professionalFooter {
+  background: linear-gradient(135deg, #2e4a87 0%, #e91e63 100%);
+  color: white;
+  padding: 20px 40px;
+  border-top: 4px solid #00bcd4;
+  margin-top: auto;
+  width: 100%;
+  position: relative;
+  bottom: 0;
+}
+
+.footerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footerLogo {
+  flex-shrink: 0;
+}
+
+.footerLogoImg {
+  height: 50px;
+  width: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+}
+
+.footerInfo {
+  flex: 1;
+  text-align: center;
+  margin-left: 20px;
+}
+
+.footerText {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.footerContact {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(46, 74, 135, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px rgba(46, 74, 135, 0.3);
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 2px solid #2e4a87;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 2px solid #e91e63;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px 16px 0 0;
+}
+
+.modalLogo {
+  flex-shrink: 0;
+  margin-right: 15px;
+}
+
+.modalLogoImg {
+  height: 40px;
+  width: auto;
+}
+
+.modalTitle {
+  font-size: 18px;
+  font-weight: 800;
+  color: #2e4a87;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.modalBadge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.closeButton {
+  padding: 8px;
+  border: 2px solid #e91e63;
+  background: rgba(233, 30, 99, 0.1);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.closeButton:hover {
+  background: #e91e63;
+  transform: scale(1.1);
+}
+
+.closeButton:hover .closeIcon {
+  color: white;
+}
+
+.closeIcon {
+  width: 20px;
+  height: 20px;
+  color: #e91e63;
+  transition: color 0.3s ease;
+}
+
+.modalBody {
+  padding: 20px;
+}
+
+.appointmentsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.modalAppointmentCard {
+  background: white;
+  border: 2px solid rgba(46, 74, 135, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(46, 74, 135, 0.1);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.modalAppointmentCard:hover {
+  box-shadow: 0 8px 24px rgba(46, 74, 135, 0.2);
+  transform: translateY(-2px);
+  border-color: rgba(46, 74, 135, 0.3);
+}
+
+.modalAppointmentCardBody {
+  padding: 20px;
+}
+
+.appointmentCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.doctorName {
+  font-weight: 800;
+  color: #2e4a87;
+  font-size: 16px;
+  margin: 0;
+}
+
+.departmentBadgeModal {
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 11px;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.appointmentDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detailLabel {
+  font-weight: 700;
+  color: #2e4a87;
+  font-size: 14px;
+}
+
+.detailValue {
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.studentNote {
+  margin-top: 16px;
+  padding: 12px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid rgba(46, 74, 135, 0.2);
+  border-radius: 8px;
+  color: #2e4a87;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.modalFooter {
+  padding: 16px 20px;
+  border-top: 2px solid rgba(46, 74, 135, 0.1);
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 0 0 16px 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modalCloseButton {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #2e4a87 0%, #e91e63 100%);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.modalCloseButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 74, 135, 0.3);
+}
+
+/* Color mappings for departments - Professional colors */
+.colorABA {
+  background: linear-gradient(135deg, #2e4a87, #1e3a77);
+}
+
+
+.colorPhysicalTherapy {
+  background: linear-gradient(135deg, #00bcd4, #0097a7);
+}
+
+.colorOccupationalTherapy {
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+}
+
+.colorSpecialEducation {
+  background: linear-gradient(135deg, #ff5722, #e64a19);
+}
+
+.colorSpeech {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .headerTop {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+
+  .headerBottom {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+    align-items: center;
+  }
+
+  .footerContent {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .footerContact {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendarContainer {
+    padding: 0;
+  }
+
+  .headerTop,
+  .headerBottom,
+  .calendarBody,
+  .professionalFooter {
+    padding: 15px 20px;
+  }
+
+  .centerName {
+    font-size: 18px;
+  }
+
+  .centerSubtitle {
+    font-size: 12px;
+  }
+
+  .scheduleTitle {
+    font-size: 16px;
+  }
+
+  .tableContainer {
+    border-radius: 8px;
+  }
+
+  .dayHeaderCell,
+  .departmentHeaderCell {
+    padding: 12px 8px;
+    font-size: 11px;
+  }
+
+  .dayCell {
+    padding: 15px 12px;
+    min-width: 100px;
+  }
+
+  .appointmentCell {
+    height: 80px;
+    min-width: 120px;
+    padding: 6px;
+  }
+
+  .appointmentItem {
+    font-size: 10px;
+  }
+
+  .appointmentTime {
+    font-size: 11px;
+  }
+
+  .appointmentDoctor {
+    font-size: 9px;
+  }
+
+  .appointmentsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal {
+    margin: 10px;
+    max-width: calc(100vw - 20px);
+  }
+
+  .modalHeader {
+    padding: 15px;
+  }
+
+  .modalBody {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .headerTop,
+  .headerBottom,
+  .calendarBody,
+  .professionalFooter {
+    padding: 10px 15px;
+  }
+
+  .logo {
+    height: 60px;
+  }
+
+  .centerName {
+    font-size: 16px;
+  }
+
+  .centerSubtitle {
+    font-size: 11px;
+  }
+
+  .contactInfo {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .phone {
+    font-size: 14px;
+  }
+
+  .website {
+    font-size: 12px;
+  }
+
+  .scheduleTitle {
+    font-size: 14px;
+  }
+
+  .dayHeaderCell,
+  .departmentHeaderCell {
+    padding: 10px 6px;
+    font-size: 10px;
+  }
+
+  .departmentName {
+    font-size: 9px;
+  }
+
+  .dayCell {
+    padding: 12px 8px;
+    min-width: 80px;
+  }
+
+  .appointmentCell {
+    height: 70px;
+    min-width: 100px;
+    padding: 4px;
+  }
+
+  .appointmentItem {
+    font-size: 9px;
+  }
+
+  .appointmentTime {
+    font-size: 10px;
+  }
+
+  .appointmentDoctor {
+    font-size: 8px;
+  }
+}
+
+/* Animation Enhancements */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.calendarContainer {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.appointmentCard {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modalAppointmentCard {
+  animation: slideInUp 0.3s ease-out;
+}
+
+.studentName {
+  animation: pulse 2s infinite;
+}
+
+/* Focus States for Accessibility */
+.appointmentCell:focus,
+.closeButton:focus,
+.modalCloseButton:focus {
+  outline: 3px solid #00bcd4;
+  outline-offset: 2px;
+}
+
+/* RTL Support */
+.rtl .headerTop {
+  flex-direction: row-reverse;
+}
+
+.rtl .headerBottom {
+  flex-direction: row-reverse;
+}
+
+.rtl .footerContent {
+  flex-direction: row-reverse;
+}
+
+.rtl .studentInfo {
+  flex-direction: row-reverse;
+}
+
+.rtl .contactInfo {
+  flex-direction: row-reverse;
+}
+
+.rtl .footerContact {
+  flex-direction: row-reverse;
+}
+
+.rtl .modalHeader {
+  flex-direction: row-reverse;
+}
+
+.rtl .appointmentCardHeader {
+  flex-direction: row-reverse;
+}
+
+.rtl .detailRow {
+  flex-direction: row-reverse;
+}
+
+.rtl .studentNote {
+  flex-direction: row-reverse;
+}
+
+.rtl .dayHeaderCell,
+.rtl .departmentHeaderCell {
+  border-right: none;
+  border-left: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.rtl .dayHeaderCell:first-child,
+.rtl .departmentHeaderCell:first-child {
+  border-left: none;
+}
+
+.rtl .dayCell {
+  border-right: none;
+  border-left: 2px solid #2e4a87;
+}
+
+.rtl .appointmentCell {
+  border-right: none;
+  border-left: 1px solid #dee2e6;
+}
+
+.rtl .appointmentCell:first-child {
+  border-left: none;
+}
+
+/* Print Styles */
+@media print {
+  .calendarContainer {
+    background: white;
+    padding: 0;
+  }
+
+  .professionalHeader,
+  .professionalFooter {
+    background: white !important;
+    color: black !important;
+    border: 2px solid black;
+  }
+
+  .modalOverlay,
+  .modal {
+    display: none !important;
+  }
+
+  .appointmentCard {
+    box-shadow: none;
+    border: 1px solid black;
+  }
+
+  .tableContainer {
+    box-shadow: none;
+    border: 2px solid black;
+  }
+}
+
+.languageToggle {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  z-index: 10;
+}
+
+.rtl .languageToggle {
+  right: auto;
+  left: 20px;
+}
+
+.languageButton {
+  background: linear-gradient(135deg, #2e4a87 0%, #e91e63 100%);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+}
+
+.languageButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
