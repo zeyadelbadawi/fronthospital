@@ -173,13 +173,13 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "assign-patients-aba",
           roles: ["doctor"],
         },
-        {
-          id: "doctor-plan-aba", // Added Plans for ABA
-          label: "Current Plan",
-          icon: FileText,
-          content: "doctor-plan-aba",
-          roles: ["doctor"],
-        },
+        // {
+        //   id: "doctor-plan-aba", // Added Plans for ABA
+        //   label: "Current Plan",
+        //   icon: FileText,
+        //   content: "doctor-plan-aba",
+        //   roles: ["doctor"],
+        // },
 
         {
           id: "admin-assign-aba",
@@ -214,13 +214,13 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "assign-patients-speech",
           roles: ["doctor"],
         },
-        {
-          id: "doctor-plan-speech", // Added Plans for Speech
-          label: "Current Plan",
-          icon: FileText,
-          content: "doctor-plan-speech",
-          roles: ["doctor"],
-        },
+        // {
+        //   id: "doctor-plan-speech", // Added Plans for Speech
+        //   label: "Current Plan",
+        //   icon: FileText,
+        //   content: "doctor-plan-speech",
+        //   roles: ["doctor"],
+        // },
 
         {
           id: "admin-assign-speech",
@@ -255,13 +255,13 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "assign-patients-physical-therapy",
           roles: ["doctor"],
         },
-        {
-          id: "doctor-plan-physical-therapy", // Added Plans for Physical Therapy
-          label: "Current Plan",
-          icon: FileText,
-          content: "doctor-plan-physical-therapy",
-          roles: ["doctor"],
-        },
+        // {
+        //   id: "doctor-plan-physical-therapy", // Added Plans for Physical Therapy
+        //   label: "Current Plan",
+        //   icon: FileText,
+        //   content: "doctor-plan-physical-therapy",
+        //   roles: ["doctor"],
+        // },
 
         {
           id: "admin-assign-physical-therapy",
@@ -331,13 +331,13 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "assign-patients-occupational-therapy",
           roles: ["doctor"],
         },
-        {
-          id: "doctor-plan-occupational-therapy", // Added Plans for Occupational Therapy
-          label: "Current Plan",
-          icon: FileText,
-          content: "doctor-plan-occupational-therapy",
-          roles: ["doctor"],
-        },
+        // {
+        //   id: "doctor-plan-occupational-therapy", // Added Plans for Occupational Therapy
+        //   label: "Current Plan",
+        //   icon: FileText,
+        //   content: "doctor-plan-occupational-therapy",
+        //   roles: ["doctor"],
+        // },
 
         {
           id: "admin-assign-occupational-therapy",
@@ -372,13 +372,13 @@ const AppSidebarUpdated = ({ onContentChange }) => {
           content: "assign-patients-special-education",
           roles: ["doctor"],
         },
-        {
-          id: "doctor-plan-special-education", // Added Plans for Special Education
-          label: "Current Plan",
-          icon: FileText,
-          content: "doctor-plan-special-education",
-          roles: ["doctor"],
-        },
+        // {
+        //   id: "doctor-plan-special-education", // Added Plans for Special Education
+        //   label: "Current Plan",
+        //   icon: FileText,
+        //   content: "doctor-plan-special-education",
+        //   roles: ["doctor"],
+        // },
 
         {
           id: "admin-assign-special-education",

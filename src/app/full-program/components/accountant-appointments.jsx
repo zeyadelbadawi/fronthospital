@@ -801,8 +801,8 @@ export function AccountantAppointments() {
                 {processing
                   ? "Processing..."
                   : paymentMethod === "cash"
-                    ? "Complete Payment (4,000&nbsp;AED)"
-                    : `Complete Payment (${getTotalCheckAmount()}&nbsp;AED)`}
+                    ? "Complete Payment (4,000 AED)"
+                    : `Complete Payment (${getTotalCheckAmount()} AED)`}
               </button>
             </div>
           </div>

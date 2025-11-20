@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react" // Import useMemo
 import { useRouter } from "next/navigation"
 import axios from "axios"
+import Select from "react-select"
 import {
   User,
   Mail,
@@ -68,8 +69,6 @@ const GenericUserForm = ({ role, mode, id }) => {
             email: "",
             password: "",
             phone: "",
-            title: "",
-            availability: "Available",
             departmentIds: [],
           },
           required: ["username", "email", "password", "departmentIds"],
@@ -87,8 +86,6 @@ const GenericUserForm = ({ role, mode, id }) => {
             email: "",
             phone: "",
             password: "",
-            title: "",
-            availability: "Available",
             departmentIds: [],
           },
           required: ["username", "email", "departmentIds"],
@@ -144,12 +141,12 @@ const GenericUserForm = ({ role, mode, id }) => {
   // Effect to fetch data for edit mode
   useEffect(() => {
     if (isEditMode && id && currentConfig?.fetchApi) {
-      // Use optional chaining for currentConfig
       const fetchData = async () => {
         setLoading(true)
         try {
           const response = await axios.get(currentConfig.fetchApi)
           const data = response.data
+
           const initialEditData = { ...currentConfig.initial }
 
           // Populate form data, handling nested objects like departments
@@ -158,10 +155,15 @@ const GenericUserForm = ({ role, mode, id }) => {
               initialEditData[key] = data.departments.map((dep) => dep._id)
             } else if (key === "password") {
               initialEditData[key] = "" // Password field is always empty on edit load
+            } else if (key === "dateOfBirth" && data[key]) {
+              initialEditData[key] = new Date(data[key]).toISOString().split("T")[0]
+            } else if (key === "gender" && data[key]) {
+              initialEditData[key] = data[key].toLowerCase()
             } else if (data[key] !== undefined) {
               initialEditData[key] = data[key]
             }
           })
+
           setFormData(initialEditData)
         } catch (error) {
           console.error(`Error fetching ${role} data:`, error)
@@ -242,70 +244,69 @@ const GenericUserForm = ({ role, mode, id }) => {
     setErrors((prev) => ({ ...prev, [name]: error }))
   }
 
-const handleSubmit = async (e) => {
-  e.preventDefault()
-  setLoading(true)
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
 
-  const newErrors = {}
-  const fieldsToValidate = isEditMode ? Object.keys(formData) : currentConfig.required
+    const newErrors = {}
+    const fieldsToValidate = isEditMode ? Object.keys(formData) : currentConfig.required
 
-  fieldsToValidate.forEach((key) => {
-    const value = formData[key]
-    if (currentConfig.required.includes(key)) {
-      if (key === "departmentIds") {
-        if (!Array.isArray(value) || value.length === 0) {
-          newErrors[key] = "At least one department is required"
+    fieldsToValidate.forEach((key) => {
+      const value = formData[key]
+      if (currentConfig.required.includes(key)) {
+        if (key === "departmentIds") {
+          if (!Array.isArray(value) || value.length === 0) {
+            newErrors[key] = "At least one department is required"
+          } else {
+            const error = validateField(key, value)
+            if (error) newErrors[key] = error
+          }
+        } else if (key === "password" && isEditMode && !value) {
+          // Password is optional in edit mode if left empty
+        } else if (!value || (typeof value === "string" && value.trim() === "")) {
+          newErrors[key] = `${key.charAt(0).toUpperCase() + key.slice(1)} is required`
         } else {
           const error = validateField(key, value)
           if (error) newErrors[key] = error
         }
-      } else if (key === "password" && isEditMode && !value) {
-        // Password is optional in edit mode if left empty
-      } else if (!value || (typeof value === "string" && value.trim() === "")) {
-        newErrors[key] = `${key.charAt(0).toUpperCase() + key.slice(1)} is required`
-      } else {
+      } else if (value) {
+        // Validate optional fields if they have a value
         const error = validateField(key, value)
         if (error) newErrors[key] = error
       }
-    } else if (value) {
-      // Validate optional fields if they have a value
-      const error = validateField(key, value)
-      if (error) newErrors[key] = error
-    }
-  })
+    })
 
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors)
-    setTouched(Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {}))
-    setLoading(false)
-    return
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      setTouched(Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {}))
+      setLoading(false)
+      return
+    }
+
+    try {
+      const payload = { ...formData }
+      if (isEditMode && !payload.password) {
+        delete payload.password // Don't send empty password on edit
+      }
+
+      let response
+      if (isEditMode) {
+        response = await axios.put(currentConfig.api, payload)
+      } else {
+        response = await axios.post(currentConfig.api, payload)
+      }
+
+      if (response.status === 201 || response.status === 200) {
+        alert(`${role.charAt(0).toUpperCase() + role.slice(1)} ${isEditMode ? "updated" : "added"} successfully`)
+        router.push(currentConfig.redirect)
+      }
+    } catch (error) {
+      console.error(`Error during ${role} ${mode}:`, error)
+      alert(`Error during ${mode}. Please try again.`)
+    } finally {
+      setLoading(false)
+    }
   }
-
-  try {
-    const payload = { ...formData }
-    if (isEditMode && !payload.password) {
-      delete payload.password // Don't send empty password on edit
-    }
-
-    let response;
-    if (isEditMode) {
-      response = await axios.put(currentConfig.api, payload)
-    } else {
-      response = await axios.post(currentConfig.api, payload)
-    }
-
-    if (response.status === 201 || response.status === 200) {
-      alert(`${role.charAt(0).toUpperCase() + role.slice(1)} ${isEditMode ? "updated" : "added"} successfully`)
-      router.push(currentConfig.redirect)
-    }
-  } catch (error) {
-    console.error(`Error during ${role} ${mode}:`, error)
-    alert(`Error during ${mode}. Please try again.`)
-  } finally {
-    setLoading(false)
-  }
-}
-
 
   const getFieldStatus = (fieldName) => {
     if (errors[fieldName]) return "error"
@@ -329,6 +330,74 @@ const handleSubmit = async (e) => {
       return typeof value === "string" && value.trim().length > 0
     }).length
     return Math.round((filledFields / totalFields) * 100)
+  }
+
+  const genderOptions = [
+    { value: "male", label: "Male" },
+    { value: "female", label: "Female" },
+  ]
+
+  const customSelectStyles = {
+    control: (provided, state) => ({
+      ...provided,
+      border: `2px solid ${errors.gender ? "#dc2626" : state.isFocused ? "#3f3f87" : "#e2e8f0"}`,
+      borderRadius: "0.75rem",
+      padding: "0.5rem 0.75rem",
+      backgroundColor: "white",
+      backdropFilter: "blur(10px)",
+      boxShadow: state.isFocused
+        ? "0 0 0 4px rgba(63, 63, 135, 0.1), 0 4px 12px rgba(63, 63, 135, 0.15)"
+        : "0 1px 3px rgba(0, 0, 0, 0.1)",
+      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+      transform: state.isFocused ? "translateY(-1px)" : "translateY(0)",
+      "&:hover": {
+        borderColor: errors.gender ? "#dc2626" : "#d1d5db",
+        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+      },
+    }),
+    menu: (provided) => ({
+      ...provided,
+      borderRadius: "0.75rem",
+      border: "1px solid rgba(63, 63, 135, 0.2)",
+      boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5)",
+      backgroundColor: "rgba(255, 255, 255, 0.95)",
+      backdropFilter: "blur(10px)",
+      zIndex: 9999,
+      overflow: "hidden",
+    }),
+    menuList: (provided) => ({
+      ...provided,
+      padding: "0.5rem",
+      maxHeight: "200px",
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      borderRadius: "8px",
+      margin: "0.25rem 0",
+      padding: "0.75rem 1rem",
+      background: state.isSelected
+        ? "linear-gradient(135deg, #3f3f87 0%, #2977ba 100%)"
+        : state.isFocused
+          ? "rgba(63, 63, 135, 0.1)"
+          : "transparent",
+      color: state.isSelected ? "white" : "#374151",
+      cursor: "pointer",
+      transition: "all 0.2s ease",
+      fontWeight: state.isSelected ? "600" : "500",
+      "&:hover": {
+        background: state.isSelected ? "linear-gradient(135deg, #3f3f87 0%, #2977ba 100%)" : "rgba(63, 63, 135, 0.15)",
+        transform: "translateX(4px)",
+      },
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: "#374151",
+      fontWeight: "500",
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: "#94a3b8",
+    }),
   }
 
   if (isEditMode && loading && !Object.keys(formData).length) {
@@ -533,38 +602,51 @@ const handleSubmit = async (e) => {
                           <Users className={styles.labelIcon} />
                           Gender
                         </label>
-                        <select
-                          id="gender"
-                          name="gender"
-                          className={styles.formSelect}
-                          value={formData.gender || ""}
-                          onChange={handleInputChange}
-                        >
-                          <option value="">Select Gender</option>
-                          <option value="male">Male</option>
-                          <option value="female">Female</option>
-                        </select>
+                        <Select
+                          options={genderOptions}
+                          value={genderOptions.find((opt) => opt.value === formData.gender)}
+                          onChange={(selectedOption) =>
+                            handleInputChange({
+                              target: {
+                                name: "gender",
+                                value: selectedOption?.value || "",
+                              },
+                            })
+                          }
+                          styles={customSelectStyles}
+                          placeholder="Select Gender"
+                          isClearable
+                          isSearchable={false}
+                        />
+                        {errors.gender && (
+                          <div className={styles.errorMessage}>
+                            <AlertCircle className={styles.errorIcon} />
+                            {errors.gender}
+                          </div>
+                        )}
                       </div>
-                      {isEditMode && (
-                        <div className={styles.formGroup}>
-                          <label htmlFor="dateOfBirth" className={styles.formLabel}>
-                            <Calendar className={styles.labelIcon} />
-                            Date of Birth
-                          </label>
+
+                      <div className={styles.formGroup}>
+                        <label htmlFor="dateOfBirth" className={styles.formLabel}>
+                          <Calendar className={styles.labelIcon} />
+                          Date of Birth
+                        </label>
+                        <div className={styles.inputIcon}>
                           <input
                             type="date"
-                            className={styles.formInput}
+                            className={`${styles.formInput} ${styles[getFieldStatus("dateOfBirth")]}`}
                             id="dateOfBirth"
                             name="dateOfBirth"
-                            value={
-                              formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString().split("T")[0] : ""
-                            }
+                            value={formData.dateOfBirth || ""}
                             onChange={handleInputChange}
+                            onBlur={handleBlur}
+                            max={new Date().toISOString().split("T")[0]}
                           />
+                          <Calendar className={styles.inputIconElement} />
                         </div>
-                      )}
+                      </div>
                     </div>
-               
+
                     <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                       <label htmlFor="address" className={styles.formLabel}>
                         <MapPin className={styles.labelIcon} />
@@ -586,39 +668,6 @@ const handleSubmit = async (e) => {
                 {/* Doctor Specific Fields */}
                 {isDoctor && (
                   <>
-                    <div className={styles.formRow}>
-                      <div className={styles.formGroup}>
-                        <label htmlFor="title" className={styles.formLabel}>
-                          <Briefcase className={styles.labelIcon} />
-                          Title
-                        </label>
-                        <input
-                          type="text"
-                          className={styles.formInput}
-                          id="title"
-                          name="title"
-                          value={formData.title || ""}
-                          onChange={handleInputChange}
-                          placeholder="e.g., Pediatrician, Therapist"
-                        />
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label htmlFor="availability" className={styles.formLabel}>
-                          <Calendar className={styles.labelIcon} />
-                          Availability
-                        </label>
-                        <select
-                          id="availability"
-                          name="availability"
-                          className={styles.formSelect}
-                          value={formData.availability || "Available"}
-                          onChange={handleInputChange}
-                        >
-                          <option value="Available">Available</option>
-                          <option value="Not Available">Not Available</option>
-                        </select>
-                      </div>
-                    </div>
                     <div className={styles.formRow}>
                       <div className={styles.formGroup} style={{ gridColumn: "1 / -1" }}>
                         <label className={styles.formLabel}>

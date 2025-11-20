@@ -80,6 +80,12 @@ export const isDoctor = () => {
   return role === "doctor"
 }
 
+// Check if current user is head doctor
+export const isHeadDoctor = () => {
+  const role = getCurrentUserRole()
+  return role === "HeadDoctor"
+}
+
 // Check if current user is patient
 export const isPatient = () => {
   const role = getCurrentUserRole()
@@ -96,6 +102,12 @@ export const isAccountant = () => {
 export const isStudent = () => {
   const role = getCurrentUserRole()
   return role === "student"
+}
+
+// Check if current user can access department plans (doctor, admin, or head doctor)
+export const canAccessDepartmentPlans = () => {
+  const role = getCurrentUserRole()
+  return role === "doctor" || role === "admin" || role === "HeadDoctor"
 }
 
 // Check if current user has access to full program

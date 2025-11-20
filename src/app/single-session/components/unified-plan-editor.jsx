@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, User, Clock, Calendar, Brain, AlertCircle, Hash, Save, Loader2, Mail, Phone, FileText, ClipboardList } from 'lucide-react'
+import { ArrowLeft, User, Clock, Brain, AlertCircle, Save, Loader2, Mail, Phone } from "lucide-react"
 import axiosInstance from "@/helper/axiosSetup"
 import SyncfusionDocx2 from "@/components/SyncfusionDocx2"
 import { useContentStore } from "../store/content-store"
 import styles from "../styles/unified-plan-editor.module.css"
+import { isDoctor } from "../utils/auth-utils"
 
 // Configuration for different therapy plan types based on your actual backend
 const PLAN_CONFIGS = {
@@ -45,7 +46,7 @@ const PLAN_CONFIGS = {
     icon: Brain,
     color: "#F59E0B", // Orange
   },
-  "Psychotherapy": {
+  Psychotherapy: {
     title: "Psychotherapy Plan",
     subtitle: "Psychotherapy Rehabilitation Treatment Plan",
     apiEndpoint: "/PsychotherapyS/plan",
@@ -101,6 +102,7 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
     lastUpdated: null,
   })
   const [planDataReady, setPlanDataReady] = useState(false)
+  const [isDoctorRole, setIsDoctorRole] = useState(false)
 
   const setActiveContent = useContentStore((state) => state.setActiveContent)
 
@@ -108,6 +110,8 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
   const config = PLAN_CONFIGS[therapyType]
 
   useEffect(() => {
+    setIsDoctorRole(isDoctor())
+
     if (!config) {
       console.error(`Invalid therapy type: ${therapyType}`)
       return
@@ -207,7 +211,6 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
 
     setSaving(true)
     try {
-
       // Get the SyncfusionDocx component reference
       const syncfusionComponent = document.querySelector("#container")
       if (!syncfusionComponent) {
@@ -221,7 +224,6 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
         showErrorMessage("Document editor not available")
         return
       }
-
 
       // Get document content as blob
       const documentContent = await editorContainer.documentEditor.saveAsBlob("Docx")
@@ -242,8 +244,6 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
       formData.append("document", documentContent, fileName)
       formData.append("patientId", patientId)
 
-
-
       // Send the form data to server
       const response = await axiosInstance.post(
         `${process.env.NEXT_PUBLIC_API_URL}${config.uploadEndpoint}/${patientId}`,
@@ -256,10 +256,8 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
         },
       )
 
-
       // Handle the response
       if (response.status === 200) {
-
         // Update local state with saved data
         if (response.data.plan) {
           setPlan((prevPlan) => ({
@@ -446,7 +444,7 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
                 </div>
               </div>
 
-              {patient.email && (
+              {!isDoctorRole && patient.email && (
                 <div className={styles.studentInfoItem}>
                   <Mail className={styles.studentInfoIcon} />
                   <div className={styles.studentInfoContent}>
@@ -455,7 +453,7 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
                   </div>
                 </div>
               )}
-              {patient.phone && (
+              {!isDoctorRole && patient.phone && (
                 <div className={styles.studentInfoItem}>
                   <Phone className={styles.studentInfoIcon} />
                   <div className={styles.studentInfoContent}>
@@ -476,11 +474,8 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
                   </span>
                 </div>
               </div>
-
             </div>
           </div>
-
-
         </div>
 
         {/* Main Content */}

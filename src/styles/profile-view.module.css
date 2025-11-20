@@ -12,6 +12,8 @@
   gap: 1.4rem;
   animation: slideInUp 0.4s ease-out;
   padding: 21px;
+  /* Make both sections equal height */
+  align-items: stretch;
 }
 
 /* Profile Card Styles */
@@ -22,7 +24,8 @@
   overflow: hidden;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  height: fit-content;
+  /* Remove fit-content to match mainContent height */
+  height: 100%;
   position: sticky;
   top: 1.4rem;
 }
@@ -520,45 +523,85 @@
 }
 
 /* RTL/LTR Support */
-:global(.rtl) {
+.rtl {
   direction: rtl;
   text-align: right;
 }
 
-:global(.ltr) {
+.ltr {
   direction: ltr;
   text-align: left;
 }
 
+/* Enhanced RTL-specific adjustments for form labels */
+.rtl .formLabel {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.ltr .formLabel {
+  flex-direction: row;
+  text-align: left;
+}
+
 /* RTL-specific adjustments for flex containers */
-:global(.rtl) .formLabel,
-:global(.rtl) .infoLabel,
-:global(.rtl) .tabButton,
-:global(.rtl) .profileBadge {
+.rtl .infoLabel,
+.rtl .tabButton,
+.rtl .profileBadge {
   flex-direction: row-reverse;
 }
 
+/* RTL-specific text alignment for info items */
+.rtl .infoLabel {
+  text-align: right;
+}
+
+.rtl .infoValue {
+  text-align: right;
+}
+
+.ltr .infoLabel {
+  text-align: left;
+}
+
+.ltr .infoValue {
+  text-align: left;
+}
+
 /* RTL adjustments for password toggle button */
-:global(.rtl) .passwordToggle {
+.rtl .passwordToggle {
   right: auto;
   left: 0.7rem;
 }
 
+/* Enhanced RTL adjustments for form inputs and placeholders */
+.rtl .formInput,
+.rtl .formTextarea {
+  text-align: right;
+  direction: rtl;
+}
+
+.ltr .formInput,
+.ltr .formTextarea {
+  text-align: left;
+  direction: ltr;
+}
+
 /* RTL adjustments for icons to appear on correct side */
-:global(.rtl) .labelIcon,
-:global(.rtl) .infoLabelIcon,
-:global(.rtl) .tabIcon,
-:global(.rtl) .buttonIcon,
-:global(.rtl) .driveLinkIcon {
+.rtl .labelIcon,
+.rtl .infoLabelIcon,
+.rtl .tabIcon,
+.rtl .buttonIcon,
+.rtl .driveLinkIcon {
   margin-left: 0.35rem;
   margin-right: 0;
 }
 
-:global(.ltr) .labelIcon,
-:global(.ltr) .infoLabelIcon,
-:global(.ltr) .tabIcon,
-:global(.ltr) .buttonIcon,
-:global(.ltr) .driveLinkIcon {
+.ltr .labelIcon,
+.ltr .infoLabelIcon,
+.ltr .tabIcon,
+.ltr .buttonIcon,
+.ltr .driveLinkIcon {
   margin-right: 0.35rem;
   margin-left: 0;
 }
@@ -628,7 +671,6 @@
 }
 
 @media (max-width: 480px) {
-
   .contentHeader,
   .tabContent {
     padding: 0.7rem;

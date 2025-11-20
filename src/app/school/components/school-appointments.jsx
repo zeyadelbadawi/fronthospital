@@ -1,7 +1,28 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { Search, Plus, Calendar, Clock, Check, X, User, CalendarDays, Edit3, CheckCircle, ArrowLeft, Save, AlertCircle, Users, Activity, Mail, Phone, AlertTriangle, Hash, ClipboardCheck } from 'lucide-react'
+import {
+  Search,
+  Plus,
+  Calendar,
+  Clock,
+  Check,
+  X,
+  User,
+  CalendarDays,
+  Edit3,
+  CheckCircle,
+  ArrowLeft,
+  Save,
+  AlertCircle,
+  Users,
+  Activity,
+  Mail,
+  Phone,
+  AlertTriangle,
+  Hash,
+  ClipboardCheck,
+} from "lucide-react"
 import axiosInstance from "@/helper/axiosSetup"
 import { useToast } from "./toast"
 import { ConfirmationModal } from "./confirmation-modal"
@@ -9,7 +30,7 @@ import { LoadingOverlay } from "./loading-overlay"
 import styles from "../styles/school-appointments.module.css"
 import { useContentStore } from "../store/content-store"
 import { getCurrentUser } from "../utils/auth-utils"
-import { useRouter } from 'next/navigation' // Assuming router is needed for navigation
+import { useRouter } from "next/navigation" // Assuming router is needed for navigation
 import { useTranslation } from "react-i18next" // Assuming t is used from i18next
 
 export function SchoolAppointments() {
@@ -36,6 +57,7 @@ export function SchoolAppointments() {
   const [totalPages, setTotalPages] = useState(1)
   const [editingAppointment, setEditingAppointment] = useState(null)
   const setActiveContent = useContentStore((state) => state.setActiveContent)
+  const [isDoctorRole, setIsDoctorRole] = useState(false)
 
   const [editFormData, setEditFormData] = useState({
     date: "",
@@ -57,6 +79,11 @@ export function SchoolAppointments() {
   const { showToast, ToastContainer } = useToast()
   const router = useRouter() // Initialize router
   const { t } = useTranslation() // Initialize translation hook
+
+  useEffect(() => {
+    const currentUser = getCurrentUser()
+    setIsDoctorRole(currentUser?.role === "doctor")
+  }, [])
 
   // CHANGE: Moved checkPreviousAppointments BEFORE handleAddAppointment to fix hoisting issue
   const checkPreviousAppointments = useCallback(() => {
@@ -503,7 +530,7 @@ export function SchoolAppointments() {
       )
       .then((sheetStatus) => {
         console.log("[v0] Sheet status response:", sheetStatus.data)
-        
+
         if (!sheetStatus.data.success) {
           setSaving(false)
           showToast(sheetStatus.data.message, "warning")
@@ -718,7 +745,7 @@ export function SchoolAppointments() {
                         Student Name:<b> {patientInfo.name} </b>
                       </span>
                     </div>
-                    {patientInfo.email && (
+                    {!isDoctorRole && patientInfo.email && (
                       <div className={styles.patientDetail}>
                         <Mail className={styles.detailIconbyziad} />
                         <span className={styles.patientInfobyziad}>
@@ -727,7 +754,7 @@ export function SchoolAppointments() {
                         </span>
                       </div>
                     )}
-                    {patientInfo.phone && (
+                    {!isDoctorRole && patientInfo.phone && (
                       <div className={styles.patientDetail}>
                         <Phone className={styles.detailIconbyziad} />
                         <span className={styles.patientInfobyziad}>
@@ -1139,12 +1166,12 @@ export function SchoolAppointments() {
                                 {patientInfo.name}
                               </div>
                               <div className={styles.patientInfo}>
-                                {patientInfo.email && (
+                                {!isDoctorRole && patientInfo.email && (
                                   <div>
                                     <b>Student Email:</b> {patientInfo.email}
                                   </div>
                                 )}
-                                {patientInfo.phone && (
+                                {!isDoctorRole && patientInfo.phone && (
                                   <div>
                                     <b>Phone Number:</b> {patientInfo.phone}
                                   </div>

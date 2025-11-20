@@ -15,7 +15,7 @@ import {
   FileText,
 } from "lucide-react"
 import axiosInstance from "@/helper/axiosSetup"
-import { getCurrentUserId } from "../utils/auth-utils"
+import { getCurrentUserId, isDoctor } from "../utils/auth-utils"
 import styles from "@/app/full-program/styles/speech-upcoming-appointments.module.css"
 
 // Department configuration
@@ -65,7 +65,7 @@ const DEPARTMENT_CONFIG = {
     loadingText: "Loading your Special Education students...",
     emptyText: "You don't have any Special Education students assigned to you yet.",
   },
-    Psychotherapy: {
+  Psychotherapy: {
     endpoint: "Psychotherapy",
     displayName: "Psychotherapy",
     fullName: "Psychotherapy",
@@ -90,14 +90,18 @@ export default function GenericAssignPatientsDoctor({ department, onViewPlan, on
   })
   const [selectedAssignment, setSelectedAssignment] = useState(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [isDoctorRole, setIsDoctorRole] = useState(false)
 
-  // New states for the subscription checker (only for ABA)
   const [isCheckingSubscriptions, setIsCheckingSubscriptions] = useState(false)
   const [subscriptionCheckMessage, setSubscriptionCheckMessage] = useState("")
   const [subscriptionCheckError, setSubscriptionCheckError] = useState(false)
 
   const doctorId = getCurrentUserId()
   const config = DEPARTMENT_CONFIG[department]
+
+  useEffect(() => {
+    setIsDoctorRole(isDoctor())
+  }, [])
 
   useEffect(() => {
     fetchDoctorStudents()
@@ -155,7 +159,6 @@ export default function GenericAssignPatientsDoctor({ department, onViewPlan, on
     setCurrentPage(1)
   }
 
-  // Manual subscription checker (only for ABA)
   const handleManualSubscriptionCheck = async () => {
     setIsCheckingSubscriptions(true)
     setSubscriptionCheckMessage("")
@@ -189,7 +192,6 @@ export default function GenericAssignPatientsDoctor({ department, onViewPlan, on
       return
     }
     if (onViewPlan) {
-      // Use the generic plan view with department parameter
       onViewPlan(`${department}-plan-editor`, patientId, department)
     } else {
       console.warn(`onViewPlan prop is not provided to GenericAssignStudentsDoctor for ${department}.`)
@@ -202,7 +204,6 @@ export default function GenericAssignPatientsDoctor({ department, onViewPlan, on
       return
     }
     if (onViewExam) {
-      // Use the generic exam view with department parameter
       onViewExam(`${department}-exam-editor`, patientId, department)
     } else {
       console.warn(`onViewExam prop is not provided to GenericAssignStudentDoctor for ${department}.`)
@@ -240,8 +241,7 @@ export default function GenericAssignPatientsDoctor({ department, onViewPlan, on
               <p className={styles.pageSubtitle}>{config.subtitle}</p>
             </div>
             <div className={styles.headerActions}>
-              {/* Only show subscription checker for ABA */}
-              {department === "aba" && (
+              {department === "aba" && !isDoctorRole && (
                 <button
                   onClick={handleManualSubscriptionCheck}
                   disabled={isCheckingSubscriptions}
@@ -307,7 +307,6 @@ export default function GenericAssignPatientsDoctor({ department, onViewPlan, on
           </div>
         )}
 
-        {/* Subscription check message (only for ABA) */}
         {department === "aba" && subscriptionCheckMessage && (
           <div className={styles.cardBody}>
             <div
@@ -414,20 +413,22 @@ export default function GenericAssignPatientsDoctor({ department, onViewPlan, on
                           <td className={styles.patientCell}>
                             <div className={styles.patientInfo}>
                               <div className={styles.patientName}>{patient?.name || "Unknown Student"}</div>
-                              <div className={styles.patientId}>
-                                {patient?.email && (
-                                  <div style={{ display: "flex", alignItems: "center", marginBottom: "0.25rem" }}>
-                                    <Mail size={12} style={{ marginRight: "0.25rem" }} />
-                                    {patient.email}
-                                  </div>
-                                )}
-                                {patient?.phone && (
-                                  <div style={{ display: "flex", alignItems: "center" }}>
-                                    <Phone size={12} style={{ marginRight: "0.25rem" }} />
-                                    {patient.phone}
-                                  </div>
-                                )}
-                              </div>
+                              {!isDoctorRole && (
+                                <div className={styles.patientId}>
+                                  {patient?.email && (
+                                    <div style={{ display: "flex", alignItems: "center", marginBottom: "0.25rem" }}>
+                                      <Mail size={12} style={{ marginRight: "0.25rem" }} />
+                                      {patient.email}
+                                    </div>
+                                  )}
+                                  {patient?.phone && (
+                                    <div style={{ display: "flex", alignItems: "center" }}>
+                                      <Phone size={12} style={{ marginRight: "0.25rem" }} />
+                                      {patient.phone}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </td>
                           <td className={styles.dateCell}>
@@ -564,18 +565,22 @@ export default function GenericAssignPatientsDoctor({ department, onViewPlan, on
                     {selectedAssignment.patient?.name || selectedAssignment.patientId?.name || "Unknown"}
                   </div>
                 </div>
-                <div className={styles.detailItem}>
-                  <div className={styles.detailLabel}>Email</div>
-                  <div className={styles.detailValue}>
-                    {selectedAssignment.patient?.email || selectedAssignment.patientId?.email || "Not provided"}
+                {!isDoctorRole && (
+                  <div className={styles.detailItem}>
+                    <div className={styles.detailLabel}>Email</div>
+                    <div className={styles.detailValue}>
+                      {selectedAssignment.patient?.email || selectedAssignment.patientId?.email || "Not provided"}
+                    </div>
                   </div>
-                </div>
-                <div className={styles.detailItem}>
-                  <div className={styles.detailLabel}>Phone</div>
-                  <div className={styles.detailValue}>
-                    {selectedAssignment.patient?.phone || selectedAssignment.patientId?.phone || "Not provided"}
+                )}
+                {!isDoctorRole && (
+                  <div className={styles.detailItem}>
+                    <div className={styles.detailLabel}>Phone</div>
+                    <div className={styles.detailValue}>
+                      {selectedAssignment.patient?.phone || selectedAssignment.patientId?.phone || "Not provided"}
+                    </div>
                   </div>
-                </div>
+                )}
                 <div className={styles.detailItem}>
                   <div className={styles.detailLabel}>Department</div>
                   <div className={styles.detailValue}>{selectedAssignment.department || config.endpoint}</div>
@@ -636,7 +641,6 @@ export default function GenericAssignPatientsDoctor({ department, onViewPlan, on
   )
 }
 
-// Export individual components for backward compatibility
 export function AssignPatientsABADoctor({ onViewAbaPlan, onViewAbaExam }) {
   return <GenericAssignPatientsDoctor department="aba" onViewPlan={onViewAbaPlan} onViewExam={onViewAbaExam} />
 }

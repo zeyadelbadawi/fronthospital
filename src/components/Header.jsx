@@ -190,7 +190,7 @@ export default function Header({
                   </div>
                   <div className={styles.notificationList}>
                     {notifications.length > 0 ? (
-                      notifications.map((notification) => (
+                      notifications.slice(0, 5).map((notification) => (
                         <div
                           key={notification._id}
                           className={`${styles.notificationItem} ${!notification.isRead ? styles.unreadNotification : ""}`}
@@ -228,6 +228,11 @@ export default function Header({
                       </p>
                     )}
                   </div>
+                  {notifications.length > 5 && (
+                    <CustomLink href="/notifications" className={styles.viewAllButton}>
+                      {language === "ar" ? "عرض جميع الإشعارات" : "Show All Notifications"}
+                    </CustomLink>
+                  )}
                 </div>
               )}
             </div>

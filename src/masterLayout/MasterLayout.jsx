@@ -491,13 +491,19 @@ const MasterLayout = ({ children }) => {
           <div className={`${styles.row} ${styles.alignItemsCenter} ${styles.justifyContentBetween}`}>
             <div className={styles.colAuto}>
               <div className={`${styles.dFlex} ${styles.flexWrap} ${styles.alignItemsCenter} ${styles.gap4}`}>
-                <button type="button" className={styles.sidebarToggle} onClick={() => setSidebarActive(!sidebarActive)}>
-                  {sidebarActive ? (
-                    <ArrowRight className={`${styles.text2xl}`} />
-                  ) : (
-                    <Menu className={`${styles.text2xl}`} />
-                  )}
-                </button>
+                {!loading && userRole !== "doctor" && (
+                  <button
+                    type="button"
+                    className={styles.sidebarToggle}
+                    onClick={() => setSidebarActive(!sidebarActive)}
+                  >
+                    {sidebarActive ? (
+                      <ArrowRight className={`${styles.text2xl}`} />
+                    ) : (
+                      <Menu className={`${styles.text2xl}`} />
+                    )}
+                  </button>
+                )}
                 <button onClick={mobileMenuControl} type="button" className={styles.sidebarMobileToggle}>
                   <Menu className={styles.textXl} />
                 </button>
@@ -551,7 +557,7 @@ const MasterLayout = ({ children }) => {
                     </div>
                     <div className={styles.notificationList}>
                       {notifications?.length > 0 ? (
-                        notifications.map((item) => (
+                        notifications.slice(0, 7).map((item) => (
                           <div
                             onClick={(e) => {
                               e.preventDefault()
@@ -592,6 +598,11 @@ const MasterLayout = ({ children }) => {
                         </div>
                       )}
                     </div>
+                    {notifications?.length > 7 && (
+                      <CustomLink href="/notifications" className={styles.viewAllNotifications}>
+                        Show All Notifications
+                      </CustomLink>
+                    )}
                   </div>
                 </div>
 

@@ -1,0 +1,411 @@
+.plansContainer {
+    width: 100%;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+  
+  .plansHeader {
+    margin-bottom: 30px;
+    text-align: center;
+    color: white;
+  }
+  
+  .plansHeader h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #667eea;
+  }
+  
+  .plansHeader p {
+    font-size: 16px;
+    opacity: 0.9;
+    color: #667eea;
+
+
+  }
+  
+  .plansContent {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  /* Department Level */
+  .departmentSection {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+  }
+  
+  .departmentSection:hover {
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  }
+  
+  .departmentHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transition: background 0.3s ease;
+  }
+  
+  .departmentHeader:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #6a4190 100%);
+  }
+  
+  .departmentHeader h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  .departmentContent {
+    padding: 16px;
+    background: white;
+  }
+  
+  /* Year Level */
+  .yearSection {
+    margin-bottom: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .yearHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    cursor: pointer;
+    background: #f8f9fa;
+    transition: background 0.3s ease;
+  }
+  
+  .yearHeader:hover {
+    background: #e9ecef;
+  }
+  
+  .yearHeader h4 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    color: #495057;
+  }
+  
+  .yearContent {
+    padding: 12px;
+    background: white;
+  }
+  
+  /* Quarter Level */
+  .quarterSection {
+    margin-bottom: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  
+  .quarterHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    cursor: pointer;
+    background: #f1f3f5;
+    transition: background 0.3s ease;
+  }
+  
+  .quarterHeader:hover {
+    background: #e9ecef;
+  }
+  
+  .quarterHeader h5 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: #6c757d;
+  }
+  
+  .quarterContent {
+    padding: 10px;
+    background: #fafbfc;
+  }
+  
+  /* Student Level */
+  .studentSection {
+    margin-bottom: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    overflow: hidden;
+    background: white;
+  }
+  
+  .studentHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    cursor: pointer;
+    background: #ffffff;
+    border-bottom: 1px solid #e9ecef;
+    transition: background 0.3s ease;
+  }
+  
+  .studentHeader:hover {
+    background: #f8f9fa;
+  }
+  
+  .studentHeader h6 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+    color: #495057;
+  }
+  
+  .studentContent {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #fafbfc;
+  }
+  
+  /* Document Items */
+  .documentItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+  
+  .documentItem:hover {
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+  }
+  
+  .docIcon {
+    width: 24px;
+    height: 24px;
+    color: #667eea;
+    flex-shrink: 0;
+  }
+  
+  .docInfo {
+    flex: 1;
+  }
+  
+  .docTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+    margin: 0 0 4px 0;
+  }
+  
+  .docSubtitle {
+    font-size: 13px;
+    color: #6c757d;
+    margin: 0;
+  }
+  
+  .docFileName {
+    font-size: 12px;
+    color: #868e96;
+    margin: 4px 0 0 0;
+    font-style: italic;
+  }
+  
+  .documentActions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .viewBtn {
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+  }
+  
+  .viewBtn:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+  
+  .downloadBtn {
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+  }
+  
+  .downloadBtn:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #6a4190 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+  
+  /* Chevron Icons */
+  .chevron {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+  }
+  
+  /* Loading State */
+  .loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: white;
+  }
+  
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* Empty State */
+  .emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: white;
+    text-align: center;
+  }
+  
+  .emptyIcon {
+    margin-bottom: 20px;
+    opacity: 0.7;
+  }
+  
+  .emptyState h3 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .emptyState p {
+    font-size: 16px;
+    opacity: 0.9;
+  }
+  
+  .viewerHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+    margin-bottom: 1rem;
+  }
+  
+  .viewerTitle {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.125rem;
+    color: #374151;
+  }
+  
+  .closeViewerBtn {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  
+  .closeViewerBtn:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .plansContainer {
+      padding: 16px;
+    }
+  
+    .plansHeader h2 {
+      font-size: 24px;
+    }
+  
+    .departmentHeader h3 {
+      font-size: 18px;
+    }
+  
+    .yearHeader h4 {
+      font-size: 16px;
+    }
+  
+    .quarterHeader h5 {
+      font-size: 15px;
+    }
+  
+    .studentHeader h6 {
+      font-size: 14px;
+    }
+  
+    .documentItem {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .downloadBtn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+  

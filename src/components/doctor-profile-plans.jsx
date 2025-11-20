@@ -1,632 +1,388 @@
 "use client"
 import { useState, useEffect } from "react"
-import {
-  Folder,
-  FolderOpen,
-  FileText,
-  Download,
-  Eye,
-  ChevronRight,
-  ChevronDown,
-  Search,
-  RefreshCw,
-  AlertCircle,
-  Clock,
-} from "lucide-react"
 import axiosInstance from "@/helper/axiosSetup"
-import { getCurrentUser } from "@/app/full-program/utils/auth-utils"
-import styles from "../styles/profile-view.module.css"
+import styles from "../styles/doctor-profile-plans.module.css"
+import { ChevronDown, ChevronRight, FileText, ClipboardCheck, Download, Eye } from "lucide-react"
 import DoctorPlanDocx from "./DoctorPlanDocx"
 
-const DoctorProfilePlans = () => {
-  const user = getCurrentUser()
-  const [plans, setPlans] = useState([])
+export default function DoctorProfilePlans({ doctorId }) {
+  const [plansData, setPlansData] = useState({})
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [expandedFolders, setExpandedFolders] = useState(new Set())
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedYear, setSelectedYear] = useState("all")
-  const [selectedQuarter, setSelectedQuarter] = useState("all")
+  const [expandedDepartments, setExpandedDepartments] = useState({})
+  const [expandedYears, setExpandedYears] = useState({})
+  const [expandedQuarters, setExpandedQuarters] = useState({})
+  const [expandedStudents, setExpandedStudents] = useState({})
   const [viewingDocument, setViewingDocument] = useState(null)
+  const [documentLoading, setDocumentLoading] = useState(false)
 
   useEffect(() => {
-    if (user?.id) {
-      fetchAllPlans()
-    }
-  }, [user?.id])
+    fetchDoctorStudentPlans()
+  }, [doctorId])
 
-  const fetchAllPlans = async () => {
+  const fetchDoctorStudentPlans = async () => {
     try {
       setLoading(true)
-      setError(null)
+      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/doctor-student-plans/${doctorId}`)
 
-      // First get doctor's departments
-      const depsResponse = await axiosInstance.get(`/doctorFile/doctor-deps/${user?.id}`)
-      const departments = depsResponse.data
-
-      if (!departments || departments.length === 0) {
-        setPlans([])
-        return
+      if (response.data.success) {
+        console.log("[v0] Received plans data:", response.data.data)
+        setPlansData(response.data.data)
       }
-
-      // Fetch plans for each department
-      const allPlans = []
-      for (const dept of departments) {
-        try {
-          const plansResponse = await axiosInstance.get(`/doctorFile/get-plans/${user?.id}/${dept._id}`)
-          if (plansResponse.data.doctorFiles && Array.isArray(plansResponse.data.doctorFiles)) {
-            // Add department info to each plan
-            const deptPlans = plansResponse.data.doctorFiles.map((plan) => ({
-              ...plan,
-              departmentId: dept,
-            }))
-            allPlans.push(...deptPlans)
-          }
-        } catch (deptError) {
-          console.log(`No plans found for department ${dept.name}`)
-        }
-      }
-
-      setPlans(allPlans)
     } catch (error) {
-      console.error("Error fetching plans:", error)
-      setError("Failed to load your plans. Please try again.")
+      console.error("Error fetching doctor student plans:", error)
     } finally {
       setLoading(false)
     }
   }
 
-  const organizePlansIntoFolders = () => {
-    const structure = {}
-
-    plans.forEach((plan) => {
-      const deptName = plan.departmentId.name
-      const year = plan.year.toString()
-      const quarter = `Q${plan.quarterOfYear}`
-
-      if (!structure[deptName]) {
-        structure[deptName] = {}
-      }
-      if (!structure[deptName][year]) {
-        structure[deptName][year] = {}
-      }
-      if (!structure[deptName][year][quarter]) {
-        structure[deptName][year][quarter] = []
-      }
-
-      structure[deptName][year][quarter].push(plan)
-    })
-
-    return structure
+  const toggleDepartment = (dept) => {
+    setExpandedDepartments((prev) => ({
+      ...prev,
+      [dept]: !prev[dept],
+    }))
   }
 
-  const getFilteredPlans = () => {
-    let filtered = plans
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (plan) =>
-          plan.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          plan.departmentId.name.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    }
-
-    if (selectedYear !== "all") {
-      filtered = filtered.filter((plan) => plan.year.toString() === selectedYear)
-    }
-
-    if (selectedQuarter !== "all") {
-      filtered = filtered.filter((plan) => plan.quarterOfYear.toString() === selectedQuarter)
-    }
-
-    return filtered
+  const toggleYear = (dept, year) => {
+    const key = `${dept}-${year}`
+    setExpandedYears((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }))
   }
 
-  const toggleFolder = (folderPath) => {
-    const newExpanded = new Set(expandedFolders)
-    if (newExpanded.has(folderPath)) {
-      newExpanded.delete(folderPath)
-    } else {
-      newExpanded.add(folderPath)
-    }
-    setExpandedFolders(newExpanded)
+  const toggleQuarter = (dept, year, quarter) => {
+    const key = `${dept}-${year}-${quarter}`
+    setExpandedQuarters((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }))
   }
 
-  const handleDownload = async (plan) => {
+  const toggleStudent = (dept, year, quarter, student) => {
+    const key = `${dept}-${year}-${quarter}-${student}`
+    setExpandedStudents((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }))
+  }
+
+  const handleDownload = async (fullPath, fileName) => {
+    if (!fullPath) return
+
     try {
-      const response = await axiosInstance.get(plan.fullPath, {
+      const fileUrl = `${process.env.NEXT_PUBLIC_API_URL}${fullPath}`
+      console.log("[v0] Downloading from:", fileUrl)
+
+      const response = await axiosInstance.get(fileUrl, {
         responseType: "blob",
       })
 
       const url = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement("a")
       link.href = url
-      link.setAttribute("download", plan.fileName)
+      link.setAttribute("download", fileName || "document.pdf")
       document.body.appendChild(link)
       link.click()
       link.remove()
       window.URL.revokeObjectURL(url)
     } catch (error) {
-      console.error("Error downloading file:", error)
+      console.error("[v0] Error downloading file:", error)
       alert("Failed to download file. Please try again.")
     }
   }
 
-  const handleView = (plan) => {
-    setViewingDocument({
-      filePath: `${process.env.NEXT_PUBLIC_API_URL}${plan.fullPath}`,
-      fileName: plan.fileName,
-      plan: plan,
-    })
+  const handleView = async (fullPath, fileName, type) => {
+    if (!fullPath) return
+
+    try {
+      setDocumentLoading(true)
+      const fileUrl = `${process.env.NEXT_PUBLIC_API_URL}${fullPath}`
+      console.log("[v0] Viewing file - fullPath:", fullPath)
+      console.log("[v0] Viewing file - complete URL:", fileUrl)
+
+      const response = await axiosInstance.get(fileUrl, {
+        responseType: "blob",
+      })
+
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64data = reader.result
+        setViewingDocument({
+          filePath: base64data,
+          fileName: fileName || `${type} Document`,
+          type: type,
+        })
+        setDocumentLoading(false)
+      }
+      reader.onerror = () => {
+        alert("Failed to load the file. Please try again.")
+        setDocumentLoading(false)
+      }
+      reader.readAsDataURL(response.data)
+    } catch (error) {
+      console.error("[v0] Error loading file:", error)
+      alert("Failed to load the file. Please try again.")
+      setDocumentLoading(false)
+    }
   }
 
   const handleCloseViewer = () => {
     setViewingDocument(null)
   }
 
-  const getUniqueYears = () => {
-    const years = [...new Set(plans.map((plan) => plan.year.toString()))]
-    return years.sort((a, b) => Number.parseInt(b) - Number.parseInt(a))
-  }
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
+  const getDepartmentDisplayName = (dept) => {
+    const names = {
+      ABA: "ABA Department",
+      speech: "Speech Department",
+      OccupationalTherapy: "Occupational Therapy Department",
+      SpecialEducation: "Special Education Department",
+      physicalTherapy: "Physical Therapy Department",
+    }
+    return names[dept] || dept
   }
 
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-        <p className={styles.loadingText}>Loading your plans...</p>
+        <div className={styles.spinner}></div>
+        <p>Loading student plans and exams...</p>
       </div>
     )
   }
 
-  if (error) {
+  if (Object.keys(plansData).length === 0) {
+    return (
+      <div className={styles.emptyState}>
+        <FileText size={48} className={styles.emptyIcon} />
+        <h3>No Student Plans or Exams</h3>
+        <p>You don't have any assigned students with plans or exams yet.</p>
+      </div>
+    )
+  }
+
+  if (documentLoading) {
     return (
       <div className={styles.loadingContainer}>
-        <AlertCircle size={48} color="#dc2626" />
-        <p style={{ color: "#dc2626", fontSize: "1.125rem", fontWeight: "600" }}>{error}</p>
-        <button onClick={fetchAllPlans} className={styles.saveButton} style={{ marginTop: "1rem" }}>
-          <RefreshCw size={16} />
-          Try Again
-        </button>
+        <div className={styles.spinner}></div>
+        <p>Loading document...</p>
       </div>
     )
   }
 
-  const folderStructure = organizePlansIntoFolders()
-  const filteredPlans = getFilteredPlans()
-  const uniqueYears = getUniqueYears()
-
-  // If viewing a document, show the document viewer instead
   if (viewingDocument) {
     return (
       <div>
-        {/* Header with close button */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "1rem",
-            borderBottom: "1px solid #e5e7eb",
-            backgroundColor: "#f9fafb",
-          }}
-        >
-          <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <div className={styles.viewerHeader}>
+          <h3 className={styles.viewerTitle}>
             <FileText size={20} />
             {viewingDocument.fileName}
           </h3>
-          <button
-            onClick={handleCloseViewer}
-            style={{
-              background: "#dc2626",
-              color: "white",
-              border: "none",
-              padding: "0.5rem 1rem",
-              borderRadius: "0.5rem",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-            }}
-          >
+          <button onClick={handleCloseViewer} className={styles.closeViewerBtn}>
             ← Back to Plans
           </button>
         </div>
-        {/* Document viewer */}
         <DoctorPlanDocx filePath={viewingDocument.filePath} />
       </div>
     )
   }
 
   return (
-    <div>
-      {/* Header with Stats */}
-      <div style={{ marginBottom: "2rem" }}>
-        {/* Search and Filters */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1fr 1fr",
-            gap: "1rem",
-            marginBottom: "2rem",
-          }}
-        >
-          <div style={{ position: "relative" }}>
-            <Search
-              size={20}
-              style={{
-                position: "absolute",
-                left: "1rem",
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "#6b7280",
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Search plans..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={styles.formInput}
-              style={{ paddingLeft: "3rem" }}
-            />
-          </div>
-          <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} className={styles.formInput}>
-            <option value="all">All Years</option>
-            {uniqueYears.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-          <select
-            value={selectedQuarter}
-            onChange={(e) => setSelectedQuarter(e.target.value)}
-            className={styles.formInput}
-          >
-            <option value="all">All Quarters</option>
-            <option value="1">Q1</option>
-            <option value="2">Q2</option>
-            <option value="3">Q3</option>
-            <option value="4">Q4</option>
-          </select>
-        </div>
+    <div className={styles.plansContainer}>
+      <div className={styles.plansHeader}>
+        <h2>My Students' Plans and Exams</h2>
+        <p>View all plans and exams for your assigned students organized by department, year, and quarter</p>
       </div>
 
-      {/* File Explorer */}
-      <div
-        style={{
-          border: "2px solid #e2e8f0",
-          borderRadius: "1rem",
-          background: "white",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
-            padding: "1rem 1.5rem",
-            borderBottom: "1px solid #e5e7eb",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-          }}
-        >
-          <Folder size={20} color="#059669" />
-          <span style={{ fontWeight: "700", color: "#374151" }}>My Plans</span>
-          <button
-            onClick={fetchAllPlans}
-            style={{
-              marginLeft: "auto",
-              background: "none",
-              border: "none",
-              color: "#6b7280",
-              cursor: "pointer",
-              padding: "0.5rem",
-              borderRadius: "0.5rem",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(5, 150, 105, 0.1)"
-              e.currentTarget.style.color = "#059669"
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "none"
-              e.currentTarget.style.color = "#6b7280"
-            }}
-          >
-            <RefreshCw size={16} />
-          </button>
-        </div>
+      <div className={styles.plansContent}>
+        {Object.keys(plansData)
+          .sort()
+          .map((department) => (
+            <div key={department} className={styles.departmentSection}>
+              <div className={styles.departmentHeader} onClick={() => toggleDepartment(department)}>
+                {expandedDepartments[department] ? (
+                  <ChevronDown className={styles.chevron} />
+                ) : (
+                  <ChevronRight className={styles.chevron} />
+                )}
+                <h3>{getDepartmentDisplayName(department)}</h3>
+              </div>
 
-        <div style={{ padding: "1rem" }}>
-          {Object.keys(folderStructure).length === 0 ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "3rem",
-                color: "#6b7280",
-              }}
-            >
-              <FileText size={48} style={{ marginBottom: "1rem", opacity: 0.5 }} />
-              <p style={{ fontSize: "1.125rem", fontWeight: "600", marginBottom: "0.5rem" }}>No Plans Found</p>
-              <p style={{ fontSize: "0.875rem" }}>You haven't uploaded any plans yet.</p>
-            </div>
-          ) : (
-            Object.entries(folderStructure).map(([deptName, years]) => (
-              <div key={deptName} style={{ marginBottom: "1rem" }}>
-                {/* Department Folder */}
-                <div
-                  onClick={() => toggleFolder(deptName)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    padding: "0.75rem",
-                    cursor: "pointer",
-                    borderRadius: "0.5rem",
-                    transition: "all 0.2s",
-                    background: expandedFolders.has(deptName) ? "rgba(5, 150, 105, 0.05)" : "transparent",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!expandedFolders.has(deptName)) {
-                      e.currentTarget.style.background = "rgba(5, 150, 105, 0.05)"
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!expandedFolders.has(deptName)) {
-                      e.currentTarget.style.background = "transparent"
-                    }
-                  }}
-                >
-                  {expandedFolders.has(deptName) ? (
-                    <ChevronDown size={16} color="#059669" />
-                  ) : (
-                    <ChevronRight size={16} color="#6b7280" />
-                  )}
-                  {expandedFolders.has(deptName) ? (
-                    <FolderOpen size={20} color="#059669" />
-                  ) : (
-                    <Folder size={20} color="#6b7280" />
-                  )}
-                  <span style={{ fontWeight: "600", color: "#374151" }}>{deptName}</span>
-                  <span
-                    style={{
-                      marginLeft: "auto",
-                      fontSize: "0.75rem",
-                      color: "#6b7280",
-                      background: "#f3f4f6",
-                      padding: "0.25rem 0.5rem",
-                      borderRadius: "9999px",
-                    }}
-                  >
-                    {Object.values(years).reduce(
-                      (total, quarters) =>
-                        total + Object.values(quarters).reduce((qTotal, files) => qTotal + files.length, 0),
-                      0,
-                    )}{" "}
-                    files
-                  </span>
-                </div>
-
-                {/* Year Folders */}
-                {expandedFolders.has(deptName) && (
-                  <div style={{ marginLeft: "2rem" }}>
-                    {Object.entries(years)
-                      .sort(([a], [b]) => Number.parseInt(b) - Number.parseInt(a))
-                      .map(([year, quarters]) => (
-                        <div key={`${deptName}-${year}`} style={{ marginBottom: "0.5rem" }}>
-                          <div
-                            onClick={() => toggleFolder(`${deptName}-${year}`)}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "0.5rem",
-                              padding: "0.5rem",
-                              cursor: "pointer",
-                              borderRadius: "0.5rem",
-                              transition: "all 0.2s",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = "rgba(5, 150, 105, 0.05)"
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = "transparent"
-                            }}
-                          >
-                            {expandedFolders.has(`${deptName}-${year}`) ? (
-                              <ChevronDown size={14} color="#059669" />
+              {expandedDepartments[department] && (
+                <div className={styles.departmentContent}>
+                  {Object.keys(plansData[department])
+                    .sort((a, b) => b - a)
+                    .map((year) => {
+                      const yearKey = `${department}-${year}`
+                      return (
+                        <div key={year} className={styles.yearSection}>
+                          <div className={styles.yearHeader} onClick={() => toggleYear(department, year)}>
+                            {expandedYears[yearKey] ? (
+                              <ChevronDown className={styles.chevron} />
                             ) : (
-                              <ChevronRight size={14} color="#6b7280" />
+                              <ChevronRight className={styles.chevron} />
                             )}
-                            {expandedFolders.has(`${deptName}-${year}`) ? (
-                              <FolderOpen size={18} color="#059669" />
-                            ) : (
-                              <Folder size={18} color="#6b7280" />
-                            )}
-                            <span style={{ fontWeight: "500", color: "#374151" }}>{year}</span>
-                            <span
-                              style={{
-                                marginLeft: "auto",
-                                fontSize: "0.75rem",
-                                color: "#6b7280",
-                              }}
-                            >
-                              {Object.values(quarters).reduce((total, files) => total + files.length, 0)} files
-                            </span>
+                            <h4>Year {year}</h4>
                           </div>
 
-                          {/* Quarter Folders */}
-                          {expandedFolders.has(`${deptName}-${year}`) && (
-                            <div style={{ marginLeft: "2rem" }}>
-                              {Object.entries(quarters)
-                                .sort(([a], [b]) => Number.parseInt(a.slice(1)) - Number.parseInt(b.slice(1)))
-                                .map(([quarter, files]) => (
-                                  <div key={`${deptName}-${year}-${quarter}`} style={{ marginBottom: "0.5rem" }}>
-                                    <div
-                                      onClick={() => toggleFolder(`${deptName}-${year}-${quarter}`)}
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "0.5rem",
-                                        padding: "0.5rem",
-                                        cursor: "pointer",
-                                        borderRadius: "0.5rem",
-                                        transition: "all 0.2s",
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        e.currentTarget.style.background = "rgba(5, 150, 105, 0.05)"
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = "transparent"
-                                      }}
-                                    >
-                                      {expandedFolders.has(`${deptName}-${year}-${quarter}`) ? (
-                                        <ChevronDown size={12} color="#059669" />
-                                      ) : (
-                                        <ChevronRight size={12} color="#6b7280" />
-                                      )}
-                                      {expandedFolders.has(`${deptName}-${year}-${quarter}`) ? (
-                                        <FolderOpen size={16} color="#059669" />
-                                      ) : (
-                                        <Folder size={16} color="#6b7280" />
-                                      )}
-                                      <span style={{ fontWeight: "500", color: "#374151" }}>{quarter}</span>
-                                      <span
-                                        style={{
-                                          marginLeft: "auto",
-                                          fontSize: "0.75rem",
-                                          color: "#6b7280",
-                                        }}
+                          {expandedYears[yearKey] && (
+                            <div className={styles.yearContent}>
+                              {Object.keys(plansData[department][year])
+                                .sort((a, b) => {
+                                  return Number.parseInt(a.slice(1)) - Number.parseInt(b.slice(1))
+                                })
+                                .map((quarter) => {
+                                  const quarterKey = `${department}-${year}-${quarter}`
+                                  return (
+                                    <div key={quarter} className={styles.quarterSection}>
+                                      <div
+                                        className={styles.quarterHeader}
+                                        onClick={() => toggleQuarter(department, year, quarter)}
                                       >
-                                        {files.length} files
-                                      </span>
-                                    </div>
-
-                                    {/* Files */}
-                                    {expandedFolders.has(`${deptName}-${year}-${quarter}`) && (
-                                      <div style={{ marginLeft: "2rem" }}>
-                                        {files.map((file) => (
-                                          <div
-                                            key={file._id}
-                                            style={{
-                                              display: "flex",
-                                              alignItems: "center",
-                                              gap: "0.5rem",
-                                              padding: "0.75rem",
-                                              borderRadius: "0.5rem",
-                                              transition: "all 0.2s",
-                                              border: "1px solid transparent",
-                                            }}
-                                            onMouseEnter={(e) => {
-                                              e.currentTarget.style.background = "rgba(5, 150, 105, 0.05)"
-                                              e.currentTarget.style.borderColor = "#e2e8f0"
-                                            }}
-                                            onMouseLeave={(e) => {
-                                              e.currentTarget.style.background = "transparent"
-                                              e.currentTarget.style.borderColor = "transparent"
-                                            }}
-                                          >
-                                            <FileText size={16} color="#059669" />
-                                            <div style={{ flex: 1 }}>
-                                              <div
-                                                style={{
-                                                  fontWeight: "500",
-                                                  color: "#374151",
-                                                  fontSize: "0.875rem",
-                                                }}
-                                              >
-                                                {file.fileName}
-                                              </div>
-                                              <div
-                                                style={{
-                                                  fontSize: "0.75rem",
-                                                  color: "#6b7280",
-                                                  display: "flex",
-                                                  alignItems: "center",
-                                                  gap: "0.5rem",
-                                                }}
-                                              >
-                                                <Clock size={12} />
-                                                {formatDate(file.createdAt)}
-                                              </div>
-                                            </div>
-                                            <div style={{ display: "flex", gap: "0.5rem" }}>
-                                              <button
-                                                onClick={() => handleView(file)}
-                                                style={{
-                                                  background: "none",
-                                                  border: "none",
-                                                  color: "#6b7280",
-                                                  cursor: "pointer",
-                                                  padding: "0.25rem",
-                                                  borderRadius: "0.25rem",
-                                                  transition: "all 0.2s",
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                  e.currentTarget.style.background = "rgba(5, 150, 105, 0.1)"
-                                                  e.currentTarget.style.color = "#059669"
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                  e.currentTarget.style.background = "none"
-                                                  e.currentTarget.style.color = "#6b7280"
-                                                }}
-                                                title="View file"
-                                              >
-                                                <Eye size={14} />
-                                              </button>
-                                              <button
-                                                onClick={() => handleDownload(file)}
-                                                style={{
-                                                  background: "none",
-                                                  border: "none",
-                                                  color: "#6b7280",
-                                                  cursor: "pointer",
-                                                  padding: "0.25rem",
-                                                  borderRadius: "0.25rem",
-                                                  transition: "all 0.2s",
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                  e.currentTarget.style.background = "rgba(5, 150, 105, 0.1)"
-                                                  e.currentTarget.style.color = "#059669"
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                  e.currentTarget.style.background = "none"
-                                                  e.currentTarget.style.color = "#6b7280"
-                                                }}
-                                                title="Download file"
-                                              >
-                                                <Download size={14} />
-                                              </button>
-                                            </div>
-                                          </div>
-                                        ))}
+                                        {expandedQuarters[quarterKey] ? (
+                                          <ChevronDown className={styles.chevron} />
+                                        ) : (
+                                          <ChevronRight className={styles.chevron} />
+                                        )}
+                                        <h5>{quarter}</h5>
                                       </div>
-                                    )}
-                                  </div>
-                                ))}
+
+                                      {expandedQuarters[quarterKey] && (
+                                        <div className={styles.quarterContent}>
+                                          {Object.keys(plansData[department][year][quarter])
+                                            .sort()
+                                            .map((studentName) => {
+                                              const studentData = plansData[department][year][quarter][studentName]
+                                              const studentKey = `${department}-${year}-${quarter}-${studentName}`
+
+                                              return (
+                                                <div key={studentName} className={styles.studentSection}>
+                                                  <div
+                                                    className={styles.studentHeader}
+                                                    onClick={() =>
+                                                      toggleStudent(department, year, quarter, studentName)
+                                                    }
+                                                  >
+                                                    {expandedStudents[studentKey] ? (
+                                                      <ChevronDown className={styles.chevron} />
+                                                    ) : (
+                                                      <ChevronRight className={styles.chevron} />
+                                                    )}
+                                                    <h6>{studentName}</h6>
+                                                  </div>
+
+                                                  {expandedStudents[studentKey] && (
+                                                    <div className={styles.studentContent}>
+                                                      {studentData.plan && (
+                                                        <div className={styles.documentItem}>
+                                                          <FileText className={styles.docIcon} />
+                                                          <div className={styles.docInfo}>
+                                                            <p className={styles.docTitle}>Plan</p>
+                                                            <p className={styles.docSubtitle}>
+                                                              {studentData.plan.title}
+                                                            </p>
+                                                            {studentData.plan.fileName && (
+                                                              <p className={styles.docFileName}>
+                                                                {studentData.plan.fileName}
+                                                              </p>
+                                                            )}
+                                                          </div>
+                                                          {studentData.plan.fullPath && (
+                                                            <div className={styles.documentActions}>
+                                                              <button
+                                                                className={styles.viewBtn}
+                                                                onClick={() =>
+                                                                  handleView(
+                                                                    studentData.plan.fullPath,
+                                                                    studentData.plan.fileName,
+                                                                    "Plan",
+                                                                  )
+                                                                }
+                                                                title="View file"
+                                                              >
+                                                                <Eye size={16} />
+                                                              </button>
+                                                              <button
+                                                                className={styles.downloadBtn}
+                                                                onClick={() =>
+                                                                  handleDownload(
+                                                                    studentData.plan.fullPath,
+                                                                    studentData.plan.fileName,
+                                                                  )
+                                                                }
+                                                                title="Download file"
+                                                              >
+                                                                <Download size={16} />
+                                                              </button>
+                                                            </div>
+                                                          )}
+                                                        </div>
+                                                      )}
+
+                                                      {studentData.exam && (
+                                                        <div className={styles.documentItem}>
+                                                          <ClipboardCheck className={styles.docIcon} />
+                                                          <div className={styles.docInfo}>
+                                                            <p className={styles.docTitle}>Exam</p>
+                                                            <p className={styles.docSubtitle}>
+                                                              {studentData.exam.title}
+                                                            </p>
+                                                            {studentData.exam.fileName && (
+                                                              <p className={styles.docFileName}>
+                                                                {studentData.exam.fileName}
+                                                              </p>
+                                                            )}
+                                                          </div>
+                                                          {studentData.exam.fullPath && (
+                                                            <div className={styles.documentActions}>
+                                                              <button
+                                                                className={styles.viewBtn}
+                                                                onClick={() =>
+                                                                  handleView(
+                                                                    studentData.exam.fullPath,
+                                                                    studentData.exam.fileName,
+                                                                    "Exam",
+                                                                  )
+                                                                }
+                                                                title="View file"
+                                                              >
+                                                                <Eye size={16} />
+                                                              </button>
+                                                              <button
+                                                                className={styles.downloadBtn}
+                                                                onClick={() =>
+                                                                  handleDownload(
+                                                                    studentData.exam.fullPath,
+                                                                    studentData.exam.fileName,
+                                                                  )
+                                                                }
+                                                                title="Download file"
+                                                              >
+                                                                <Download size={16} />
+                                                              </button>
+                                                            </div>
+                                                          )}
+                                                        </div>
+                                                      )}
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              )
+                                            })}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )
+                                })}
                             </div>
                           )}
                         </div>
-                      ))}
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-        </div>
+                      )
+                    })}
+                </div>
+              )}
+            </div>
+          ))}
       </div>
     </div>
   )
 }
-
-export default DoctorProfilePlans

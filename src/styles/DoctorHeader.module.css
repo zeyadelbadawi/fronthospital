@@ -19,8 +19,7 @@
   transition: transform 0.2s ease;
   padding: 0.2rem;
   border-radius: 6px;
-margin-left: 10px;
-
+  margin-left: 10px;
 }
 
 .logoContainer:hover {
@@ -68,8 +67,7 @@ margin-left: 10px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(41, 119, 186, 0.25);
   font-size: 0.75rem;
-    margin-left: 10px;
-
+  margin-left: 10px;
 }
 
 .loginButton:hover {
@@ -443,4 +441,27 @@ margin-left: 10px;
     min-width: 250px;
     max-width: 90vw; /* Adjust for smaller screens */
   }
+}
+
+/* Add styles for the "Show All Notifications" button */
+.viewAllButton {
+  display: block;
+  width: 100%;
+  padding: 0.8rem 0.7rem;
+  text-align: center;
+  background: linear-gradient(135deg, #3f3f86 0%, #cc288a 100%);
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-top: 1px solid rgba(41, 119, 186, 0.1);
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.viewAllButton:hover {
+  background: linear-gradient(135deg, #cc288a 0%, #2977ba 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(63, 63, 134, 0.3);
+  color: white;
 }

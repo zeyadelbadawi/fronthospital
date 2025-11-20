@@ -4,10 +4,10 @@ import dynamic from "next/dynamic"
 import axiosInstance from "@/helper/axiosSetup"
 import PhoneInput from "react-phone-number-input"
 import "react-phone-number-input/style.css"
-import ReCAPTCHA from "react-google-recaptcha"
 import { RiEyeLine, RiEyeOffLine, RiCheckLine, RiCloseLine, RiErrorWarningLine } from "react-icons/ri"
 import styles from "@/styles/ClientPortal.module.css"
 import { useLanguage } from "@/contexts/LanguageContext"
+import Select from "react-select"
 
 const PasswordStrength = dynamic(() => import("@/components/PasswordStrength"), {
   loading: () => <div className={styles.loadingSkeleton}></div>,
@@ -36,6 +36,7 @@ export default function AuthModals({
   const [signEmail, setSignEmail] = useState("")
   const [signPhone, setSignPhone] = useState("")
   const [signGender, setSignGender] = useState("")
+  const [signDateOfBirth, setSignDateOfBirth] = useState("")
   const [signPassword, setSignPassword] = useState("")
   const [signConfirm, setSignConfirm] = useState("")
   const [termsAccepted, setTermsAccepted] = useState(false)
@@ -314,6 +315,7 @@ export default function AuthModals({
           email: signEmail,
           phone: signPhone,
           gender: signGender,
+          dateOfBirth: signDateOfBirth,
           password: signPassword,
           confirmPassword: signConfirm,
           termsAccepted: termsAccepted,
@@ -329,6 +331,7 @@ export default function AuthModals({
         setSignEmail("")
         setSignPhone("")
         setSignGender("")
+        setSignDateOfBirth("")
         setSignPassword("")
         setSignConfirm("")
         setTermsAccepted(false)
@@ -350,6 +353,7 @@ export default function AuthModals({
       signName,
       signEmail,
       signPhone,
+      signDateOfBirth,
       signPassword,
       signConfirm,
       termsAccepted,
@@ -360,6 +364,72 @@ export default function AuthModals({
       t,
     ],
   )
+
+  const genderOptions = [
+    { value: "male", label: t.auth.male || "Male" },
+    { value: "female", label: t.auth.female || "Female" },
+  ]
+
+  const customSelectStyles = {
+    control: (provided, state) => ({
+      ...provided,
+      border: `2px solid ${signupErrors.gender ? "#ef4444" : state.isFocused ? "#e91e63" : "#e2e8f0"}`,
+      borderRadius: "12px",
+      padding: "0.5rem 0.75rem",
+      backgroundColor: "rgba(255, 255, 255, 0.8)",
+      backdropFilter: "blur(10px)",
+      boxShadow: state.isFocused ? "0 0 0 4px rgba(233, 30, 99, 0.1), 0 4px 12px rgba(233, 30, 99, 0.15)" : "none",
+      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+      transform: state.isFocused ? "translateY(-1px)" : "translateY(0)",
+      "&:hover": {
+        borderColor: signupErrors.gender ? "#ef4444" : "#e91e63",
+      },
+    }),
+    menu: (provided) => ({
+      ...provided,
+      borderRadius: "12px",
+      border: "1px solid rgba(233, 30, 99, 0.2)",
+      boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5)",
+      backgroundColor: "rgba(255, 255, 255, 0.95)",
+      backdropFilter: "blur(10px)",
+      zIndex: 9999,
+      overflow: "hidden",
+    }),
+    menuList: (provided) => ({
+      ...provided,
+      padding: "0.5rem",
+      maxHeight: "200px",
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      borderRadius: "8px",
+      margin: "0.25rem 0",
+      padding: "0.75rem 1rem",
+      backgroundColor: state.isSelected
+        ? "linear-gradient(135deg, #e91e63 0%, #4a4a8a 100%)"
+        : state.isFocused
+          ? "rgba(233, 30, 99, 0.1)"
+          : "transparent",
+      color: state.isSelected ? "white" : "#374151",
+      cursor: "pointer",
+      transition: "all 0.2s ease",
+      "&:hover": {
+        backgroundColor: state.isSelected
+          ? "linear-gradient(135deg, #e91e63 0%, #4a4a8a 100%)"
+          : "rgba(233, 30, 99, 0.15)",
+        transform: "translateX(4px)",
+      },
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: "#374151",
+      fontWeight: "500",
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: "#94a3b8",
+    }),
+  }
 
   return (
     <>
@@ -380,12 +450,13 @@ export default function AuthModals({
                   <div className={styles.inputWrapper}>
                     <input
                       type="email"
-                      className={`${styles.input} ${loginErrors.email
-                        ? styles.inputError
-                        : loginEmail && !loginErrors.email
-                          ? styles.inputSuccess
-                          : ""
-                        }`}
+                      className={`${styles.input} ${
+                        loginErrors.email
+                          ? styles.inputError
+                          : loginEmail && !loginErrors.email
+                            ? styles.inputSuccess
+                            : ""
+                      }`}
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                       required
@@ -411,12 +482,13 @@ export default function AuthModals({
                   <div className={styles.inputWrapper}>
                     <input
                       type={showLoginPassword ? "text" : "password"}
-                      className={`${styles.input} ${loginErrors.password
-                        ? styles.inputError
-                        : loginPassword && !loginErrors.password
-                          ? styles.inputSuccess
-                          : ""
-                        }`}
+                      className={`${styles.input} ${
+                        loginErrors.password
+                          ? styles.inputError
+                          : loginPassword && !loginErrors.password
+                            ? styles.inputSuccess
+                            : ""
+                      }`}
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       required
@@ -518,8 +590,9 @@ export default function AuthModals({
                   <label className={styles.label}>{t.auth.fullName}</label>
                   <input
                     type="text"
-                    className={`${styles.input} ${signupErrors.name ? styles.inputError : signName && !signupErrors.name ? styles.inputSuccess : ""
-                      }`}
+                    className={`${styles.input} ${
+                      signupErrors.name ? styles.inputError : signName && !signupErrors.name ? styles.inputSuccess : ""
+                    }`}
                     value={signName}
                     onChange={(e) => setSignName(e.target.value)}
                     required
@@ -544,12 +617,13 @@ export default function AuthModals({
                   <label className={styles.label}>{t.auth.email}</label>
                   <input
                     type="email"
-                    className={`${styles.input} ${signupErrors.email
-                      ? styles.inputError
-                      : signEmail && !signupErrors.email && emailAvailable === true
-                        ? styles.inputSuccess
-                        : ""
-                      }`}
+                    className={`${styles.input} ${
+                      signupErrors.email
+                        ? styles.inputError
+                        : signEmail && !signupErrors.email && emailAvailable === true
+                          ? styles.inputSuccess
+                          : ""
+                    }`}
                     value={signEmail}
                     onChange={(e) => setSignEmail(e.target.value)}
                     required
@@ -577,12 +651,13 @@ export default function AuthModals({
                     defaultCountry="AE"
                     value={signPhone}
                     onChange={setSignPhone}
-                    className={`${styles.phoneInput} ${signupErrors.phone
-                      ? styles.inputError
-                      : signPhone && !signupErrors.phone && phoneAvailable === true
-                        ? styles.inputSuccess
-                        : ""
-                      }`}
+                    className={`${styles.phoneInput} ${
+                      signupErrors.phone
+                        ? styles.inputError
+                        : signPhone && !signupErrors.phone && phoneAvailable === true
+                          ? styles.inputSuccess
+                          : ""
+                    }`}
                     placeholder="Enter phone number"
                   />
                   {phoneCheckLoading && <div className={styles.loadingText}>Checking availability...</div>}
@@ -602,16 +677,33 @@ export default function AuthModals({
 
                 <div className={styles.formGroup}>
                   <label className={styles.label}>{t.auth.gender}</label>
-                  <select
-                    className={styles.select}
-                    value={signGender}
-                    onChange={(e) => setSignGender(e.target.value)}
-                    required
-                  >
-                    <option value="">{t.auth.selectGender}</option>
-                    <option value="male">{t.auth.male}</option>
-                    <option value="female">{t.auth.female}</option>
-                  </select>
+                  <Select
+                    options={genderOptions}
+                    value={genderOptions.find((opt) => opt.value === signGender)}
+                    onChange={(selectedOption) => setSignGender(selectedOption?.value || "")}
+                    styles={customSelectStyles}
+                    placeholder={t.auth.selectGender || "Select Gender"}
+                    isClearable
+                    isSearchable={false}
+                  />
+                  {signupErrors.gender && (
+                    <div className={styles.errorMessage}>
+                      <RiErrorWarningLine />
+                      {signupErrors.gender}
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Date of Birth</label>
+                  <input
+                    type="date"
+                    className={styles.input}
+                    value={signDateOfBirth}
+                    onChange={(e) => setSignDateOfBirth(e.target.value)}
+                    max={new Date().toISOString().split("T")[0]}
+                    placeholder="Select your date of birth"
+                  />
                 </div>
 
                 <div className={styles.formGroup}>
@@ -619,12 +711,13 @@ export default function AuthModals({
                   <div className={styles.inputWrapper}>
                     <input
                       type={showSignPassword ? "text" : "password"}
-                      className={`${styles.input} ${signupErrors.password
-                        ? styles.inputError
-                        : signPassword && !signupErrors.password
-                          ? styles.inputSuccess
-                          : ""
-                        }`}
+                      className={`${styles.input} ${
+                        signupErrors.password
+                          ? styles.inputError
+                          : signPassword && !signupErrors.password
+                            ? styles.inputSuccess
+                            : ""
+                      }`}
                       value={signPassword}
                       onChange={(e) => setSignPassword(e.target.value)}
                       required
@@ -663,12 +756,13 @@ export default function AuthModals({
                   <div className={styles.inputWrapper}>
                     <input
                       type={showConfirmPassword ? "text" : "password"}
-                      className={`${styles.input} ${signupErrors.confirmPassword
-                        ? styles.inputError
-                        : signConfirm && !signupErrors.confirmPassword
-                          ? styles.inputSuccess
-                          : ""
-                        }`}
+                      className={`${styles.input} ${
+                        signupErrors.confirmPassword
+                          ? styles.inputError
+                          : signConfirm && !signupErrors.confirmPassword
+                            ? styles.inputSuccess
+                            : ""
+                      }`}
                       value={signConfirm}
                       onChange={(e) => setSignConfirm(e.target.value)}
                       required

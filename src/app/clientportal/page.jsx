@@ -78,12 +78,12 @@ function ClientPortalContent({ user, handleLogout }) {
         label: t.services.myProfile.title,
         description: t.services.myProfile.description,
       },
-      {
-        href: "/student-calendar",
-        Icon: RiCalendarCheckLine,
-        label: t.services.myAppointments.title,
-        description: t.services.myAppointments.description,
-      },
+      // {
+      //   href: "/student-calendar",
+      //   Icon: RiCalendarCheckLine,
+      //   label: t.services.myAppointments.title,
+      //   description: t.services.myAppointments.description,
+      // },
       {
         href: "/financial-records",
         Icon: RiFileListLine,

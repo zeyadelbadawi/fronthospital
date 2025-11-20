@@ -1,9 +1,9 @@
 "use client"
 import { useState, useEffect, useCallback } from "react"
-import CustomLink from '@/components/CustomLink'
+import CustomLink from "@/components/CustomLink"
 import { useRouter } from "next/navigation"
 import axiosInstance from "../helper/axiosSetup"
-import { Search, Plus, Eye, Edit, Trash2 } from 'lucide-react'
+import { Search, Plus, Eye, Edit, Trash2 } from "lucide-react"
 import styles from "../styles/user-management.module.css"
 
 const GenericUserList = ({ role }) => {
@@ -58,7 +58,9 @@ const GenericUserList = ({ role }) => {
         doctor: "doctors",
         accountant: "accountants",
       }[role]
-      setUsers(response.data[dataKey] || [])
+      const userData = response.data[dataKey] || []
+
+      setUsers(userData)
       setTotalPages(response.data.totalPages)
     } catch (error) {
       console.error(`Error fetching ${role}s:`, error)
@@ -116,9 +118,9 @@ const GenericUserList = ({ role }) => {
 
   const getTableHeaders = () => {
     if (isPatient) {
-      return ["#", "Name", "Email", "Phone", "Gender","member since", "Action"]
+      return ["#", "Name", "Email", "Phone", "Gender", "member since", "Action"]
     } else if (isDoctor) {
-      return ["#", "Username", "Email", "Phone", "Availability", "Department(s)", "Action"]
+      return ["#", "Username", "Email", "Phone", "Department(s)", "Action"]
     } else if (isAccountant) {
       return ["#", "Name", "Email", "Action"]
     }
@@ -133,9 +135,10 @@ const GenericUserList = ({ role }) => {
           <td className={styles.nameCell}>{user.name}</td>
           <td className={styles.emailCell}>{user.email}</td>
           <td className={styles.phoneCell}>{user.phone}</td>
-          <td className={styles.genderCell}>{user.gender || "N/A"}</td>
-                    <td className={styles.dateCell}>{new Date(user.createdAt).toLocaleDateString()}</td>
-
+          <td className={styles.genderCell}>
+            {user.gender ? user.gender.charAt(0).toUpperCase() + user.gender.slice(1) : "N/A"}
+          </td>
+          <td className={styles.dateCell}>{new Date(user.createdAt).toLocaleDateString()}</td>
         </>
       )
     } else if (isDoctor) {
@@ -145,7 +148,6 @@ const GenericUserList = ({ role }) => {
           <td className={styles.nameCell}>{user.username}</td>
           <td className={styles.emailCell}>{user.email}</td>
           <td className={styles.phoneCell}>{user.phone}</td>
-          <td className={styles.genderCell}>{user.availability || "N/A"}</td>
           <td className={styles.departmentCell}>{formatDepartments(user.departments)}</td>
         </>
       )

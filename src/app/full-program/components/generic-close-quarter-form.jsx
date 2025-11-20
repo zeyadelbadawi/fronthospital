@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -70,6 +70,7 @@ const GenericCloseQuarterForm = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState(null)
+  const [studentName, setStudentName] = useState("Loading...")
 
   const config = DEPARTMENT_CONFIG[department]
   const isExam = type === "exam"
@@ -252,6 +253,32 @@ const GenericCloseQuarterForm = ({
     return `Close Quarter & Generate Next ${docType}`
   }
 
+  useEffect(() => {
+    const fetchStudentName = async () => {
+      if (defaultValues.patientId) {
+        try {
+          const patientResponse = await axiosInstance.get(
+            `${process.env.NEXT_PUBLIC_API_URL}/authentication/patient/${defaultValues.patientId}`,
+          )
+          const patient = patientResponse.data
+          const name =
+            patient.name ||
+            (patient.firstName && patient.lastName ? `${patient.firstName} ${patient.lastName}` : null) ||
+            patient.firstName ||
+            patient.lastName ||
+            patient.username ||
+            defaultValues.patientId
+          setStudentName(name)
+        } catch (err) {
+          console.error("Could not fetch student name:", err)
+          setStudentName(defaultValues.patientId) // Fallback to ID if fetch fails
+        }
+      }
+    }
+
+    fetchStudentName()
+  }, [defaultValues.patientId])
+
   return (
     <div className={styles.closeQuarterForm}>
       {/* Close Button Header */}
@@ -294,19 +321,23 @@ const GenericCloseQuarterForm = ({
           <div className="row">
             <div className="col-md-6">
               <div className={styles.formColumn}>
-                <label className={styles.formLabel}>Student ID</label>
+                <label className={styles.formLabel}>Student Name</label>
                 <Controller
                   name="patientId"
                   control={control}
                   render={({ field }) => (
-                    <input
-                      {...field}
-                      type="text"
-                      className={`${styles.formInput} form-control ${errors.patientId ? styles.invalid : ""}`}
-                      placeholder="Enter Student ID"
-                      readOnly={true}
-                      style={{ backgroundColor: "#f8f9fa" }}
-                    />
+                    <>
+                      {/* Hidden input for the actual patientId used in form submission */}
+                      <input {...field} type="hidden" />
+                      {/* Display input showing student name */}
+                      <input
+                        type="text"
+                        value={studentName}
+                        className={`${styles.formInput} form-control`}
+                        readOnly={true}
+                        style={{ backgroundColor: "#f8f9fa" }}
+                      />
+                    </>
                   )}
                 />
                 {errors.patientId && <div className={styles.errorMessage}>{errors.patientId.message}</div>}

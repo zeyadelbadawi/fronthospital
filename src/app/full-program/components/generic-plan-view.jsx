@@ -39,7 +39,7 @@ const DEPARTMENT_CONFIG = {
     fullName: "Physical Therapy",
     CloseQuarterComponent: GenericCloseQuarterForm,
   },
-    Psychotherapy: {
+  psychotherapy: {
     endpoint: "Psychotherapy",
     displayName: "Psychotherapy",
     fullName: "Psychotherapy",
@@ -349,17 +349,11 @@ export default function GenericPlanView({ department, patientId, onBack }) {
                     </div>
                   </div>
                   <div className={styles.documentActions}>
-                    <button
-                      className={styles.headerActionButton}
-                      onClick={() => docxEditorRef.current?.onSave()}
-                    >
+                    <button className={styles.headerActionButton} onClick={() => docxEditorRef.current?.onSave()}>
                       <Save size={16} />
                       Save
                     </button>
-                    <button
-                      className={styles.headerActionButton}
-                      onClick={() => docxEditorRef.current?.onDownload()}
-                    >
+                    <button className={styles.headerActionButton} onClick={() => docxEditorRef.current?.onDownload()}>
                       <Download size={16} />
                       Download
                     </button>
@@ -399,7 +393,7 @@ export default function GenericPlanView({ department, patientId, onBack }) {
               </p>
               <div className={styles.userInfo}>
                 <div className={styles.infoItem}>
-                  <strong>Student ID:</strong> {patientId}
+                  <strong>Student Name:</strong> {patient?.name || patientId}
                 </div>
                 <div className={styles.infoItem}>
                   <strong>Department:</strong> {config.displayName}
@@ -482,7 +476,7 @@ export default function GenericPlanView({ department, patientId, onBack }) {
                 </div>
                 <div className="modal-body p-0">
                   <CloseQuarterComponent
-                                      department={department}
+                    department={department}
                     onSuccess={handleCloseQuarterSuccess}
                     onClose={() => setShowCloseQuarterModal(false)}
                     type="plan" // Pass the type prop
@@ -516,7 +510,7 @@ export function PhysicalPlanView({ patientId, onBack }) {
 }
 
 export function PsychotherapyPlanView({ patientId, onBack }) {
-  return <GenericPlanView department="Psychotherapy" patientId={patientId} onBack={onBack} />
+  return <GenericPlanView department="psychotherapy" patientId={patientId} onBack={onBack} />
 }
 
 export function OccupationalPlanView({ patientId, onBack }) {

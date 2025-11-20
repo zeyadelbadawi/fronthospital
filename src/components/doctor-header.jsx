@@ -174,11 +174,11 @@ export default function DoctorHeader({
                   </div>
                   <div className={styles.notificationList}>
                     {notifications.length > 0 ? (
-                      notifications.map((notification) => (
+                      notifications.slice(0, 7).map((notification) => (
                         <div
-                          key={notification._id} // Use _id from backend
+                          key={notification._id}
                           className={`${styles.notificationItem} ${!notification.isRead ? styles.unreadNotification : ""}`}
-                          onClick={() => handleNotificationClick(notification._id)} // Use _id for click handler
+                          onClick={() => handleNotificationClick(notification._id)}
                         >
                           {!notification.isRead && <span className={styles.unreadDot} />}
                           {getNotificationIcon(notification.type)}
@@ -194,6 +194,11 @@ export default function DoctorHeader({
                       <p className={styles.noNotifications}>You're all caught up! No new notifications.</p>
                     )}
                   </div>
+                  {notifications.length > 7 && (
+                    <CustomLink href="/notifications" className={styles.viewAllButton}>
+                      Show All Notifications
+                    </CustomLink>
+                  )}
                 </div>
               )}
             </div>

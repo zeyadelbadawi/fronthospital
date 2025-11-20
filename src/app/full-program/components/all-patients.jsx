@@ -1,11 +1,24 @@
 "use client"
 import { useState, useEffect } from "react"
-import { Search, Calendar, AlertCircle, Users, UserCheck, RefreshCw, Eye, Trash2, Edit, Save } from "lucide-react"
+import {
+  Search,
+  Calendar,
+  AlertCircle,
+  Users,
+  UserCheck,
+  RefreshCw,
+  Eye,
+  Trash2,
+  Edit,
+  Save,
+  ClipboardList,
+  FileText,
+} from "lucide-react"
 import styles from "../styles/speech-upcoming-appointments.module.css"
 import axiosInstance from "@/helper/axiosSetup"
 import { getDepartmentByContentType } from "../config/departments"
 
-const AllPatients = ({ contentType }) => {
+const AllPatients = ({ contentType, onViewPlan, onViewExam }) => {
   const [patients, setPatients] = useState([])
   const [doctors, setDoctors] = useState([])
   const [assignments, setAssignments] = useState([])
@@ -35,24 +48,24 @@ const AllPatients = ({ contentType }) => {
 
   const department = getDepartmentByContentType(contentType)
 
-  // If no department found, show error
-  if (!department) {
-    return (
-      <div className={styles.upcomingContainer}>
-        <div className={styles.upcomingCard}>
-          <div className={styles.cardBody}>
-            <div className={styles.emptyState}>
-              <AlertCircle className={styles.emptyIcon} />
-              <h3>Invalid Department</h3>
-              <p>The requested department could not be found.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+  // Map department config to the correct content type prefix expected by handleContentChange
+  const getDepartmentPrefix = () => {
+    const prefixMap = {
+      ABA: "aba",
+      speech: "speech",
+      physicalTherapy: "physical",
+      OccupationalTherapy: "occupational",
+      SpecialEducation: "special",
+      Psychotherapy: "Psychotherapy",
+    }
+    return prefixMap[department?.doctorDepartment] || department?.doctorDepartment?.toLowerCase()
   }
 
   useEffect(() => {
+    if (!department) {
+      setMessage("Invalid Department: The requested department could not be found.")
+      return
+    }
     fetchData()
   }, [currentPage, contentType])
 
@@ -147,15 +160,10 @@ const AllPatients = ({ contentType }) => {
       errors.doctor = "Please select a doctor"
     }
 
-
-
     // Check if trying to assign to the same doctor
     if (editDoctor === assignmentToEdit.doctor?._id) {
       // Allow same doctor if other fields are being updated
-      if (
-
-        editNotes === (assignmentToEdit.notes || "")
-      ) {
+      if (editNotes === (assignmentToEdit.notes || "")) {
         errors.general = "No changes detected"
       }
     }
@@ -204,7 +212,31 @@ const AllPatients = ({ contentType }) => {
     }
   }
 
+  const handlePlanClick = (patientId) => {
+    if (!patientId) {
+      console.error("Student ID is missing for plan click.")
+      return
+    }
+    if (onViewPlan) {
+      const departmentPrefix = getDepartmentPrefix()
+      onViewPlan(`${departmentPrefix}-plan-editor`, patientId)
+    } else {
+      console.warn(`onViewPlan prop is not provided to AllPatients for ${department.displayName}.`)
+    }
+  }
 
+  const handleExamClick = (patientId) => {
+    if (!patientId) {
+      console.error("Student ID is missing for exam click.")
+      return
+    }
+    if (onViewExam) {
+      const departmentPrefix = getDepartmentPrefix()
+      onViewExam(`${departmentPrefix}-exam-editor`, patientId)
+    } else {
+      console.warn(`onViewExam prop is not provided to AllPatients for ${department.displayName}.`)
+    }
+  }
 
   const filteredPatients = patients.filter(
     (assignment) =>
@@ -255,300 +287,329 @@ const AllPatients = ({ contentType }) => {
   return (
     <div className={styles.upcomingContainer}>
       {/* Main Unified Card - Header, Stats, Search, and Table */}
-      <div className={styles.upcomingCard}>
-        {/* Header with Stats */}
-        <div className={styles.cardHeader}>
-          <div className={styles.headerContent}>
-            <div className={styles.titleSection}>
-              <h1 className={styles.pageTitle}>
-                <Users className={styles.titleIcon} />
-                {department.displayName} Assignments Table
-              </h1>
-              <p className={styles.pageSubtitle}>
-                View and manage {department.displayName} Student assignments to doctors
-              </p>
+      {department ? (
+        <div className={styles.upcomingCard}>
+          {/* Header with Stats */}
+          <div className={styles.cardHeader}>
+            <div className={styles.headerContent}>
+              <div className={styles.titleSection}>
+                <h1 className={styles.pageTitle}>
+                  <Users className={styles.titleIcon} />
+                  {department.displayName} Assignments Table
+                </h1>
+                <p className={styles.pageSubtitle}>
+                  View and manage {department.displayName} Student assignments to doctors
+                </p>
+              </div>
+              <div className={styles.headerActions}>
+                <button
+                  onClick={fetchData}
+                  disabled={loading}
+                  className={`${styles.actionButton} ${styles.viewButton}`}
+                >
+                  <RefreshCw className={`${styles.actionIcon} ${loading ? "animate-spin" : ""}`} />
+                </button>
+              </div>
             </div>
-            <div className={styles.headerActions}>
-              <button onClick={fetchData} disabled={loading} className={`${styles.actionButton} ${styles.viewButton}`}>
-                <RefreshCw className={`${styles.actionIcon} ${loading ? "animate-spin" : ""}`} />
-              </button>
-            </div>
-          </div>
 
-          {/* Stats */}
-          <div className={styles.statsContainer}>
-            <div className={styles.statItem}>
-              <div className={styles.statNumber}>{stats.totalPatients}</div>
-              <div className={styles.statLabel}>Total {department.displayName} Patients</div>
+            {/* Stats */}
+            <div className={styles.statsContainer}>
+              <div className={styles.statItem}>
+                <div className={styles.statNumber}>{stats.totalPatients}</div>
+                <div className={styles.statLabel}>Total {department.displayName} Patients</div>
+              </div>
+              <div className={styles.statItem}>
+                <div className={styles.statNumber}>{stats.assignedPatients}</div>
+                <div className={styles.statLabel}>Assigned to Doctors</div>
+              </div>
+              <div className={styles.statItem}>
+                <div className={styles.statNumber}>{stats.unassignedPatients}</div>
+                <div className={styles.statLabel}>Unassigned</div>
+              </div>
+              <div className={styles.statItem}>
+                <div className={styles.statNumber}>{stats.totalDoctors}</div>
+                <div className={styles.statLabel}>Available Doctors</div>
+              </div>
             </div>
-            <div className={styles.statItem}>
-              <div className={styles.statNumber}>{stats.assignedPatients}</div>
-              <div className={styles.statLabel}>Assigned to Doctors</div>
-            </div>
-            <div className={styles.statItem}>
-              <div className={styles.statNumber}>{stats.unassignedPatients}</div>
-              <div className={styles.statLabel}>Unassigned</div>
-            </div>
-            <div className={styles.statItem}>
-              <div className={styles.statNumber}>{stats.totalDoctors}</div>
-              <div className={styles.statLabel}>Available Doctors</div>
-            </div>
-           
-          </div>
 
-          {/* Search integrated in header */}
-          <div className={styles.filtersContainer} style={{ marginTop: "2rem" }}>
-            <div className={styles.searchForm}>
-              <div className={styles.searchInputContainer}>
-                <Search className={styles.searchIcon} />
-                <input
-                  type="text"
-                  placeholder={`Search ${department.displayName} Students by name, email, or Student ID...`}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className={styles.searchInput}
-                />
+            {/* Search integrated in header */}
+            <div className={styles.filtersContainer} style={{ marginTop: "2rem" }}>
+              <div className={styles.searchForm}>
+                <div className={styles.searchInputContainer}>
+                  <Search className={styles.searchIcon} />
+                  <input
+                    type="text"
+                    placeholder={`Search ${department.displayName} Students by name, email, or Student ID...`}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className={styles.searchInput}
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Message Display */}
-        {message && (
+          {/* Message Display */}
+          {message && (
+            <div className={styles.cardBody}>
+              <div
+                style={{
+                  marginBottom: "1.5rem",
+                  padding: "1rem",
+                  borderRadius: "0.75rem",
+                  backgroundColor: message.includes("Error") || message.includes("Failed") ? "#fee2e2" : "#dcfce7",
+                  color: message.includes("Error") || message.includes("Failed") ? "#dc2626" : "#166534",
+                  border: `1px solid ${message.includes("Error") || message.includes("Failed") ? "#fecaca" : "#bbf7d0"}`,
+                  display: "flex",
+                  alignItems: "center",
+                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                {message.includes("Error") || message.includes("Failed") ? (
+                  <AlertCircle style={{ marginRight: "0.75rem", flexShrink: 0 }} size={20} />
+                ) : (
+                  <UserCheck style={{ marginRight: "0.75rem", flexShrink: 0 }} size={20} />
+                )}
+                <span style={{ fontWeight: "500" }}>{message}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Table Section - Integrated in the same card */}
           <div className={styles.cardBody}>
-            <div
-              style={{
-                marginBottom: "1.5rem",
-                padding: "1rem",
-                borderRadius: "0.75rem",
-                backgroundColor: message.includes("Error") || message.includes("Failed") ? "#fee2e2" : "#dcfce7",
-                color: message.includes("Error") || message.includes("Failed") ? "#dc2626" : "#166534",
-                border: `1px solid ${message.includes("Error") || message.includes("Failed") ? "#fecaca" : "#bbf7d0"}`,
-                display: "flex",
-                alignItems: "center",
-                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-              }}
-            >
-              {message.includes("Error") || message.includes("Failed") ? (
-                <AlertCircle style={{ marginRight: "0.75rem", flexShrink: 0 }} size={20} />
-              ) : (
-                <UserCheck style={{ marginRight: "0.75rem", flexShrink: 0 }} size={20} />
-              )}
-              <span style={{ fontWeight: "500" }}>{message}</span>
+            <div style={{ marginBottom: "2rem" }}>
+              <h2
+                style={{
+                  fontSize: "1.5rem",
+                  fontWeight: "700",
+                  color: "#1f2937",
+                  marginBottom: "1rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                }}
+              >
+                <UserCheck size={24} style={{ color: "#3b82f6" }} />
+                {department.displayName} Students & Doctor Assignments
+              </h2>
+              <div
+                style={{
+                  height: "2px",
+                  background: "linear-gradient(90deg, #3b82f6, #1d4ed8)",
+                  borderRadius: "1px",
+                  marginBottom: "1.5rem",
+                }}
+              ></div>
             </div>
-          </div>
-        )}
 
-        {/* Table Section - Integrated in the same card */}
-        <div className={styles.cardBody}>
-          <div style={{ marginBottom: "2rem" }}>
-            <h2
-              style={{
-                fontSize: "1.5rem",
-                fontWeight: "700",
-                color: "#1f2937",
-                marginBottom: "1rem",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.75rem",
-              }}
-            >
-              <UserCheck size={24} style={{ color: "#3b82f6" }} />
-              {department.displayName} Students & Doctor Assignments
-            </h2>
-            <div
-              style={{
-                height: "2px",
-                background: "linear-gradient(90deg, #3b82f6, #1d4ed8)",
-                borderRadius: "1px",
-                marginBottom: "1.5rem",
-              }}
-            ></div>
-          </div>
+            {filteredPatients.length === 0 ? (
+              <div className={styles.emptyState}>
+                <Users className={styles.emptyIcon} />
+                <h3>No {department.displayName} Students found</h3>
+                <p>
+                  {searchTerm
+                    ? "No Students match your search criteria. Try adjusting your search terms."
+                    : `Students need to be assigned to the ${department.displayName} department first through Student${department.name}Assignment.`}
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className={styles.tableContainer}>
+                  <table className={styles.appointmentsTable}>
+                    <thead className={styles.tableHeader}>
+                      <tr>
+                        <th>
+                          <div className={styles.headerCell}>
+                            <span>#</span>
+                          </div>
+                        </th>
+                        <th>
+                          <div className={styles.headerCell}>
+                            <Users className={styles.headerIcon} />
+                            Student
+                          </div>
+                        </th>
+                        <th>
+                          <div className={styles.headerCell}>Phone Number</div>
+                        </th>
+                        <th>
+                          <div className={styles.headerCell}>
+                            <Calendar className={styles.headerIcon} />
+                            {department.displayName} Assignment Date
+                          </div>
+                        </th>
+                        <th>
+                          <div className={styles.headerCell}>
+                            <UserCheck className={styles.headerIcon} />
+                            Assigned Doctor
+                          </div>
+                        </th>
+                        <th>
+                          <div className={styles.headerCell}>
+                            <Calendar className={styles.headerIcon} />
+                            Doctor Assignment Date
+                          </div>
+                        </th>
+                        <th className={styles.textCenter}>
+                          <div className={styles.headerCell}>Actions</div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredPatients.map((patientAssignment, index) => {
+                        const patient = patientAssignment.patient || patientAssignment.patientId
+                        const patientId = patient?._id
+                        const doctorAssignment = getAssignmentForPatient(patientId)
 
-          {filteredPatients.length === 0 ? (
-            <div className={styles.emptyState}>
-              <Users className={styles.emptyIcon} />
-              <h3>No {department.displayName} Students found</h3>
-              <p>
-                {searchTerm
-                  ? "No Students match your search criteria. Try adjusting your search terms."
-                  : `Students need to be assigned to the ${department.displayName} department first through Student${department.name}Assignment.`}
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className={styles.tableContainer}>
-                <table className={styles.appointmentsTable}>
-                  <thead className={styles.tableHeader}>
-                    <tr>
-                      <th>
-                        <div className={styles.headerCell}>
-                          <span>#</span>
-                        </div>
-                      </th>
-                      <th>
-                        <div className={styles.headerCell}>
-                          <Users className={styles.headerIcon} />
-                          Student
-                        </div>
-                      </th>
-                      <th>
-                        <div className={styles.headerCell}>Phone Number</div>
-                      </th>
-                      <th>
-                        <div className={styles.headerCell}>
-                          <Calendar className={styles.headerIcon} />
-                          {department.displayName} Assignment Date
-                        </div>
-                      </th>
-                      <th>
-                        <div className={styles.headerCell}>
-                          <UserCheck className={styles.headerIcon} />
-                          Assigned Doctor
-                        </div>
-                      </th>
-                      <th>
-                        <div className={styles.headerCell}>
-                          <Calendar className={styles.headerIcon} />
-                          Doctor Assignment Date
-                        </div>
-                      </th>
-                     
-                      <th className={styles.textCenter}>
-                        <div className={styles.headerCell}>Actions</div>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredPatients.map((patientAssignment, index) => {
-                      const patient = patientAssignment.patient || patientAssignment.patientId
-                      const patientId = patient?._id
-                      const doctorAssignment = getAssignmentForPatient(patientId)
-
-                      return (
-                        <tr
-                          key={patientAssignment._id}
-                          className={`${styles.tableRow} }`}
-                        >
-                          <td className={styles.indexCell}>{index + 1}</td>
-                          <td className={styles.patientCell}>
-                            <div className={styles.patientInfo}>
-                              <div className={styles.patientName}>{patient?.name || "Unknown"}</div>
-                              <div className={styles.patientId}>{patient?.email || "No email"}</div>
-                            </div>
-                          </td>
-                          <td className={styles.patientCell}>
-                            <div className={styles.patientInfo}>
-                              <div className={styles.patientName}>{patient?.phone || "No Phone Number"}</div>
-                            </div>
-                          </td>
-                          <td className={styles.dateCell}>
-                            <div className={styles.dateInfo}>
-                              <div className={styles.dateValue}>
-                                {patientAssignment.assignedDate
-                                  ? new Date(patientAssignment.assignedDate).toLocaleDateString()
-                                  : new Date(patientAssignment.createdAt).toLocaleDateString()}
-                              </div>
-                              <div className={styles.dateYear}>
-                                {patientAssignment.assignedDate
-                                  ? new Date(patientAssignment.assignedDate).toLocaleDateString("en-US", {
-                                      weekday: "short",
-                                    })
-                                  : new Date(patientAssignment.createdAt).toLocaleDateString("en-US", {
-                                      weekday: "short",
-                                    })}
-                              </div>
-                            </div>
-                          </td>
-                          <td className={styles.patientCell}>
-                            {doctorAssignment ? (
+                        return (
+                          <tr key={patientAssignment._id} className={`${styles.tableRow} }`}>
+                            <td className={styles.indexCell}>{index + 1}</td>
+                            <td className={styles.patientCell}>
                               <div className={styles.patientInfo}>
-                                <div className={styles.patientName}>
-                                  Dr.{" "}
-                                  {doctorAssignment.doctor?.name ||
-                                    doctorAssignment.doctor?.username ||
-                                    "Unknown Doctor"}
+                                <div className={styles.patientName}>{patient?.name || "Unknown"}</div>
+                                <div className={styles.patientId}>{patient?.email || "No email"}</div>
+                              </div>
+                            </td>
+                            <td className={styles.patientCell}>
+                              <div className={styles.patientInfo}>
+                                <div className={styles.patientName}>{patient?.phone || "No Phone Number"}</div>
+                              </div>
+                            </td>
+                            <td className={styles.dateCell}>
+                              <div className={styles.dateInfo}>
+                                <div className={styles.dateValue}>
+                                  {patientAssignment.assignedDate
+                                    ? new Date(patientAssignment.assignedDate).toLocaleDateString()
+                                    : new Date(patientAssignment.createdAt).toLocaleDateString()}
                                 </div>
-                                <div className={styles.patientId}>{doctorAssignment.doctor?.email || "No email"}</div>
-                              </div>
-                            ) : (
-                              <span style={{ fontSize: "0.875rem", color: "#9ca3af", fontStyle: "italic" }}>
-                                Not assigned to doctor
-                              </span>
-                            )}
-                          </td>
-                          <td className={styles.dateCell}>
-                            <div className={styles.dateInfo}>
-                              <div className={styles.dateValue}>
-                                {doctorAssignment ? new Date(doctorAssignment.assignedDate).toLocaleDateString() : "-"}
-                              </div>
-                              {doctorAssignment && (
                                 <div className={styles.dateYear}>
-                                  {new Date(doctorAssignment.assignedDate).toLocaleDateString("en-US", {
-                                    weekday: "short",
-                                  })}
+                                  {patientAssignment.assignedDate
+                                    ? new Date(patientAssignment.assignedDate).toLocaleDateString("en-US", {
+                                        weekday: "short",
+                                      })
+                                    : new Date(patientAssignment.createdAt).toLocaleDateString("en-US", {
+                                        weekday: "short",
+                                      })}
                                 </div>
-                              )}
-                            </div>
-                          </td>
-                          
-                          
-                          <td className={styles.actionsCell}>
-                            <div className={styles.actionButtons}>
+                              </div>
+                            </td>
+                            <td className={styles.patientCell}>
                               {doctorAssignment ? (
-                                <>
-                                  <button
-                                    onClick={() => handleViewDetails(doctorAssignment)}
-                                    className={`${styles.actionButton} ${styles.viewButton}`}
-                                    title="View Details"
-                                  >
-                                    <Eye className={styles.actionIcon} />
-                                  </button>
-                                  <button
-                                    onClick={() => handleEditClick(doctorAssignment)}
-                                    className={`${styles.actionButton} ${styles.editButton}`}
-                                    title="Edit Assignment"
-                                  >
-                                    <Edit className={styles.actionIcon} />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteClick(doctorAssignment)}
-                                    className={`${styles.actionButton} ${styles.deleteButton}`}
-                                    title="Unassign Doctor"
-                                  >
-                                    <Trash2 className={styles.actionIcon} />
-                                  </button>
-                                </>
+                                <div className={styles.patientInfo}>
+                                  <div className={styles.patientName}>
+                                    Dr.{" "}
+                                    {doctorAssignment.doctor?.name ||
+                                      doctorAssignment.doctor?.username ||
+                                      "Unknown Doctor"}
+                                  </div>
+                                  <div className={styles.patientId}>{doctorAssignment.doctor?.email || "No email"}</div>
+                                </div>
                               ) : (
                                 <span style={{ fontSize: "0.875rem", color: "#9ca3af", fontStyle: "italic" }}>
-                                  No actions available
+                                  Not assigned to doctor
                                 </span>
                               )}
-                            </div>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination */}
-              {filteredPatients.length > 0 && (
-                <div className={styles.paginationContainer}>
-                  <div className={styles.paginationInfo}>
-                    Showing 1 to {filteredPatients.length} of {filteredPatients.length} students
-                  </div>
-                  <div className={styles.paginationButtons}>
-                    <button className={`${styles.paginationButton} ${styles.active}`}>1</button>
-                  </div>
+                            </td>
+                            <td className={styles.dateCell}>
+                              <div className={styles.dateInfo}>
+                                <div className={styles.dateValue}>
+                                  {doctorAssignment
+                                    ? new Date(doctorAssignment.assignedDate).toLocaleDateString()
+                                    : "-"}
+                                </div>
+                                {doctorAssignment && (
+                                  <div className={styles.dateYear}>
+                                    {new Date(doctorAssignment.assignedDate).toLocaleDateString("en-US", {
+                                      weekday: "short",
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className={styles.actionsCell}>
+                              <div className={styles.actionButtons}>
+                                {doctorAssignment ? (
+                                  <>
+                                    <button
+                                      onClick={() => handleViewDetails(doctorAssignment)}
+                                      className={`${styles.actionButton} ${styles.viewButton}`}
+                                      title="View Details"
+                                    >
+                                      <Eye className={styles.actionIcon} />
+                                    </button>
+                                    <button
+                                      onClick={() => handlePlanClick(patient?._id)}
+                                      className={`${styles.actionButton} ${styles.editButton}`}
+                                      title="Student Plan"
+                                      disabled={!patient?._id}
+                                    >
+                                      <ClipboardList className={styles.actionIcon} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleExamClick(patient?._id)}
+                                      className={`${styles.actionButton} ${styles.deleteButton}`}
+                                      title="Student Exam"
+                                      disabled={!patient?._id}
+                                    >
+                                      <FileText className={styles.actionIcon} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleEditClick(doctorAssignment)}
+                                      className={`${styles.actionButton} ${styles.editButton}`}
+                                      title="Edit Assignment"
+                                    >
+                                      <Edit className={styles.actionIcon} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteClick(doctorAssignment)}
+                                      className={`${styles.actionButton} ${styles.deleteButton}`}
+                                      title="Unassign Doctor"
+                                    >
+                                      <Trash2 className={styles.actionIcon} />
+                                    </button>
+                                  </>
+                                ) : (
+                                  <span style={{ fontSize: "0.875rem", color: "#9ca3af", fontStyle: "italic" }}>
+                                    No actions available
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-              )}
-            </>
-          )}
+
+                {/* Pagination */}
+                {filteredPatients.length > 0 && (
+                  <div className={styles.paginationContainer}>
+                    <div className={styles.paginationInfo}>
+                      Showing 1 to {filteredPatients.length} of {filteredPatients.length} students
+                    </div>
+                    <div className={styles.paginationButtons}>
+                      <button className={`${styles.paginationButton} ${styles.active}`}>1</button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className={styles.upcomingContainer}>
+          <div className={styles.upcomingCard}>
+            <div className={styles.cardBody}>
+              <div className={styles.emptyState}>
+                <AlertCircle className={styles.emptyIcon} />
+                <h3>Invalid Department</h3>
+                <p>The requested department could not be found.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Assignment Modal */}
       {showEditModal && assignmentToEdit && (
@@ -625,8 +686,6 @@ const AllPatients = ({ contentType }) => {
                     )}
                   </div>
 
-                
-
                   <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                     <label className={styles.formLabel}>Notes</label>
                     <textarea
@@ -702,14 +761,10 @@ const AllPatients = ({ contentType }) => {
                     })}
                   </div>
                 </div>
-               
                 <div className={styles.detailItem}>
                   <div className={styles.detailLabel}>Status</div>
                   <div className={styles.detailValue}>
-                    <span
-                    >
-                      {selectedAssignment.status || "Active"}
-                    </span>
+                    <span>{selectedAssignment.status || "Active"}</span>
                   </div>
                 </div>
                 {selectedAssignment.notes && (

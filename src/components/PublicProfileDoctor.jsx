@@ -1,22 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
-import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  Shield,
-  Edit3,
-  Save,
-  X,
-  Eye,
-  EyeOff,
-  Lock,
-  FileText,
-  Building2,
-  Clock,
-} from "lucide-react"
+import { User, Mail, Phone, MapPin, Shield, Edit3, Save, X, Eye, EyeOff, Lock, FileText, Building2 } from "lucide-react"
 
 import axiosInstance from "@/helper/axiosSetup"
 import styles from "../styles/profile-view.module.css"
@@ -225,7 +209,6 @@ const PublicProfileDoctor = () => {
                     {profile.departments?.map((dept) => dept.name).join(", ") || "Not assigned"}
                   </span>
                 </li>
-                
               </ul>
             </div>
           </div>
@@ -321,13 +304,9 @@ const PublicProfileDoctor = () => {
                       disabled={!editing}
                     />
                   </div>
-                 
                 </div>
 
-                <div className={styles.formRow}>
-                  
-                  
-                </div>
+                <div className={styles.formRow}></div>
 
                 <div className={styles.formGroup + " " + styles.fullWidth}>
                   <label className={styles.formLabel}>
@@ -480,7 +459,7 @@ const PublicProfileDoctor = () => {
 
             {/* Plans Tab */}
             <div className={`${styles.tabPane} ${activeTab === "plans" ? styles.active : ""}`}>
-              <DoctorProfilePlans />
+              <DoctorProfilePlans doctorId={user?.id} />
             </div>
           </div>
         </div>

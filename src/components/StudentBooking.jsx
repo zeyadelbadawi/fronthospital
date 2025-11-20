@@ -848,17 +848,6 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
                 "create",
               )
 
-              if (doctorIds.length > 0) {
-                await sendNotification({
-                  isList: true,
-                  title: `New ${programTypeFormatted} Created`,
-                  message: `Create a new program to student: ${patientName}`,
-                  receiverIds: doctorIds,
-                  rule: "Doctor",
-                  type: "create",
-                })
-              }
-
               setCurrentStep(4) // Move to complete step
             }
           } else if (programTypeForPayment === "full_program") {
@@ -873,6 +862,43 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
               patientName,
             })
             if (moneyResponse.status === 200) {
+              // Reset form fields after successful payment
+              resetFormFields()
+
+              // Format date correctly
+              const bookingDate = new Date(programPayload.date)
+              const formattedDate = bookingDate.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+              const formattedDateAr = bookingDate.toLocaleDateString("ar-EG", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+
+              const programTypeFormatted = "Full Program"
+
+              // Send booking confirmation notification to patient
+              await sendNotification({
+                isList: false,
+                title: `Booking Confirmed`,
+                titleAr: `تم تأكيد الحجز`,
+                message: `You have booked a new appointment in ${programTypeFormatted} on ${formattedDate} at ${programPayload.time}. Initial payment of 1,000 AED completed.`,
+                messageAr: `لقد حجزت موعداً جديداً في البرنامج الكامل بتاريخ ${formattedDateAr} في الساعة ${programPayload.time}. تم دفع المبلغ الأولي 1,000 درهم.`,
+                receiverId: patientId,
+                rule: "Patient",
+                type: "create",
+              })
+
+              // Notify admins and head doctors
+              await sendNotificationToAdminsAndHeadDoctors(
+                "New Full Program Booked",
+                `Patient ${patientName} has booked a ${programTypeFormatted} appointment on ${formattedDate} at ${programPayload.time}. Initial payment: 1,000 AED.`,
+                "create",
+              )
+
               setCurrentStep(4) // Move to complete step
             }
           }
@@ -947,17 +973,6 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
               receiverId: patientId,
               rule: "Patient",
               type: "update",
-            })
-          }
-
-          if (doctorIds.length > 0) {
-            await sendNotification({
-              isList: true,
-              title: `New ${programTypeFormatted} Created`,
-              message: `Create a new program to student: ${patientName} - Payment pending (${paymentMethod === "bank_transfer" ? "Bank Transfer" : "Cash"})`,
-              receiverIds: doctorIds,
-              rule: "Doctor",
-              type: "create",
             })
           }
 

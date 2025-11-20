@@ -118,11 +118,16 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   const [adminHeadDoctorIds, setAdminHeadDoctorIds] = useState([])
   const [doctorAssignments, setDoctorAssignments] = useState([])
   const [errorModal, setErrorModal] = useState({ open: false, message: "" })
+  const [isDoctorRole, setIsDoctorRole] = useState(false)
 
   const setActiveContent = useContentStore((state) => state.setActiveContent)
 
   // Get configuration for current therapy type
   const config = THERAPY_CONFIGS[therapyType]
+
+  useEffect(() => {
+    setIsDoctorRole(isDoctor())
+  }, [])
 
   useEffect(() => {
     getAdminHeadDoctorIds()
@@ -546,18 +551,22 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
                           Student Name
                         </div>
                       </th>
-                      <th>
-                        <div className={styles.headerCell}>
-                          <Mail className={styles.headerIcon} />
-                          Email
-                        </div>
-                      </th>
-                      <th>
-                        <div className={styles.headerCell}>
-                          <Phone className={styles.headerIcon} />
-                          Phone
-                        </div>
-                      </th>
+                      {!isDoctorRole && (
+                        <th>
+                          <div className={styles.headerCell}>
+                            <Mail className={styles.headerIcon} />
+                            Email
+                          </div>
+                        </th>
+                      )}
+                      {!isDoctorRole && (
+                        <th>
+                          <div className={styles.headerCell}>
+                            <Phone className={styles.headerIcon} />
+                            Phone
+                          </div>
+                        </th>
+                      )}
                       <th>
                         <div className={styles.headerCell}>
                           <Calendar className={styles.headerIcon} />
@@ -582,14 +591,18 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
                             <span className={styles.patientName}>{getPatientProperty(assignment, "name")}</span>
                           </div>
                         </td>
-                        <td className={styles.dateCell}>
-                          <div className={styles.dateInfo}>
-                            <span className={styles.dateValue}>{getPatientProperty(assignment, "email")}</span>
-                          </div>
-                        </td>
-                        <td className={styles.timeCell}>
-                          <span className={styles.timeValue}>{getPatientProperty(assignment, "phone")}</span>
-                        </td>
+                        {!isDoctorRole && (
+                          <td className={styles.dateCell}>
+                            <div className={styles.dateInfo}>
+                              <span className={styles.dateValue}>{getPatientProperty(assignment, "email")}</span>
+                            </div>
+                          </td>
+                        )}
+                        {!isDoctorRole && (
+                          <td className={styles.timeCell}>
+                            <span className={styles.timeValue}>{getPatientProperty(assignment, "phone")}</span>
+                          </td>
+                        )}
                         <td className={styles.descriptionCell}>
                           <div className={styles.descriptionText}>
                             {formatDate(assignment.programId?.date || assignment.assignedDate)}
@@ -682,14 +695,18 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
                       <User className={styles.detailIcon} />
                       <span>Name: {viewModal.patient.name || "N/A"}</span>
                     </div>
-                    <div className={styles.detailItem}>
-                      <Mail className={styles.detailIcon} />
-                      <span>Email: {viewModal.patient.email || "N/A"}</span>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <Phone className={styles.detailIcon} />
-                      <span>Phone: {viewModal.patient.phone || "N/A"}</span>
-                    </div>
+                    {!isDoctorRole && (
+                      <div className={styles.detailItem}>
+                        <Mail className={styles.detailIcon} />
+                        <span>Email: {viewModal.patient.email || "N/A"}</span>
+                      </div>
+                    )}
+                    {!isDoctorRole && (
+                      <div className={styles.detailItem}>
+                        <Phone className={styles.detailIcon} />
+                        <span>Phone: {viewModal.patient.phone || "N/A"}</span>
+                      </div>
+                    )}
                     <div className={styles.detailItem}>
                       <Calendar className={styles.detailIcon} />
                       <span>Age: {viewModal.patient.age || "N/A"}</span>

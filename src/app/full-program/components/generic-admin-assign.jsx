@@ -1,9 +1,15 @@
 "use client"
-import { useState, useEffect } from "react"
-import { UserPlus, AlertCircle, Users, UserCheck, RefreshCw, Save, Calendar, Eye } from "lucide-react"
+import { useState, useEffect, Suspense } from "react"
+import { UserPlus, AlertCircle, Users, UserCheck, RefreshCw, Save, Eye } from "lucide-react"
+import dynamic from "next/dynamic"
 import AccessControl from "./access-control"
 import styles from "../styles/admin-assign.module.css"
 import axiosInstance from "@/helper/axiosSetup"
+
+const Select = dynamic(() => import("react-select"), {
+  ssr: false,
+  loading: () => <div className={styles.loadingSpinner}></div>,
+})
 
 // Department configuration
 const DEPARTMENT_CONFIG = {
@@ -25,7 +31,7 @@ const DEPARTMENT_CONFIG = {
     endpoint: "physicalTherapy",
     doctorEndpoint: "physicalTherapy",
   },
-    Psychotherapy: {
+  Psychotherapy: {
     name: "Psychotherapy",
     displayName: "Psychotherapy",
     endpoint: "Psychotherapy",
@@ -64,20 +70,7 @@ const GenericAdminAssign = ({ department = "aba" }) => {
     totalDoctors: 0,
   })
 
-const config = DEPARTMENT_CONFIG[department]
-
-if (!config) {
-  return (
-    <div style={{ padding: "2rem", color: "red", fontWeight: "bold" }}>
-      ❌ Invalid department: "{department}" — please use one of:
-      <ul>
-        {Object.keys(DEPARTMENT_CONFIG).map((key) => (
-          <li key={key}>{key}</li>
-        ))}
-      </ul>
-    </div>
-  )
-}
+  const config = DEPARTMENT_CONFIG[department]
 
   useEffect(() => {
     fetchData()
@@ -122,8 +115,6 @@ if (!config) {
         setMessage("Failed to fetch assignments: " + (error.response?.data?.message || error.message))
         assignmentsResponse = { data: { assignments: [] } }
       }
-
- 
 
       // Set the data
       const patientsData = patientsResponse.data.assignments || patientsResponse.data.patients || []
@@ -197,7 +188,6 @@ if (!config) {
       errors.doctor = "Please select a doctor"
     }
 
-
     const existingAssignment = getAssignmentForPatient(selectedPatient)
     if (existingAssignment) {
       errors.patient = "This Student is already assigned to a doctor"
@@ -233,6 +223,78 @@ if (!config) {
     }
   }
 
+  const customSelectStyles = {
+    control: (provided, state) => ({
+      ...provided,
+      border: `2px solid ${state.isFocused ? "#3b82f6" : "#e2e8f0"}`,
+      borderRadius: "12px",
+      padding: "0.5rem 0.75rem",
+      backgroundColor: "rgba(255, 255, 255, 0.8)",
+      backdropFilter: "blur(10px)",
+      boxShadow: state.isFocused ? "0 0 0 4px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(59, 130, 246, 0.15)" : "none",
+      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+      transform: state.isFocused ? "translateY(-1px)" : "translateY(0)",
+      "&:hover": {
+        borderColor: "#3b82f6",
+      },
+    }),
+    menu: (provided) => ({
+      ...provided,
+      borderRadius: "12px",
+      border: "1px solid rgba(59, 130, 246, 0.2)",
+      boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5)",
+      backgroundColor: "rgba(255, 255, 255, 0.95)",
+      backdropFilter: "blur(10px)",
+      zIndex: 9999,
+      overflow: "hidden",
+    }),
+    menuList: (provided) => ({
+      ...provided,
+      padding: "0.5rem",
+      maxHeight: "250px",
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      borderRadius: "8px",
+      margin: "0.25rem 0",
+      padding: "0.75rem 1rem",
+      backgroundColor: state.isSelected
+        ? "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)"
+        : state.isFocused
+          ? "rgba(59, 130, 246, 0.1)"
+          : "transparent",
+      color: state.isSelected ? "white" : "#374151",
+      cursor: "pointer",
+      transition: "all 0.2s ease",
+      "&:hover": {
+        backgroundColor: state.isSelected
+          ? "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)"
+          : "rgba(59, 130, 246, 0.15)",
+        transform: "translateX(4px)",
+      },
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: "#9ca3af",
+      fontStyle: "italic",
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: "#1f2937",
+      fontWeight: "500",
+    }),
+  }
+
+  const patientOptions = getUnassignedPatients().map((assignment) => ({
+    value: assignment.patient?._id || assignment.patientId?._id,
+    label: `${assignment.patient?.name || assignment.patientId?.name} - ${assignment.patient?.email || assignment.patientId?.email}`,
+  }))
+
+  const doctorOptions = doctors.map((doctor) => ({
+    value: doctor._id,
+    label: `Dr. ${doctor.name || doctor.username} - ${doctor.email}`,
+  }))
+
   return (
     <AccessControl allowedRoles={["admin"]}>
       <div className={styles.adminContainer}>
@@ -244,9 +306,7 @@ if (!config) {
                   <UserPlus className={styles.titleIcon} />
                   {config.displayName} Department - Admin Assignment
                 </h2>
-                <p className={styles.pageSubtitle}>
-                  Assign {config.displayName} students to doctors 
-                </p>
+                <p className={styles.pageSubtitle}>Assign {config.displayName} students to doctors</p>
               </div>
               <div className={styles.headerActions}>
                 <button
@@ -337,25 +397,23 @@ if (!config) {
                     <Users size={16} style={{ marginRight: "0.5rem", display: "inline" }} />
                     Select {config.displayName} Student *
                   </label>
-                  <select
-                    value={selectedPatient}
-                    onChange={(e) => {
-                      setSelectedPatient(e.target.value)
-                      if (formErrors.patient) {
-                        setFormErrors((prev) => ({ ...prev, patient: null }))
-                      }
-                    }}
-                    className={`${styles.formSelect} ${formErrors.patient ? "border-red-500" : ""}`}
-                    required
-                  >
-                    <option value="">Choose an unassigned {config.displayName} patient...</option>
-                    {getUnassignedPatients().map((assignment) => (
-                      <option key={assignment._id} value={assignment.patient?._id || assignment.patientId?._id}>
-                        {assignment.patient?.name || assignment.patientId?.name} -{" "}
-                        {assignment.patient?.email || assignment.patientId?.email}
-                      </option>
-                    ))}
-                  </select>
+                  <Suspense fallback={<div className={styles.loadingSpinner}></div>}>
+                    <Select
+                      value={patientOptions.find((option) => option.value === selectedPatient)}
+                      onChange={(selectedOption) => {
+                        setSelectedPatient(selectedOption?.value || "")
+                        if (formErrors.patient) {
+                          setFormErrors((prev) => ({ ...prev, patient: null }))
+                        }
+                      }}
+                      options={patientOptions}
+                      placeholder={`Choose an unassigned ${config.displayName} patient...`}
+                      styles={customSelectStyles}
+                      menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                      menuPosition="fixed"
+                      isClearable
+                    />
+                  </Suspense>
                   {formErrors.patient && (
                     <p style={{ fontSize: "0.75rem", color: "#dc2626", marginTop: "0.25rem", fontWeight: "500" }}>
                       {formErrors.patient}
@@ -371,24 +429,23 @@ if (!config) {
                     <UserCheck size={16} style={{ marginRight: "0.5rem", display: "inline" }} />
                     Select {config.displayName} Doctor *
                   </label>
-                  <select
-                    value={selectedDoctor}
-                    onChange={(e) => {
-                      setSelectedDoctor(e.target.value)
-                      if (formErrors.doctor) {
-                        setFormErrors((prev) => ({ ...prev, doctor: null }))
-                      }
-                    }}
-                    className={`${styles.formSelect} ${formErrors.doctor ? "border-red-500" : ""}`}
-                    required
-                  >
-                    <option value="">Choose a {config.displayName} doctor...</option>
-                    {doctors.map((doctor) => (
-                      <option key={doctor._id} value={doctor._id}>
-                        Dr. {doctor.name || doctor.username} - {doctor.email}
-                      </option>
-                    ))}
-                  </select>
+                  <Suspense fallback={<div className={styles.loadingSpinner}></div>}>
+                    <Select
+                      value={doctorOptions.find((option) => option.value === selectedDoctor)}
+                      onChange={(selectedOption) => {
+                        setSelectedDoctor(selectedOption?.value || "")
+                        if (formErrors.doctor) {
+                          setFormErrors((prev) => ({ ...prev, doctor: null }))
+                        }
+                      }}
+                      options={doctorOptions}
+                      placeholder={`Choose a ${config.displayName} doctor...`}
+                      styles={customSelectStyles}
+                      menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                      menuPosition="fixed"
+                      isClearable
+                    />
+                  </Suspense>
                   {formErrors.doctor && (
                     <p style={{ fontSize: "0.75rem", color: "#dc2626", marginTop: "0.25rem", fontWeight: "500" }}>
                       {formErrors.doctor}
@@ -398,8 +455,6 @@ if (!config) {
                     👨‍⚕️ Available {config.displayName} doctors: {doctors.length}
                   </p>
                 </div>
-
-          
 
                 <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                   <label className={styles.formLabel}>
@@ -454,7 +509,6 @@ export const AdminAssignABA = (props) => <GenericAdminAssign department="aba" {.
 export const AdminAssignSpeech = (props) => <GenericAdminAssign department="speech" {...props} />
 export const AdminAssignPhysicalTherapy = (props) => <GenericAdminAssign department="physicalTherapy" {...props} />
 export const AdminAssignPsychotherapy = (props) => <GenericAdminAssign department="Psychotherapy" {...props} />
-
 export const AdminAssignOccupationalTherapy = (props) => (
   <GenericAdminAssign department="OccupationalTherapy" {...props} />
 )

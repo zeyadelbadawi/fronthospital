@@ -40,7 +40,7 @@ const DEPARTMENT_CONFIG = {
     CloseQuarterComponent: GenericCloseQuarterForm,
   },
 
-    Psychotherapy: {
+  Psychotherapy: {
     endpoint: "Psychotherapy",
     displayName: "Psychotherapy",
     fullName: "Psychotherapy",
@@ -350,17 +350,11 @@ export default function GenericExamView({ department, patientId, onBack }) {
                     </div>
                   </div>
                   <div className={styles.documentActions}>
-                    <button
-                      className={styles.headerActionButton}
-                      onClick={() => docxEditorRef.current?.onSave()}
-                    >
+                    <button className={styles.headerActionButton} onClick={() => docxEditorRef.current?.onSave()}>
                       <Save size={16} />
                       Save
                     </button>
-                    <button
-                      className={styles.headerActionButton}
-                      onClick={() => docxEditorRef.current?.onDownload()}
-                    >
+                    <button className={styles.headerActionButton} onClick={() => docxEditorRef.current?.onDownload()}>
                       <Download size={16} />
                       Download
                     </button>
@@ -400,7 +394,7 @@ export default function GenericExamView({ department, patientId, onBack }) {
               </p>
               <div className={styles.userInfo}>
                 <div className={styles.infoItem}>
-                  <strong>Student ID:</strong> {patientId}
+                  <strong>Student Name:</strong> {patient?.name || patientId}
                 </div>
                 <div className={styles.infoItem}>
                   <strong>Department:</strong> {config.displayName}
