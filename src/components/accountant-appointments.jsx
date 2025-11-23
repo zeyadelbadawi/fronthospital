@@ -504,7 +504,7 @@ export function AccountantAppointments() {
         })
       }
 
-      console.log("[v0] Payment notification sent successfully to patient:", patientId)
+      console.log("[v0] Payment notification sent successfully to Student:", patientId)
     } catch (error) {
       console.error("[v0] Error sending payment notification:", error)
       // Don't throw error - payment was successful, notification failure shouldn't block the flow

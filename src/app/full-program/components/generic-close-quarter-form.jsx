@@ -211,7 +211,7 @@ const GenericCloseQuarterForm = ({
           patient.username ||
           "Patient"
       } catch (err) {
-        console.warn("Could not fetch patient name:", err)
+        console.warn("Could not fetch Student name:", err)
       }
 
       // Send notification to patient

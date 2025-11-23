@@ -190,7 +190,7 @@ export function SchoolAppointmentsAssignment() {
 
   const getPatientInfo = useCallback((program) => {
     return {
-      name: program.patientName || "Unknown Patient",
+      name: program.patientName || "Unknown Student",
       email: program.patientEmail || "",
       phone: program.patientPhone || "",
       id: program.patientId || "",

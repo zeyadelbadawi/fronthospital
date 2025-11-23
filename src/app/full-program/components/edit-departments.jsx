@@ -196,7 +196,7 @@ export function EditDepartments() {
         }
 
         if (!selectedAppointment.patientid) {
-            setError("Patient ID is missing")
+            setError("Student ID is missing")
             return
         }
 
@@ -424,7 +424,7 @@ export function EditDepartments() {
                             <div>
                                 <h3 className={styles.modalTitle}>Edit Department Selection</h3>
                                 <p className={styles.modalSubtitle}>
-                                    Patient: {selectedAppointment.patientName || `Student-${selectedAppointment.patientid}`}
+                                    Student: {selectedAppointment.patientName || `Student-${selectedAppointment.patientid}`}
                                 </p>
                             </div>
                             <button onClick={closeModal} className={styles.closeButton} disabled={saving}>

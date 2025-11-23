@@ -253,14 +253,13 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   const sendNotificationToAdminsAndHeadDoctors = async (doctorName, departmentName, patientName) => {
     try {
       if (adminHeadDoctorIds.length === 0) {
-        console.warn("[v0] No admin or head doctor IDs found")
         return
       }
 
       const title = `Plan Completed - ${departmentName}`
       const titleAr = `تم إكمال الخطة - ${departmentName}`
-      const message = `Doctor ${doctorName} has completed the ${departmentName} plan in Single Session for patient ${patientName}.`
-      const messageAr = `الدكتور ${doctorName} أكمل خطة ${departmentName} في الجلسة الواحدة للمريض ${patientName}.`
+      const message = `Doctor ${doctorName} has completed the ${departmentName} plan in Single Session for Student ${patientName}.`
+      const messageAr = `الدكتور ${doctorName} أكمل خطة ${departmentName} في الجلسة الواحدة للطالب ${patientName}.`
 
       await sendNotification({
         isList: true,
@@ -321,7 +320,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
     if (!patientId) {
       setErrorModal({
         open: true,
-        message: "Patient information is missing. Cannot complete assignment.",
+        message: "Student information is missing. Cannot complete assignment.",
       })
       return
     }
@@ -333,7 +332,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
       setErrorModal({
         open: true,
         message:
-          "This patient does not have a plan yet. Please create or update the plan before marking the appointment as complete. Once completed, you will not be able to update the plan again.",
+          "This Student does not have a plan yet. Please create or update the plan before marking the appointment as complete. Once completed, you will not be able to update the plan again.",
       })
       return
     }
@@ -353,7 +352,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
 
       if (response.status === 200) {
         const patientId = completeModal.assignment.patient?._id
-        const patientName = completeModal.assignment.patient?.name || "Patient"
+        const patientName = completeModal.assignment.patient?.name || "Student"
         const departmentName = config.title.replace(" Students", "")
         const doctorName =
           completeModal.assignment.doctor?.name || completeModal.assignment.doctor?.username || "Doctor"
@@ -369,7 +368,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
             rule: "Patient",
             type: "successfully",
           })
-          console.log("[v0] Notification sent to patient successfully")
+          console.log("[v0] Notification sent to Student successfully")
         }
 
         await sendNotificationToAdminsAndHeadDoctors(doctorName, departmentName, patientName)

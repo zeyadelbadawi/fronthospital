@@ -143,7 +143,7 @@ const AppSidebarUpdated = ({ onContentChange }) => {
         },
         {
           id: "edit-departments",
-          label: "Edit Patient Departments",
+          label: "Edit Student Departments",
           icon: Settings,
           content: "edit-departments",
           roles: ["admin", "headdoctor"],

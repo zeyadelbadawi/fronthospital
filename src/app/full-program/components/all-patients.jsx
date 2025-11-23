@@ -221,7 +221,7 @@ const AllPatients = ({ contentType, onViewPlan, onViewExam }) => {
       const departmentPrefix = getDepartmentPrefix()
       onViewPlan(`${departmentPrefix}-plan-editor`, patientId)
     } else {
-      console.warn(`onViewPlan prop is not provided to AllPatients for ${department.displayName}.`)
+      console.warn(`onViewPlan prop is not provided to All Students for ${department.displayName}.`)
     }
   }
 
@@ -234,7 +234,7 @@ const AllPatients = ({ contentType, onViewPlan, onViewExam }) => {
       const departmentPrefix = getDepartmentPrefix()
       onViewExam(`${departmentPrefix}-exam-editor`, patientId)
     } else {
-      console.warn(`onViewExam prop is not provided to AllPatients for ${department.displayName}.`)
+      console.warn(`onViewExam prop is not provided to All Students for ${department.displayName}.`)
     }
   }
 
@@ -316,7 +316,7 @@ const AllPatients = ({ contentType, onViewPlan, onViewExam }) => {
             <div className={styles.statsContainer}>
               <div className={styles.statItem}>
                 <div className={styles.statNumber}>{stats.totalPatients}</div>
-                <div className={styles.statLabel}>Total {department.displayName} Patients</div>
+                <div className={styles.statLabel}>Total {department.displayName} Students</div>
               </div>
               <div className={styles.statItem}>
                 <div className={styles.statNumber}>{stats.assignedPatients}</div>

@@ -407,7 +407,7 @@ const GenericAdminAssign = ({ department = "aba" }) => {
                         }
                       }}
                       options={patientOptions}
-                      placeholder={`Choose an unassigned ${config.displayName} patient...`}
+                      placeholder={`Choose an unassigned ${config.displayName} Student...`}
                       styles={customSelectStyles}
                       menuPortalTarget={typeof document !== "undefined" ? document.body : null}
                       menuPosition="fixed"
@@ -420,7 +420,7 @@ const GenericAdminAssign = ({ department = "aba" }) => {
                     </p>
                   )}
                   <p style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "0.25rem", fontWeight: "500" }}>
-                    📊 Unassigned {config.displayName} patients: {getUnassignedPatients().length} / {patients.length}
+                    📊 Unassigned {config.displayName} Students: {getUnassignedPatients().length} / {patients.length}
                   </p>
                 </div>
 

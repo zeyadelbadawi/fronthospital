@@ -78,8 +78,8 @@ export default function CashPaymentsPage() {
 
       const confirmMessage =
         language === "ar"
-          ? `هل أنت متأكد من تأكيد دفع ${payment.amount}   للمريض درهم امراتي ${payment.patientName}؟`
-          : `Are you sure you want to confirm payment of ${payment.amount} AED for patient ${payment.patientName}?`
+          ? `هل أنت متأكد من تأكيد دفع ${payment.amount}   للطالب درهم امراتي ${payment.patientName}؟`
+          : `Are you sure you want to confirm payment of ${payment.amount} AED for Student ${payment.patientName}?`
 
       if (!window.confirm(confirmMessage)) return
 
@@ -114,8 +114,8 @@ export default function CashPaymentsPage() {
 
       const confirmMessage =
         language === "ar"
-          ? `هل أنت متأكد من إلغاء موعد المريض ${payment.patientName}؟`
-          : `Are you sure you want to cancel the appointment for patient ${payment.patientName}?`
+          ? `هل أنت متأكد من إلغاء موعد الطالب ${payment.patientName}؟`
+          : `Are you sure you want to cancel the appointment for Student ${payment.patientName}?`
 
       if (!window.confirm(confirmMessage)) return
 
@@ -205,7 +205,7 @@ export default function CashPaymentsPage() {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>{language === "ar" ? "اسم المريض" : "Patient Name"}</th>
+                  <th>{language === "ar" ? "اسم الطالب" : "Student Name"}</th>
                   <th>{language === "ar" ? "نوع البرنامج" : "Program Type"}</th>
                   <th>{language === "ar" ? "التاريخ" : "Date"}</th>
                   <th>{language === "ar" ? "الوقت" : "Time"}</th>

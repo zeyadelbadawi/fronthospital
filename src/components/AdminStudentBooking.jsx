@@ -831,7 +831,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
 
             await sendNotificationToAdminsAndHeadDoctors(
               "New Appointment Booked",
-              `Patient ${selectedPatient?.name} has booked a ${formattedProgramType} appointment on ${formattedDate} at ${programPayload.time}.`,
+              `Student ${selectedPatient?.name} has booked a ${formattedProgramType} appointment on ${formattedDate} at ${programPayload.time}.`,
               "create",
             )
 
@@ -871,7 +871,7 @@ const AdminStudentBooking = ({ currentStep, setCurrentStep }) => {
 
             await sendNotificationToAdminsAndHeadDoctors(
               "New Appointment Booked",
-              `Patient ${selectedPatient?.name} has booked a Full Package Evaluation appointment on ${formattedDate} at ${programPayload.time}.`,
+              `Student ${selectedPatient?.name} has booked a Full Package Evaluation appointment on ${formattedDate} at ${programPayload.time}.`,
               "create",
             )
 

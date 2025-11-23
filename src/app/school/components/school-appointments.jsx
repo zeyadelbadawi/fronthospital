@@ -145,8 +145,6 @@ export function SchoolAppointments() {
     setLoading(true)
     try {
       const currentUser = getCurrentUser()
-      console.log("[v0] SchoolAppointments - Current user:", currentUser)
-      console.log("[v0] SchoolAppointments - User role:", currentUser?.role)
 
       const response = await axiosInstance.get(
         `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs-optimized`,
@@ -160,9 +158,6 @@ export function SchoolAppointments() {
         },
       )
 
-      console.log("[v0] SchoolAppointments - API Response:", response.data)
-      console.log("[v0] SchoolAppointments - Programs count:", response.data.programs?.length)
-
       const programs = response.data.programs || []
 
       const paidPrograms = programs.filter((program) => {
@@ -170,7 +165,6 @@ export function SchoolAppointments() {
         return program.paymentStatus === "FULLY_PAID"
       })
 
-      console.log("[v0] SchoolAppointments - Paid programs:", paidPrograms.length)
 
       setSchoolPrograms(paidPrograms)
       setTotalPages(response.data.totalPages || 1)
@@ -626,7 +620,7 @@ export function SchoolAppointments() {
   // Utility functions (simplified using server data)
   const getPatientInfo = useCallback((program) => {
     return {
-      name: program.patientName || "Unknown Patient",
+      name: program.patientName || "Unknown Student",
       email: program.patientEmail || "",
       phone: program.patientPhone || "",
       id: program.patientId || "",

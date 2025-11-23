@@ -83,7 +83,7 @@ export default function BankTransferPaymentsPage() {
       const confirmMessage =
         language === "ar"
           ? `هل أنت متأكد من تأكيد التحويل البنكي بمبلغ ${payment.amount} درهم إماراتي للمريض ${payment.patientName}؟`
-          : `Are you sure you want to confirm bank transfer of ${payment.amount} AED for patient ${payment.patientName}?`
+          : `Are you sure you want to confirm bank transfer of ${payment.amount} AED for Student ${payment.patientName}?`
 
       if (!window.confirm(confirmMessage)) return
 
@@ -118,8 +118,8 @@ export default function BankTransferPaymentsPage() {
 
       const confirmMessage =
         language === "ar"
-          ? `هل أنت متأكد من إلغاء موعد المريض ${payment.patientName}؟`
-          : `Are you sure you want to cancel the appointment for patient ${payment.patientName}?`
+          ? `هل أنت متأكد من إلغاء موعد للطالب ${payment.patientName}؟`
+          : `Are you sure you want to cancel the appointment for Student ${payment.patientName}?`
 
       if (!window.confirm(confirmMessage)) return
 
@@ -216,7 +216,7 @@ export default function BankTransferPaymentsPage() {
               <p className={styles.subtitle}>
                 {language === "ar"
                   ? "إدارة وتأكيد التحويلات البنكية للمرضى"
-                  : "Manage and confirm patient bank transfers"}
+                  : "Manage and confirm Student bank transfers"}
               </p>
             </div>
           </div>
@@ -239,7 +239,7 @@ export default function BankTransferPaymentsPage() {
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th>{language === "ar" ? "اسم المريض" : "Patient Name"}</th>
+                    <th>{language === "ar" ? "اسم الطالب" : "Student Name"}</th>
                     <th>{language === "ar" ? "نوع البرنامج" : "Program Type"}</th>
                     <th>{language === "ar" ? "التاريخ" : "Date"}</th>
                     <th>{language === "ar" ? "الوقت" : "Time"}</th>

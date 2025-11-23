@@ -274,8 +274,8 @@ export function DoctorAppointments() {
             isList: true,
             receiverIds: accountantIdsList,
             rule: "Accountant",
-            title: "Patient Ready for Payment",
-            titleAr: "المريض جاهز للدفع",
+            title: "Student Ready for Payment",
+            titleAr: "الطالب جاهز للدفع",
             message: `${selectedAppointment.patientName} has finished their evaluation session and is ready for payment. Assigned departments: ${departmentNames}. You will find their record in the Full Program Payment page.`,
             messageAr: `${selectedAppointment.patientName} انتهى من جلسة التقييم وجاهز للدفع. الأقسام المخصصة: ${departmentNames}. ستجد سجله في صفحة دفع البرنامج الكامل.`,
             type: "payment_ready",
@@ -927,9 +927,9 @@ export function DoctorAppointments() {
             </div>
             <div className={styles.modalBody}>
               <div className={styles.departmentSelectionSection}>
-                <h4 className={styles.sectionTitle}>Did the patient finish their evaluation session?</h4>
+                <h4 className={styles.sectionTitle}>Did the Student finish their evaluation session?</h4>
                 <p className={styles.sectionDescription}>
-                  If yes, please select which departments this patient should be assigned to based on their evaluation
+                  If yes, please select which departments this Student should be assigned to based on their evaluation
                   results.
                 </p>
                 <br></br>
@@ -962,7 +962,7 @@ export function DoctorAppointments() {
                     onChange={(e) => setDoctorNotes(e.target.value)}
                     className={styles.formTextarea}
                     rows={3}
-                    placeholder="Add any notes about the department selection or patient condition..."
+                    placeholder="Add any notes about the department selection or Student condition..."
                   />
                 </div>
               </div>

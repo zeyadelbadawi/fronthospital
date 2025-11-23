@@ -268,7 +268,7 @@ export function AppointmentsManagement() {
           type: "reschedule",
         })
         const emailHtml = generateAppointmentRescheduleEmail({
-          patientName: appointment?.patientid?.name || "Patient",
+          patientName: appointment?.patientid?.name || "Student",
           oldDate: appointment?.date?.split("T")[0],
           oldTime: appointment.time,
           newDate: rescheduleForm.newDate,
@@ -309,7 +309,7 @@ export function AppointmentsManagement() {
           type: "successfully",
         })
         const emailHtml = generateAppointmentCompletionEmail({
-          patientName: appointment?.patientid?.name || "Patient",
+          patientName: appointment?.patientid?.name || "Student",
           date: appointment?.date?.split("T")[0],
           time: appointment?.time,
           notes: notes,

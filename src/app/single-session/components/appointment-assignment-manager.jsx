@@ -270,7 +270,7 @@ export function AppointmentAssignmentManager() {
         await sendNotification({
           isList: false,
           title: `Appointment Assignment Removed`,
-          message: `You have been removed from ${appointment.patientid?.name || "Patient"}'s ${department} appointment on ${formatDate(appointment.date)} at ${formatTime(appointment.time)}. A new doctor has been assigned.`,
+          message: `You have been removed from ${appointment.patientid?.name || "Student"}'s ${department} appointment on ${formatDate(appointment.date)} at ${formatTime(appointment.time)}. A new doctor has been assigned.`,
           receiverId: response.data.oldDoctorId,
           rule: "Doctor",
           type: "assignment",
@@ -279,7 +279,7 @@ export function AppointmentAssignmentManager() {
         await sendNotification({
           isList: false,
           title: `New Appointment Assignment`,
-          message: `You have been assigned to ${appointment.patientid?.name || "Patient"}'s ${department} appointment on ${formatDate(appointment.date)} at ${formatTime(appointment.time)}`,
+          message: `You have been assigned to ${appointment.patientid?.name || "Student"}'s ${department} appointment on ${formatDate(appointment.date)} at ${formatTime(appointment.time)}`,
           receiverId: doctor._id,
           rule: "Doctor",
           type: "assignment",
@@ -296,7 +296,7 @@ export function AppointmentAssignmentManager() {
         await sendNotification({
           isList: false,
           title: `New Appointment Assignment`,
-          message: `You have been assigned to ${appointment.patientid?.name || "Patient"}'s ${department} appointment on ${formatDate(appointment.date)} at ${formatTime(appointment.time)}`,
+          message: `You have been assigned to ${appointment.patientid?.name || "Student"}'s ${department} appointment on ${formatDate(appointment.date)} at ${formatTime(appointment.time)}`,
           receiverId: doctor._id,
           rule: "Doctor",
           type: "assignment",
@@ -584,7 +584,7 @@ export function AppointmentAssignmentManager() {
                 <div className={styles.detailGrid}>
                   <div className={styles.detailItem}>
                     <User className={styles.detailIcon} />
-                    <span>Patient: {assignModal.appointment?.patientid?.name}</span>
+                    <span>Student: {assignModal.appointment?.patientid?.name}</span>
                   </div>
                   <div className={styles.detailItem}>
                     <CalendarIcon className={styles.detailIcon} />
@@ -655,7 +655,7 @@ export function AppointmentAssignmentManager() {
                     <strong>Doctor:</strong> {confirmModal.data?.doctor?.username || confirmModal.data?.doctor?.email}
                   </p>
                   <p>
-                    <strong>Patient:</strong> {confirmModal.data?.appointment?.patientid?.name}
+                    <strong>Student:</strong> {confirmModal.data?.appointment?.patientid?.name}
                   </p>
                   <p>
                     <strong>Department:</strong> {getDepartmentLabel(confirmModal.data?.department)}
@@ -704,7 +704,7 @@ function GroupedTableView({
             <th>
               <div className={styles.headerCell}>
                 <User className={styles.headerIcon} />
-                Patient
+                Student
               </div>
             </th>
             <th>
