@@ -82,7 +82,7 @@ export default function BankTransferPaymentsPage() {
 
       const confirmMessage =
         language === "ar"
-          ? `هل أنت متأكد من تأكيد التحويل البنكي بمبلغ ${payment.amount} درهم إماراتي للمريض ${payment.patientName}؟`
+          ? `هل أنت متأكد من تأكيد التحويل البنكي بمبلغ ${payment.amount} درهم إماراتي للطالب ${payment.patientName}؟`
           : `Are you sure you want to confirm bank transfer of ${payment.amount} AED for Student ${payment.patientName}?`
 
       if (!window.confirm(confirmMessage)) return

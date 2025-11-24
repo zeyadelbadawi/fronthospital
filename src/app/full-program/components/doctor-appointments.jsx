@@ -37,7 +37,7 @@ export function DoctorAppointments() {
     SpecialEducation: true,
     PhysicalTherapy: true,
     OccupationalTherapy: true,
-    Psychotherapy: false,
+    Psychotherapy: true,
   })
   const [doctorNotes, setDoctorNotes] = useState("")
 
@@ -47,7 +47,7 @@ export function DoctorAppointments() {
     { id: "SpecialEducation", label: "Special Education" },
     { id: "PhysicalTherapy", label: "Physical Therapy" },
     { id: "OccupationalTherapy", label: "Occupational Therapy" },
-    { id: "Psychotherapy", label: "Psychotherapy", disabled: true },
+    { id: "Psychotherapy", label: "Psychotherapy" },
   ]
 
   useEffect(() => {
@@ -223,7 +223,7 @@ export function DoctorAppointments() {
           SpecialEducation: true,
           PhysicalTherapy: true,
           OccupationalTherapy: true,
-          Psychotherapy: false,
+          Psychotherapy: true,
         })
       }
       setDoctorNotes(appointment.doctorNotes || "")
@@ -381,7 +381,7 @@ export function DoctorAppointments() {
       SpecialEducation: true,
       PhysicalTherapy: true,
       OccupationalTherapy: true,
-      Psychotherapy: false,
+      Psychotherapy: true,
     })
     setDoctorNotes("")
   }

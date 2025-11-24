@@ -1450,7 +1450,7 @@ const MainContentUpdated = ({
         ) {
           return (
             <GenericPlanView
-              department="Psychotherapy"
+              department="psychotherapy"
               patientId={selectedPsychotherapyPatientId}
               onBack={onBackToDashboard}
             />

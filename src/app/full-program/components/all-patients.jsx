@@ -545,14 +545,16 @@ const AllPatients = ({ contentType, onViewPlan, onViewExam }) => {
                                     >
                                       <ClipboardList className={styles.actionIcon} />
                                     </button>
-                                    <button
-                                      onClick={() => handleExamClick(patient?._id)}
-                                      className={`${styles.actionButton} ${styles.deleteButton}`}
-                                      title="Student Exam"
-                                      disabled={!patient?._id}
-                                    >
-                                      <FileText className={styles.actionIcon} />
-                                    </button>
+                                    {department?.doctorDepartment !== "Psychotherapy" && (
+                                      <button
+                                        onClick={() => handleExamClick(patient?._id)}
+                                        className={`${styles.actionButton} ${styles.deleteButton}`}
+                                        title="Student Exam"
+                                        disabled={!patient?._id}
+                                      >
+                                        <FileText className={styles.actionIcon} />
+                                      </button>
+                                    )}
                                     <button
                                       onClick={() => handleEditClick(doctorAssignment)}
                                       className={`${styles.actionButton} ${styles.editButton}`}

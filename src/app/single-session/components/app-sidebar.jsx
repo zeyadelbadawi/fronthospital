@@ -40,11 +40,11 @@ const departments = [
     ],
   },
   {
-    id: "Psychotherapy",
+    id: "psychotherapy",
     name: "Psychotherapy Students",
     icon: Sparkle,
     departmentName: "Psychotherapy",
-    items: [{ id: "Psychotherapy-patients", name: "All Students", type: "patients", therapyType: "Psychotherapy" }],
+    items: [{ id: "psychotherapy-patients", name: "All Students", type: "patients", therapyType: "psychotherapy" }],
   },
   {
     id: "aba",
@@ -191,7 +191,7 @@ export function AppSidebar() {
       "physical-therapy": "physical_therapy",
       speech: "speech",
       aba: "ABA",
-      Psychotherapy: "Psychotherapy",
+      psychotherapy: "Psychotherapy",
       "occupational-therapy": "occupational_therapy",
       "special-education": "special_education",
     }
@@ -291,7 +291,7 @@ export function AppSidebar() {
             <div key={department.id} className={styles.navSection}>
               <button onClick={() => toggleSection(department.id)} className={styles.sectionHeader}>
                 <div className={styles.sectionHeaderContent}>
-                  <department.icon className={styles.sectionIcon} />
+                  {department.icon && <department.icon className={styles.sectionIcon} />}
                   <span className={styles.sectionTitle}>{department.name}</span>
                 </div>
                 {isOpen ? (

@@ -37,7 +37,7 @@ const DEPARTMENT_CONFIG = {
     displayName: "Special Education",
     endpoint: "SpecialEducation",
   },
-  Psychotherapy: {
+  psychotherapy: {
     name: "Psychotherapy",
     displayName: "Psychotherapy",
     endpoint: "Psychotherapy",
@@ -227,8 +227,16 @@ const GenericCloseQuarterForm = ({
         config.displayName,
       )
 
-      if (onSuccess) onSuccess(data)
-      alert(`Quarter Closed: Quarter ${data.quarterOfYear}/${data.year} closed successfully!`)
+      if (onSuccess) onSuccess({ ...data, responseData: response.data })
+
+      if (response.data.requiresManualUpload) {
+        alert(
+          `Quarter Closed: Quarter ${data.quarterOfYear}/${data.year} closed successfully! Please upload the plan for Q${response.data.nextQuarter}/${response.data.nextYear}.`,
+        )
+      } else {
+        alert(`Quarter Closed: Quarter ${data.quarterOfYear}/${data.year} closed successfully!`)
+      }
+
       if (onClose) onClose()
     } catch (error) {
       console.error("Close quarter failed:", error)
@@ -459,7 +467,7 @@ export const CloseQuarterFormPhysical = (props) => (
   <GenericCloseQuarterForm department="physicalTherapy" type="plan" {...props} />
 )
 export const CloseQuarterFormPsychotherapy = (props) => (
-  <GenericCloseQuarterForm department="Psychotherapy" type="plan" {...props} />
+  <GenericCloseQuarterForm department="psychotherapy" type="plan" {...props} />
 )
 export const CloseQuarterFormOccupationalTherapy = (props) => (
   <GenericCloseQuarterForm department="OccupationalTherapy" type="plan" {...props} />
@@ -477,7 +485,7 @@ export const CloseQuarterFormPhysicalExam = (props) => (
   <GenericCloseQuarterForm department="physicalTherapy" type="exam" {...props} />
 )
 export const CloseQuarterFormPsychotherapyExam = (props) => (
-  <GenericCloseQuarterForm department="Psychotherapy" type="exam" {...props} />
+  <GenericCloseQuarterForm department="psychotherapy" type="exam" {...props} />
 )
 export const CloseQuarterFormOccupationalTherapyExam = (props) => (
   <GenericCloseQuarterForm department="OccupationalTherapy" type="exam" {...props} />

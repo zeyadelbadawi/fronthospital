@@ -18,6 +18,8 @@ import {
   Clock,
   CheckSquare,
   XCircle,
+  Loader2,
+  Upload,
 } from "lucide-react"
 import axiosInstance from "@/helper/axiosSetup"
 import { useContentStore } from "../store/content-store"
@@ -58,7 +60,7 @@ const THERAPY_CONFIGS = {
     emptyTitle: "No Physical Therapy Students Found",
     emptyDescription: "No students are currently assigned to the Physical Therapy department.",
   },
-  Psychotherapy: {
+  psychotherapy: {
     title: "Psychotherapy Students",
     subtitle: "Manage and view all students assigned to Psychotherapy",
     apiEndpoint: "/PsychotherapyS/Psychotherapy-assignments",
@@ -92,15 +94,18 @@ const THERAPY_CONFIGS = {
 }
 
 const getDepartmentNameForAssignment = (therapyType) => {
+  console.log("[ziad] getDepartmentNameForAssignment input therapyType:", therapyType)
   const mapping = {
     aba: "ABA",
     speech: "Speech",
     "physical-therapy": "PhysicalTherapy",
-    Psychotherapy: "Psychotherapy",
+    psychotherapy: "Psychotherapy",
     "occupational-therapy": "OccupationalTherapy",
     "special-education": "SpecialEducation",
   }
-  return mapping[therapyType] || therapyType
+  const result = mapping[therapyType] || therapyType
+  console.log("[ziad] getDepartmentNameForAssignment result:", result)
+  return result
 }
 
 const UnifiedPatientsManagement = ({ therapyType }) => {
@@ -119,6 +124,9 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   const [doctorAssignments, setDoctorAssignments] = useState([])
   const [errorModal, setErrorModal] = useState({ open: false, message: "" })
   const [isDoctorRole, setIsDoctorRole] = useState(false)
+  const [uploadModal, setUploadModal] = useState({ open: false, patientId: null, patientName: "" })
+  const [uploadFile, setUploadFile] = useState(null)
+  const [uploading, setUploading] = useState(false)
 
   const setActiveContent = useContentStore((state) => state.setActiveContent)
 
@@ -184,6 +192,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   }
 
   const fetchPatients = async () => {
+    console.log("[ziad] fetchPatients called with therapyType:", therapyType)
     setLoading(true)
     try {
       const params = new URLSearchParams({
@@ -192,40 +201,71 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
         status: statusFilter,
       })
 
+      console.log("[ziad] API endpoint:", `${process.env.NEXT_PUBLIC_API_URL}${config.apiEndpoint}`)
+      console.log("[ziad] Query params:", params.toString())
+
       const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}${config.apiEndpoint}?${params}`)
 
+      console.log("[ziad] Raw response data:", response.data)
+
       const assignmentsData = Array.isArray(response.data) ? response.data : response.data.assignments || []
+
+      console.log("[ziad] Total assignments received:", assignmentsData.length)
+      console.log("[ziad] First few assignments:", assignmentsData.slice(0, 3))
 
       const paidAssignments = assignmentsData.filter((assignment) => {
         if (!assignment.programId) return false
         return assignment.programId.paymentStatus === "FULLY_PAID"
       })
 
+      console.log("[ziad] Paid assignments count:", paidAssignments.length)
+      console.log(
+        "[ziad] Paid assignments details:",
+        paidAssignments.map((a) => ({
+          id: a._id,
+          studentName: a.studentId?.firstName,
+          department: a.department,
+          programId: a.programId?._id,
+        })),
+      )
+
       let filteredAssignments = paidAssignments
       if (isDoctor() && doctorAssignments.length > 0) {
-        console.log("[v0] Is Doctor: true")
-        console.log("[v0] Doctor Assignments Count:", doctorAssignments.length)
+        console.log("[ziad] Is Doctor: true")
+        console.log("[ziad] Doctor Assignments Count:", doctorAssignments.length)
 
         const doctorAppointmentIds = doctorAssignments.map((da) => {
           // appointmentId can be a populated object with _id, or just a string ID
           return da.appointmentId?._id || da.appointmentId
         })
-        console.log("[v0] Doctor Appointment IDs:", doctorAppointmentIds)
+        console.log("[ziad] Doctor Appointment IDs:", doctorAppointmentIds)
 
         filteredAssignments = paidAssignments.filter((assignment) => {
           const appointmentId = assignment.programId?._id || assignment.programId
-          console.log("[v0] Checking appointment:", appointmentId, "in", doctorAppointmentIds)
+          console.log("[ziad] Checking appointment:", appointmentId, "in", doctorAppointmentIds)
           return doctorAppointmentIds.includes(appointmentId)
         })
-        console.log("[v0] Filtered Assignments after doctor filter:", filteredAssignments.length)
+        console.log("[ziad] Filtered Assignments after doctor filter:", filteredAssignments.length)
       } else {
-        console.log("[v0] Is Doctor:", isDoctor(), "| Doctor Assignments Length:", doctorAssignments.length)
+        console.log("[ziad] Is Doctor:", isDoctor(), "| Doctor Assignments Length:", doctorAssignments.length)
       }
+
+      console.log("[ziad] Final filtered assignments count:", filteredAssignments.length)
+      console.log(
+        "[ziad] Final filtered assignments:",
+        filteredAssignments.map((a) => ({
+          id: a._id,
+          studentName: a.studentId?.firstName,
+          department: a.department,
+          status: a.status,
+        })),
+      )
 
       setAssignments(filteredAssignments)
       setTotalPages(response.data.totalPages || 1)
     } catch (error) {
-      console.error(`Error fetching ${config.title}:`, error)
+      console.error("[ziad] Error fetching patients:", error)
+      console.error("[ziad] Error details:", error.response?.data)
       setAssignments([])
     } finally {
       setLoading(false)
@@ -284,7 +324,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
         aba: "/abaS",
         speech: "/speechS",
         "physical-therapy": "/physicalTherapyS",
-        Psychotherapy: "/PsychotherapyS",
+        psychotherapy: "/PsychotherapyS",
         "occupational-therapy": "/OccupationalTherapyS",
         "special-education": "/SpecialEducationS",
       }
@@ -389,7 +429,24 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
     return assignment.patient[property] || "N/A"
   }
 
-  const handlePlanClick = (patientId) => {
+  const handlePlanClick = async (patientId) => {
+    // For Psychotherapy, check if patient has a plan first
+    if (therapyType === "psychotherapy") {
+      const planCheck = await checkPatientPlan(patientId)
+
+      if (!planCheck.hasPlan) {
+        // Show upload modal instead of plan editor
+        const patient = assignments.find((p) => p.patient?._id === patientId)
+        setUploadModal({
+          open: true,
+          patientId,
+          patientName: patient?.patient?.name || "Student",
+        })
+        return
+      }
+    }
+
+    // For other departments or if plan exists, open editor normally
     setSelectedPatientId(patientId)
     setShowPlanEditor(true)
   }
@@ -437,6 +494,61 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
       day: "numeric",
       year: "numeric",
     })
+  }
+
+  const handleUploadPlan = async () => {
+    if (!uploadFile || !uploadModal.patientId) {
+      alert("Please select a file to upload")
+      return
+    }
+
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append("document", uploadFile)
+      formData.append("patientId", uploadModal.patientId)
+
+      const response = await axiosInstance.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/PsychotherapyS/upload-plan/${uploadModal.patientId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      )
+
+      if (response.status === 200) {
+        alert("Plan uploaded successfully!")
+        setUploadModal({ open: false, patientId: null, patientName: "" })
+        setUploadFile(null)
+
+        // Now open the plan editor with the uploaded plan
+        setSelectedPatientId(uploadModal.patientId)
+        setShowPlanEditor(true)
+      }
+    } catch (error) {
+      console.error("Error uploading plan:", error)
+      alert("Error uploading plan. Please try again.")
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Validate file type
+      const validTypes = [
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/msword",
+      ]
+      if (!validTypes.includes(file.type)) {
+        alert("Please upload a Word document (.docx or .doc)")
+        return
+      }
+      setUploadFile(file)
+    }
   }
 
   if (showPlanEditor && selectedPatientId) {
@@ -809,6 +921,77 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
               <div className={styles.modalActions}>
                 <button onClick={() => setErrorModal({ open: false, message: "" })} className={styles.cancelButton}>
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {uploadModal.open && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h3>Upload Psychotherapy Plan</h3>
+              <button
+                onClick={() => {
+                  setUploadModal({ open: false, patientId: null, patientName: "" })
+                  setUploadFile(null)
+                }}
+                className={styles.closeButton}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className={styles.modalContent}>
+              <div className={styles.uploadInfo}>
+                <p>
+                  Upload a plan document for <strong>{uploadModal.patientName}</strong>
+                </p>
+                <p className={styles.uploadNote}>
+                  Psychotherapy department requires manual plan uploads. Please upload the plan document (.docx or .doc)
+                  to continue.
+                </p>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Select Plan Document:</label>
+                <input
+                  type="file"
+                  accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  onChange={handleFileChange}
+                  className={styles.fileInput}
+                />
+                {uploadFile && <p className={styles.selectedFile}>Selected: {uploadFile.name}</p>}
+              </div>
+
+              <div className={styles.modalActions}>
+                <button
+                  onClick={() => {
+                    setUploadModal({ open: false, patientId: null, patientName: "" })
+                    setUploadFile(null)
+                  }}
+                  className={styles.cancelButton}
+                  disabled={uploading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUploadPlan}
+                  className={styles.completeActionButton}
+                  disabled={!uploadFile || uploading}
+                >
+                  {uploading ? (
+                    <>
+                      <Loader2 size={16} className={styles.spinning} />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={16} />
+                      Upload Plan
+                    </>
+                  )}
                 </button>
               </div>
             </div>

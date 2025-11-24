@@ -519,6 +519,8 @@ export function AccountantAppointments() {
       { endpoint: "/SpecialEducation/assign-to-Special-Education", name: "Special Education" },
       { endpoint: "/physicalTherapy/assign-to-physical", name: "Physical Therapy" },
       { endpoint: "/OccupationalTherapy/assign-to-Occupational", name: "Occupational Therapy" },
+      { endpoint: "/Psychotherapy/assign-to-Psychotherapy", name: "Psychotherapy" },
+
     ]
 
     const assignmentResults = {

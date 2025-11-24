@@ -259,6 +259,20 @@ export default function GenericPlanView({ department, patientId, onBack }) {
   const handleCloseQuarterSuccess = async (closedQuarterData) => {
     setShowCloseQuarterModal(false)
     await fetchAllHistoricalPlans()
+
+    if (department === "psychotherapy" && closedQuarterData?.responseData?.requiresManualUpload) {
+      const nextQuarter = closedQuarterData.responseData.nextQuarter
+      const nextYear = closedQuarterData.responseData.nextYear
+
+      // Update selected quarter/year to the new quarter
+      setSelectedQuarter(nextQuarter.toString())
+      setSelectedYear(nextYear.toString())
+
+      // Open upload modal for the new quarter
+      setTimeout(() => {
+        setIsUploadModalOpen(true)
+      }, 300)
+    }
   }
 
   const displayQuarter = selectedPlan ? selectedPlan.quarterOfYear : selectedQuarter

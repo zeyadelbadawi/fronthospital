@@ -1,9 +1,28 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Calendar, Clock, Check, User, CalendarDays, Filter, Users, Eye, Trash2, X, AlertCircle, CheckCircle, XCircle, CalendarIcon, ClockIcon, Phone, Mail } from 'lucide-react'
+import {
+  Search,
+  Calendar,
+  Clock,
+  Check,
+  User,
+  CalendarDays,
+  Filter,
+  Users,
+  Eye,
+  Trash2,
+  X,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  CalendarIcon,
+  ClockIcon,
+  Phone,
+  Mail,
+} from "lucide-react"
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from "next/navigation"
 import axiosInstance from "@/helper/axiosSetup"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
@@ -14,7 +33,7 @@ import {
   generateAppointmentRescheduleEmail,
   generateAppointmentCompletionEmail,
 } from "@/components/email-templates/AppointmentEmailTemplate"
-import { getCurrentUser, getCurrentUserId, isDoctor } from "../utils/auth-utils"
+import { getCurrentUserId, isDoctor } from "../utils/auth-utils"
 
 export function AppointmentsManagement() {
   const [appointments, setAppointments] = useState([])
@@ -204,10 +223,12 @@ export function AppointmentsManagement() {
           isList: false,
           title: `Single Session Appointment Cancelled`,
           titleAr: `تم إلغاء موعد الجلسة الفردية`,
-          message: `Your single session appointment scheduled for ${appointment?.date?.split("T")[0]
-            } at ${appointment.time} has been cancelled. Please contact our customer support team to know the reason for cancellation.`,
-          messageAr: `تم إلغاء موعد جلستك الفردية المجدول في ${appointment?.date?.split("T")[0]
-            } الساعة ${appointment.time}. يرجى التواصل مع فريق دعم العملاء لدينا لمعرفة سبب الإلغاء.`,
+          message: `Your single session appointment scheduled for ${
+            appointment?.date?.split("T")[0]
+          } at ${appointment.time} has been cancelled. Please contact our customer support team to know the reason for cancellation.`,
+          messageAr: `تم إلغاء موعد جلستك الفردية المجدول في ${
+            appointment?.date?.split("T")[0]
+          } الساعة ${appointment.time}. يرجى التواصل مع فريق دعم العملاء لدينا لمعرفة سبب الإلغاء.`,
           receiverId: appointment.patientid._id,
           rule: "Patient",
           type: "delete",
@@ -248,21 +269,23 @@ export function AppointmentsManagement() {
         alert("Appointment rescheduled successfully!")
         const formattedNewDate = rescheduleForm.newDate
           ? new Date(rescheduleForm.newDate).toLocaleDateString("en-US", {
-            weekday: "short",
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
           : "TBD"
 
         await sendNotification({
           isList: false,
           title: `Single Session Appointment Rescheduled`,
           titleAr: `تم إعادة جدولة موعد الجلسة الفردية`,
-          message: `Your single session appointment has been rescheduled to ${formattedNewDate} at ${rescheduleForm.newTime}. Your previous appointment was scheduled for ${appointment?.date?.split("T")[0]
-            } at ${appointment.time}.`,
-          messageAr: `تم إعادة جدولة موعد جلستك الفردية إلى ${formattedNewDate} الساعة ${rescheduleForm.newTime}. كان موعدك السابق مجدول في ${appointment?.date?.split("T")[0]
-            } الساعة ${appointment.time}.`,
+          message: `Your single session appointment has been rescheduled to ${formattedNewDate} at ${rescheduleForm.newTime}. Your previous appointment was scheduled for ${
+            appointment?.date?.split("T")[0]
+          } at ${appointment.time}.`,
+          messageAr: `تم إعادة جدولة موعد جلستك الفردية إلى ${formattedNewDate} الساعة ${rescheduleForm.newTime}. كان موعدك السابق مجدول في ${
+            appointment?.date?.split("T")[0]
+          } الساعة ${appointment.time}.`,
           receiverId: appointment.patientid._id,
           rule: "Patient",
           type: "reschedule",
@@ -302,8 +325,9 @@ export function AppointmentsManagement() {
         await sendNotification({
           isList: false,
           title: `Single session appointment Completed`,
-          message: `Your session has been marked as completed on date: ${appointment?.date?.split("T")[0]
-            } and time: ${appointment?.time}`,
+          message: `Your session has been marked as completed on date: ${
+            appointment?.date?.split("T")[0]
+          } and time: ${appointment?.time}`,
           receiverId: appointment.patientid._id,
           rule: "Patient",
           type: "successfully",
@@ -364,6 +388,7 @@ export function AppointmentsManagement() {
       const colors = {
         speech: "speech",
         physical_therapy: "physical",
+        psychotherapy: "Psychotherapy",
         Psychotherapy: "Psychotherapy",
         ABA: "aba",
         occupational_therapy: "occupational",
@@ -599,7 +624,8 @@ export function AppointmentsManagement() {
                         </td>
                         <td className={styles.typeCell}>
                           <span
-                            className={`${styles.typeBadge} ${status.color === "green"
+                            className={`${styles.typeBadge} ${
+                              status.color === "green"
                                 ? "completed"
                                 : status.color === "red"
                                   ? "assessment"
@@ -608,7 +634,7 @@ export function AppointmentsManagement() {
                                     : status.color === "gray"
                                       ? "pending"
                                       : "active"
-                              }`}
+                            }`}
                           >
                             {status.color === "green" ? (
                               <CheckCircle className={styles.statusIcon} />
