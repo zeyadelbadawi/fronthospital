@@ -14,7 +14,7 @@ export function SessionProvider({ children }) {
     const sessionTimeoutRef = useRef(null)
     const warningTimeoutRef = useRef(null)
 
-    const SESSION_TIMEOUT = 5 * 60 * 1000 // 5 minutes
+    const SESSION_TIMEOUT = 50 * 60 * 1000 // 50 minutes
     const WARNING_TIME = 1 * 60 * 1000 // Show warning 1 minute before timeout
 
     // Handle session timeout
@@ -73,7 +73,17 @@ export function SessionProvider({ children }) {
         // Track user activity
         const events = ["mousedown", "keydown", "scroll", "touchstart", "click"]
 
-        const handleActivity = () => {
+        const handleActivity = (e) => {
+            // Check if e.target exists and is a DOM element with the closest method
+            if (!e.target || typeof e.target.closest !== "function") {
+                return
+            }
+
+            const isModalClick = e.target.closest("[data-session-modal]")
+            if (isModalClick) {
+                return
+            }
+
             if (token && !keepMeLoggedIn) {
                 resetSessionTimer()
             }

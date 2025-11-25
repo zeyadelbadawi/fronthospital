@@ -18,7 +18,6 @@ const decodeJWT = (token) => {
 
 // Check if user is authenticated
 export const isAuthenticated = () => {
-  // Check if we're in the browser
   if (typeof window === "undefined") return false
 
   const token = localStorage.getItem("token")
@@ -27,7 +26,6 @@ export const isAuthenticated = () => {
   const decoded = decodeJWT(token)
   if (!decoded) return false
 
-  // Check if token is expired
   const currentTime = Date.now() / 1000
   if (decoded.exp < currentTime) {
     localStorage.removeItem("token")
@@ -39,7 +37,6 @@ export const isAuthenticated = () => {
 
 // Get current user info from token
 export const getCurrentUser = () => {
-  // Check if we're in the browser
   if (typeof window === "undefined") return null
 
   const token = localStorage.getItem("token")
@@ -68,16 +65,28 @@ export const getCurrentUserId = () => {
   return user ? user.id : null
 }
 
-// Check if current user has access to school (admin or doctor only)
-export const hasSchoolAccess = () => {
-  const role = getCurrentUserRole()
-  return role === "admin" || role === "doctor"
-}
-
 // Check if current user is admin
 export const isAdmin = () => {
   const role = getCurrentUserRole()
   return role === "admin"
+}
+
+// Check if current user is head doctor
+export const isHeadDoctor = () => {
+  const role = getCurrentUserRole()
+  return role === "head_doctor"
+}
+
+// Check if current user is admin or head doctor
+export const isAdminOrHeadDoctor = () => {
+  const role = getCurrentUserRole()
+  return role === "admin" || role === "head_doctor"
+}
+
+// Check if current user has access to school sections (admin or doctor)
+export const hasSchoolAccess = () => {
+  const role = getCurrentUserRole()
+  return role === "admin" || role === "doctor" || role === "head_doctor"
 }
 
 // Check if current user is doctor
@@ -104,15 +113,8 @@ export const isStudent = () => {
   return role === "student"
 }
 
-// Check if current user has access to single session
-export const hasSingleSessionAccess = () => {
-  const role = getCurrentUserRole()
-  return ["admin", "doctor", "student", "accountant"].includes(role)
-}
-
 // Logout function
 export const logout = () => {
-  // Check if we're in the browser
   if (typeof window === "undefined") return
 
   localStorage.removeItem("token")
@@ -121,7 +123,6 @@ export const logout = () => {
 
 // Get token
 export const getToken = () => {
-  // Check if we're in the browser
   if (typeof window === "undefined") return null
 
   return localStorage.getItem("token")

@@ -26,7 +26,7 @@ import { useContentStore } from "../store/content-store"
 import { sendNotification } from "@/helper/notification-helper"
 import UnifiedPlanEditor from "./unified-plan-editor"
 import styles from "../styles/speech-upcoming-appointments.module.css"
-import { getCurrentUserId, isDoctor } from "../utils/auth-utils"
+import { getCurrentUserId, isDoctor, getCurrentUserRole } from "../utils/auth-utils"
 
 // Configuration for different therapy types
 const THERAPY_CONFIGS = {
@@ -120,13 +120,15 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   const [completionNotes, setCompletionNotes] = useState("")
   const [showPlanEditor, setShowPlanEditor] = useState(false)
   const [selectedPatientId, setSelectedPatientId] = useState(null)
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null)
   const [adminHeadDoctorIds, setAdminHeadDoctorIds] = useState([])
   const [doctorAssignments, setDoctorAssignments] = useState([])
   const [errorModal, setErrorModal] = useState({ open: false, message: "" })
   const [isDoctorRole, setIsDoctorRole] = useState(false)
-  const [uploadModal, setUploadModal] = useState({ open: false, patientId: null, patientName: "" })
+  const [uploadModal, setUploadModal] = useState({ open: false, patientId: null, appointmentId: null, patientName: "" })
   const [uploadFile, setUploadFile] = useState(null)
   const [uploading, setUploading] = useState(false)
+  const [planEditorKey, setPlanEditorKey] = useState(0)
 
   const setActiveContent = useContentStore((state) => state.setActiveContent)
 
@@ -138,44 +140,67 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   }, [])
 
   useEffect(() => {
-    getAdminHeadDoctorIds()
-    if (isDoctor()) {
-      fetchDoctorAssignments()
-    } else {
-      fetchPatients()
-    }
-  }, [therapyType, currentPage, search, statusFilter])
+    console.log("[v0] ===========================================")
+    console.log("[v0] UNIFIED-PATIENTS-MANAGEMENT DEBUG START")
+    console.log("[v0] ===========================================")
+    console.log("[v0] therapyType:", therapyType)
+    console.log("[v0] isDoctor():", isDoctor())
+    console.log("[v0] getCurrentUserId():", getCurrentUserId())
+    console.log("[v0] getCurrentUserRole():", getCurrentUserRole ? getCurrentUserRole() : "no function")
 
-  useEffect(() => {
-    if (isDoctor() && doctorAssignments.length >= 0) {
-      fetchPatients()
+    const loadData = async () => {
+      await getAdminHeadDoctorIds()
+
+      if (isDoctor()) {
+        console.log("[v0] User is a doctor, fetching doctor assignments...")
+        await fetchDoctorAssignments()
+      } else {
+        console.log("[v0] User is NOT a doctor")
+      }
+
+      await fetchPatients()
     }
-  }, [doctorAssignments])
+
+    loadData()
+  }, [therapyType, currentPage, search, statusFilter])
 
   const fetchDoctorAssignments = async () => {
     try {
       const doctorId = getCurrentUserId()
-      if (!doctorId) return
+      console.log("[v0] fetchDoctorAssignments - doctorId:", doctorId)
+
+      if (!doctorId) {
+        console.log("[v0] No doctorId found, returning")
+        return
+      }
+
+      console.log(
+        "[v0] Fetching assignments from:",
+        `${process.env.NEXT_PUBLIC_API_URL}/single-session-appointment-assignment/doctor/${doctorId}`,
+      )
 
       const response = await axiosInstance.get(
         `${process.env.NEXT_PUBLIC_API_URL}/single-session-appointment-assignment/doctor/${doctorId}`,
       )
 
+      console.log("[v0] Raw doctor assignments response:", response.data)
+      console.log("[v0] Total assignments received:", response.data.assignments?.length || 0)
+
       const currentDepartment = getDepartmentNameForAssignment(therapyType)
-      console.log("[v0] Therapy Type:", therapyType)
-      console.log("[v0] Mapped Department Name:", currentDepartment)
-      console.log("[v0] All Doctor Assignments:", response.data.assignments)
+      console.log("[v0] Current department for filtering:", currentDepartment)
 
       const filteredByDepartment = (response.data.assignments || []).filter((assignment) => {
-        console.log("[v0] Checking assignment department:", assignment.department, "against", currentDepartment)
-        // Case-insensitive comparison to handle inconsistent database casing
-        return assignment.department?.toLowerCase() === currentDepartment.toLowerCase()
+        const matches = assignment.department?.toLowerCase() === currentDepartment.toLowerCase()
+        console.log("[v0] Assignment department:", assignment.department, "matches:", matches)
+        return matches
       })
 
-      console.log("[v0] Filtered Assignments for this department:", filteredByDepartment)
+      console.log("[v0] Filtered assignments for", currentDepartment, ":", filteredByDepartment)
+      console.log("[v0] Filtered assignments count:", filteredByDepartment.length)
+
       setDoctorAssignments(filteredByDepartment)
     } catch (error) {
-      console.error("Error fetching doctor assignments:", error)
+      console.error("[v0] Error fetching doctor assignments:", error)
       setDoctorAssignments([])
     }
   }
@@ -192,80 +217,81 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   }
 
   const fetchPatients = async () => {
-    console.log("[ziad] fetchPatients called with therapyType:", therapyType)
+    console.log("[v0] ----------------------------------------")
+    console.log("[v0] fetchPatients START")
+    console.log("[v0] therapyType:", therapyType)
+    console.log("[v0] config:", config)
+
     setLoading(true)
     try {
+      let apiEndpoint = config.apiEndpoint
+      console.log("[v0] Original apiEndpoint:", apiEndpoint)
+
+      const isDoctorRole = isDoctor()
+      console.log("[v0] isDoctorRole:", isDoctorRole)
+
+      if (isDoctorRole) {
+        const doctorId = getCurrentUserId()
+        console.log("[v0] doctorId:", doctorId)
+
+        if (doctorId) {
+          // Replace the standard endpoint with the doctor-specific one
+          apiEndpoint = apiEndpoint.replace("-assignments", `-assignments-by-doctor/${doctorId}`)
+          console.log("[v0] Modified apiEndpoint (doctor-specific):", apiEndpoint)
+        }
+      }
+
       const params = new URLSearchParams({
         page: currentPage.toString(),
         search: search,
         status: statusFilter,
       })
 
-      console.log("[ziad] API endpoint:", `${process.env.NEXT_PUBLIC_API_URL}${config.apiEndpoint}`)
-      console.log("[ziad] Query params:", params.toString())
+      const fullUrl = `${process.env.NEXT_PUBLIC_API_URL}${apiEndpoint}?${params}`
+      console.log("[v0] Full API URL:", fullUrl)
 
-      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}${config.apiEndpoint}?${params}`)
+      const response = await axiosInstance.get(fullUrl)
 
-      console.log("[ziad] Raw response data:", response.data)
+      console.log("[v0] Response status:", response.status)
+      console.log("[v0] Response data keys:", Object.keys(response.data))
+      console.log("[v0] Response data:", response.data)
 
       const assignmentsData = Array.isArray(response.data) ? response.data : response.data.assignments || []
 
-      console.log("[ziad] Total assignments received:", assignmentsData.length)
-      console.log("[ziad] First few assignments:", assignmentsData.slice(0, 3))
+      console.log("[v0] Total assignments received:", assignmentsData.length)
+
+      if (isDoctorRole && assignmentsData.length === 0) {
+        console.log("[v0] Doctor has no assignments from backend, showing empty list")
+        setAssignments([])
+        setTotalPages(1)
+        return
+      }
 
       const paidAssignments = assignmentsData.filter((assignment) => {
         if (!assignment.programId) return false
         return assignment.programId.paymentStatus === "FULLY_PAID"
       })
 
-      console.log("[ziad] Paid assignments count:", paidAssignments.length)
-      console.log(
-        "[ziad] Paid assignments details:",
-        paidAssignments.map((a) => ({
-          id: a._id,
-          studentName: a.studentId?.firstName,
-          department: a.department,
-          programId: a.programId?._id,
-        })),
-      )
+      console.log("[v0] Paid assignments count:", paidAssignments.length)
 
-      let filteredAssignments = paidAssignments
-      if (isDoctor() && doctorAssignments.length > 0) {
-        console.log("[ziad] Is Doctor: true")
-        console.log("[ziad] Doctor Assignments Count:", doctorAssignments.length)
+      const sortedAssignments = paidAssignments.sort((a, b) => {
+        const dateA = new Date(a.createdAt || a._id)
+        const dateB = new Date(b.createdAt || b._id)
+        return dateB - dateA
+      })
 
-        const doctorAppointmentIds = doctorAssignments.map((da) => {
-          // appointmentId can be a populated object with _id, or just a string ID
-          return da.appointmentId?._id || da.appointmentId
-        })
-        console.log("[ziad] Doctor Appointment IDs:", doctorAppointmentIds)
+      console.log("[v0] Final sorted assignments count:", sortedAssignments.length)
+      console.log("[v0] Setting assignments state with:", sortedAssignments.length, "items")
 
-        filteredAssignments = paidAssignments.filter((assignment) => {
-          const appointmentId = assignment.programId?._id || assignment.programId
-          console.log("[ziad] Checking appointment:", appointmentId, "in", doctorAppointmentIds)
-          return doctorAppointmentIds.includes(appointmentId)
-        })
-        console.log("[ziad] Filtered Assignments after doctor filter:", filteredAssignments.length)
-      } else {
-        console.log("[ziad] Is Doctor:", isDoctor(), "| Doctor Assignments Length:", doctorAssignments.length)
-      }
-
-      console.log("[ziad] Final filtered assignments count:", filteredAssignments.length)
-      console.log(
-        "[ziad] Final filtered assignments:",
-        filteredAssignments.map((a) => ({
-          id: a._id,
-          studentName: a.studentId?.firstName,
-          department: a.department,
-          status: a.status,
-        })),
-      )
-
-      setAssignments(filteredAssignments)
+      setAssignments(sortedAssignments)
       setTotalPages(response.data.totalPages || 1)
+
+      console.log("[v0] fetchPatients END")
+      console.log("[v0] ----------------------------------------")
     } catch (error) {
-      console.error("[ziad] Error fetching patients:", error)
-      console.error("[ziad] Error details:", error.response?.data)
+      console.error("[v0] Error fetching patients:", error)
+      console.error("[v0] Error response:", error.response?.data)
+      console.error("[v0] Error status:", error.response?.status)
       setAssignments([])
     } finally {
       setLoading(false)
@@ -318,7 +344,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
     }
   }
 
-  const checkPatientPlan = async (patientId) => {
+  const checkPatientPlan = async (patientId, appointmentId) => {
     try {
       const departmentEndpoint = {
         aba: "/abaS",
@@ -335,7 +361,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
       }
 
       const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}${endpoint}/plan-details/${patientId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}${endpoint}/plan-details/${patientId}/${appointmentId}`,
       )
 
       // Check if plan exists and has a file
@@ -366,7 +392,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
     }
 
     // Check if patient has a plan
-    const planCheck = await checkPatientPlan(patientId)
+    const planCheck = await checkPatientPlan(patientId, assignment.programId._id)
 
     if (!planCheck.hasPlan) {
       setErrorModal({
@@ -429,10 +455,10 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
     return assignment.patient[property] || "N/A"
   }
 
-  const handlePlanClick = async (patientId) => {
+  const handlePlanClick = async (patientId, appointmentId) => {
     // For Psychotherapy, check if patient has a plan first
     if (therapyType === "psychotherapy") {
-      const planCheck = await checkPatientPlan(patientId)
+      const planCheck = await checkPatientPlan(patientId, appointmentId)
 
       if (!planCheck.hasPlan) {
         // Show upload modal instead of plan editor
@@ -440,6 +466,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
         setUploadModal({
           open: true,
           patientId,
+          appointmentId,
           patientName: patient?.patient?.name || "Student",
         })
         return
@@ -448,12 +475,14 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
 
     // For other departments or if plan exists, open editor normally
     setSelectedPatientId(patientId)
+    setSelectedAppointmentId(appointmentId)
     setShowPlanEditor(true)
   }
 
   const handleBackFromPlanEditor = () => {
     setShowPlanEditor(false)
     setSelectedPatientId(null)
+    setSelectedAppointmentId(null)
   }
 
   const getStatusBadgeClass = (status) => {
@@ -497,7 +526,11 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   }
 
   const handleUploadPlan = async () => {
-    if (!uploadFile || !uploadModal.patientId) {
+    console.log("[v0] handleUploadPlan started")
+    console.log("[v0] uploadFile:", uploadFile?.name)
+    console.log("[v0] uploadModal:", uploadModal)
+
+    if (!uploadFile || !uploadModal.patientId || !uploadModal.appointmentId) {
       alert("Please select a file to upload")
       return
     }
@@ -507,28 +540,40 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
       const formData = new FormData()
       formData.append("document", uploadFile)
       formData.append("patientId", uploadModal.patientId)
+      formData.append("appointmentId", uploadModal.appointmentId)
 
-      const response = await axiosInstance.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/PsychotherapyS/upload-plan/${uploadModal.patientId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+      const uploadUrl = `${process.env.NEXT_PUBLIC_API_URL}/PsychotherapyS/upload-plan/${uploadModal.patientId}/${uploadModal.appointmentId}`
+      console.log("[v0] Uploading to:", uploadUrl)
+
+      const response = await axiosInstance.post(uploadUrl, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
-      )
+      })
+
+      console.log("[v0] Upload response:", response.data)
 
       if (response.status === 200) {
         alert("Plan uploaded successfully!")
-        setUploadModal({ open: false, patientId: null, patientName: "" })
+        setUploadModal({ open: false, patientId: null, appointmentId: null, patientName: "" })
         setUploadFile(null)
+
+        console.log("[v0] Incrementing planEditorKey from", planEditorKey, "to", planEditorKey + 1)
+        setPlanEditorKey((prev) => prev + 1)
+
+        console.log("[v0] Opening plan editor with:", {
+          patientId: uploadModal.patientId,
+          appointmentId: uploadModal.appointmentId,
+        })
 
         // Now open the plan editor with the uploaded plan
         setSelectedPatientId(uploadModal.patientId)
+        setSelectedAppointmentId(uploadModal.appointmentId)
         setShowPlanEditor(true)
       }
     } catch (error) {
-      console.error("Error uploading plan:", error)
+      console.error("[v0] Error uploading plan:", error)
+      console.error("[v0] Error response:", error.response?.data)
       alert("Error uploading plan. Please try again.")
     } finally {
       setUploading(false)
@@ -551,9 +596,15 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
     }
   }
 
-  if (showPlanEditor && selectedPatientId) {
+  if (showPlanEditor && selectedPatientId && selectedAppointmentId) {
     return (
-      <UnifiedPlanEditor patientId={selectedPatientId} therapyType={therapyType} onBack={handleBackFromPlanEditor} />
+      <UnifiedPlanEditor
+        key={planEditorKey}
+        patientId={selectedPatientId}
+        appointmentId={selectedAppointmentId}
+        therapyType={therapyType}
+        onBack={handleBackFromPlanEditor}
+      />
     )
   }
 
@@ -737,7 +788,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
                             </button>
                             {assignment.status !== "completed" && (
                               <button
-                                onClick={() => handlePlanClick(assignment.patient?._id)}
+                                onClick={() => handlePlanClick(assignment.patient?._id, assignment.programId._id)}
                                 className={`${styles.actionButton} ${styles.editButton}`}
                                 title="Student Plan"
                                 disabled={!assignment.patient?._id}
@@ -839,7 +890,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
                   <h4>Actions</h4>
                   <div className={styles.modalActions}>
                     <button
-                      onClick={() => handlePlanClick(viewModal.patient._id)}
+                      onClick={() => handlePlanClick(viewModal.patient._id, null)}
                       className={styles.planActionButton}
                       disabled={!viewModal.patient._id}
                     >
@@ -935,7 +986,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
               <h3>Upload Psychotherapy Plan</h3>
               <button
                 onClick={() => {
-                  setUploadModal({ open: false, patientId: null, patientName: "" })
+                  setUploadModal({ open: false, patientId: null, appointmentId: null, patientName: "" })
                   setUploadFile(null)
                 }}
                 className={styles.closeButton}
@@ -968,7 +1019,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
               <div className={styles.modalActions}>
                 <button
                   onClick={() => {
-                    setUploadModal({ open: false, patientId: null, patientName: "" })
+                    setUploadModal({ open: false, patientId: null, appointmentId: null, patientName: "" })
                     setUploadFile(null)
                   }}
                   className={styles.cancelButton}

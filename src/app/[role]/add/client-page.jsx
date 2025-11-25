@@ -20,9 +20,6 @@ function AddPageContent({ role }) {
   )
 }
 
-export default async function AddPageClientWrapper({ params }) {
-  const awaitedParams = await params
-  const role = awaitedParams.role
-
+export default function AddPageClientWrapper({ role }) {
   return <RBACWrapper>{() => <AddPageContent role={role} />}</RBACWrapper>
 }

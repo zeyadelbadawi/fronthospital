@@ -41,31 +41,37 @@ export default function SingleProgramTab({ patientId, language, translations: t 
       name: "Applied Behavior Analysis",
       icon: Activity,
       color: "#3b82f6",
-      route: "abaS",
+      route: "ABAS", // Fixed to match backend upload folder
     },
     speech: {
       name: "Speech Therapy",
       icon: User,
       color: "#10b981",
-      route: "speechS",
+      route: "SpeechS", // Fixed to match backend upload folder
     },
     physical_therapy: {
       name: "Physical Therapy",
       icon: Activity,
       color: "#f59e0b",
-      route: "physicalTherapyS",
+      route: "physical-therapyS", // Fixed to match backend upload folder with hyphen
     },
     occupational_therapy: {
       name: "Occupational Therapy",
       icon: Briefcase,
       color: "#8b5cf6",
-      route: "OccupationalTherapyS",
+      route: "Occupational-therapyS", // Fixed to match backend upload folder with hyphen
     },
     special_education: {
       name: "Special Education",
       icon: FileText,
       color: "#ef4444",
-      route: "SpecialEducationS",
+      route: "Special-EducationS", // Fixed to match backend upload folder with hyphen
+    },
+    Psychotherapy: {
+      name: "Psychotherapy",
+      icon: User,
+      color: "#ec4899",
+      route: "Psycho-therapyS", // Fixed to match backend upload folder with hyphen
     },
   }
 
@@ -81,6 +87,8 @@ export default function SingleProgramTab({ patientId, language, translations: t 
         return t?.profile?.occupationalTherapy || "Occupational Therapy"
       case "special_education":
         return t?.profile?.specialEducation || "Special Education"
+      case "Psychotherapy":
+        return t?.profile?.psychotherapy || "Psychotherapy"
       default:
         return deptName
     }
@@ -121,22 +129,26 @@ export default function SingleProgramTab({ patientId, language, translations: t 
 
               try {
                 // Fetch assignment and plan for this department
-                const [assignmentRes, planRes] = await Promise.all([
-                  axios
-                    .get(`${process.env.NEXT_PUBLIC_API_URL}/${deptConfig.route}/assignment-by-program/${program._id}`)
-                    .catch(() => ({ data: null })),
-                  axios
-                    .get(`${process.env.NEXT_PUBLIC_API_URL}/${deptConfig.route}/plan-details/${patientId}`)
-                    .catch(() => ({ data: null })),
-                ])
+                const assignmentRes = await axios
+                  .get(`${process.env.NEXT_PUBLIC_API_URL}/${deptConfig.route}/assignment-by-program/${program._id}`)
+                  .catch(() => ({ data: null }))
 
-                const planToShow = assignmentRes.data && assignmentRes.data.status === "completed" ? planRes.data : null
+                let planRes = { data: null }
+
+                // Only fetch plan if assignment exists and is completed
+                if (assignmentRes.data && assignmentRes.data.status === "completed") {
+                  planRes = await axios
+                    .get(
+                      `${process.env.NEXT_PUBLIC_API_URL}/${deptConfig.route}/plan-details/${patientId}/${program._id}`,
+                    )
+                    .catch(() => ({ data: null }))
+                }
 
                 return {
                   name: dept,
                   displayName: deptConfig.name,
                   assignment: assignmentRes.data,
-                  plan: planToShow, // Only show plan if assignment is completed
+                  plan: planRes.data,
                   icon: deptConfig.icon,
                   color: deptConfig.color,
                 }
@@ -392,7 +404,7 @@ export default function SingleProgramTab({ patientId, language, translations: t 
   const handleViewFile = (plan, departmentName) => {
     if (plan && plan.filePath) {
       const deptConfig = departmentMapping[departmentName]
-      const fileUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/${deptConfig?.route || "files"}/${plan.filePath}`
+      const fileUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/${deptConfig?.route || "files"}/plan/${plan.filePath}`
 
       setViewingDocument({
         filePath: fileUrl,
@@ -407,9 +419,11 @@ export default function SingleProgramTab({ patientId, language, translations: t 
     try {
       if (plan && plan.filePath) {
         const deptConfig = departmentMapping[departmentName]
-        const fileUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/${deptConfig?.route || "files"}/${plan.filePath}`
+
+        const fileUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/${deptConfig?.route || "files"}/plan/${plan.filePath}`
 
         const response = await axios.get(fileUrl, { responseType: "blob" })
+
         const url = window.URL.createObjectURL(new Blob([response.data]))
         const link = document.createElement("a")
         link.href = url
@@ -418,6 +432,8 @@ export default function SingleProgramTab({ patientId, language, translations: t 
         link.click()
         link.remove()
         window.URL.revokeObjectURL(url)
+      } else {
+        alert("No file available to download")
       }
     } catch (error) {
       console.error("Error downloading file:", error)

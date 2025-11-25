@@ -10,8 +10,15 @@ export default function SessionTimeoutWarning() {
         return null
     }
 
+    const handleOverlayClick = (e) => {
+        // Only close if clicking directly on the overlay, not the modal content
+        if (e.target === e.currentTarget) {
+            // Do nothing - require explicit button click
+        }
+    }
+
     return (
-        <div className={styles.overlay}>
+        <div className={styles.overlay} onClick={handleOverlayClick} data-session-modal>
             <div className={styles.modal}>
                 <div className={styles.header}>
                     <h2 className={styles.title}>Session Timeout Warning</h2>

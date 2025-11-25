@@ -46,6 +46,18 @@ const PLAN_CONFIGS = {
     icon: Brain,
     color: "#F59E0B", // Orange
   },
+  psychotherapy: {
+    title: "Psychotherapy Plan",
+    subtitle: "Psychotherapy Rehabilitation Treatment Plan",
+    apiEndpoint: "/PsychotherapyS/plan",
+    uploadEndpoint: "/PsychotherapyS/upload-plan",
+    assignmentsEndpoint: "/PsychotherapyS/Psychotherapy-assignments",
+    defaultFileName: "Psychotherapy-plan-defoult.docx",
+    uploadPath: "Psycho-therapyS/plan",
+    planType: "Psychotherapy",
+    icon: Brain,
+    color: "#F59E0B", // Orange
+  },
   Psychotherapy: {
     title: "Psychotherapy Plan",
     subtitle: "Psychotherapy Rehabilitation Treatment Plan",
@@ -53,7 +65,7 @@ const PLAN_CONFIGS = {
     uploadEndpoint: "/PsychotherapyS/upload-plan",
     assignmentsEndpoint: "/PsychotherapyS/Psychotherapy-assignments",
     defaultFileName: "Psychotherapy-plan-defoult.docx",
-    uploadPath: "PsychotherapyS/plan",
+    uploadPath: "Psycho-therapyS/plan",
     planType: "Psychotherapy",
     icon: Brain,
     color: "#F59E0B", // Orange
@@ -84,7 +96,9 @@ const PLAN_CONFIGS = {
   },
 }
 
-const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
+const UnifiedPlanEditor = ({ patientId, appointmentId, therapyType, onBack }) => {
+  console.log("[v0] UnifiedPlanEditor mounted with:", { patientId, appointmentId, therapyType })
+
   const [patient, setPatient] = useState(null)
   const [plan, setPlan] = useState({
     title: "",
@@ -110,18 +124,28 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
   const config = PLAN_CONFIGS[therapyType]
 
   useEffect(() => {
+    console.log("[v0] useEffect triggered - checking conditions:", {
+      config: !!config,
+      patientId,
+      appointmentId,
+      therapyType,
+    })
+
     setIsDoctorRole(isDoctor())
 
     if (!config) {
-      console.error(`Invalid therapy type: ${therapyType}`)
+      console.error(`[v0] Invalid therapy type: ${therapyType}`)
       return
     }
-    if (patientId) {
+    if (patientId && appointmentId) {
+      console.log("[v0] Fetching patient data and plan...")
       fetchPatientData()
       fetchExistingPlan()
       fetchPlanStats()
+    } else {
+      console.warn("[v0] Missing patientId or appointmentId:", { patientId, appointmentId })
     }
-  }, [patientId, therapyType])
+  }, [patientId, appointmentId, therapyType])
 
   const fetchPatientData = async () => {
     setLoading(true)
@@ -139,7 +163,9 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
   const fetchExistingPlan = async () => {
     setPlanDataReady(false)
     try {
-      const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}${config.apiEndpoint}/${patientId}`)
+      const response = await axiosInstance.get(
+        `${process.env.NEXT_PUBLIC_API_URL}${config.apiEndpoint}/${patientId}/${appointmentId}`,
+      )
 
       const hasExistingPlan = !!response.data && !!response.data.filePath
 
@@ -158,14 +184,24 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
         })
       }
     } catch (error) {
-      console.error("Error fetching plan data:", error)
-      setPlan({
-        title: config.title,
-        filePath: "",
-        fileName: "",
-        planContent: "",
-        hasExistingPlan: false,
-      })
+      if (error.response?.status === 404) {
+        setPlan({
+          title: config.title,
+          filePath: "",
+          fileName: "",
+          planContent: "",
+          hasExistingPlan: false,
+        })
+      } else {
+        console.error("[v0] Error fetching plan data:", error.message)
+        setPlan({
+          title: config.title,
+          filePath: "",
+          fileName: "",
+          planContent: "",
+          hasExistingPlan: false,
+        })
+      }
     } finally {
       setPlanDataReady(true)
     }
@@ -204,7 +240,7 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
 
   // SAVE FUNCTION - Similar to patient-school-plan-editor.jsx
   const handleSave = async () => {
-    if (!patientId || !config) {
+    if (!patientId || !appointmentId || !config) {
       showErrorMessage("Missing required information to save plan")
       return
     }
@@ -238,15 +274,15 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
       const formData = new FormData()
 
       // Create a proper file name
-      const fileName = `${patientId}_${therapyType}_${new Date().getTime()}.docx`
+      const fileName = `${patientId}_${appointmentId}_${therapyType}_${new Date().getTime()}.docx`
 
       // Append the document blob with proper filename
       formData.append("document", documentContent, fileName)
       formData.append("patientId", patientId)
+      formData.append("appointmentId", appointmentId)
 
-      // Send the form data to server
       const response = await axiosInstance.post(
-        `${process.env.NEXT_PUBLIC_API_URL}${config.uploadEndpoint}/${patientId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}${config.uploadEndpoint}/${patientId}/${appointmentId}`,
         formData,
         {
           headers: {
@@ -493,7 +529,7 @@ const UnifiedPlanEditor = ({ patientId, therapyType, onBack }) => {
                     fileName: plan.hasExistingPlan ? plan.fileName : config.defaultFileName,
                     docxName: `${therapyType}-plan-${patient.name}-${new Date().getTime()}`,
                   }}
-                  planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}${config.uploadEndpoint}/${patientId}`}
+                  planEndpoint={`${process.env.NEXT_PUBLIC_API_URL}${config.uploadEndpoint}/${patientId}/${appointmentId}`}
                   onContentChange={handlePlanContentChange}
                 />
               )}

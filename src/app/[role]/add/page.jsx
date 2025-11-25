@@ -9,6 +9,7 @@ export async function generateMetadata({ params }) {
   }
 }
 
-export default function AddPage({ params }) {
-  return <AddPageClientWrapper params={params} />
+export default async function AddPage({ params }) {
+  const awaitedParams = await params
+  return <AddPageClientWrapper role={awaitedParams.role} />
 }

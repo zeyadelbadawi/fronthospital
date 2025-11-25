@@ -1,9 +1,10 @@
 .planEditorContainer {
   min-height: 100vh;
   padding: 1rem;
-  max-width: 1144px;
+  /* Changed from width: 100% back to max-width to work with sidebar layout */
+  max-width: 1300px;
+  margin: 0 auto;
 }
-
 
 .planEditorCard {
   background: white;
@@ -16,13 +17,8 @@
 
 /* Header Styles */
 .planHeader {
-background: linear-gradient(
-  135deg,
-  #2977ba 0%,
-  #3f3f87 25%,
-  #cc2889 60%,
-  #2977ba 100%
-);  color: white;
+  background: linear-gradient(135deg, #2977ba 0%, #3f3f87 25%, #cc2889 60%, #2977ba 100%);
+  color: white;
   padding: 2rem;
   border-top: 4px solid #4f46e5;
 }
@@ -136,6 +132,7 @@ background: linear-gradient(
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -180,7 +177,6 @@ background: linear-gradient(
   border-radius: 8px;
   border-left: 4px solid #e2e8f0;
 }
-
 
 .studentInfoIcon {
   width: 20px;

@@ -92,19 +92,37 @@ export function AppointmentsManagement() {
   ]
 
   useEffect(() => {
+    console.log("[v0] ===========================================")
+    console.log("[v0] APPOINTMENTS DEBUG START")
+    console.log("[v0] ===========================================")
+    console.log("[v0] isDoctor():", isDoctor())
+    console.log("[v0] getCurrentUserId():", getCurrentUserId())
+
     const fetchDoctorAssignments = async () => {
       const isDoctorRole = isDoctor()
+      console.log("[v0] isDoctorRole:", isDoctorRole)
+
       setUserIsDoctor(isDoctorRole)
       const doctorId = getCurrentUserId()
+      console.log("[v0] doctorId:", doctorId)
 
       if (isDoctorRole && doctorId) {
         try {
+          console.log(
+            "[v0] Fetching doctor assignments from:",
+            `${process.env.NEXT_PUBLIC_API_URL}/single-session-appointment-assignment/doctor/${doctorId}`,
+          )
+
           const response = await axiosInstance.get(
             `${process.env.NEXT_PUBLIC_API_URL}/single-session-appointment-assignment/doctor/${doctorId}`,
           )
+
+          console.log("[v0] Doctor assignments response:", response.data)
+          console.log("[v0] Total assignments:", response.data.assignments?.length || 0)
+
           setDoctorAssignments(response.data.assignments || [])
         } catch (error) {
-          console.error("Error fetching doctor assignments:", error)
+          console.error("[v0] Error fetching doctor assignments:", error)
           setDoctorAssignments([])
         }
       }
@@ -122,44 +140,89 @@ export function AppointmentsManagement() {
   }, [appointments, dateFilter, statusFilter])
 
   const fetchAppointments = async () => {
+    console.log("[v0] ----------------------------------------")
+    console.log("[v0] fetchAppointments START")
+    console.log("[v0] userIsDoctor:", userIsDoctor)
+    console.log("[v0] doctorAssignments.length:", doctorAssignments.length)
+
     setLoading(true)
     try {
+      const isDoctorRole = isDoctor()
+      const doctorId = getCurrentUserId()
+      console.log("[v0] isDoctorRole:", isDoctorRole)
+      console.log("[v0] doctorId:", doctorId)
+
+      if (isDoctorRole && doctorAssignments.length === 0) {
+        console.log("[v0] Doctor has no assignments, showing empty list")
+        setAppointments([])
+        setTotalPages(1)
+        setLoading(false)
+        return
+      }
+
       const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: "10",
+        page: isDoctorRole ? "1" : currentPage.toString(),
+        limit: isDoctorRole ? "10000" : "10", // Fetch all for doctors
         search: search,
         department: selectedDepartment,
       })
 
-      const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/authentication/appointments?${params}`,
-      )
+      const fullUrl = `${process.env.NEXT_PUBLIC_API_URL}/authentication/appointments?${params}`
+      console.log("[v0] Fetching from:", fullUrl)
+
+      const response = await axiosInstance.get(fullUrl)
+
+      console.log("[v0] Response status:", response.status)
+      console.log("[v0] Response data keys:", Object.keys(response.data))
 
       const appointmentsData = response.data.appointments || []
+      console.log("[v0] Total appointments received:", appointmentsData.length)
 
       const paidAppointments = appointmentsData.filter((appointment) => {
-        // Only show appointments where payment is fully paid
         return appointment.paymentStatus === "FULLY_PAID"
       })
+      console.log("[v0] Paid appointments count:", paidAppointments.length)
 
-      const userIsDoctor = isDoctor()
-      if (userIsDoctor && doctorAssignments.length > 0) {
-        // Get list of appointment IDs that the doctor is assigned to
+      if (isDoctorRole && doctorAssignments.length > 0) {
         const assignedAppointmentIds = doctorAssignments.map((assignment) => assignment.appointmentId?._id)
+        console.log("[v0] Assigned appointment IDs:", assignedAppointmentIds)
 
-        // Filter to only show appointments the doctor is assigned to
-        const doctorFilteredAppointments = paidAppointments.filter((appointment) =>
-          assignedAppointmentIds.includes(appointment._id),
-        )
+        const doctorFilteredAppointments = paidAppointments.filter((appointment) => {
+          const isAssigned = assignedAppointmentIds.includes(appointment._id)
+          console.log("[v0] Appointment", appointment._id, "isAssigned:", isAssigned)
+          return isAssigned
+        })
 
-        setAppointments(doctorFilteredAppointments)
+        console.log("[v0] Doctor filtered appointments:", doctorFilteredAppointments.length)
+
+        const sortedAppointments = doctorFilteredAppointments.sort((a, b) => {
+          const dateA = new Date(a.createdAt || a._id)
+          const dateB = new Date(b.createdAt || b._id)
+          return dateB - dateA
+        })
+
+        console.log("[v0] Setting", sortedAppointments.length, "appointments")
+        setAppointments(sortedAppointments)
+
+        const totalFilteredPages = Math.ceil(sortedAppointments.length / 10)
+        setTotalPages(totalFilteredPages || 1)
       } else {
-        setAppointments(paidAppointments)
+        console.log("[v0] Not filtering - showing all appointments")
+
+        const sortedAppointments = paidAppointments.sort((a, b) => {
+          const dateA = new Date(a.createdAt || a._id)
+          const dateB = new Date(b.createdAt || b._id)
+          return dateB - dateA
+        })
+
+        setAppointments(sortedAppointments)
+        setTotalPages(response.data.totalPages || 1)
       }
 
-      setTotalPages(response.data.totalPages || 1)
+      console.log("[v0] fetchAppointments END")
+      console.log("[v0] ----------------------------------------")
     } catch (error) {
-      console.error("Error fetching appointments:", error)
+      console.error("[v0] Error fetching appointments:", error)
       setAppointments([])
     } finally {
       setLoading(false)
@@ -173,29 +236,31 @@ export function AppointmentsManagement() {
   }, [doctorAssignments])
 
   const applyFilters = () => {
-    let filtered = [...appointments]
+    let filtered = appointments
 
     if (dateFilter) {
-      const filterDate = new Date(dateFilter)
       filtered = filtered.filter((appointment) => {
-        const appointmentDate = new Date(appointment.date)
-        return appointmentDate.toDateString() === filterDate.toDateString()
+        const appointmentDate = new Date(appointment.dateTime).toISOString().split("T")[0]
+        return appointmentDate === dateFilter
       })
     }
 
     if (statusFilter) {
-      filtered = filtered.filter((appointment) => {
-        if (statusFilter === "upcoming") {
-          return new Date(appointment.date) > new Date() && appointment.status !== "cancelled"
-        }
-        if (statusFilter === "past") {
-          return new Date(appointment.date) < new Date()
-        }
-        return appointment.status === statusFilter
-      })
+      filtered = filtered.filter((appointment) => appointment.status === statusFilter)
     }
 
-    setFilteredAppointments(filtered)
+    if (isDoctor()) {
+      const startIndex = (currentPage - 1) * 10
+      const endIndex = startIndex + 10
+      const paginatedFiltered = filtered.slice(startIndex, endIndex)
+      setFilteredAppointments(paginatedFiltered)
+
+      // Update total pages based on filtered results
+      const totalFilteredPages = Math.ceil(filtered.length / 10)
+      setTotalPages(totalFilteredPages || 1)
+    } else {
+      setFilteredAppointments(filtered)
+    }
   }
 
   const handleViewAppointment = async (appointmentId) => {
@@ -223,12 +288,10 @@ export function AppointmentsManagement() {
           isList: false,
           title: `Single Session Appointment Cancelled`,
           titleAr: `تم إلغاء موعد الجلسة الفردية`,
-          message: `Your single session appointment scheduled for ${
-            appointment?.date?.split("T")[0]
-          } at ${appointment.time} has been cancelled. Please contact our customer support team to know the reason for cancellation.`,
-          messageAr: `تم إلغاء موعد جلستك الفردية المجدول في ${
-            appointment?.date?.split("T")[0]
-          } الساعة ${appointment.time}. يرجى التواصل مع فريق دعم العملاء لدينا لمعرفة سبب الإلغاء.`,
+          message: `Your single session appointment scheduled for ${appointment?.date?.split("T")[0]
+            } at ${appointment.time} has been cancelled. Please contact our customer support team to know the reason for cancellation.`,
+          messageAr: `تم إلغاء موعد جلستك الفردية المجدول في ${appointment?.date?.split("T")[0]
+            } الساعة ${appointment.time}. يرجى التواصل مع فريق دعم العملاء لدينا لمعرفة سبب الإلغاء.`,
           receiverId: appointment.patientid._id,
           rule: "Patient",
           type: "delete",
@@ -269,23 +332,21 @@ export function AppointmentsManagement() {
         alert("Appointment rescheduled successfully!")
         const formattedNewDate = rescheduleForm.newDate
           ? new Date(rescheduleForm.newDate).toLocaleDateString("en-US", {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
           : "TBD"
 
         await sendNotification({
           isList: false,
           title: `Single Session Appointment Rescheduled`,
           titleAr: `تم إعادة جدولة موعد الجلسة الفردية`,
-          message: `Your single session appointment has been rescheduled to ${formattedNewDate} at ${rescheduleForm.newTime}. Your previous appointment was scheduled for ${
-            appointment?.date?.split("T")[0]
-          } at ${appointment.time}.`,
-          messageAr: `تم إعادة جدولة موعد جلستك الفردية إلى ${formattedNewDate} الساعة ${rescheduleForm.newTime}. كان موعدك السابق مجدول في ${
-            appointment?.date?.split("T")[0]
-          } الساعة ${appointment.time}.`,
+          message: `Your single session appointment has been rescheduled to ${formattedNewDate} at ${rescheduleForm.newTime}. Your previous appointment was scheduled for ${appointment?.date?.split("T")[0]
+            } at ${appointment.time}.`,
+          messageAr: `تم إعادة جدولة موعد جلستك الفردية إلى ${formattedNewDate} الساعة ${rescheduleForm.newTime}. كان موعدك السابق مجدول في ${appointment?.date?.split("T")[0]
+            } الساعة ${appointment.time}.`,
           receiverId: appointment.patientid._id,
           rule: "Patient",
           type: "reschedule",
@@ -325,9 +386,8 @@ export function AppointmentsManagement() {
         await sendNotification({
           isList: false,
           title: `Single session appointment Completed`,
-          message: `Your session has been marked as completed on date: ${
-            appointment?.date?.split("T")[0]
-          } and time: ${appointment?.time}`,
+          message: `Your session has been marked as completed on date: ${appointment?.date?.split("T")[0]
+            } and time: ${appointment?.time}`,
           receiverId: appointment.patientid._id,
           rule: "Patient",
           type: "successfully",
@@ -624,8 +684,7 @@ export function AppointmentsManagement() {
                         </td>
                         <td className={styles.typeCell}>
                           <span
-                            className={`${styles.typeBadge} ${
-                              status.color === "green"
+                            className={`${styles.typeBadge} ${status.color === "green"
                                 ? "completed"
                                 : status.color === "red"
                                   ? "assessment"
@@ -634,7 +693,7 @@ export function AppointmentsManagement() {
                                     : status.color === "gray"
                                       ? "pending"
                                       : "active"
-                            }`}
+                              }`}
                           >
                             {status.color === "green" ? (
                               <CheckCircle className={styles.statusIcon} />

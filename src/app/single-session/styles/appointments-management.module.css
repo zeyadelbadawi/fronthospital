@@ -1249,3 +1249,39 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
+/* Add unauthorized access styles for role-based restrictions */
+.unauthorizedContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  padding: 2rem;
+}
+
+.unauthorizedCard {
+  background: white;
+  border-radius: 12px;
+  padding: 3rem;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+}
+
+.unauthorizedIcon {
+  color: #ef4444;
+  margin: 0 auto 1.5rem;
+}
+
+.unauthorizedCard h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #1f2937;
+}
+
+.unauthorizedCard p {
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}

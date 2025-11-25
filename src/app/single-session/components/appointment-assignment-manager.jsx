@@ -175,7 +175,13 @@ export function AppointmentAssignmentManager() {
       })
     }
 
-    setFilteredAppointments(filtered)
+    const sortedFiltered = filtered.sort((a, b) => {
+      const dateA = new Date(a.createdAt || a._id)
+      const dateB = new Date(b.createdAt || b._id)
+      return dateB - dateA // Descending order (newest first)
+    })
+
+    setFilteredAppointments(sortedFiltered)
   }
 
   const fetchAvailableDoctorsForDepartment = async (department, appointmentId) => {
@@ -780,17 +786,16 @@ function GroupedTableView({
                 </td>
                 <td className={styles.typeCell}>
                   <span
-                    className={`${styles.typeBadge} ${
-                      status.color === "green"
-                        ? "completed"
-                        : status.color === "red"
-                          ? "assessment"
-                          : status.color === "orange"
+                    className={`${styles.typeBadge} ${status.color === "green"
+                      ? "completed"
+                      : status.color === "red"
+                        ? "assessment"
+                        : status.color === "orange"
+                          ? "pending"
+                          : status.color === "gray"
                             ? "pending"
-                            : status.color === "gray"
-                              ? "pending"
-                              : "active"
-                    }`}
+                            : "active"
+                      }`}
                   >
                     {status.color === "green" ? (
                       <CheckCircle className={styles.statusIcon} />
@@ -881,17 +886,16 @@ function CardView({
                 </div>
               </div>
               <span
-                className={`${styles.typeBadge} ${
-                  status.color === "green"
-                    ? "completed"
-                    : status.color === "red"
-                      ? "assessment"
-                      : status.color === "orange"
+                className={`${styles.typeBadge} ${status.color === "green"
+                  ? "completed"
+                  : status.color === "red"
+                    ? "assessment"
+                    : status.color === "orange"
+                      ? "pending"
+                      : status.color === "gray"
                         ? "pending"
-                        : status.color === "gray"
-                          ? "pending"
-                          : "active"
-                }`}
+                        : "active"
+                  }`}
               >
                 {status.label}
               </span>
