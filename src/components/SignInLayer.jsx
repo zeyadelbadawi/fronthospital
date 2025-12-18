@@ -16,9 +16,6 @@ const SignInLayer = () => {
   const [error, setError] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [checkingAuth, setCheckingAuth] = useState(true)
-  const [failedAttempts, setFailedAttempts] = useState(0)
-  const [isLocked, setIsLocked] = useState(false)
-  const [lockoutTime, setLockoutTime] = useState(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -65,42 +62,10 @@ const SignInLayer = () => {
     checkExistingAuth()
   }, [router])
 
-  useEffect(() => {
-    const checkLockout = () => {
-      const lockoutData = localStorage.getItem(`lockout_${email}`)
-      if (lockoutData) {
-        const { time, attempts } = JSON.parse(lockoutData)
-        const lockoutEnd = new Date(time).getTime() + 15 * 60 * 1000 // 15 minutes
-        const now = Date.now()
-
-        if (now < lockoutEnd) {
-          setIsLocked(true)
-          setLockoutTime(lockoutEnd)
-          setFailedAttempts(attempts)
-        } else {
-          localStorage.removeItem(`lockout_${email}`)
-          setIsLocked(false)
-          setFailedAttempts(0)
-        }
-      }
-    }
-
-    if (email) {
-      checkLockout()
-    }
-  }, [email])
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError("")
-
-    if (isLocked) {
-      const remainingTime = Math.ceil((lockoutTime - Date.now()) / 1000 / 60)
-      setError(`Account is locked. Please try again in ${remainingTime} minutes.`)
-      setLoading(false)
-      return
-    }
 
     if (!role) {
       setError("Please select a role")
@@ -133,9 +98,6 @@ const SignInLayer = () => {
       const token = response.data.accessToken
       localStorage.setItem("token", token)
 
-      localStorage.removeItem(`lockout_${sanitizedEmail}`)
-      setFailedAttempts(0)
-
       // Redirect based on the role
       if (role === "admin" || role === "HeadDoctor") {
         router.push("/")
@@ -155,25 +117,6 @@ const SignInLayer = () => {
 
       const errorMessage = error.response?.data?.message || "Error during login. Please check your credentials."
       setError(errorMessage)
-
-      // Track failed attempts for privileged roles
-      if (["admin", "doctor", "accountant", "HeadDoctor"].includes(role)) {
-        const newFailedAttempts = failedAttempts + 1
-        setFailedAttempts(newFailedAttempts)
-
-        if (newFailedAttempts >= 5) {
-          const lockoutData = {
-            time: new Date().toISOString(),
-            attempts: newFailedAttempts,
-          }
-          localStorage.setItem(`lockout_${sanitizedEmail}`, JSON.stringify(lockoutData))
-          setIsLocked(true)
-          setLockoutTime(Date.now() + 15 * 60 * 1000)
-          setError("Too many failed attempts. Account locked for 15 minutes.")
-        } else {
-          setError(`${errorMessage} (${5 - newFailedAttempts} attempts remaining)`)
-        }
-      }
     } finally {
       setLoading(false)
     }
@@ -239,22 +182,6 @@ const SignInLayer = () => {
             </div>
           )}
 
-          {isLocked && (
-            <div
-              style={{
-                padding: "0.75rem",
-                backgroundColor: "#fef2f2",
-                border: "1px solid #fecaca",
-                borderRadius: "0.5rem",
-                marginBottom: "1rem",
-                color: "#991b1b",
-                fontSize: "0.875rem",
-              }}
-            >
-              <strong>Security Alert:</strong> Account temporarily locked due to multiple failed login attempts.
-            </div>
-          )}
-
           <form onSubmit={handleSubmit}>
             {/* Role Selection */}
             <div className={styles.formGroup}>
@@ -306,7 +233,6 @@ const SignInLayer = () => {
                   required
                   autoComplete="email"
                   maxLength={255}
-                  disabled={isLocked}
                 />
               </div>
             </div>
@@ -325,14 +251,8 @@ const SignInLayer = () => {
                   required
                   autoComplete="current-password"
                   maxLength={128}
-                  disabled={isLocked}
                 />
-                <button
-                  type="button"
-                  className={styles.passwordToggle}
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isLocked}
-                >
+                <button type="button" className={styles.passwordToggle} onClick={() => setShowPassword(!showPassword)}>
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
@@ -341,7 +261,7 @@ const SignInLayer = () => {
             {/* Form Options */}
             <div className={styles.formOptions}>
               <div className={styles.checkboxWrapper}>
-                <input type="checkbox" id="remember" className={styles.formCheckbox} disabled={isLocked} />
+                <input type="checkbox" id="remember" className={styles.formCheckbox} />
                 <label htmlFor="remember" className={styles.checkboxLabel}>
                   Remember me
                 </label>
@@ -352,7 +272,7 @@ const SignInLayer = () => {
             </div>
 
             {/* Submit Button */}
-            <button type="submit" className={styles.submitBtn} disabled={loading || isLocked}>
+            <button type="submit" className={styles.submitBtn} disabled={loading}>
               {loading ? (
                 <>
                   <div className={styles.loadingSpinner}></div>

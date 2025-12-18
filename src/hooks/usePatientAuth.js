@@ -69,11 +69,13 @@ export function usePatientAuth() {
   const handleLogout = useCallback(async () => {
     try {
       await axiosInstance.post("/authentication/logout")
-      localStorage.removeItem("token")
-      setUser(null)
-      router.push("/clientportal")
     } catch (err) {
       console.error("Logout failed:", err)
+    } finally {
+      localStorage.removeItem("token")
+      localStorage.removeItem("user")
+      setUser(null)
+      router.push("/clientportal")
     }
   }, [router])
 

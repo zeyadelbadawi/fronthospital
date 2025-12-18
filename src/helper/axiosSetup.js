@@ -1,20 +1,34 @@
 import axios from "axios"
 
+// Helper function to get CSRF token from cookie
+const getCsrfToken = () => {
+  if (typeof document === "undefined") return null
+  const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
+  return match ? match[1] : null
+}
+
 // Create an Axios instance
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true,
+  withCredentials: true, // Phase 1.2: Essential for sending HttpOnly cookies
 })
 
 // Add a request interceptor to include the Authorization token
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Get token from localStorage
-    // Note: In production, consider using httpOnly cookies for better security
+    // Cookies will be sent automatically via withCredentials: true
     const token = localStorage.getItem("token")
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`
     }
+
+    if (["post", "put", "delete", "patch"].includes(config.method?.toLowerCase())) {
+      const csrfToken = getCsrfToken()
+      if (csrfToken) {
+        config.headers["X-CSRF-Token"] = csrfToken
+      }
+    }
+
     return config
   },
   (error) => {
@@ -29,12 +43,16 @@ axiosInstance.interceptors.response.use(
     // If the error is a 401 (Unauthorized), handle token refresh
     if (error.response && error.response.status === 401) {
       try {
+        const csrfToken = getCsrfToken()
+        const headers = csrfToken ? { "X-CSRF-Token": csrfToken } : {}
+
         // Attempt to refresh the token
         const refreshResponse = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/authentication/refresh`,
           {},
           {
-            withCredentials: true,
+            withCredentials: true, // Phase 1.2: Send refresh token cookie
+            headers,
           },
         )
 

@@ -142,8 +142,22 @@ export function useRoleBasedAuth() {
     } finally {
       localStorage.removeItem("token")
       localStorage.removeItem("user")
-      setUser(null)
 
+      // Clear any lockout data
+      const lockoutKeys = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith("lockout_")) {
+          lockoutKeys.push(key)
+        }
+      }
+      lockoutKeys.forEach((key) => localStorage.removeItem(key))
+
+      // Clear state immediately
+      setUser(null)
+      setIsAuthorized(false)
+
+      // Redirect based on subdomain
       if (isStaffSubdomain()) {
         router.push("/sign-in")
       } else {

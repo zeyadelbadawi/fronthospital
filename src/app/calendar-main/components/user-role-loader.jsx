@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import axiosInstance from "@/helper/axiosSetup"
 import { getCurrentUser, isAuthenticated } from "../utils/auth-utils"
 import styles from "../styles/loading.module.css"
@@ -8,6 +9,7 @@ const UserRoleLoader = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const router = useRouter()
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -42,6 +44,35 @@ const UserRoleLoader = ({ children }) => {
         setLoading(false)
       } catch (error) {
         console.error("Error fetching user data:", error)
+
+        if (error.response) {
+          const status = error.response.status
+          const message = error.response.data?.message || ""
+
+          // Session timeout or token revoked
+          if (
+            status === 401 &&
+            (message.includes("Session expired") || message.includes("terminated") || message.includes("revoked"))
+          ) {
+            localStorage.removeItem("token")
+
+            // Determine redirect based on subdomain
+            const isStaffSubdomain = typeof window !== "undefined" && window.location.hostname.startsWith("stuff.")
+            const redirectUrl = isStaffSubdomain ? "/sign-in" : "/sign-in"
+
+            // Show user-friendly message
+            setError(message)
+
+            // Redirect after 2 seconds
+            setTimeout(() => {
+              router.push(redirectUrl)
+            }, 2000)
+
+            setLoading(false)
+            return
+          }
+        }
+
         setError("Failed to load user data")
         setLoading(false)
 
@@ -75,6 +106,12 @@ const UserRoleLoader = ({ children }) => {
           } catch (refreshError) {
             console.error("Refresh token failed:", refreshError)
             setError("Session expired. Please login again.")
+
+            setTimeout(() => {
+              const isStaffSubdomain = typeof window !== "undefined" && window.location.hostname.startsWith("stuff.")
+              router.push(isStaffSubdomain ? "/sign-in" : "/sign-in")
+            }, 2000)
+
             setLoading(false)
           }
         }
@@ -82,7 +119,7 @@ const UserRoleLoader = ({ children }) => {
     }
 
     fetchUserData()
-  }, [])
+  }, [router])
 
   if (loading) {
     return (
@@ -100,7 +137,11 @@ const UserRoleLoader = ({ children }) => {
         <div className={styles.loadingText} style={{ color: "#ef4444" }}>
           {error}
         </div>
-        <div className={styles.loadingSubtext}>Please refresh the page or try again later</div>
+        <div className={styles.loadingSubtext}>
+          {error.includes("Session expired") || error.includes("terminated")
+            ? "Redirecting to login..."
+            : "Please refresh the page or try again later"}
+        </div>
       </div>
     )
   }

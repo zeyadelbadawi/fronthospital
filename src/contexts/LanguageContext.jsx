@@ -552,7 +552,7 @@ const translations = {
         selectEvaluationType: "يرجى اختيار نوع التقييم",
         selectDate: "يرجى اختيار التاريخ",
         selectTime: "يرجى اختيار الوقت",
-        provideDescription: "يرجى تقديم وصف",
+        provideDescription: "يرجى ��قديم وصف",
         selectAtLeastOneService: "يرجى اختيار خدمة واحدة على الأقل",
       },
     },
