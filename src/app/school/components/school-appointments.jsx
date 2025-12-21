@@ -169,7 +169,7 @@ export function SchoolAppointments() {
       setSchoolPrograms(paidPrograms)
       setTotalPages(response.data.totalPages || 1)
     } catch (error) {
-      console.error("[v0] SchoolAppointments - Error fetching optimized school programs:", error)
+      console.error("  SchoolAppointments - Error fetching optimized school programs:", error)
       showToast("Failed to load school programs. Please try again.", "error")
       setSchoolPrograms([])
     } finally {
@@ -523,7 +523,6 @@ export function SchoolAppointments() {
         `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/check-sheet-status/${extractPatientId(selectedProgram)}/${selectedProgram.unicValue}`,
       )
       .then((sheetStatus) => {
-        console.log("[v0] Sheet status response:", sheetStatus.data)
 
         if (!sheetStatus.data.success) {
           setSaving(false)

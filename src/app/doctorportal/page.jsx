@@ -284,7 +284,6 @@ function DoctorPortalContent() {
 
   const handleCardClick = useCallback((href) => {
     // Handle card click logic here
-    console.log(`Card clicked with href: ${href}`)
   }, [])
 
   if (loading) {

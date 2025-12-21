@@ -9,7 +9,6 @@ export const sendEmail = async ({ to, filePath, subject, text }) => {
       subject,
       text,
     })
-    console.log("email send successfully ", response.data)
   } catch (error) {
     console.log("Error while send email", error)
   }
@@ -50,7 +49,6 @@ export const sendNotification = async ({
         type,
       })
     }
-    console.log("Notification send successfully", response.data)
   } catch (error) {
     console.log("Error while send notification", error)
   }

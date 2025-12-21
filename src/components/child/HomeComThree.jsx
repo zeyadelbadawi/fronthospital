@@ -19,7 +19,6 @@ const HomeComThree = () => {
         setLoading(true)
         const { data } = await axiosInstance.get("/authentication/doctors-dashboard")
 
-        console.log("Doctors data received:", data)
 
         setDoctors(data.doctors || [])
         setStatistics(

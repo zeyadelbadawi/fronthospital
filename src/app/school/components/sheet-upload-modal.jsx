@@ -81,7 +81,6 @@ const SheetUploadModal = ({ isOpen, onClose, patientId, unicValue, patientName, 
       formData.append("document", file)
       formData.append("patientId", patientId)
 
-      console.log("[v0] Starting upload for patientId:", patientId, "unicValue:", unicValue)
 
       const response = await axiosInstance.post(
         `${process.env.NEXT_PUBLIC_API_URL}/school/upload-plan/${patientId}/${encodeURIComponent(unicValue)}`,
@@ -94,15 +93,12 @@ const SheetUploadModal = ({ isOpen, onClose, patientId, unicValue, patientName, 
         },
       )
 
-      console.log("[v0] Upload response:", response.data)
 
       if (response.status === 200) {
-        console.log("[v0] Upload successful, plan created:", response.data.plan)
         showSuccessMessage("Sheet uploaded successfully!")
         setFile(null)
 
         setTimeout(() => {
-          console.log("[v0] Closing modal and calling onUploadSuccess")
           onClose()
           if (onUploadSuccess) {
             onUploadSuccess()
@@ -110,7 +106,7 @@ const SheetUploadModal = ({ isOpen, onClose, patientId, unicValue, patientName, 
         }, 2000) // Increased from 1500 to 2000ms
       }
     } catch (err) {
-      console.error("[v0] Error uploading file:", err)
+      console.error("  Error uploading file:", err)
       const errorMessage = err.response?.data?.message || err.message || "Failed to upload sheet. Please try again."
       setError(errorMessage)
     } finally {

@@ -66,38 +66,25 @@ export default function DocxUploadForm({ variant = "regular", onSuccess, onClose
   // Log form values whenever they change
   useEffect(() => {
     const currentValues = getValues()
-    console.log("📊 Form Values Changed:", {
-      quarterOfYear: currentValues.quarterOfYear,
-      quarterType: typeof currentValues.quarterOfYear,
-      year: currentValues.year,
-      yearType: typeof currentValues.year,
-      doctorId: currentValues.doctorId,
-      departmentId: currentValues.departmentId,
-      hasDocument: !!currentValues.document,
-    })
+
   }, [watchedQuarter, watchedYear, watchedDocument, getValues])
 
   // Log form errors whenever they change
   useEffect(() => {
     if (Object.keys(errors).length > 0) {
-      console.log("❌ Form Validation Errors:", errors)
     }
   }, [errors])
 
   // Fetch doctor and department names
   useEffect(() => {
     const fetchNames = async () => {
-      console.log("🔍 Fetching names for:", {
-        doctorId: defaultValues.doctorId,
-        departmentId: defaultValues.departmentId,
-      })
+  
 
       if (defaultValues.doctorId) {
         try {
           const response = await axiosInstance.get(
             `${process.env.NEXT_PUBLIC_API_URL}/authentication/doctor/${defaultValues.doctorId}`,
           )
-          console.log("👨‍⚕️ Doctor API Response:", response.data)
           setDoctorName(response.data.username || "Unknown Doctor")
         } catch (error) {
           console.error("❌ Error fetching Doctor name:", error)
@@ -110,7 +97,6 @@ export default function DocxUploadForm({ variant = "regular", onSuccess, onClose
           const response = await axiosInstance.get(
             `${process.env.NEXT_PUBLIC_API_URL}/departments/department/${defaultValues.departmentId}`,
           )
-          console.log("🏥 Department API Response:", response.data)
           setDepartmentName(response.data.name || "Unknown Department")
         } catch (error) {
           console.error("❌ Error fetching Department name:", error)
@@ -124,27 +110,23 @@ export default function DocxUploadForm({ variant = "regular", onSuccess, onClose
   const handleFileChange = useCallback(
     (event) => {
       const file = event.target.files ? event.target.files[0] : null
-      console.log("📁 File selected:", file ? { name: file.name, size: file.size, type: file.type } : null)
 
       if (file) {
         if (
           file.type !== "application/vnd.openxmlformats-officedocument.wordprocessingml.document" &&
           !file.name.endsWith(".docx")
         ) {
-          console.log("❌ Invalid file type:", file.type)
           setFileError("Only DOCX files are allowed.")
           setFileName("")
           setValue("document", null)
           return
         }
         if (file.size > 10 * 1024 * 1024) {
-          console.log("❌ File too large:", file.size)
           setFileError("File size exceeds 10MB limit.")
           setFileName("")
           setValue("document", null)
           return
         }
-        console.log("✅ File validation passed")
         setFileError("")
         setFileName(file.name)
         setValue("document", file)
@@ -161,7 +143,6 @@ export default function DocxUploadForm({ variant = "regular", onSuccess, onClose
     (event) => {
       event.preventDefault()
       const file = event.dataTransfer.files ? event.dataTransfer.files[0] : null
-      console.log("🎯 File dropped:", file?.name)
       if (file) {
         handleFileChange({ target: { files: [file] } })
       }
@@ -174,7 +155,6 @@ export default function DocxUploadForm({ variant = "regular", onSuccess, onClose
   }, [])
 
   const removeFile = useCallback(() => {
-    console.log("🗑️ Removing file")
     setFileName("")
     setFileError("")
     setValue("document", null)
@@ -188,25 +168,11 @@ export default function DocxUploadForm({ variant = "regular", onSuccess, onClose
   }
 
   const onSubmit = async (data) => {
-    console.log("🚀 Form submission started")
-    console.log("📋 Form data being submitted:", {
-      doctorId: data.doctorId,
-      departmentId: data.departmentId,
-      quarterOfYear: data.quarterOfYear,
-      quarterType: typeof data.quarterOfYear,
-      year: data.year,
-      yearType: typeof data.year,
-      hasDocument: !!data.document,
-      documentName: data.document?.name,
-    })
-
     // Validate data before submission
     try {
       const validationResult = formSchema.safeParse(data)
-      console.log("🔍 Manual validation result:", validationResult)
 
       if (!validationResult.success) {
-        console.log("❌ Manual validation failed:", validationResult.error.issues)
         return
       }
     } catch (validationError) {
@@ -227,34 +193,26 @@ export default function DocxUploadForm({ variant = "regular", onSuccess, onClose
       formData.append("quarterOfYear", data.quarterOfYear)
       formData.append("year", data.year)
 
-      console.log("📦 FormData contents:")
-      for (const [key, value] of formData.entries()) {
-        console.log(`  ${key}:`, value instanceof File ? `File: ${value.name}` : value)
-      }
+    
 
       // Frontend validation for existing plan
-      console.log("🔍 Checking for existing plans...")
       const existingPlanCheck = await axiosInstance.get(
         `${process.env.NEXT_PUBLIC_API_URL}/doctorFile/get-plans/${data.doctorId}/${data.departmentId}?quarter=${data.quarterOfYear}&year=${data.year}`,
       )
 
-      console.log("📋 Existing plan check response:", existingPlanCheck.data)
 
       if (existingPlanCheck.data.doctorFiles && existingPlanCheck.data.doctorFiles.length > 0) {
-        console.log("❌ Plan already exists")
         setSubmitError(`A plan already exists for Q${data.quarterOfYear}/${data.year}.`)
         setIsSubmitting(false)
         return
       }
 
-      console.log("📤 Uploading document...")
       const response = await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}/doctorFile/upload-plan`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       })
 
-      console.log("✅ Upload response:", response.data)
 
       if (response.status !== 200) throw new Error("File upload failed")
 
@@ -282,7 +240,6 @@ export default function DocxUploadForm({ variant = "regular", onSuccess, onClose
     ? Array.from({ length: currentYear - 2000 + 1 }, (_, i) => currentYear - i)
     : Array.from({ length: currentYear - 2000 + 6 }, (_, i) => 2000 + i)
 
-  console.log("📅 Available years:", years)
 
   const getButtonText = () => {
     if (isSubmitting) {
@@ -312,18 +269,12 @@ export default function DocxUploadForm({ variant = "regular", onSuccess, onClose
           style: { backgroundColor: "#f8f9fa", cursor: "not-allowed" },
         }
 
-    console.log("🎛️ Select props:", { isPrevious, props })
     return props
   }
 
   // Log current form state
   const currentFormValues = getValues()
-  console.log("📊 Current form state:", {
-    values: currentFormValues,
-    errors: errors,
-    isSubmitting,
-    isPrevious,
-  })
+
 
   return (
     <div className={styles.uploadFormContainer}>

@@ -92,37 +92,23 @@ export function AppointmentsManagement() {
   ]
 
   useEffect(() => {
-    console.log("[v0] ===========================================")
-    console.log("[v0] APPOINTMENTS DEBUG START")
-    console.log("[v0] ===========================================")
-    console.log("[v0] isDoctor():", isDoctor())
-    console.log("[v0] getCurrentUserId():", getCurrentUserId())
-
+   
     const fetchDoctorAssignments = async () => {
       const isDoctorRole = isDoctor()
-      console.log("[v0] isDoctorRole:", isDoctorRole)
 
       setUserIsDoctor(isDoctorRole)
       const doctorId = getCurrentUserId()
-      console.log("[v0] doctorId:", doctorId)
 
       if (isDoctorRole && doctorId) {
         try {
-          console.log(
-            "[v0] Fetching doctor assignments from:",
-            `${process.env.NEXT_PUBLIC_API_URL}/single-session-appointment-assignment/doctor/${doctorId}`,
-          )
-
+       
           const response = await axiosInstance.get(
             `${process.env.NEXT_PUBLIC_API_URL}/single-session-appointment-assignment/doctor/${doctorId}`,
           )
 
-          console.log("[v0] Doctor assignments response:", response.data)
-          console.log("[v0] Total assignments:", response.data.assignments?.length || 0)
-
           setDoctorAssignments(response.data.assignments || [])
         } catch (error) {
-          console.error("[v0] Error fetching doctor assignments:", error)
+          console.error("  Error fetching doctor assignments:", error)
           setDoctorAssignments([])
         }
       }
@@ -140,20 +126,13 @@ export function AppointmentsManagement() {
   }, [appointments, dateFilter, statusFilter])
 
   const fetchAppointments = async () => {
-    console.log("[v0] ----------------------------------------")
-    console.log("[v0] fetchAppointments START")
-    console.log("[v0] userIsDoctor:", userIsDoctor)
-    console.log("[v0] doctorAssignments.length:", doctorAssignments.length)
 
     setLoading(true)
     try {
       const isDoctorRole = isDoctor()
       const doctorId = getCurrentUserId()
-      console.log("[v0] isDoctorRole:", isDoctorRole)
-      console.log("[v0] doctorId:", doctorId)
-
+ 
       if (isDoctorRole && doctorAssignments.length === 0) {
-        console.log("[v0] Doctor has no assignments, showing empty list")
         setAppointments([])
         setTotalPages(1)
         setLoading(false)
@@ -168,32 +147,24 @@ export function AppointmentsManagement() {
       })
 
       const fullUrl = `${process.env.NEXT_PUBLIC_API_URL}/authentication/appointments?${params}`
-      console.log("[v0] Fetching from:", fullUrl)
 
       const response = await axiosInstance.get(fullUrl)
 
-      console.log("[v0] Response status:", response.status)
-      console.log("[v0] Response data keys:", Object.keys(response.data))
-
+  
       const appointmentsData = response.data.appointments || []
-      console.log("[v0] Total appointments received:", appointmentsData.length)
 
       const paidAppointments = appointmentsData.filter((appointment) => {
         return appointment.paymentStatus === "FULLY_PAID"
       })
-      console.log("[v0] Paid appointments count:", paidAppointments.length)
 
       if (isDoctorRole && doctorAssignments.length > 0) {
         const assignedAppointmentIds = doctorAssignments.map((assignment) => assignment.appointmentId?._id)
-        console.log("[v0] Assigned appointment IDs:", assignedAppointmentIds)
 
         const doctorFilteredAppointments = paidAppointments.filter((appointment) => {
           const isAssigned = assignedAppointmentIds.includes(appointment._id)
-          console.log("[v0] Appointment", appointment._id, "isAssigned:", isAssigned)
           return isAssigned
         })
 
-        console.log("[v0] Doctor filtered appointments:", doctorFilteredAppointments.length)
 
         const sortedAppointments = doctorFilteredAppointments.sort((a, b) => {
           const dateA = new Date(a.createdAt || a._id)
@@ -201,13 +172,11 @@ export function AppointmentsManagement() {
           return dateB - dateA
         })
 
-        console.log("[v0] Setting", sortedAppointments.length, "appointments")
         setAppointments(sortedAppointments)
 
         const totalFilteredPages = Math.ceil(sortedAppointments.length / 10)
         setTotalPages(totalFilteredPages || 1)
       } else {
-        console.log("[v0] Not filtering - showing all appointments")
 
         const sortedAppointments = paidAppointments.sort((a, b) => {
           const dateA = new Date(a.createdAt || a._id)
@@ -219,10 +188,8 @@ export function AppointmentsManagement() {
         setTotalPages(response.data.totalPages || 1)
       }
 
-      console.log("[v0] fetchAppointments END")
-      console.log("[v0] ----------------------------------------")
     } catch (error) {
-      console.error("[v0] Error fetching appointments:", error)
+      console.error("  Error fetching appointments:", error)
       setAppointments([])
     } finally {
       setLoading(false)

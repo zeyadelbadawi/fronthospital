@@ -13,20 +13,45 @@ const axiosInstance = axios.create({
   withCredentials: true, // Phase 1.2: Essential for sending HttpOnly cookies
 })
 
+let csrfInitialized = false
+const initializeCsrf = async () => {
+  if (csrfInitialized || typeof window === "undefined") return
+
+  try {
+    // Make a simple GET request to get CSRF token cookie
+    await axiosInstance.get("/health-check")
+    csrfInitialized = true
+  } catch (error) {
+    console.warn("  Failed to initialize CSRF token:", error.message)
+  }
+}
+
+// Initialize CSRF token when module loads
+if (typeof window !== "undefined") {
+  initializeCsrf()
+}
+
 // Add a request interceptor to include the Authorization token
 axiosInstance.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    if (["post", "put", "delete", "patch"].includes(config.method?.toLowerCase())) {
+      // If no CSRF token exists, try to get it first
+      if (!getCsrfToken() && !csrfInitialized) {
+        await initializeCsrf()
+      }
+
+      const csrfToken = getCsrfToken()
+      if (csrfToken) {
+        config.headers["X-CSRF-Token"] = csrfToken
+      } else {
+        console.warn("  No CSRF token available for request:", config.url)
+      }
+    }
+
     // Cookies will be sent automatically via withCredentials: true
     const token = localStorage.getItem("token")
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`
-    }
-
-    if (["post", "put", "delete", "patch"].includes(config.method?.toLowerCase())) {
-      const csrfToken = getCsrfToken()
-      if (csrfToken) {
-        config.headers["X-CSRF-Token"] = csrfToken
-      }
     }
 
     return config

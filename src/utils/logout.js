@@ -17,9 +17,9 @@ export async function logout() {
       })
   
       const result = await response.json()
-      console.log("[v0] Logout response:", result)
+      console.log("  Logout response:", result)
     } catch (error) {
-      console.error("[v0] Logout error:", error)
+      console.error("  Logout error:", error)
     } finally {
       // Always clear localStorage regardless of backend response
       localStorage.removeItem("token")

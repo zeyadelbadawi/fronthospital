@@ -25,7 +25,6 @@ export default function DoctorProfilePlans({ doctorId }) {
       const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/doctor-student-plans/${doctorId}`)
 
       if (response.data.success) {
-        console.log("[v0] Received plans data:", response.data.data)
         setPlansData(response.data.data)
       }
     } catch (error) {
@@ -71,7 +70,6 @@ export default function DoctorProfilePlans({ doctorId }) {
 
     try {
       const fileUrl = `${process.env.NEXT_PUBLIC_API_URL}${fullPath}`
-      console.log("[v0] Downloading from:", fileUrl)
 
       const response = await axiosInstance.get(fileUrl, {
         responseType: "blob",
@@ -86,7 +84,7 @@ export default function DoctorProfilePlans({ doctorId }) {
       link.remove()
       window.URL.revokeObjectURL(url)
     } catch (error) {
-      console.error("[v0] Error downloading file:", error)
+      console.error("  Error downloading file:", error)
       alert("Failed to download file. Please try again.")
     }
   }
@@ -97,9 +95,7 @@ export default function DoctorProfilePlans({ doctorId }) {
     try {
       setDocumentLoading(true)
       const fileUrl = `${process.env.NEXT_PUBLIC_API_URL}${fullPath}`
-      console.log("[v0] Viewing file - fullPath:", fullPath)
-      console.log("[v0] Viewing file - complete URL:", fileUrl)
-
+  
       const response = await axiosInstance.get(fileUrl, {
         responseType: "blob",
       })
@@ -120,7 +116,7 @@ export default function DoctorProfilePlans({ doctorId }) {
       }
       reader.readAsDataURL(response.data)
     } catch (error) {
-      console.error("[v0] Error loading file:", error)
+      console.error("  Error loading file:", error)
       alert("Failed to load the file. Please try again.")
       setDocumentLoading(false)
     }

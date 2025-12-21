@@ -203,7 +203,6 @@ const MasterLayout = ({ children }) => {
         })
 
         const userData = response.data
-        console.log("[v0] Profile data received:", userData)
         setUser(userData)
         setUserRole(userData.role)
         // Handle both username (for admin/doctor/HeadDoctor) and name (for patient/accountant)
@@ -231,7 +230,6 @@ const MasterLayout = ({ children }) => {
             })
 
             const userData = retryResponse.data
-            console.log("[v0] Profile data received after refresh:", userData)
             setUser(userData)
             setUserRole(userData.role)
             setUserName(userData.username || userData.name || "")

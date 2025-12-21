@@ -26,7 +26,6 @@ export default function DoctorHeader({
 
   // Use useSocket hook for real-time updates
   useSocket(user?.id, (data) => {
-    console.log("[v0] Socket notification received:", data)
     if (data && data.notifications) {
       setNotifications(data.notifications || [])
       setUnreadCount(data.count || 0)
@@ -37,13 +36,10 @@ export default function DoctorHeader({
   const getNotifications = async () => {
     try {
       if (!user?.id) {
-        console.log("[v0] No user ID available, skipping notification fetch")
         return // Ensure user ID is available
       }
-      console.log("[v0] Fetching notifications for user:", user?.id)
       const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/notification/byId/${user?.id}`)
       const fetchedNotifications = response.data.notifications || []
-      console.log("[v0] Fetched notifications:", fetchedNotifications)
       setNotifications(fetchedNotifications)
       setUnreadCount(fetchedNotifications.filter((notif) => !notif.isRead).length)
     } catch (error) {

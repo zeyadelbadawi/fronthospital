@@ -121,7 +121,6 @@ const StudentCalendarMainLayer = () => {
           }
         } catch (error) {
           // Skip this appointment if there's an error fetching student assignments
-          console.log(`Error fetching assignments for appointment ${appointment._id}:`, error)
         }
       }
 

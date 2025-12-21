@@ -97,7 +97,6 @@ const PLAN_CONFIGS = {
 }
 
 const UnifiedPlanEditor = ({ patientId, appointmentId, therapyType, onBack }) => {
-  console.log("[v0] UnifiedPlanEditor mounted with:", { patientId, appointmentId, therapyType })
 
   const [patient, setPatient] = useState(null)
   const [plan, setPlan] = useState({
@@ -124,26 +123,20 @@ const UnifiedPlanEditor = ({ patientId, appointmentId, therapyType, onBack }) =>
   const config = PLAN_CONFIGS[therapyType]
 
   useEffect(() => {
-    console.log("[v0] useEffect triggered - checking conditions:", {
-      config: !!config,
-      patientId,
-      appointmentId,
-      therapyType,
-    })
+ 
 
     setIsDoctorRole(isDoctor())
 
     if (!config) {
-      console.error(`[v0] Invalid therapy type: ${therapyType}`)
+      console.error(`  Invalid therapy type: ${therapyType}`)
       return
     }
     if (patientId && appointmentId) {
-      console.log("[v0] Fetching patient data and plan...")
       fetchPatientData()
       fetchExistingPlan()
       fetchPlanStats()
     } else {
-      console.warn("[v0] Missing patientId or appointmentId:", { patientId, appointmentId })
+      console.warn("  Missing patientId or appointmentId:", { patientId, appointmentId })
     }
   }, [patientId, appointmentId, therapyType])
 
@@ -193,7 +186,7 @@ const UnifiedPlanEditor = ({ patientId, appointmentId, therapyType, onBack }) =>
           hasExistingPlan: false,
         })
       } else {
-        console.error("[v0] Error fetching plan data:", error.message)
+        console.error("  Error fetching plan data:", error.message)
         setPlan({
           title: config.title,
           filePath: "",

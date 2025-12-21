@@ -4,10 +4,7 @@ import CookieConsentBanner from "@/components/CookieConsentBanner"
 import { registerLicense } from "@syncfusion/ej2-base"
 import { ToastContainer } from "react-toastify"
 import { LoadingProvider } from "@/contexts/LoadingContext"
-import LoadingSpinner from "@/components/LoadingSpinner"
-import NProgressBar from "@/components/NProgressBar"
-import { SessionProvider } from "@/contexts/SessionContext"
-import SessionTimeoutWarning from "@/components/SessionTimeoutWarning"
+import ClientProviders from "@/components/ClientProviders"
 import "@/styles/nprogress.css"
 
 registerLicense(process.env.NEXT_PUBLIC_SYNCFUSION_LICENSE_KEY)
@@ -28,34 +25,29 @@ export default function RootLayout({ children }) {
         <link rel="dns-prefetch" href="//fonts.gstatic.com" />
       </head>
       <body suppressHydrationWarning={true}>
-        <NProgressBar />
-        <CookieConsentProvider>
-          <LanguageProvider>
-            <LoadingProvider>
-              <SessionProvider>
-                <LoadingSpinner />
-                <SessionTimeoutWarning />
-                {children}
-              </SessionProvider>
-            </LoadingProvider>
-            <ToastContainer
-              position="top-right"
-              autoClose={4000}
-              hideProgressBar={false}
-              newestOnTop={false}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="light"
-              toastClassName="custom-toast"
-              bodyClassName="custom-toast-body"
-              progressClassName="custom-toast-progress"
-            />
-          </LanguageProvider>
-          <CookieConsentBanner />
-        </CookieConsentProvider>
+        <ClientProviders>
+          <CookieConsentProvider>
+            <LanguageProvider>
+              <LoadingProvider>{children}</LoadingProvider>
+              <ToastContainer
+                position="top-right"
+                autoClose={4000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+                toastClassName="custom-toast"
+                bodyClassName="custom-toast-body"
+                progressClassName="custom-toast-progress"
+              />
+            </LanguageProvider>
+            <CookieConsentBanner />
+          </CookieConsentProvider>
+        </ClientProviders>
       </body>
     </html>
   )

@@ -26,7 +26,6 @@ const CalendarMainLayer = ({ user }) => {
       if (response.status === 200) {
         setIsLoading(false)
         setAppointments(response?.data?.appointments || [])
-        console.log("Get appointments success", response.data.appointments)
       }
     } catch (error) {
       setIsLoading(false)

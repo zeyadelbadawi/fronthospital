@@ -205,7 +205,6 @@ export function EditDepartments() {
             setError("")
             setSuccess("")
 
-            console.log("[v0] Syncing departments with backend...")
             const { errors, successes } = await syncDepartmentsWithBackend(
                 selectedAppointment.patientid,
                 previousDepartments,
@@ -213,11 +212,10 @@ export function EditDepartments() {
             )
 
             if (errors.length > 0) {
-                console.error("[v0] Department sync errors:", errors)
+                console.error("  Department sync errors:", errors)
                 setError(`Some departments failed to update: ${errors.join(", ")}`)
             }
 
-            console.log("[v0] Updating FullProgram record...")
             const response = await axiosInstance.put(`/full/fullprogram/${selectedAppointment._id}`, {
                 selectedDepartments: selectedDeptArray,
                 doctorNotes: doctorNotes,
@@ -242,7 +240,7 @@ export function EditDepartments() {
                 closeModal()
             }, 2000)
         } catch (error) {
-            console.error("[v0] Error updating departments:", error)
+            console.error("  Error updating departments:", error)
             setError("Error updating departments: " + (error.response?.data?.message || error.message))
         } finally {
             setSaving(false)

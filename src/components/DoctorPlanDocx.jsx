@@ -65,7 +65,6 @@ const DoctorPLanDocx = forwardRef(
           )
           // Handle the response as needed
           if (response.status === 200) {
-            console.log("Document saved successfully:", response.data)
             // alert("Document saved successfully!") // تم استبدالها بـ toast
           } else {
             console.error("Failed to save document:", response.data)

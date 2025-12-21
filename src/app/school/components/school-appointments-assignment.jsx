@@ -160,9 +160,8 @@ export function SchoolAppointmentsAssignment() {
             messageAr: `تم تعيينك للجلسة #${appointmentIndex} من "${programName}" للطالب "${studentName}" في ${date} الساعة ${time}`,
             type: "assignment",
           })
-          console.log("[v0] Notification sent to doctor successfully")
         } catch (notificationError) {
-          console.error("[v0] Error sending notification:", notificationError)
+          console.error("  Error sending notification:", notificationError)
           // Don't fail the assignment if notification fails
         }
 

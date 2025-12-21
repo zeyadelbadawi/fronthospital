@@ -46,8 +46,7 @@ export default function Header({
 
   // Add socket integration for real-time notifications
   useSocket(user?.id, ({ count, notifications }) => {
-    console.log("[v0] Received notifications via socket:", notifications)
-    console.log("[v0] Current language:", language)
+
     setNotifications(notifications)
     setCount(count)
   })
@@ -70,8 +69,7 @@ export default function Header({
   }, [user?.id])
 
   useEffect(() => {
-    console.log("[v0] Language changed to:", language)
-    console.log("[v0] Sample notification:", notifications[0])
+    console.log("Language changed to:", language)
   }, [language])
 
   // Replace handleNotificationClick with dynamic version
@@ -205,11 +203,7 @@ export default function Header({
                                   language === "ar"
                                     ? notification.messageAr || notification.message
                                     : notification.message
-                                console.log("[v0] Displaying notification:", {
-                                  language,
-                                  hasArabic: !!notification.messageAr,
-                                  message: msg,
-                                })
+                              
                                 return msg
                               })()}
                             </p>

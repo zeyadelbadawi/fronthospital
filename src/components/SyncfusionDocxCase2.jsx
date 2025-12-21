@@ -328,7 +328,6 @@ export default function SyncfusionDocx({ userData, planEndpoint, email, onDocume
         type: isFirstTimeSave ? "create" : "update",
       })
 
-      console.log(`Case study notification sent: ${isFirstTimeSave ? "Created" : "Updated"}`)
     } catch (error) {
       console.error("Error sending case study notification:", error)
       // Show notification error toast (optional, non-blocking)

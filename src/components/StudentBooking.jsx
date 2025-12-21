@@ -702,7 +702,6 @@ const StudentBooking = ({ currentStep, setCurrentStep, patientId, patientName, p
       if (programTypeForPayment === "full_package_evaluation") {
         programTypeForPayment = "full_program"
       }
-      console.log("Program type for payment and verification:", programTypeForPayment) // Add this log
       // Verify availability before proceeding with payment
       const isAvailable = await verifyAvailabilityBeforePayment(programTypeForPayment) // Pass the derived programType
       if (!isAvailable) {

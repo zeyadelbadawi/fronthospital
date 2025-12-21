@@ -94,7 +94,6 @@ const THERAPY_CONFIGS = {
 }
 
 const getDepartmentNameForAssignment = (therapyType) => {
-  console.log("[ziad] getDepartmentNameForAssignment input therapyType:", therapyType)
   const mapping = {
     aba: "ABA",
     speech: "Speech",
@@ -104,7 +103,6 @@ const getDepartmentNameForAssignment = (therapyType) => {
     "special-education": "SpecialEducation",
   }
   const result = mapping[therapyType] || therapyType
-  console.log("[ziad] getDepartmentNameForAssignment result:", result)
   return result
 }
 
@@ -140,22 +138,12 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   }, [])
 
   useEffect(() => {
-    console.log("[v0] ===========================================")
-    console.log("[v0] UNIFIED-PATIENTS-MANAGEMENT DEBUG START")
-    console.log("[v0] ===========================================")
-    console.log("[v0] therapyType:", therapyType)
-    console.log("[v0] isDoctor():", isDoctor())
-    console.log("[v0] getCurrentUserId():", getCurrentUserId())
-    console.log("[v0] getCurrentUserRole():", getCurrentUserRole ? getCurrentUserRole() : "no function")
 
     const loadData = async () => {
       await getAdminHeadDoctorIds()
 
       if (isDoctor()) {
-        console.log("[v0] User is a doctor, fetching doctor assignments...")
         await fetchDoctorAssignments()
-      } else {
-        console.log("[v0] User is NOT a doctor")
       }
 
       await fetchPatients()
@@ -167,40 +155,29 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   const fetchDoctorAssignments = async () => {
     try {
       const doctorId = getCurrentUserId()
-      console.log("[v0] fetchDoctorAssignments - doctorId:", doctorId)
 
       if (!doctorId) {
-        console.log("[v0] No doctorId found, returning")
         return
       }
 
-      console.log(
-        "[v0] Fetching assignments from:",
-        `${process.env.NEXT_PUBLIC_API_URL}/single-session-appointment-assignment/doctor/${doctorId}`,
-      )
+     
 
       const response = await axiosInstance.get(
         `${process.env.NEXT_PUBLIC_API_URL}/single-session-appointment-assignment/doctor/${doctorId}`,
       )
 
-      console.log("[v0] Raw doctor assignments response:", response.data)
-      console.log("[v0] Total assignments received:", response.data.assignments?.length || 0)
 
       const currentDepartment = getDepartmentNameForAssignment(therapyType)
-      console.log("[v0] Current department for filtering:", currentDepartment)
 
       const filteredByDepartment = (response.data.assignments || []).filter((assignment) => {
         const matches = assignment.department?.toLowerCase() === currentDepartment.toLowerCase()
-        console.log("[v0] Assignment department:", assignment.department, "matches:", matches)
         return matches
       })
 
-      console.log("[v0] Filtered assignments for", currentDepartment, ":", filteredByDepartment)
-      console.log("[v0] Filtered assignments count:", filteredByDepartment.length)
-
+  
       setDoctorAssignments(filteredByDepartment)
     } catch (error) {
-      console.error("[v0] Error fetching doctor assignments:", error)
+      console.error("  Error fetching doctor assignments:", error)
       setDoctorAssignments([])
     }
   }
@@ -209,7 +186,6 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
     try {
       const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_API_URL}/notification/admin-headdoctor-ids`)
       const allIds = [...(response.data.adminIds || []), ...(response.data.headDoctorIds || [])]
-      console.log("[v0] Admin and Head Doctor IDs fetched:", allIds)
       setAdminHeadDoctorIds(allIds)
     } catch (error) {
       console.error("Error fetching admin and head doctor IDs:", error)
@@ -217,27 +193,19 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   }
 
   const fetchPatients = async () => {
-    console.log("[v0] ----------------------------------------")
-    console.log("[v0] fetchPatients START")
-    console.log("[v0] therapyType:", therapyType)
-    console.log("[v0] config:", config)
 
     setLoading(true)
     try {
       let apiEndpoint = config.apiEndpoint
-      console.log("[v0] Original apiEndpoint:", apiEndpoint)
 
       const isDoctorRole = isDoctor()
-      console.log("[v0] isDoctorRole:", isDoctorRole)
 
       if (isDoctorRole) {
         const doctorId = getCurrentUserId()
-        console.log("[v0] doctorId:", doctorId)
 
         if (doctorId) {
           // Replace the standard endpoint with the doctor-specific one
           apiEndpoint = apiEndpoint.replace("-assignments", `-assignments-by-doctor/${doctorId}`)
-          console.log("[v0] Modified apiEndpoint (doctor-specific):", apiEndpoint)
         }
       }
 
@@ -248,20 +216,13 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
       })
 
       const fullUrl = `${process.env.NEXT_PUBLIC_API_URL}${apiEndpoint}?${params}`
-      console.log("[v0] Full API URL:", fullUrl)
 
       const response = await axiosInstance.get(fullUrl)
 
-      console.log("[v0] Response status:", response.status)
-      console.log("[v0] Response data keys:", Object.keys(response.data))
-      console.log("[v0] Response data:", response.data)
-
       const assignmentsData = Array.isArray(response.data) ? response.data : response.data.assignments || []
 
-      console.log("[v0] Total assignments received:", assignmentsData.length)
 
       if (isDoctorRole && assignmentsData.length === 0) {
-        console.log("[v0] Doctor has no assignments from backend, showing empty list")
         setAssignments([])
         setTotalPages(1)
         return
@@ -272,7 +233,6 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
         return assignment.programId.paymentStatus === "FULLY_PAID"
       })
 
-      console.log("[v0] Paid assignments count:", paidAssignments.length)
 
       const sortedAssignments = paidAssignments.sort((a, b) => {
         const dateA = new Date(a.createdAt || a._id)
@@ -280,18 +240,15 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
         return dateB - dateA
       })
 
-      console.log("[v0] Final sorted assignments count:", sortedAssignments.length)
-      console.log("[v0] Setting assignments state with:", sortedAssignments.length, "items")
 
       setAssignments(sortedAssignments)
       setTotalPages(response.data.totalPages || 1)
 
-      console.log("[v0] fetchPatients END")
-      console.log("[v0] ----------------------------------------")
+
     } catch (error) {
-      console.error("[v0] Error fetching patients:", error)
-      console.error("[v0] Error response:", error.response?.data)
-      console.error("[v0] Error status:", error.response?.status)
+      console.error("  Error fetching patients:", error)
+      console.error("  Error response:", error.response?.data)
+      console.error("  Error status:", error.response?.status)
       setAssignments([])
     } finally {
       setLoading(false)
@@ -338,9 +295,8 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
         type: "successfully",
       })
 
-      console.log("[v0] Notification sent to admins and head doctors successfully")
     } catch (error) {
-      console.error("[v0] Error sending notifications to admins and head doctors:", error)
+      console.error("  Error sending notifications to admins and head doctors:", error)
     }
   }
 
@@ -434,7 +390,6 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
             rule: "Patient",
             type: "successfully",
           })
-          console.log("[v0] Notification sent to Student successfully")
         }
 
         await sendNotificationToAdminsAndHeadDoctors(doctorName, departmentName, patientName)
@@ -526,10 +481,7 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
   }
 
   const handleUploadPlan = async () => {
-    console.log("[v0] handleUploadPlan started")
-    console.log("[v0] uploadFile:", uploadFile?.name)
-    console.log("[v0] uploadModal:", uploadModal)
-
+  
     if (!uploadFile || !uploadModal.patientId || !uploadModal.appointmentId) {
       alert("Please select a file to upload")
       return
@@ -543,7 +495,6 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
       formData.append("appointmentId", uploadModal.appointmentId)
 
       const uploadUrl = `${process.env.NEXT_PUBLIC_API_URL}/PsychotherapyS/upload-plan/${uploadModal.patientId}/${uploadModal.appointmentId}`
-      console.log("[v0] Uploading to:", uploadUrl)
 
       const response = await axiosInstance.post(uploadUrl, formData, {
         headers: {
@@ -551,20 +502,15 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
         },
       })
 
-      console.log("[v0] Upload response:", response.data)
 
       if (response.status === 200) {
         alert("Plan uploaded successfully!")
         setUploadModal({ open: false, patientId: null, appointmentId: null, patientName: "" })
         setUploadFile(null)
 
-        console.log("[v0] Incrementing planEditorKey from", planEditorKey, "to", planEditorKey + 1)
         setPlanEditorKey((prev) => prev + 1)
 
-        console.log("[v0] Opening plan editor with:", {
-          patientId: uploadModal.patientId,
-          appointmentId: uploadModal.appointmentId,
-        })
+     
 
         // Now open the plan editor with the uploaded plan
         setSelectedPatientId(uploadModal.patientId)
@@ -572,8 +518,8 @@ const UnifiedPatientsManagement = ({ therapyType }) => {
         setShowPlanEditor(true)
       }
     } catch (error) {
-      console.error("[v0] Error uploading plan:", error)
-      console.error("[v0] Error response:", error.response?.data)
+      console.error("  Error uploading plan:", error)
+      console.error("  Error response:", error.response?.data)
       alert("Error uploading plan. Please try again.")
     } finally {
       setUploading(false)

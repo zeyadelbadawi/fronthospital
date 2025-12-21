@@ -29,7 +29,6 @@ export default function AccountantHeader({
   const [count, setCount] = useState(0)
 
   useSocket(user?.id, ({ count, notifications }) => {
-    console.log("[v0] Received notifications via socket:", notifications)
     setNotifications(notifications)
     setCount(count)
   })

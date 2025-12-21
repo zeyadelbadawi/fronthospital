@@ -213,7 +213,6 @@ export function AppointmentAssignmentManager() {
 
       if (existingAssignment && existingAssignment.doctorId) {
         doctors = doctors.filter((doc) => doc._id !== existingAssignment.doctorId._id)
-        console.log("[v0] Excluded currently assigned doctor:", existingAssignment.doctorId.username)
       }
 
       setAvailableDoctors(doctors)

@@ -116,10 +116,8 @@ const AllPatientsSchool = () => {
   }
 
   const handleUploadSuccess = async () => {
-    console.log("[v0] Upload success callback triggered")
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    console.log("[v0] Fetching programs after upload...")
     setLoading(true)
 
     try {
@@ -141,20 +139,11 @@ const AllPatientsSchool = () => {
         `${process.env.NEXT_PUBLIC_API_URL}/schoolhandling/school-programs-optimized?${params}`,
       )
 
-      console.log("[v0] Response received:", response.data)
 
       const programsData = response.data.programs || response.data || []
       const allPrograms = Array.isArray(programsData) ? programsData : []
 
-      console.log(
-        "[v0] All programs:",
-        allPrograms.map((p) => ({
-          name: p.patientName,
-          planExists: p.planExists,
-          patientId: p.patientId,
-          unicValue: p.unicValue,
-        })),
-      )
+     
 
       const paidPrograms = allPrograms.filter((program) => {
         return program.paymentStatus === "FULLY_PAID"
@@ -164,9 +153,8 @@ const AllPatientsSchool = () => {
       setTotalPages(response.data.totalPages || 1)
       setTotalPrograms(paidPrograms.length)
 
-      console.log("[v0] Programs updated successfully")
     } catch (error) {
-      console.error("[v0] Error refreshing programs:", error)
+      console.error("  Error refreshing programs:", error)
     } finally {
       setLoading(false)
     }
@@ -187,13 +175,11 @@ const AllPatientsSchool = () => {
   const handleMarkAsDone = async (program) => {
     try {
       setLockingProgramId(`${program.patientId}-${program.unicValue}`)
-      console.log("[v0] Marking sheet as done for:", program.patientId)
 
       const response = await axiosInstance.patch(
         `${process.env.NEXT_PUBLIC_API_URL}/school/lock-plan/${program.patientId}/${program.unicValue}`,
       )
 
-      console.log("[v0] Sheet locked successfully:", response.data)
 
       await new Promise((resolve) => setTimeout(resolve, 2500))
 
